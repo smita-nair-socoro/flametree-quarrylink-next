@@ -228,7 +228,6 @@ const getDialogConfigs = (
                   setAdditionalRecipientEmails?.(emails);
                 }}
                 fixedValues={customerEmail ? [customerEmail] : []}
-                validate={(s) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)}
                 label="Press Enter or comma to add email addresses for delivery receipts."
                 placeholder="Add email..."
               />

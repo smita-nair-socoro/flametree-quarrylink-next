@@ -181,23 +181,23 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -325,9 +325,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -430,18 +430,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -497,6 +497,16 @@ export default function DocketForm({
     : null;
   const newStart = docketForm.watch('deliveryCollectionStartTime');
   const newEnd = docketForm.watch('deliveryCollectionEndTime');
+
+  console.log('[DocketForm instance]', {
+    id,
+    jobId,
+    isQuickDocket,
+    isEditing,
+    selectedJobId,
+    start: newStart,
+    end: newEnd,
+  });
   const timeLabel =
     newStart && newEnd && deliveryDate
       ? `${newStart} – ${newEnd} on ${format(deliveryDate, 'd MMM')}`
@@ -1027,7 +1037,8 @@ export default function DocketForm({
                           <FormLabel>Start Time Window</FormLabel>
                           <FormControl>
                             <Select
-                              value={field.value}
+                              key={`start-${field.value || 'empty'}`}
+                              value={field.value || ''}
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
@@ -1060,7 +1071,8 @@ export default function DocketForm({
                           <FormLabel>End Time Window</FormLabel>
                           <FormControl>
                             <Select
-                              value={field.value}
+                              key={`end-${field.value || 'empty'}`}
+                              value={field.value || ''}
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
@@ -1141,9 +1153,6 @@ export default function DocketForm({
                                   : 'Enter Docket Emails'
                               }
                               fixedValues={fixedValues}
-                              validate={(s) =>
-                                /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s)
-                              }
                               label="Press Enter or comma to add email addresses for docket notifications"
                               {...field}
                               disabled={
@@ -1231,15 +1240,14 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.driverChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.driverChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
+                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
+                                .checklistStatus === 'PASS'
+                                ? 'text-green-600'
+                                : selectedDocket.driverChecklist
+                                  .checklistStatus === 'FAIL'
+                                  ? 'text-red-600'
+                                  : 'text-muted-foreground'
+                                }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1265,15 +1273,14 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.truckChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.truckChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
+                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
+                                .checklistStatus === 'PASS'
+                                ? 'text-green-600'
+                                : selectedDocket.truckChecklist
+                                  .checklistStatus === 'FAIL'
+                                  ? 'text-red-600'
+                                  : 'text-muted-foreground'
+                                }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}
