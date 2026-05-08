@@ -67,8 +67,7 @@ export function JobLineItemActionButtons({
 						</DropdownMenuTrigger>
 						<DropdownMenuContent align="end" className="w-48">
 							<DropdownMenuItem
-								onClick={actions.remove}
-								className="text-destructive focus:text-destructive"
+ 								className="text-destructive focus:text-destructive"
 							>
 								<Delete className="h-4 w-4 mr-2 text-red-600" />
 								Remove
