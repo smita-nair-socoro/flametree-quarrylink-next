@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { DocketDTO } from '@/lib/types/docket';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -32,7 +33,9 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
-import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
+import { useDriverAppOperationalUpdate, DriverAppAssignedDocketDetailQueryOptions } from '@/lib/api/driver-app';
+import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
+import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
@@ -71,16 +74,28 @@ export default function DocketsTab({
   dockets,
   onOpenChecklist,
 }: DocketsTabProps) {
-  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
-    null,
-  );
+  const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+  const [pendingDocket, setPendingDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
 
+  const { data: docketDetail } = useQuery({
+    ...DriverAppAssignedDocketDetailQueryOptions(selectedDocketData?.id ?? 0),
+    enabled: selectedDocketData != null,
+  });
+  const selectedDocket = docketDetail ?? selectedDocketData;
+
   const { actions, confirmDialogs, isDialogOpen } =
     useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
+  const isTruckInspectionPassed = useTruckInspectionStatusStore(
+    (s) => s.isTruckInspectionPassed,
+  );
+  const isDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.isDailyChecklistRequired,
+  );
+  const isPreStartPassed = !isDailyChecklistRequired;
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
@@ -115,10 +130,10 @@ export default function DocketsTab({
     }
   }, [selectedDocket]);
 
-  const checklistsComplete =
-    selectedDocket?.driverChecklist?.checklistStatus ===
-      CHECKLIST_STATUS.PASS &&
-    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS;
+  const truckChecklistPassed =
+    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
+    (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
+  const checklistsComplete = isPreStartPassed && truckChecklistPassed;
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -133,7 +148,23 @@ export default function DocketsTab({
     }
   };
 
+  React.useEffect(() => {
+    if (!isPreStartPassed) {
+      setIsDrawerOpen(false);
+      setSelectedDocket(null);
+    } else if (pendingDocket) {
+      setSelectedDocket(pendingDocket);
+      setIsDrawerOpen(true);
+      setPendingDocket(null);
+    }
+  }, [isPreStartPassed, pendingDocket]);
+
   const openDocketDetails = (docket: DocketDTO) => {
+    if (!isPreStartPassed) {
+      setPendingDocket(docket);
+      onOpenChecklist?.('pre-start');
+      return;
+    }
     setSelectedDocket(docket);
     setIsDrawerOpen(true);
   };
@@ -333,29 +364,27 @@ export default function DocketsTab({
                         <span className="text-[14px] font-bold text-gray-900">
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
-                            : selectedDocket.actualLoadSize ||
-                              selectedDocket.plannedLoadSize}
+                            : (selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
                               : selectedDocket.jobItem?.productSellUom}
                         </span>
-                        <Button
-                          variant="ghost"
-                          className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
-                          onClick={() => {
-                            const displayLoad =
-                              selectedDocket.docketStatus === 'ASSIGNED'
-                                ? selectedDocket.plannedLoadSize
-                                : selectedDocket.actualLoadSize ||
-                                  selectedDocket.plannedLoadSize;
-                            setUpdateValue(displayLoad?.toString() || '');
-                            setIsUpdateDrawerOpen(true);
-                          }}
-                        >
-                          <Pencil className="h-2 w-2" size="xs" /> Update
-                        </Button>
+                        {['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) && (
+                          <Button
+                            variant="ghost"
+                            className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
+                            onClick={() => {
+                              setUpdateValue(
+                                selectedDocket.actualLoadSize?.toString() ?? '',
+                              );
+                              setIsUpdateDrawerOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-2 w-2" size="xs" /> Update
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -456,23 +485,9 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                  {selectedDocket.driverChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS && (
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
-                      onClick={() => {
-                        setIsDrawerOpen(false);
-                        onOpenChecklist?.('pre-start');
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        Pre-Start Checklist Required
-                      </span>
-                    </Button>
-                  )}
                   {selectedDocket.truckChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS && (
+                    CHECKLIST_STATUS.PASS &&
+                    !isTruckInspectionPassed(selectedDocket.id) && (
                     <Button
                       variant="outline"
                       className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
@@ -587,10 +602,8 @@ export default function DocketsTab({
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {selectedDocket?.docketStatus === 'ASSIGNED'
-                  ? selectedDocket?.plannedLoadSize
-                  : selectedDocket?.actualLoadSize ||
-                    selectedDocket?.plannedLoadSize}
+                {selectedDocket?.actualLoadSize ||
+                  selectedDocket?.plannedLoadSize}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'
                   : selectedDocket?.jobItem?.productSellUom === 'M3'

@@ -52,6 +52,7 @@ import {
   DocketOperationalUpdateRequest,
   DocketOperationalUpdateResponse,
   DispatchDocketDTO,
+  DriverAppAssignedDTO,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
@@ -1331,7 +1332,7 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
+      appClient.Get<DriverAppAssignedDTO>(`/socoro/quarrylink/api/driver-app/assigned`),
     getAssignedDocketById: (docketId: number) =>
       appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
     operationalUpdate: (id: number, actualLoadSize: number) =>
@@ -1339,10 +1340,10 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
         { body: { actualLoadSize } },
       ),
-    updateDocketStatus: (id: number, body: object) =>
+    updateDocketStatus: (id: number, formData: FormData) =>
       appClient.Put<DocketDTO>(
         `/socoro/quarrylink/api/driver-app/${id}/status`,
-        { body },
+        { body: formData },
       ),
   },
 
