@@ -46,7 +46,11 @@ export function InvoiceActions({
   const queryClient = useQueryClient();
 
   const createInvoiceMutation = useMutation({
-    mutationFn: (data: { mode: 'INDIVIDUAL' | 'BULK'; docketIds: number[] }) =>
+    mutationFn: (data: {
+      mode: 'INDIVIDUAL' | 'BULK';
+      docketIds: number[];
+      inclDeliveryCost: boolean;
+    }) =>
       APIClient.invoices.create(data),
     onSuccess: () => {
       toast.success('Invoices created successfully');
@@ -178,6 +182,7 @@ export function InvoiceActions({
                 createInvoiceMutation.mutate({
                   mode: isIndividual ? 'INDIVIDUAL' : 'BULK',
                   docketIds: selectedDockets.map((d) => d.id),
+                  inclDeliveryCost: includeDeliveryPrices,
                 });
               }}
             >

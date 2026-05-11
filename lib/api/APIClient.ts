@@ -1321,7 +1321,11 @@ export const APIClient = {
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
       appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
-    create: (data: { mode: 'INDIVIDUAL' | 'BULK'; docketIds: number[] }) =>
+    create: (data: {
+      mode: 'INDIVIDUAL' | 'BULK';
+      docketIds: number[];
+      inclDeliveryCost: boolean;
+    }) =>
       appClient.Post<void>(`/socoro/quarrylink/api/invoices`, { body: data }),
   },
 
