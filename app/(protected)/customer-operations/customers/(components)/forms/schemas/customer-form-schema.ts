@@ -130,7 +130,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     ) {
       // Compare against select option values (codes), not labels
       // OFFOLLOWINGMONTH / OFCURRENTMONTH => 1..31
-      // DAYSAFTERBILLDATE / DAYSAFTERBILLMONTH => 1..99
+      // DAYSAFTERBILLDATE / DAYSAFTERBILLMONTH => 1..999
       const terms = data.payment_terms;
       if (terms === PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH || terms === PAYMENT_TERM_TYPE.OFCURRENTMONTH) {
         if (data.payment_terms_day < 1 || data.payment_terms_day > 31) {
@@ -144,11 +144,11 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
         terms === PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE ||
         terms === PAYMENT_TERM_TYPE.DAYSAFTERBILLMONTH
       ) {
-        if (data.payment_terms_day < 1 || data.payment_terms_day > 99) {
+        if (data.payment_terms_day < 1 || data.payment_terms_day > 999) {
           ctx.addIssue({
             path: ['payment_terms_day'],
             code: z.ZodIssueCode.custom,
-            message: 'Enter a value between 1 and 99',
+            message: 'Enter a value between 1 and 999',
           });
         }
       }
