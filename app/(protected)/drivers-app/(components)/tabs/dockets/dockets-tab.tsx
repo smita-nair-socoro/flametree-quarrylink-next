@@ -216,7 +216,11 @@ export default function DocketsTab({
                 ? 'TN'
                 : docket.jobItem?.productSellUom === 'M3'
                   ? 'm³'
-                  : docket.jobItem?.productSellUom}
+                  : docket.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket.jobItem?.productSellUom === 'KG_20'
+                      ? 'x 20kg'
+                      : docket.jobItem?.productSellUom}
             </span>
           </div>
 
@@ -488,24 +492,24 @@ export default function DocketsTab({
                   {selectedDocket.truckChecklist?.checklistStatus !==
                     CHECKLIST_STATUS.PASS &&
                     !isTruckInspectionPassed(selectedDocket.id) && (
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
-                      onClick={() => {
-                        setIsDrawerOpen(false);
-                        onOpenChecklist?.(
-                          'vehicle-inspection',
-                          selectedDocket.truck?.licensePlate,
-                          selectedDocket.id,
-                          selectedDocket.truckId,
-                        );
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        Truck Inspection Required
-                      </span>
-                    </Button>
-                  )}
+                      <Button
+                        variant="outline"
+                        className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
+                        onClick={() => {
+                          setIsDrawerOpen(false);
+                          onOpenChecklist?.(
+                            'vehicle-inspection',
+                            selectedDocket.truck?.licensePlate,
+                            selectedDocket.id,
+                            selectedDocket.truckId,
+                          );
+                        }}
+                      >
+                        <span className="flex items-center gap-2">
+                          Truck Inspection Required
+                        </span>
+                      </Button>
+                    )}
                   {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                     <Button
                       onClick={() => handleAction('markArrived')}
