@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { DocketDTO } from '@/lib/types/docket';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -32,8 +33,9 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
 import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
-import { useDriverAppOperationalUpdate } from '@/lib/api/driver-app';
+import { useDriverAppOperationalUpdate, DriverAppAssignedDocketDetailQueryOptions } from '@/lib/api/driver-app';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
+import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
@@ -53,7 +55,6 @@ const getCustomerName = (
 
 interface DocketsTabProps {
   dockets: DocketDTO[];
-  isPreStartPassed?: boolean;
   onOpenChecklist?: (
     type: 'pre-start' | 'vehicle-inspection',
     truckLicensePlate?: string,
@@ -71,15 +72,19 @@ type ActionType =
 
 export default function DocketsTab({
   dockets,
-  isPreStartPassed = false,
   onOpenChecklist,
 }: DocketsTabProps) {
-  const [selectedDocket, setSelectedDocket] = React.useState<DocketDTO | null>(
-    null,
-  );
+  const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
+  const [pendingDocket, setPendingDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
+
+  const { data: docketDetail } = useQuery({
+    ...DriverAppAssignedDocketDetailQueryOptions(selectedDocketData?.id ?? 0),
+    enabled: selectedDocketData != null,
+  });
+  const selectedDocket = docketDetail ?? selectedDocketData;
 
   const { actions, confirmDialogs, isDialogOpen } =
     useDriverAppDocketActions(selectedDocket);
@@ -87,6 +92,10 @@ export default function DocketsTab({
   const isTruckInspectionPassed = useTruckInspectionStatusStore(
     (s) => s.isTruckInspectionPassed,
   );
+  const isDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.isDailyChecklistRequired,
+  );
+  const isPreStartPassed = !isDailyChecklistRequired;
 
   const handleAction = (actionType: ActionType) => {
     actions[actionType]();
@@ -121,9 +130,7 @@ export default function DocketsTab({
     }
   }, [selectedDocket]);
 
-  const driverChecklistPassed =
-    selectedDocket?.driverChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
-    isPreStartPassed;
+  const driverChecklistPassed = isPreStartPassed;
   const truckChecklistPassed =
     selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
@@ -142,7 +149,27 @@ export default function DocketsTab({
     }
   };
 
+  React.useEffect(() => {
+    if (!isPreStartPassed) {
+      setIsDrawerOpen(false);
+      setSelectedDocket(null);
+    }
+  }, [isPreStartPassed]);
+
+  React.useEffect(() => {
+    if (isPreStartPassed && pendingDocket) {
+      setSelectedDocket(pendingDocket);
+      setIsDrawerOpen(true);
+      setPendingDocket(null);
+    }
+  }, [isPreStartPassed, pendingDocket]);
+
   const openDocketDetails = (docket: DocketDTO) => {
+    if (!isPreStartPassed) {
+      setPendingDocket(docket);
+      onOpenChecklist?.('pre-start');
+      return;
+    }
     setSelectedDocket(docket);
     setIsDrawerOpen(true);
   };
@@ -462,22 +489,6 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                  {selectedDocket.driverChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS &&
-                    !isPreStartPassed && (
-                    <Button
-                      variant="outline"
-                      className="h-12 rounded-xl text-[16px] shadow-lg cursor-pointer"
-                      onClick={() => {
-                        setIsDrawerOpen(false);
-                        onOpenChecklist?.('pre-start');
-                      }}
-                    >
-                      <span className="flex items-center gap-2">
-                        Pre-Start Checklist Required
-                      </span>
-                    </Button>
-                  )}
                   {selectedDocket.truckChecklist?.checklistStatus !==
                     CHECKLIST_STATUS.PASS &&
                     !isTruckInspectionPassed(selectedDocket.id) && (

@@ -9,6 +9,7 @@ import {
   TruckChecklistTemplateQueryOptions,
 } from '@/lib/api/checklist';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -60,17 +61,24 @@ export default function DriversAppPage() {
     if (truckTemplate) setTruckTemplate(truckTemplate);
   }, [truckTemplate, setTruckTemplate]);
 
-  const isDailyChecklistRequired = React.useMemo(() => {
+  const setIsDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.setIsDailyChecklistRequired,
+  );
+  const isDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.isDailyChecklistRequired,
+  );
+  console.log('isDailyChecklistRequired', isDailyChecklistRequired);
+
+  React.useEffect(() => {
     const checklist = driverData?.latestDriverChecklist;
-    if (!checklist) return true;
+    if (!checklist) {
+      setIsDailyChecklistRequired(true);
+      return;
+    }
     const todayUTC = new Date().toISOString().split('T')[0];
     const checklistDateUTC = checklist.checklistDate.split('T')[0];
-    const isToday = todayUTC === checklistDateUTC;
-    const isPassed =
-      checklist.checklistStatus === 'PASS' ||
-      checklist.checklistStatus === 'CONFIRMED';
-    return !(isToday && isPassed);
-  }, [driverData]);
+    setIsDailyChecklistRequired(todayUTC !== checklistDateUTC);
+  }, [driverData, setIsDailyChecklistRequired]);
 
   const handleLogout = async () => {
     try {
@@ -178,7 +186,6 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
-                isPreStartPassed={!isDailyChecklistRequired}
                 onOpenChecklist={(
                   type,
                   truckLicensePlate,
