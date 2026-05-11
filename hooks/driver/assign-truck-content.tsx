@@ -23,17 +23,24 @@ export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }
 
 export function AssignTruckContent({
   trucks,
+  assignedTruckIds = [],
   onSelectionChange,
 }: {
   trucks: TruckDTO[];
+  assignedTruckIds?: number[];
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
 
+  const availableTrucks = React.useMemo(
+    () => trucks.filter((t) => !assignedTruckIds.includes(t.id ?? 0)),
+    [trucks, assignedTruckIds],
+  );
+
   const groups = React.useMemo(() => {
-    const filtered = trucks.filter((t) =>
+    const filtered = availableTrucks.filter((t) =>
       t.licensePlate.toLowerCase().includes(search.toLowerCase()),
     );
     const map = new Map<string, TruckDTO[]>();
@@ -63,7 +70,7 @@ export function AssignTruckContent({
     selectedIds.length === 0
       ? 'Select trucks...'
       : selectedIds.length === 1
-        ? (trucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected')
+        ? (availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected')
         : `${selectedIds.length} trucks selected`;
 
   return (
@@ -146,7 +153,7 @@ export function AssignTruckContent({
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {
-            const truck = trucks.find((t) => t.id === id);
+            const truck = availableTrucks.find((t) => t.id === id);
             return (
               <Button
                 key={id}

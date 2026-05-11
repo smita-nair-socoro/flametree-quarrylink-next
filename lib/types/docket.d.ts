@@ -340,3 +340,25 @@ export interface DispatchUnassignedDocket {
 export type DispatchBoardDocketRow =
   | DispatchAssignedDocket
   | DispatchUnassignedDocket;
+
+export interface ActiveDocketInfo {
+  id: number;
+  docketNumber: string;
+  docketStatus: string;
+}
+
+export interface BlockedOperationResponse {
+  success: boolean;
+  message?: string;
+  driverId?: number;
+  activeDockets?: ActiveDocketInfo[];
+}
+
+export interface UnassignOperationResponse {
+  canUnassign: boolean;
+  reason?: string;
+  truck?: TruckDTO;
+  driverId?: number;
+  truckId?: number;
+  activeDockets?: ActiveDocketInfo[];
+}

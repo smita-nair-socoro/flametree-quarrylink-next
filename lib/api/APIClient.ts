@@ -52,6 +52,8 @@ import {
   DocketOperationalUpdateRequest,
   DocketOperationalUpdateResponse,
   DispatchDocketDTO,
+  BlockedOperationResponse,
+  UnassignOperationResponse,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
@@ -1114,7 +1116,7 @@ export const APIClient = {
       driverId: number,
       data: { version: number; truckId: number },
     ) =>
-      appClient.Delete<DriverDTO>(
+      appClient.Delete<UnassignOperationResponse>(
         `/socoro/quarrylink/api/driver/${driverId}/truck`,
         {
           body: data,
@@ -1126,9 +1128,9 @@ export const APIClient = {
         { body: data },
       ),
     delete: (id: number) =>
-      appClient.Delete<void>(`/socoro/quarrylink/api/driver/${id}`),
+      appClient.Delete<BlockedOperationResponse>(`/socoro/quarrylink/api/driver/${id}`),
     deactivate: (id: number) =>
-      appClient.Patch<DriverDTO>(
+      appClient.Patch<BlockedOperationResponse>(
         `/socoro/quarrylink/api/driver/${id}/deactivate`,
         {},
       ),
@@ -1170,7 +1172,7 @@ export const APIClient = {
         body: data,
       }),
     delete: (id: number) =>
-      appClient.Delete<TruckDTO>(`/socoro/quarrylink/api/truck/${id}`),
+      appClient.Delete<BlockedOperationResponse>(`/socoro/quarrylink/api/truck/${id}`),
     assignDrivers: (
       truckId: number,
       data: { version: number; driverIds: number[] },
@@ -1185,14 +1187,14 @@ export const APIClient = {
       truckId: number,
       data: { version: number; driverId: number },
     ) =>
-      appClient.Delete<TruckDTO>(
+      appClient.Delete<UnassignOperationResponse>(
         `/socoro/quarrylink/api/truck/${truckId}/driver`,
         {
           body: data,
         },
       ),
     deactivate: (id: number) =>
-      appClient.Patch<TruckDTO>(
+      appClient.Patch<BlockedOperationResponse>(
         `/socoro/quarrylink/api/truck/${id}/deactivate`,
         {},
       ),

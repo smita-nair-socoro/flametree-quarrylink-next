@@ -10,17 +10,26 @@ import {
   Ban,
   TriangleAlert,
   CircleAlert,
+  ArrowLeftRight,
 } from 'lucide-react';
 import {
   DriverByIdQueryOptions,
   useDeleteDriver,
   useDeactivateDriver,
   useReactivateDriver,
+  useUnassignTruckFromDriver,
 } from '@/lib/api/driver';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  UnassignTruckDescription,
+  UnassignTruckBlockedContent,
+  UnassignTruckContent,
+  UnassignTruckInfo,
+} from '@/hooks/driver/unassign-truck-content';
 
 interface DialogConfig {
   title?: string;
@@ -50,6 +59,8 @@ const getDialogConfigs = (
   driverData?: DriverDTO | null,
   selectedAction?: SelectedAction,
   activeDocketIds: number[] = [],
+  selectedTruck?: (UnassignTruckInfo & { id: number }) | null,
+  blockedTruckDocketIds: number[] = [],
 ): Record<string, DialogConfig> => {
   const driverName = driverData?.driverName;
   const docketCount = activeDocketIds.length;
@@ -345,11 +356,53 @@ const getDialogConfigs = (
         confirmActionNeeded: true,
       },
     };
+  } else if (selectedAction?.key === 'unassignTruck') {
+    return {
+      unassignTruck: {
+        title: 'Unassign Truck from Driver?',
+        description: selectedTruck ? (
+          <UnassignTruckDescription
+            licensePlate={selectedTruck.licensePlate}
+            driverName={driverName ?? ''}
+          />
+        ) : undefined,
+        content: selectedTruck ? (
+          <UnassignTruckContent truck={selectedTruck} />
+        ) : null,
+        confirmText: 'Unassign Truck',
+        confirmCustomColor: '#E7000B',
+        cancelText: 'Cancel',
+      },
+    };
+  } else if (selectedAction?.key === 'unassignTruckBlocked') {
+    return {
+      unassignTruckBlocked: {
+        title: 'Unassign Truck from Driver?',
+        description: selectedTruck ? (
+          <UnassignTruckDescription
+            licensePlate={selectedTruck.licensePlate}
+            driverName={driverName ?? ''}
+          />
+        ) : undefined,
+        content: selectedTruck ? (
+          <UnassignTruckBlockedContent
+            licensePlate={selectedTruck.licensePlate}
+            activeDocketIds={blockedTruckDocketIds}
+          />
+        ) : null,
+        confirmText: 'Transfer Dockets',
+        confirmCustomColor: '#8E51FF',
+        confirmIcon: <ArrowLeftRight className="h-4 w-4" />,
+        cancelText: 'Cancel',
+      },
+    };
   }
+
   return {};
 };
 
 export function useDriverActions(driverData?: DriverDTO | null) {
+  const router = useRouter();
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -363,11 +416,15 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const deleteDriverMutation = useDeleteDriver();
   const deactivateDriverMutation = useDeactivateDriver();
   const reactivateDriverMutation = useReactivateDriver();
+  const unassignTruckMutation = useUnassignTruckFromDriver();
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
   const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
   const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
+  const [selectedTruck, setSelectedTruck] = React.useState<(UnassignTruckInfo & { id: number }) | null>(null);
+  const [blockedTruckDocketIds, setBlockedTruckDocketIds] = React.useState<number[]>([]);
+  const transitioningRef = React.useRef(false);
 
   const activeDocketIds =
     selectedAction?.key === 'cannotDeactivate' ? cannotDeactivateDocketIds
@@ -375,9 +432,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     : [];
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds),
+    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds, selectedTruck, blockedTruckDocketIds),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
+    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds, selectedTruck, blockedTruckDocketIds],
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -390,7 +447,14 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDeactivate = async () => {
     if (driverId == null) return;
     try {
-      await deactivateDriverMutation.mutateAsync(driverId);
+      const response = await deactivateDriverMutation.mutateAsync(driverId);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeactivateDocketIds(blocked.map((d) => d.id));
+        setSelectedAction({ key: 'cannotDeactivate' });
+        setActiveDialog('cannotDeactivate');
+        return;
+      }
       notifySuccess('Driver deactivated successfully.');
       const current = useDriverStore.getState().selectedDriver;
       if (current) {
@@ -401,18 +465,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       }
       setActiveDialog(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeactivateDocketIds(docketIds);
-        setSelectedAction({ key: 'cannotDeactivate' });
-        setActiveDialog('cannotDeactivate');
-      } else {
-        notifyError(extractErrorMessage(error));
-      }
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -437,30 +490,59 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDelete = async () => {
     if (driverId == null) return;
     try {
-      await deleteDriverMutation.mutateAsync(driverId);
+      const response = await deleteDriverMutation.mutateAsync(driverId);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeleteDocketIds(blocked.map((d) => d.id));
+        setSelectedAction({ key: 'cannotDelete' });
+        setActiveDialog('cannotDelete');
+        return;
+      }
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
       setViewOpen(false);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeleteDocketIds(docketIds);
-        setSelectedAction({ key: 'cannotDelete' });
-        setActiveDialog('cannotDelete');
-      } else {
-        notifyError(extractErrorMessage(error));
-      }
+      notifyError(extractErrorMessage(error));
     }
   };
 
-  const actionHandlers: Record<string, () => Promise<void>> = {
+  const handleUnassignTruck = async (truck: UnassignTruckInfo & { id: number }) => {
+    if (driverId == null) return;
+    try {
+      const response = await unassignTruckMutation.mutateAsync({
+        driverId,
+        data: { version: (fullDriverData ?? driverData)?.version ?? 0, truckId: truck.id },
+      });
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setBlockedTruckDocketIds(blocked.map((d) => d.id));
+        transitioningRef.current = true;
+        setSelectedAction({ key: 'unassignTruckBlocked' });
+        setActiveDialog('unassignTruckBlocked');
+        return;
+      }
+      notifySuccess('Truck unassigned successfully.');
+      setActiveDialog(null);
+      setSelectedTruck(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
+    }
+  };
+
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedTruckDocketIds.join(',')}`;
+    setActiveDialog(null);
+    setSelectedTruck(null);
+    setBlockedTruckDocketIds([]);
+    router.push(docketLink);
+  };
+
+  const actionHandlers: Record<string, () => Promise<void> | void> = {
     deactivate: handleDeactivate,
     reactivate: handleReactivate,
     delete: handleDelete,
+    unassignTruck: () => { if (selectedTruck) void handleUnassignTruck(selectedTruck); },
+    unassignTruckBlocked: () => handleTransferDockets(),
   };
 
   const actions = {
@@ -475,6 +557,11 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     deactivate: () => createDialogAction('deactivate')(),
     reactivate: () => createDialogAction('reactivate')(),
     delete: () => createDialogAction('delete')(),
+    unassignTruck: (truck: UnassignTruckInfo & { id: number }) => {
+      setSelectedTruck(truck);
+      setSelectedAction({ key: 'unassignTruck' });
+      setActiveDialog('unassignTruck');
+    },
   };
 
   // Render active dialog
@@ -487,8 +574,14 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         open={activeDialog === key}
         onOpenChangeAction={(open) => {
           if (!open) {
+            if (transitioningRef.current) {
+              transitioningRef.current = false;
+              return;
+            }
             setActiveDialog(null);
             setSelectedAction(null);
+            setSelectedTruck(null);
+            setBlockedTruckDocketIds([]);
           }
         }}
         title={config.title ?? ''}
