@@ -453,6 +453,12 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         ? cannotDeleteDocketIds
         : [];
 
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
+  };
+
   const dialogConfigs = React.useMemo(
     () =>
       getDialogConfigs(
@@ -571,12 +577,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     } catch (error) {
       notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
     }
-  };
-
-  const handleNavigate = (url: string) => {
-    setIsNavigating(true);
-    setActiveDialog(null);
-    router.push(url);
   };
 
   const handleTransferDockets = () => {
