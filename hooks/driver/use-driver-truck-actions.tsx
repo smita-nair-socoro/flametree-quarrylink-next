@@ -18,10 +18,7 @@ import {
   useUnassignTruckFromDriver,
 } from '@/lib/api/driver';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  extractErrorMessage,
-  extractErrorData,
-} from '@/lib/utils/error-message-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title: string;
@@ -83,31 +80,24 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   ) => {
     if (!driverData?.id) return;
     try {
-      await unassignTruckFromDriver.mutateAsync({
+      const response = await unassignTruckFromDriver.mutateAsync({
         driverId: driverData.id,
         data: {
           version: driverData.version ?? 0,
           truckId: truck.id,
         },
       });
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setBlockedDocketIds(blocked.map((d) => d.id));
+        setActiveDialog('unassignBlocked');
+        return;
+      }
       notifySuccess('Truck unassigned successfully.');
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<
-        string,
-        unknown
-      > | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setBlockedDocketIds(docketIds);
-        setActiveDialog('unassignBlocked');
-      } else {
-        notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
-      }
+      notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
     }
   };
 
@@ -126,6 +116,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: (
           <AssignTruckContent
             trucks={availableTrucks}
+            assignedTruckIds={(driverData?.trucks ?? []).map((t) => t.id)}
             onSelectionChange={setSelectedTruckIds}
           />
         ),
