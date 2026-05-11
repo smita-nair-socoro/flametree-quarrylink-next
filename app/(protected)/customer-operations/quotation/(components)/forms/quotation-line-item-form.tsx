@@ -129,6 +129,7 @@ export default function QuoteLineItemForm({
   const pinnedAddress = isCollection
     ? selectedQuarrySupplierProduct?.quarrySupplier?.address
     : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
+  console.log('Pinned Address:', pinnedAddress);
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress],
@@ -438,8 +439,8 @@ export default function QuoteLineItemForm({
                         <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
                           <div className="text-sm font-semibold text-purple-900">
                             The conversion is using the product density of{' '}
-                            {productDetails.densityTonnagePerM3} TN/m³, which
-                            is managed in your product table.
+                            {productDetails.densityTonnagePerM3} TN/m³, which is
+                            managed in your product table.
                           </div>
                         </div>
                       )}

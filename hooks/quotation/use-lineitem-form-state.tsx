@@ -19,6 +19,7 @@ import {
   useCreateQuoteItem,
   useGetQuoteItemById,
   useUpdateQuoteItem,
+  QuotationWithLineItemsQueryOptions,
 } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { centsToDollarsNum, dollarsToCents, roundToTwoDecimals } from '@/lib/utils/currency';
@@ -78,7 +79,12 @@ export function useLineItemFormState({
     ...useGetQuoteItemById(quoteItemId),
     enabled: isEditing && quoteItemId > 0,
   });
-  const selectedQuotation = useSelectedQuotation();
+  const selectedQuotationFromStore = useSelectedQuotation();
+  const quotationId = selectedLineItem?.quoteId ?? selectedQuotationFromStore?.id ?? 0;
+  const { data: selectedQuotation } = useQuery(
+    QuotationWithLineItemsQueryOptions(quotationId),
+  );
+  console.log('[lineitem] selectedQuotation billingAddress:', selectedQuotation?.customerWithAddressResponseDto?.billingAddress);
   const createQuoteItem = useCreateQuoteItem();
   const updateQuoteItem = useUpdateQuoteItem();
 
