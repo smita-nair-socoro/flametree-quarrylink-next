@@ -172,8 +172,8 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
 };
 
 export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
+  const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   if (!docket || !docket.id) {
     return null;
@@ -194,6 +194,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
   const secondaryActions = currentActions.slice(1);
 
   const handleAction = (actionType: ActionType) => {
+    setDropdownOpen(false);
     if (actions[actionType]) {
       actions[actionType]();
     }
@@ -215,12 +216,14 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
         </Button>
 
         {secondaryActions.length > 0 && (
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <DropdownMenu
+            open={dropdownOpen}
+            onOpenChange={setDropdownOpen}
+            modal={false}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -231,7 +234,6 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
                   {item.separator && <DropdownMenuSeparator />}
                   <DropdownMenuItem
                     onSelect={() => {
-                      setDropdownOpen(false);
                       handleAction(item.action);
                     }}
                     className={item.className}
