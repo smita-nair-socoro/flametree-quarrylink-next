@@ -294,7 +294,7 @@ export function QuotationActionButtons({
               <DropdownMenuContent align="end" className="w-48">
                 <div>
                   {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
-                    <DropdownMenuItem onSelect={actions.viewJob}>
+                    <DropdownMenuItem>
                       <Eye className="h-4 w-4 mr-2" />
                       View Job
                     </DropdownMenuItem>
