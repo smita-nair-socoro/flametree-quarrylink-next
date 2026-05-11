@@ -174,6 +174,8 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       selectedTruckIds,
       availableTrucks,
       blockedDocketIds,
+      isNavigating,
+      handleNavigate,
     ],
   );
 
@@ -204,30 +206,40 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     },
   };
 
-  const truckDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
+  const truckDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => {
+        if (activeDialog !== key) return null;
 
-    return (
-      <ActionDialog
-        key={key}
-        open={activeDialog === key}
-        onOpenChangeAction={(open) => {
-          if (!open) setActiveDialog(null);
-        }}
-        title={config.title}
-        description={config.description}
-        content={config.content}
-        confirmText={config.confirmText ?? ''}
-        confirmCustomColor={config.confirmCustomColor}
-        confirmIcon={config.confirmIcon}
-        confirmVariant={config.confirmVariant}
-        confirmDisabled={config.confirmDisabled}
-        confirmActionNeeded={config.confirmActionNeeded}
-        cancelText={config.cancelText}
-        onConfirmAction={() => actionHandlers[key]?.()}
-      />
-    );
-  });
+        return (
+          <ActionDialog
+            key={key}
+            open={activeDialog === key}
+            onOpenChangeAction={(open) => {
+              if (!open) setActiveDialog(null);
+            }}
+            title={config.title}
+            description={config.description}
+            content={config.content}
+            confirmText={config.confirmText ?? ''}
+            confirmCustomColor={config.confirmCustomColor}
+            confirmIcon={config.confirmIcon}
+            confirmVariant={config.confirmVariant}
+            confirmDisabled={config.confirmDisabled}
+            confirmActionNeeded={config.confirmActionNeeded}
+            cancelText={config.cancelText}
+            onConfirmAction={() => actionHandlers[key]?.()}
+          />
+        );
+      })}
+    </>
+  );
 
   return { actions, truckDialogs };
 }

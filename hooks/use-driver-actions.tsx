@@ -25,6 +25,7 @@ import {
   UnassignTruckContent,
   UnassignTruckInfo,
 } from '@/hooks/driver/unassign-truck-content';
+import { Spinner } from '@/components/ui/spinner';
 
 interface DialogConfig {
   title?: string;
@@ -56,6 +57,7 @@ const getDialogConfigs = (
   activeDocketIds: number[] = [],
   selectedTruck?: (UnassignTruckInfo & { id: number }) | null,
   blockedTruckDocketIds: number[] = [],
+  onNavigate?: () => void,
 ): Record<string, DialogConfig> => {
   const driverName = driverData?.driverName;
   const docketCount = activeDocketIds.length;
@@ -183,6 +185,7 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
+                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -281,6 +284,7 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
+                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -395,6 +399,7 @@ const getDialogConfigs = (
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedTruckDocketIds}
+            onNavigate={onNavigate}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -438,6 +443,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const [blockedTruckDocketIds, setBlockedTruckDocketIds] = React.useState<
     number[]
   >([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const transitioningRef = React.useRef(false);
 
   const activeDocketIds =
@@ -455,6 +461,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         activeDocketIds,
         selectedTruck,
         blockedTruckDocketIds,
+        () => handleNavigate(`/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -465,6 +472,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       cannotDeleteDocketIds,
       selectedTruck,
       blockedTruckDocketIds,
+      isNavigating,
     ],
   );
 
@@ -565,12 +573,17 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     }
   };
 
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
+  };
+
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedTruckDocketIds.join(',')}`;
-    setActiveDialog(null);
     setSelectedTruck(null);
     setBlockedTruckDocketIds([]);
-    router.push(docketLink);
+    handleNavigate(docketLink);
   };
 
   const actionHandlers: Record<string, () => Promise<void> | void> = {
@@ -603,46 +616,56 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   };
 
   // Render active dialog
-  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
+  const confirmDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => {
+        if (activeDialog !== key) return null;
 
-    return (
-      <ActionDialog
-        key={key}
-        open={activeDialog === key}
-        onOpenChangeAction={(open) => {
-          if (!open) {
-            if (transitioningRef.current) {
-              transitioningRef.current = false;
-              return;
-            }
-            setActiveDialog(null);
-            setSelectedAction(null);
-            setSelectedTruck(null);
-            setBlockedTruckDocketIds([]);
-          }
-        }}
-        title={config.title ?? ''}
-        titleIcon={config.titleIcon}
-        description={config.description}
-        content={config.content}
-        confirmText={config.confirmText ?? ''}
-        confirmVariant={config.confirmVariant}
-        confirmCustomColor={config.confirmCustomColor}
-        confirmCustomClass={config.confirmCustomClass}
-        confirmIcon={config.confirmIcon}
-        confirmActionNeeded={config.confirmActionNeeded}
-        confirmDisabled={config.confirmDisabled}
-        cancelText={config.cancelText}
-        onConfirmAction={async () => {
-          const handler = actionHandlers[key];
-          if (handler) {
-            await handler();
-          }
-        }}
-      />
-    );
-  });
+        return (
+          <ActionDialog
+            key={key}
+            open={activeDialog === key}
+            onOpenChangeAction={(open) => {
+              if (!open) {
+                if (transitioningRef.current) {
+                  transitioningRef.current = false;
+                  return;
+                }
+                setActiveDialog(null);
+                setSelectedAction(null);
+                setSelectedTruck(null);
+                setBlockedTruckDocketIds([]);
+              }
+            }}
+            title={config.title ?? ''}
+            titleIcon={config.titleIcon}
+            description={config.description}
+            content={config.content}
+            confirmText={config.confirmText ?? ''}
+            confirmVariant={config.confirmVariant}
+            confirmCustomColor={config.confirmCustomColor}
+            confirmCustomClass={config.confirmCustomClass}
+            confirmIcon={config.confirmIcon}
+            confirmActionNeeded={config.confirmActionNeeded}
+            confirmDisabled={config.confirmDisabled}
+            cancelText={config.cancelText}
+            onConfirmAction={async () => {
+              const handler = actionHandlers[key];
+              if (handler) {
+                await handler();
+              }
+            }}
+          />
+        );
+      })}
+    </>
+  );
 
   const viewDialog = viewOpen ? (
     <FormDialog
