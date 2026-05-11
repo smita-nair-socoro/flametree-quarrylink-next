@@ -40,6 +40,7 @@ export interface ChecklistSubmitRequest {
   confirmed: boolean;
   snapshotJson?: string;
   answers: ChecklistSubmitAnswerRequest[];
+  submittedAt: string;
 }
 
 export interface ChecklistSubmission {

@@ -60,6 +60,7 @@ export function ChecklistPromptDrawer({
         checklistType: CHECKLIST_TYPE.DRIVER,
         driverId: driverId ?? 0,
         confirmed: true,
+        submittedAt: new Date().toISOString(),
         answers: [],
       });
     } else {
@@ -70,6 +71,7 @@ export function ChecklistPromptDrawer({
         driverId,
         docketId,
         confirmed: true,
+        submittedAt: new Date().toISOString(),
         answers: [],
       });
     }

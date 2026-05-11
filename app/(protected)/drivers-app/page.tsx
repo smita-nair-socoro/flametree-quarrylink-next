@@ -9,6 +9,7 @@ import {
   TruckChecklistTemplateQueryOptions,
 } from '@/lib/api/checklist';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
@@ -38,15 +39,13 @@ export default function DriversAppPage() {
   const { signOut } = useAuth();
   const router = useRouter();
 
-  const { data: dockets = [] } = useQuery(
-    DriverAppAssignedDocketsQueryOptions(),
-  );
+  const { data: driverData } = useQuery(DriverAppAssignedDocketsQueryOptions());
+  const dockets = driverData?.dockets ?? [];
 
   const setDriverTemplate = useChecklistTemplateStore(
     (s) => s.setDriverTemplate,
   );
   const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
-
   const { data: driverTemplate } = useQuery(
     DriverChecklistTemplateQueryOptions(),
   );
@@ -62,15 +61,24 @@ export default function DriversAppPage() {
     if (truckTemplate) setTruckTemplate(truckTemplate);
   }, [truckTemplate, setTruckTemplate]);
 
-  const isDailyChecklistRequired = React.useMemo(() => {
-    const lastCompleted = dockets[0]?.driver?.lastChecklistCompleted;
-    if (!lastCompleted) return true;
-    const todayUTCDateStr = new Date().toISOString().split('T')[0];
-    const lastCompletedDateStr = new Date(lastCompleted)
-      .toISOString()
-      .split('T')[0];
-    return todayUTCDateStr !== lastCompletedDateStr;
-  }, [dockets]);
+  const setIsDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.setIsDailyChecklistRequired,
+  );
+  const isDailyChecklistRequired = useDriverChecklistStore(
+    (s) => s.isDailyChecklistRequired,
+  );
+  console.log('isDailyChecklistRequired', isDailyChecklistRequired);
+
+  React.useEffect(() => {
+    const checklist = driverData?.latestDriverChecklist;
+    if (!checklist) {
+      setIsDailyChecklistRequired(true);
+      return;
+    }
+    const todayUTC = new Date().toISOString().split('T')[0];
+    const checklistDateUTC = checklist.checklistDate.split('T')[0];
+    setIsDailyChecklistRequired(todayUTC !== checklistDateUTC);
+  }, [driverData, setIsDailyChecklistRequired]);
 
   const handleLogout = async () => {
     try {
@@ -110,6 +118,11 @@ export default function DriversAppPage() {
                   <span className="text-[18px] font-bold text-[#0F172A]">
                     {userName}
                   </span>
+                  {driverData?.haulier?.haulierName && (
+                    <span className="text-[13px] text-[#64748B]">
+                      {driverData.haulier.haulierName}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -278,8 +291,8 @@ export default function DriversAppPage() {
         onOpenChange={setIsChecklistPromptOpen}
         type={checklistType}
         truckLicensePlate={checklistTruckLicensePlate}
-        driverName={dockets[0]?.driver?.driverName}
-        driverId={dockets[0]?.driverId}
+        driverName={driverData?.driverName}
+        driverId={driverData?.id}
         truckId={checklistTruckId}
         docketId={checklistDocketId}
         onCompleteExternally={() => setIsChecklistPromptOpen(false)}

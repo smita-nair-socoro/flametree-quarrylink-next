@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverAppKeys } from './keys';
-import { DOCKET_STATUS } from '../types/docket-enums';
+import { DriverAppStatusUpdateRequest, DriverAppAssignedDTO } from '../types/docket';
 
 export const DriverAppAssignedDocketsQueryOptions = () => ({
   queryKey: DriverAppKeys.assignedDockets(),
@@ -22,49 +22,22 @@ export const useDriverAppOperationalUpdate = () =>
 export const useDriverAppUpdateDocketStatus = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      id,
-      docketStatus,
-      reason,
-      notes,
-      latitude,
-      longitude,
-      deliveredProductsConfirmed,
-      receiverOnSite,
-      receiverName,
-      signatureImage,
-      deliveryNotes,
-      unloadedPhotos,
-      receivedPhotos,
-    }: {
-      id: number;
-      docketStatus: DOCKET_STATUS;
-      reason?: string;
-      notes?: string;
-      latitude?: number;
-      longitude?: number;
-      deliveredProductsConfirmed?: boolean;
-      receiverOnSite?: boolean;
-      receiverName?: string;
-      signatureImage?: string;
-      deliveryNotes?: string;
-      unloadedPhotos?: string[];
-      receivedPhotos?: string[];
-    }) =>
-      APIClient.driverApp.updateDocketStatus(id, {
-        docketStatus,
-        ...(reason !== undefined && { reason }),
-        ...(notes !== undefined && { notes }),
-        ...(latitude !== undefined && { latitude }),
-        ...(longitude !== undefined && { longitude }),
-        ...(deliveredProductsConfirmed !== undefined && { deliveredProductsConfirmed }),
-        ...(receiverOnSite !== undefined && { receiverOnSite }),
-        ...(receiverName !== undefined && { receiverName }),
-        ...(signatureImage !== undefined && { signatureImage }),
-        ...(deliveryNotes !== undefined && { deliveryNotes }),
-        ...(unloadedPhotos !== undefined && { unloadedPhotos }),
-        ...(receivedPhotos !== undefined && { receivedPhotos }),
-      }),
+    mutationFn: ({ id, ...body }: { id: number } & DriverAppStatusUpdateRequest) => {
+      const formData = new FormData();
+      formData.append('docketStatus', body.docketStatus);
+      if (body.reason != null) formData.append('reason', body.reason);
+      if (body.notes != null) formData.append('notes', body.notes);
+      if (body.latitude != null) formData.append('latitude', String(body.latitude));
+      if (body.longitude != null) formData.append('longitude', String(body.longitude));
+      if (body.deliveredProductsConfirmed != null) formData.append('deliveredProductsConfirmed', String(body.deliveredProductsConfirmed));
+      if (body.receiverOnSite != null) formData.append('receiverOnSite', String(body.receiverOnSite));
+      if (body.receiverName != null) formData.append('receiverName', body.receiverName);
+      if (body.signatureImage != null) formData.append('signatureImage', body.signatureImage);
+      if (body.deliveryNotes != null) formData.append('deliveryNotes', body.deliveryNotes);
+      body.unloadedPhotos?.forEach((photo) => formData.append('unloadedPhotos', photo));
+      body.receivedPhotos?.forEach((photo) => formData.append('receivedPhotos', photo));
+      return APIClient.driverApp.updateDocketStatus(id, formData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverAppKeys.assignedDockets() });
     },
