@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { DriverTableActions } from './driver-table-actions';
+import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 // TEMP: emailToSubMap resolves userSub by matching driver.emailAddress → User.email.
 // Once backend adds userSub to DriverDTO, replace this factory with a plain array
@@ -71,7 +72,7 @@ export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<Dri
       return <TableClientSortableHeader column={column} title="Phone Number" />;
     },
     cell: ({ row }) => {
-      return <div className="py-2">{row.original.phoneNumber}</div>;
+      return <div className="py-2">{formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}</div>;
     },
     meta: 'Phone',
   },
