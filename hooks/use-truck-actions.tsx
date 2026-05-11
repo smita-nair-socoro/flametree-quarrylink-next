@@ -9,10 +9,7 @@ import { TruckDTO } from '@/lib/types/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  extractErrorMessage,
-  extractErrorData,
-} from '@/lib/utils/error-message-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -47,6 +44,7 @@ import {
   useDeleteTruck,
 } from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
+import { Spinner } from '@/components/ui/spinner';
 
 interface DialogConfig {
   title: string;
@@ -81,6 +79,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     (UnassignDriverInfo & { id: number }) | null
   >(null);
   const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const [selectedDriverIds, setSelectedDriverIds] = React.useState<number[]>(
     [],
   );
@@ -97,12 +96,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const { data: availableDriversData } = useQuery(
     HaulierDriversQueryOptions(haulierId),
   );
-  const assignedDriverIds = new Set(
-    (truckData?.drivers ?? []).map((d) => d.id),
-  );
-  const availableDrivers = (availableDriversData?.drivers ?? []).filter(
-    (d) => !assignedDriverIds.has(d.id),
-  );
+  const assignedDriverIds = (truckData?.drivers ?? []).map((d) => d.id).filter((id): id is number => id != null);
+  const allDrivers = availableDriversData?.drivers ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
   const unassignDriverFromTruck = useUnassignDriverFromTruck();
   const deactivateTruck = useDeactivateTruck();
@@ -118,27 +113,18 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
     try {
-      await deactivateTruck.mutateAsync(truckData.id);
+      const response = await deactivateTruck.mutateAsync(truckData.id);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeactivateDocketIds(blocked.map((d) => d.id));
+        setActiveDialog('cannot_deactivate');
+        return;
+      }
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as Record<
-        string,
-        unknown
-      > | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeactivateDocketIds(docketIds);
-        setActiveDialog('cannot_deactivate');
-      } else {
-        notifyError(
-          extractErrorMessage(error) || 'Failed to deactivate truck.',
-        );
-        setActiveDialog(null);
-      }
+      notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
+      setActiveDialog(null);
     }
   };
 
@@ -156,26 +142,19 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDelete = async () => {
     if (!truckData?.id) return;
     try {
-      await deleteTruck.mutateAsync(truckData.id);
+      const response = await deleteTruck.mutateAsync(truckData.id);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeleteDocketIds(blocked.map((d) => d.id));
+        setActiveDialog('cannot_delete');
+        return;
+      }
       notifySuccess('Truck deleted successfully.');
       setActiveDialog(null);
       setViewOpen(false);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as Record<
-        string,
-        unknown
-      > | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeleteDocketIds(docketIds);
-        setActiveDialog('cannot_delete');
-      } else {
-        notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
-        setActiveDialog(null);
-      }
+      notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
+      setActiveDialog(null);
     }
   };
 
@@ -201,41 +180,36 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   ) => {
     if (!truckData?.id) return;
     try {
-      await unassignDriverFromTruck.mutateAsync({
+      const response = await unassignDriverFromTruck.mutateAsync({
         truckId: truckData.id,
         data: { version: truckData.version ?? 0, driverId: driver.id },
       });
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setBlockedDocketIds(blocked.map((d) => d.id));
+        transitioningRef.current = true;
+        setActiveDialog('unassignDriverBlocked');
+        return;
+      }
       notifySuccess('Driver unassigned successfully.');
       setActiveDialog(null);
       setSelectedDriver(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<
-        string,
-        unknown
-      > | null;
-      const hasActiveDeliveries =
-        typeof errorData?.activeDeliveryCount === 'number' &&
-        errorData.activeDeliveryCount > 0;
-
-      if (hasActiveDeliveries) {
-        const docketIds = Array.isArray(errorData?.activeDocketIds)
-          ? (errorData.activeDocketIds as number[])
-          : [];
-        setBlockedDocketIds(docketIds);
-        transitioningRef.current = true;
-        setActiveDialog('unassignDriverBlocked');
-      } else {
-        notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
-      }
+      notifyError(extractErrorMessage(error) || 'Failed to unassign driver.');
     }
+  };
+
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
   };
 
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
-    setActiveDialog(null);
     setSelectedDriver(null);
     setBlockedDocketIds([]);
-    router.push(docketLink);
+    handleNavigate(docketLink);
   };
 
   const dialogConfigs = React.useMemo(
@@ -255,6 +229,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: (
           <CannotDeactivateTruckContent
             activeDocketIds={cannotDeactivateDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeactivateDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -284,6 +259,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <CannotDeleteTruckContent
             truck={truckData}
             activeDocketIds={cannotDeleteDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeleteDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -293,7 +269,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         title: 'Assign Driver',
         content: (
           <AssignDriverContent
-            drivers={availableDrivers}
+            drivers={allDrivers}
+            assignedDriverIds={assignedDriverIds}
             onSelectionChange={setSelectedDriverIds}
           />
         ),
@@ -329,6 +306,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <UnassignDriverBlockedContent
             driverName={selectedDriver.driverName}
             activeDocketIds={blockedDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -344,8 +322,11 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       assignedDrivers,
       selectedDriver,
       selectedDriverIds,
-      availableDrivers,
+      allDrivers,
+      assignedDriverIds,
       blockedDocketIds,
+      isNavigating,
+      handleNavigate,
     ],
   );
 
@@ -379,35 +360,45 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     },
   };
 
-  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => (
-    <ActionDialog
-      key={key}
-      open={activeDialog === key}
-      onOpenChangeAction={(open) => {
-        if (!open) {
-          // TODO: need to change to API response check instead of hardcoding transitioning state
-          if (transitioningRef.current) {
-            transitioningRef.current = false;
-            return;
-          }
-          setActiveDialog(null);
-          setSelectedDriver(null);
-          setBlockedDocketIds([]);
-        }
-      }}
-      title={config.title}
-      description={config.description}
-      content={config.content}
-      confirmText={config.confirmText ?? ''}
-      confirmVariant={config.confirmVariant}
-      confirmCustomColor={config.confirmCustomColor}
-      confirmIcon={config.confirmIcon}
-      confirmActionNeeded={config.confirmActionNeeded}
-      confirmDisabled={config.confirmDisabled}
-      cancelText={config.cancelText}
-      onConfirmAction={() => actionHandlers[key]?.()}
-    />
-  ));
+  const confirmDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => (
+        <ActionDialog
+          key={key}
+          open={activeDialog === key}
+          onOpenChangeAction={(open) => {
+            if (!open) {
+              // TODO: need to change to API response check instead of hardcoding transitioning state
+              if (transitioningRef.current) {
+                transitioningRef.current = false;
+                return;
+              }
+              setActiveDialog(null);
+              setSelectedDriver(null);
+              setBlockedDocketIds([]);
+            }
+          }}
+          title={config.title}
+          description={config.description}
+          content={config.content}
+          confirmText={config.confirmText ?? ''}
+          confirmVariant={config.confirmVariant}
+          confirmCustomColor={config.confirmCustomColor}
+          confirmIcon={config.confirmIcon}
+          confirmActionNeeded={config.confirmActionNeeded}
+          confirmDisabled={config.confirmDisabled}
+          cancelText={config.cancelText}
+          onConfirmAction={() => actionHandlers[key]?.()}
+        />
+      ))}
+    </>
+  );
 
   const isGenericTruck = selectedTruck?.model === 'GENERIC';
 

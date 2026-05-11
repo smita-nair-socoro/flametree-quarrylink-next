@@ -26,17 +26,24 @@ export function AssignDriverDescription({
 
 export function AssignDriverContent({
   drivers,
+  assignedDriverIds = [],
   onSelectionChange,
 }: {
   drivers: DriverDTO[];
+  assignedDriverIds?: number[];
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
 
+  const availableDrivers = React.useMemo(
+    () => drivers.filter((d) => !assignedDriverIds.includes(d.id ?? 0)),
+    [drivers, assignedDriverIds],
+  );
+
   const groups = React.useMemo(() => {
-    const filtered = drivers.filter((d) =>
+    const filtered = availableDrivers.filter((d) =>
       d.driverName.toLowerCase().includes(search.toLowerCase()),
     );
     const map = new Map<string, DriverDTO[]>();
@@ -66,8 +73,7 @@ export function AssignDriverContent({
     selectedIds.length === 0
       ? 'Select drivers...'
       : selectedIds.length === 1
-        ? (drivers.find((d) => d.id === selectedIds[0])?.driverName ??
-          '1 selected')
+        ? (availableDrivers.find((d) => d.id === selectedIds[0])?.driverName ?? '1 selected')
         : `${selectedIds.length} drivers selected`;
 
   return (
@@ -156,7 +162,7 @@ export function AssignDriverContent({
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {
-            const driver = drivers.find((d) => d.id === id);
+            const driver = availableDrivers.find((d) => d.id === id);
             return (
               <Button
                 key={id}

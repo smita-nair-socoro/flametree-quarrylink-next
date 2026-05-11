@@ -6,21 +6,26 @@ import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 import { useDriverStore } from '@/app/stores/driver-store';
-import {
-  Ban,
-  TriangleAlert,
-  CircleAlert,
-} from 'lucide-react';
+import { Ban, TriangleAlert, CircleAlert, ArrowLeftRight } from 'lucide-react';
 import {
   DriverByIdQueryOptions,
   useDeleteDriver,
   useDeactivateDriver,
   useReactivateDriver,
+  useUnassignTruckFromDriver,
 } from '@/lib/api/driver';
 import { useQuery } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  UnassignTruckDescription,
+  UnassignTruckBlockedContent,
+  UnassignTruckContent,
+  UnassignTruckInfo,
+} from '@/hooks/driver/unassign-truck-content';
+import { Spinner } from '@/components/ui/spinner';
 
 interface DialogConfig {
   title?: string;
@@ -50,6 +55,9 @@ const getDialogConfigs = (
   driverData?: DriverDTO | null,
   selectedAction?: SelectedAction,
   activeDocketIds: number[] = [],
+  selectedTruck?: (UnassignTruckInfo & { id: number }) | null,
+  blockedTruckDocketIds: number[] = [],
+  onNavigate?: () => void,
 ): Record<string, DialogConfig> => {
   const driverName = driverData?.driverName;
   const docketCount = activeDocketIds.length;
@@ -97,14 +105,18 @@ const getDialogConfigs = (
                   <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
                     {(driverData?.trucks ?? []).map((truck) => (
                       <span key={truck.id}>
-                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate} will remain assigned to this driver.
+                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate}{' '}
+                        will remain assigned to this driver.
                       </span>
                     ))}
-                    <span>• Driver will be available for docket assignment once the driver is reactivated.</span>
+                    <span>
+                      • Driver will be available for docket assignment once the
+                      driver is reactivated.
+                    </span>
                   </div>
                   <span className="text-xs text-yellow-500 font-normal">
-                    Driver will loose access to their Drivers&apos; App until they are
-                    activated again.
+                    Driver will loose access to their Drivers&apos; App until
+                    they are activated again.
                   </span>
                 </div>
               </div>
@@ -170,8 +182,13 @@ const getDialogConfigs = (
                   Active Dockets Found:
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
-                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
-                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  <a
+                    href={docketLink}
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
+                  >
+                    {docketCount} active{' '}
+                    {docketCount === 1 ? 'docket' : 'dockets'}
                   </a>
                 </div>
               </div>
@@ -264,8 +281,13 @@ const getDialogConfigs = (
                   Active Dockets Found:
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
-                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
-                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  <a
+                    href={docketLink}
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
+                  >
+                    {docketCount} active{' '}
+                    {docketCount === 1 ? 'docket' : 'dockets'}
                   </a>
                 </div>
               </div>
@@ -345,11 +367,54 @@ const getDialogConfigs = (
         confirmActionNeeded: true,
       },
     };
+  } else if (selectedAction?.key === 'unassignTruck') {
+    return {
+      unassignTruck: {
+        title: 'Unassign Truck from Driver?',
+        description: selectedTruck ? (
+          <UnassignTruckDescription
+            licensePlate={selectedTruck.licensePlate}
+            driverName={driverName ?? ''}
+          />
+        ) : undefined,
+        content: selectedTruck ? (
+          <UnassignTruckContent truck={selectedTruck} />
+        ) : null,
+        confirmText: 'Unassign Truck',
+        confirmCustomColor: '#E7000B',
+        cancelText: 'Cancel',
+      },
+    };
+  } else if (selectedAction?.key === 'unassignTruckBlocked') {
+    return {
+      unassignTruckBlocked: {
+        title: 'Unassign Truck from Driver?',
+        description: selectedTruck ? (
+          <UnassignTruckDescription
+            licensePlate={selectedTruck.licensePlate}
+            driverName={driverName ?? ''}
+          />
+        ) : undefined,
+        content: selectedTruck ? (
+          <UnassignTruckBlockedContent
+            licensePlate={selectedTruck.licensePlate}
+            activeDocketIds={blockedTruckDocketIds}
+            onNavigate={onNavigate}
+          />
+        ) : null,
+        confirmText: 'Transfer Dockets',
+        confirmCustomColor: '#8E51FF',
+        confirmIcon: <ArrowLeftRight className="h-4 w-4" />,
+        cancelText: 'Cancel',
+      },
+    };
   }
+
   return {};
 };
 
 export function useDriverActions(driverData?: DriverDTO | null) {
+  const router = useRouter();
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -363,21 +428,58 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const deleteDriverMutation = useDeleteDriver();
   const deactivateDriverMutation = useDeactivateDriver();
   const reactivateDriverMutation = useReactivateDriver();
+  const unassignTruckMutation = useUnassignTruckFromDriver();
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
-  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
+    React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
+    number[]
+  >([]);
+  const [selectedTruck, setSelectedTruck] = React.useState<
+    (UnassignTruckInfo & { id: number }) | null
+  >(null);
+  const [blockedTruckDocketIds, setBlockedTruckDocketIds] = React.useState<
+    number[]
+  >([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
+  const transitioningRef = React.useRef(false);
 
   const activeDocketIds =
-    selectedAction?.key === 'cannotDeactivate' ? cannotDeactivateDocketIds
-    : selectedAction?.key === 'cannotDelete' ? cannotDeleteDocketIds
-    : [];
+    selectedAction?.key === 'cannotDeactivate'
+      ? cannotDeactivateDocketIds
+      : selectedAction?.key === 'cannotDelete'
+        ? cannotDeleteDocketIds
+        : [];
+
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
+  };
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds),
+    () =>
+      getDialogConfigs(
+        fullDriverData ?? driverData ?? null,
+        selectedAction || undefined,
+        activeDocketIds,
+        selectedTruck,
+        blockedTruckDocketIds,
+        () => handleNavigate(`/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`),
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds],
+    [
+      driverData,
+      fullDriverData,
+      selectedAction,
+      cannotDeactivateDocketIds,
+      cannotDeleteDocketIds,
+      selectedTruck,
+      blockedTruckDocketIds,
+      isNavigating,
+    ],
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -390,29 +492,25 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDeactivate = async () => {
     if (driverId == null) return;
     try {
-      await deactivateDriverMutation.mutateAsync(driverId);
+      const response = await deactivateDriverMutation.mutateAsync(driverId);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeactivateDocketIds(blocked.map((d) => d.id));
+        setSelectedAction({ key: 'cannotDeactivate' });
+        setActiveDialog('cannotDeactivate');
+        return;
+      }
       notifySuccess('Driver deactivated successfully.');
       const current = useDriverStore.getState().selectedDriver;
       if (current) {
         useDriverStore.getState().setSelectedDriver({
           ...current,
-          driverStatus: DRIVER_STATUS.INACTIVE,
+          driverStatus: DRIVER_STATUS.DEACTIVATED,
         });
       }
       setActiveDialog(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeactivateDocketIds(docketIds);
-        setSelectedAction({ key: 'cannotDeactivate' });
-        setActiveDialog('cannotDeactivate');
-      } else {
-        notifyError(extractErrorMessage(error));
-      }
+      notifyError(extractErrorMessage(error));
     }
   };
 
@@ -437,30 +535,65 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDelete = async () => {
     if (driverId == null) return;
     try {
-      await deleteDriverMutation.mutateAsync(driverId);
+      const response = await deleteDriverMutation.mutateAsync(driverId);
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeleteDocketIds(blocked.map((d) => d.id));
+        setSelectedAction({ key: 'cannotDelete' });
+        setActiveDialog('cannotDelete');
+        return;
+      }
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
       setViewOpen(false);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<string, unknown> | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setCannotDeleteDocketIds(docketIds);
-        setSelectedAction({ key: 'cannotDelete' });
-        setActiveDialog('cannotDelete');
-      } else {
-        notifyError(extractErrorMessage(error));
-      }
+      notifyError(extractErrorMessage(error));
     }
   };
 
-  const actionHandlers: Record<string, () => Promise<void>> = {
+  const handleUnassignTruck = async (
+    truck: UnassignTruckInfo & { id: number },
+  ) => {
+    if (driverId == null) return;
+    try {
+      const response = await unassignTruckMutation.mutateAsync({
+        driverId,
+        data: {
+          version: (fullDriverData ?? driverData)?.version ?? 0,
+          truckId: truck.id,
+        },
+      });
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setBlockedTruckDocketIds(blocked.map((d) => d.id));
+        transitioningRef.current = true;
+        setSelectedAction({ key: 'unassignTruckBlocked' });
+        setActiveDialog('unassignTruckBlocked');
+        return;
+      }
+      notifySuccess('Truck unassigned successfully.');
+      setActiveDialog(null);
+      setSelectedTruck(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
+    }
+  };
+
+  const handleTransferDockets = () => {
+    const docketLink = `/customer-operations/dockets/?docketId=${blockedTruckDocketIds.join(',')}`;
+    setSelectedTruck(null);
+    setBlockedTruckDocketIds([]);
+    handleNavigate(docketLink);
+  };
+
+  const actionHandlers: Record<string, () => Promise<void> | void> = {
     deactivate: handleDeactivate,
     reactivate: handleReactivate,
     delete: handleDelete,
+    unassignTruck: () => {
+      if (selectedTruck) void handleUnassignTruck(selectedTruck);
+    },
+    unassignTruckBlocked: () => handleTransferDockets(),
   };
 
   const actions = {
@@ -475,43 +608,64 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     deactivate: () => createDialogAction('deactivate')(),
     reactivate: () => createDialogAction('reactivate')(),
     delete: () => createDialogAction('delete')(),
+    unassignTruck: (truck: UnassignTruckInfo & { id: number }) => {
+      setSelectedTruck(truck);
+      setSelectedAction({ key: 'unassignTruck' });
+      setActiveDialog('unassignTruck');
+    },
   };
 
   // Render active dialog
-  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
+  const confirmDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => {
+        if (activeDialog !== key) return null;
 
-    return (
-      <ActionDialog
-        key={key}
-        open={activeDialog === key}
-        onOpenChangeAction={(open) => {
-          if (!open) {
-            setActiveDialog(null);
-            setSelectedAction(null);
-          }
-        }}
-        title={config.title ?? ''}
-        titleIcon={config.titleIcon}
-        description={config.description}
-        content={config.content}
-        confirmText={config.confirmText ?? ''}
-        confirmVariant={config.confirmVariant}
-        confirmCustomColor={config.confirmCustomColor}
-        confirmCustomClass={config.confirmCustomClass}
-        confirmIcon={config.confirmIcon}
-        confirmActionNeeded={config.confirmActionNeeded}
-        confirmDisabled={config.confirmDisabled}
-        cancelText={config.cancelText}
-        onConfirmAction={async () => {
-          const handler = actionHandlers[key];
-          if (handler) {
-            await handler();
-          }
-        }}
-      />
-    );
-  });
+        return (
+          <ActionDialog
+            key={key}
+            open={activeDialog === key}
+            onOpenChangeAction={(open) => {
+              if (!open) {
+                if (transitioningRef.current) {
+                  transitioningRef.current = false;
+                  return;
+                }
+                setActiveDialog(null);
+                setSelectedAction(null);
+                setSelectedTruck(null);
+                setBlockedTruckDocketIds([]);
+              }
+            }}
+            title={config.title ?? ''}
+            titleIcon={config.titleIcon}
+            description={config.description}
+            content={config.content}
+            confirmText={config.confirmText ?? ''}
+            confirmVariant={config.confirmVariant}
+            confirmCustomColor={config.confirmCustomColor}
+            confirmCustomClass={config.confirmCustomClass}
+            confirmIcon={config.confirmIcon}
+            confirmActionNeeded={config.confirmActionNeeded}
+            confirmDisabled={config.confirmDisabled}
+            cancelText={config.cancelText}
+            onConfirmAction={async () => {
+              const handler = actionHandlers[key];
+              if (handler) {
+                await handler();
+              }
+            }}
+          />
+        );
+      })}
+    </>
+  );
 
   const viewDialog = viewOpen ? (
     <FormDialog

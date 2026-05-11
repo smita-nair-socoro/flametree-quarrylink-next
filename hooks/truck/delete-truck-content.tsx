@@ -85,9 +85,11 @@ export function CannotDeleteTruckDescription({
 export function CannotDeleteTruckContent({
   truck,
   activeDocketIds = [],
+  onNavigate,
 }: {
   truck?: TruckDTO | null;
   activeDocketIds?: number[];
+  onNavigate?: () => void;
 }) {
   const docketCount = activeDocketIds.length;
   const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
@@ -117,6 +119,7 @@ export function CannotDeleteTruckContent({
             <a
               href={docketLink}
               className="text-[14px] text-[#155DFC] underline font-medium"
+              onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
             >
               {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
             </a>
