@@ -19,11 +19,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -40,9 +40,11 @@ const getDialogConfigs = (
 ): Record<string, DialogConfig> => {
   const lineItemName = lineItemData?.productName;
   const productCode = lineItemData?.supplierProductName;
+
   const totalSellPrice = centsToDollars(
-    lineItemData?.totalProductSellPrice || 0,
+    (lineItemData?.totalProductSellPrice ?? 0) + (lineItemData?.totalTruckSellPrice ?? 0),
   );
+
   const productQty = lineItemData?.productSellQty;
   const productUom = lineItemData?.productSellUom;
 
