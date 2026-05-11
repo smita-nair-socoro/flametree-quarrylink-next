@@ -19,9 +19,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { APIClient } from '@/lib/api/APIClient';
-import { toast } from 'sonner';
+import { useCreateInvoice } from '@/lib/api/invoices';
 
 interface InvoicesBulkActionsProps {
   selectedDockets: DocketDTO[];
@@ -39,29 +37,15 @@ export function InvoiceActions({
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
     React.useState(false);
-  const queryClient = useQueryClient();
 
   const hasDeliveryCost = selectedDockets.some(
     (d) => d.jobItem?.jobItemType !== 'COLLECTION'
   );
 
-  const createInvoiceMutation = useMutation({
-    mutationFn: (data: {
-      mode: 'INDIVIDUAL' | 'BULK';
-      docketIds: number[];
-      inclDeliveryCost: boolean;
-    }) =>
-      APIClient.invoices.create(data),
+  const createInvoiceMutation = useCreateInvoice({
     onSuccess: () => {
-      toast.success('Invoices created successfully');
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['dockets'] });
       setDialogType(null);
       onClearSelection();
-    },
-    onError: (error) => {
-      toast.error('Failed to create invoices');
-      console.error('Failed to create invoices:', error);
     },
   });
 
