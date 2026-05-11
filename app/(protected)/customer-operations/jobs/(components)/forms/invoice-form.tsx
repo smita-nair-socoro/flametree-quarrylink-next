@@ -164,6 +164,7 @@ export default function InvoiceForm({
       />
 
       <DataTableClient
+        isShowHideColumns={false}
         key={activeTab}
         columns={createInvoiceColumns}
         data={items}

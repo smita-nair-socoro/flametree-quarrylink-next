@@ -617,9 +617,9 @@ export function DataTableClient<TData, TValue>({
 
     enableRowSelection: enableRowSelection
       ? (row: Row<TData>) => {
-          if (!rowSelectionFilter) return true;
-          return rowSelectionFilter(row.original);
-        }
+        if (!rowSelectionFilter) return true;
+        return rowSelectionFilter(row.original);
+      }
       : undefined,
 
     state: {
@@ -772,7 +772,7 @@ export function DataTableClient<TData, TValue>({
                     (columnFilters.find((f) => f.id === filter.column)
                       ?.value as string[]) || []
                   }
-                  onFilterChange={() => {}}
+                  onFilterChange={() => { }}
                 />
               ))}
               {columnFilters.length > 0 && (
@@ -880,12 +880,12 @@ export function DataTableClient<TData, TValue>({
                                         onClick={() => {
                                           const newValues = isSelected
                                             ? currentFilterValues.filter(
-                                                (v) => v !== option.value,
-                                              )
+                                              (v) => v !== option.value,
+                                            )
                                             : [
-                                                ...currentFilterValues,
-                                                option.value,
-                                              ];
+                                              ...currentFilterValues,
+                                              option.value,
+                                            ];
                                           handleTempFilterChange(
                                             filter.column,
                                             newValues,
@@ -911,7 +911,7 @@ export function DataTableClient<TData, TValue>({
                                         </div>
                                         {filter.counts &&
                                           filter.counts[option.value] !=
-                                            null && (
+                                          null && (
                                             <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                                               {filter.counts[option.value]}
                                             </span>
@@ -1233,40 +1233,40 @@ export function DataTableClient<TData, TValue>({
                             simpleTable && 'border-b-0 font-medium',
                             !simpleTable && 'first:pl-4 last:pr-4 py-2',
                             !simpleTable &&
-                              headerIndex === 0 &&
-                              'rounded-tl-md',
+                            headerIndex === 0 &&
+                            'rounded-tl-md',
                             !simpleTable &&
-                              headerIndex === hg.headers.length - 1 &&
-                              'rounded-tr-md',
+                            headerIndex === hg.headers.length - 1 &&
+                            'rounded-tr-md',
                             // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
                             ((header.column.id === 'actions' &&
                               headerIndex === hg.headers.length - 1) ||
                               (!simpleTable &&
                                 headerIndex === hg.headers.length - 1)) &&
-                              'w-auto text-right',
+                            'w-auto text-right',
                           )}
                           style={
                             useColumnSizing
                               ? {
-                                  width: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                  minWidth: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                  maxWidth: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                }
+                                width: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                                minWidth: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                                maxWidth: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                              }
                               : undefined
                           }
                         >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -1289,12 +1289,12 @@ export function DataTableClient<TData, TValue>({
                               : 'bg-white hover:bg-gray-100',
                             !simpleTable && onRowClick && 'cursor-pointer',
                             row.getIsSelected() &&
-                              '!bg-[#EFF6FF] hover:!bg-blue-100',
+                            '!bg-[#EFF6FF] hover:!bg-blue-100',
                             isNewRecord &&
-                              !isSyncError &&
-                              '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                            !isSyncError &&
+                            '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
                             isSyncError &&
-                              '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
+                            '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements
@@ -1337,25 +1337,25 @@ export function DataTableClient<TData, TValue>({
                                 !simpleTable && 'first:pl-4 last:pr-4 py-2',
                                 ((cell.column.id === 'actions' &&
                                   cellIndex ===
-                                    row.getVisibleCells().length - 1) ||
+                                  row.getVisibleCells().length - 1) ||
                                   (!simpleTable &&
                                     cellIndex ===
-                                      row.getVisibleCells().length - 1)) &&
-                                  'w-auto text-right',
+                                    row.getVisibleCells().length - 1)) &&
+                                'w-auto text-right',
                               )}
                               style={
                                 useColumnSizing
                                   ? {
-                                      width: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                      minWidth: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                      maxWidth: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                    }
+                                    width: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                    minWidth: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                    maxWidth: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                  }
                                   : undefined
                               }
                             >
@@ -1373,17 +1373,17 @@ export function DataTableClient<TData, TValue>({
                       className={cn(simpleTable && 'border-b-0', 'bg-white')}
                     >
                       <TableCell
-                        colSpan={columns.length}
+                        colSpan={table.getVisibleLeafColumns().length}
                         className={cn('border-b-0 p-0')}
                       >
-                        <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center mt-2">
+                        <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center w-full h-full">
                           {/* Empty state icon */}
                           <div className="flex justify-center mb-4">
                             <Image
                               src="/empty-table.svg"
                               alt="No data available"
-                              width={128}
-                              height={128}
+                              width={256}
+                              height={256}
                               className="w-32 h-auto"
                             />
                           </div>

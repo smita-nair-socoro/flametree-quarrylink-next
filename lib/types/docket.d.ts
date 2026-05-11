@@ -152,7 +152,8 @@ export interface DocketDTO {
   gpsLocation: string;
   productEstimatedVolume: number;
   purchaseOrder: string;
-  totalInvoice: number;
+  totalInvoiceAmount: number;
+  totalDeliveryAmount: number;
   job: {
     id: number;
     jobNumber: string;
