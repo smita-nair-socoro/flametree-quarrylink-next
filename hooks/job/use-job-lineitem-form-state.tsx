@@ -15,6 +15,7 @@ import {
 } from '@/lib/api/customer';
 import {
   JobItemByIdQueryOptions,
+  JobItemsQueryOptions,
   useCreateJobItem,
   useUpdateJobItem,
 } from '@/lib/api/job';
@@ -82,6 +83,11 @@ export function useJobLineItemFormState({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const selectedJob = useSelectedJob();
+  const jobId = jobLineItemData?.jobId ?? selectedJob?.id ?? 0;
+  const { data: jobWithItems } = useQuery({
+    ...JobItemsQueryOptions(jobId),
+    enabled: jobId > 0,
+  });
 
   const getFormValuesFromLineItem = React.useCallback((): FormValues => {
     return {
@@ -248,6 +254,7 @@ export function useJobLineItemFormState({
 
   // Get billing address for comparison (pinned address for delivery quotes)
   const billingAddress =
+    jobWithItems?.customerWithAddressResponse?.billingAddress ??
     selectedJob?.customerWithAddressResponse?.billingAddress;
   const billingAddressFormatted = billingAddress?.formattedAddress || '';
 
@@ -1106,6 +1113,7 @@ export function useJobLineItemFormState({
     form,
     jobLineItemData,
     selectedJob,
+    billingAddress,
     selectedQuarrySupplierProduct,
     addressInput,
     setAddressInput,

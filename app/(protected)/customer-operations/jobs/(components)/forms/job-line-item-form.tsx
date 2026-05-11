@@ -62,6 +62,7 @@ export default function JobLineItemForm({
     isReadOnly,
     form: jobLineItemForm,
     selectedJob,
+    billingAddress,
     selectedQuarrySupplierProduct,
     addressInput,
     setAddressInput,
@@ -132,7 +133,7 @@ export default function JobLineItemForm({
   // - Collection: Use selected quarry supplier's address
   const pinnedAddress = isCollection
     ? selectedQuarrySupplierProduct?.quarrySupplier?.address
-    : selectedJob?.customerWithAddressResponse?.billingAddress;
+    : billingAddress;
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress],
