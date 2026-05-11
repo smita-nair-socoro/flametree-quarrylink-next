@@ -81,7 +81,7 @@ const getDialogConfigs = (
         content: (
           <div className="flex flex-col gap-5">
             <span className="text-[14px] text-[#364153] font-normal">
-              Are you sure you want to remove this line item from the quote?
+              Are you sure you want to remove this line item from the job?
             </span>
             <div className="border-1 border-[#E7000B] rounded-md p-[16.625px] bg-[#FFE2E2]">
               <div className="flex justify-start gap-2 self-stretch">
@@ -124,8 +124,8 @@ const getDialogConfigs = (
                 What happens when line item is removed:
               </span>
               <ul className="text-[14px] font-normal text-[#6A7282] space-y-0.5 list-disc list-outside pl-5">
-                <li> Line item is permanently removed from quote</li>
-                <li> Quote total will be recalculated automatically</li>
+                <li> Line item is permanently removed from job</li>
+                <li> Job total will be recalculated automatically</li>
                 <li> Action cannot be undone once confirmed</li>
               </ul>
             </div>

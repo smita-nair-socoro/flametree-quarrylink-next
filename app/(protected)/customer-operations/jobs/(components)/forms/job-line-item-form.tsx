@@ -1040,7 +1040,7 @@ export default function JobLineItemForm({
               suggestions?
             </p>
             <p>
-              This will not affect existing quotes or historical records, but
+              This will not affect existing jobs or historical records, but
               the address will no longer appear as a suggestion for this
               customer.
             </p>
