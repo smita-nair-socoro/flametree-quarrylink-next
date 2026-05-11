@@ -632,19 +632,19 @@ const getDialogConfigs = (
 
             <div className="rounded-md p-1 bg-[#E5E7EB]">
               <div className="flex flex-col gap-1 px-4 py-2">
-                <div className="flex justify-between">
-                  <span className="text-[14px] font-normal text-[#6A7282]">
+                <div className="flex justify-between gap-2">
+                  <span className="text-[14px] font-normal text-[#6A7282] shrink-0">
                     Project Name
                   </span>
-                  <span className="text-[16px] font-medium text-[#364153]">
+                  <span className="text-[16px] font-medium text-[#364153] text-right">
                     {projectName}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-[14px] font-normal text-[#6A7282]">
+                <div className="flex justify-between gap-2">
+                  <span className="text-[14px] font-normal text-[#6A7282] shrink-0">
                     Customer
                   </span>
-                  <span className="text-[16px] font-medium text-[#364153]">
+                  <span className="text-[16px] font-medium text-[#364153] text-right">
                     {customerName}
                   </span>
                 </div>
