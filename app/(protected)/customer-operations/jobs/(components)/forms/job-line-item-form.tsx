@@ -61,7 +61,6 @@ export default function JobLineItemForm({
     isEditing,
     isReadOnly,
     form: jobLineItemForm,
-    selectedJob,
     billingAddress,
     selectedQuarrySupplierProduct,
     addressInput,
