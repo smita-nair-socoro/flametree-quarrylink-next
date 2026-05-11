@@ -6,12 +6,7 @@ import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 import { useDriverStore } from '@/app/stores/driver-store';
-import {
-  Ban,
-  TriangleAlert,
-  CircleAlert,
-  ArrowLeftRight,
-} from 'lucide-react';
+import { Ban, TriangleAlert, CircleAlert, ArrowLeftRight } from 'lucide-react';
 import {
   DriverByIdQueryOptions,
   useDeleteDriver,
@@ -108,14 +103,18 @@ const getDialogConfigs = (
                   <div className="flex flex-col gap-1 text-sm font-normal text-[#A16207]">
                     {(driverData?.trucks ?? []).map((truck) => (
                       <span key={truck.id}>
-                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate} will remain assigned to this driver.
+                        • {truck.truckType ?? 'TRUCK'} - {truck.licensePlate}{' '}
+                        will remain assigned to this driver.
                       </span>
                     ))}
-                    <span>• Driver will be available for docket assignment once the driver is reactivated.</span>
+                    <span>
+                      • Driver will be available for docket assignment once the
+                      driver is reactivated.
+                    </span>
                   </div>
                   <span className="text-xs text-yellow-500 font-normal">
-                    Driver will loose access to their Drivers&apos; App until they are
-                    activated again.
+                    Driver will loose access to their Drivers&apos; App until
+                    they are activated again.
                   </span>
                 </div>
               </div>
@@ -181,8 +180,12 @@ const getDialogConfigs = (
                   Active Dockets Found:
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
-                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
-                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  <a
+                    href={docketLink}
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                  >
+                    {docketCount} active{' '}
+                    {docketCount === 1 ? 'docket' : 'dockets'}
                   </a>
                 </div>
               </div>
@@ -275,8 +278,12 @@ const getDialogConfigs = (
                   Active Dockets Found:
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
-                  <a href={docketLink} className="text-[14px] text-[#155DFC] font-medium underline">
-                    {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
+                  <a
+                    href={docketLink}
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                  >
+                    {docketCount} active{' '}
+                    {docketCount === 1 ? 'docket' : 'dockets'}
                   </a>
                 </div>
               </div>
@@ -420,21 +427,45 @@ export function useDriverActions(driverData?: DriverDTO | null) {
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] = React.useState<number[]>([]);
-  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
-  const [selectedTruck, setSelectedTruck] = React.useState<(UnassignTruckInfo & { id: number }) | null>(null);
-  const [blockedTruckDocketIds, setBlockedTruckDocketIds] = React.useState<number[]>([]);
+  const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
+    React.useState<number[]>([]);
+  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
+    number[]
+  >([]);
+  const [selectedTruck, setSelectedTruck] = React.useState<
+    (UnassignTruckInfo & { id: number }) | null
+  >(null);
+  const [blockedTruckDocketIds, setBlockedTruckDocketIds] = React.useState<
+    number[]
+  >([]);
   const transitioningRef = React.useRef(false);
 
   const activeDocketIds =
-    selectedAction?.key === 'cannotDeactivate' ? cannotDeactivateDocketIds
-    : selectedAction?.key === 'cannotDelete' ? cannotDeleteDocketIds
-    : [];
+    selectedAction?.key === 'cannotDeactivate'
+      ? cannotDeactivateDocketIds
+      : selectedAction?.key === 'cannotDelete'
+        ? cannotDeleteDocketIds
+        : [];
 
   const dialogConfigs = React.useMemo(
-    () => getDialogConfigs(fullDriverData ?? driverData ?? null, selectedAction || undefined, activeDocketIds, selectedTruck, blockedTruckDocketIds),
+    () =>
+      getDialogConfigs(
+        fullDriverData ?? driverData ?? null,
+        selectedAction || undefined,
+        activeDocketIds,
+        selectedTruck,
+        blockedTruckDocketIds,
+      ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [driverData, fullDriverData, selectedAction, cannotDeactivateDocketIds, cannotDeleteDocketIds, selectedTruck, blockedTruckDocketIds],
+    [
+      driverData,
+      fullDriverData,
+      selectedAction,
+      cannotDeactivateDocketIds,
+      cannotDeleteDocketIds,
+      selectedTruck,
+      blockedTruckDocketIds,
+    ],
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -460,7 +491,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       if (current) {
         useDriverStore.getState().setSelectedDriver({
           ...current,
-          driverStatus: DRIVER_STATUS.INACTIVE,
+          driverStatus: DRIVER_STATUS.DEACTIVATED,
         });
       }
       setActiveDialog(null);
@@ -506,12 +537,17 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     }
   };
 
-  const handleUnassignTruck = async (truck: UnassignTruckInfo & { id: number }) => {
+  const handleUnassignTruck = async (
+    truck: UnassignTruckInfo & { id: number },
+  ) => {
     if (driverId == null) return;
     try {
       const response = await unassignTruckMutation.mutateAsync({
         driverId,
-        data: { version: (fullDriverData ?? driverData)?.version ?? 0, truckId: truck.id },
+        data: {
+          version: (fullDriverData ?? driverData)?.version ?? 0,
+          truckId: truck.id,
+        },
       });
       const blocked = response?.activeDockets ?? [];
       if (blocked.length > 0) {
@@ -541,7 +577,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     deactivate: handleDeactivate,
     reactivate: handleReactivate,
     delete: handleDelete,
-    unassignTruck: () => { if (selectedTruck) void handleUnassignTruck(selectedTruck); },
+    unassignTruck: () => {
+      if (selectedTruck) void handleUnassignTruck(selectedTruck);
+    },
     unassignTruckBlocked: () => handleTransferDockets(),
   };
 

@@ -13,7 +13,11 @@ import { DriverDTO } from '@/lib/types/driver';
 import { TruckDTO } from '@/lib/types/truck';
 import { cn } from '@/lib/utils';
 
-export function AssignTruckDescription({ driver }: { driver?: DriverDTO | null }) {
+export function AssignTruckDescription({
+  driver,
+}: {
+  driver?: DriverDTO | null;
+}) {
   return (
     <div className="flex justify-start items-center gap-2">
       <span className="font-medium">{driver?.driverName}</span>
@@ -70,7 +74,8 @@ export function AssignTruckContent({
     selectedIds.length === 0
       ? 'Select trucks...'
       : selectedIds.length === 1
-        ? (availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected')
+        ? (availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ??
+          '1 selected')
         : `${selectedIds.length} trucks selected`;
 
   return (
@@ -90,10 +95,7 @@ export function AssignTruckContent({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent
-          className="p-0 w-72 overflow-hidden"
-          align="start"
-        >
+        <PopoverContent className="p-0 w-72 overflow-hidden" align="start">
           <div className="flex items-center gap-2 border-b px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input
@@ -106,7 +108,9 @@ export function AssignTruckContent({
 
           <div className="max-h-60 overflow-y-auto">
             {groups.size === 0 ? (
-              <p className="text-sm text-muted-foreground p-4">No trucks found.</p>
+              <p className="text-sm text-muted-foreground p-4">
+                No trucks found.
+              </p>
             ) : (
               Array.from(groups.entries()).map(([haulierName, groupTrucks]) => (
                 <div key={haulierName}>
@@ -122,7 +126,9 @@ export function AssignTruckContent({
                         checked={selectedIds.includes(truck.id ?? 0)}
                         onCheckedChange={() => toggle(truck.id ?? 0)}
                       />
-                      <span className="text-sm font-medium">{truck.licensePlate}</span>
+                      <span className="text-sm font-medium">
+                        {truck.licensePlate}
+                      </span>
                     </label>
                   ))}
                 </div>
@@ -153,7 +159,7 @@ export function AssignTruckContent({
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {
-            const truck = availableTrucks.find((t) => t.id === id);
+            const truck = trucks.find((t) => t.id === id);
             return (
               <Button
                 key={id}

@@ -87,7 +87,7 @@ export function DriverTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {driver.driverStatus === 'INACTIVE' && (
+          {driver.driverStatus === 'DEACTIVATED' && (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleReactivateDriver}>
