@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { AssignTruckContent } from './assign-truck-content';
 import {
   UnassignTruckContent,
@@ -18,10 +19,7 @@ import {
   useUnassignTruckFromDriver,
 } from '@/lib/api/driver';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  extractErrorMessage,
-  extractErrorData,
-} from '@/lib/utils/error-message-helper';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title: string;
@@ -48,6 +46,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
   const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
   const { data: availableTrucksData } = useQuery(
@@ -83,40 +82,38 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
   ) => {
     if (!driverData?.id) return;
     try {
-      await unassignTruckFromDriver.mutateAsync({
+      const response = await unassignTruckFromDriver.mutateAsync({
         driverId: driverData.id,
         data: {
           version: driverData.version ?? 0,
           truckId: truck.id,
         },
       });
+      const blocked = response?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setBlockedDocketIds(blocked.map((d) => d.id));
+        setActiveDialog('unassignBlocked');
+        return;
+      }
       notifySuccess('Truck unassigned successfully.');
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
-      const errorData = extractErrorData(error) as Record<
-        string,
-        unknown
-      > | null;
-      const docketIds = Array.isArray(errorData?.activeDocketIds)
-        ? (errorData.activeDocketIds as number[])
-        : [];
-
-      if (docketIds.length > 0) {
-        setBlockedDocketIds(docketIds);
-        setActiveDialog('unassignBlocked');
-      } else {
-        notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
-      }
+      notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
     }
+  };
+
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
   };
 
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
-    setActiveDialog(null);
     setSelectedTruck(null);
     setBlockedDocketIds([]);
-    router.push(docketLink);
+    handleNavigate(docketLink);
   };
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
@@ -126,6 +123,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
         content: (
           <AssignTruckContent
             trucks={availableTrucks}
+            assignedTruckIds={(driverData?.trucks ?? []).map((t) => t.id)}
             onSelectionChange={setSelectedTruckIds}
           />
         ),
@@ -161,6 +159,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -175,6 +174,8 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       selectedTruckIds,
       availableTrucks,
       blockedDocketIds,
+      isNavigating,
+      handleNavigate,
     ],
   );
 
@@ -205,30 +206,40 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     },
   };
 
-  const truckDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
-    if (activeDialog !== key) return null;
+  const truckDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => {
+        if (activeDialog !== key) return null;
 
-    return (
-      <ActionDialog
-        key={key}
-        open={activeDialog === key}
-        onOpenChangeAction={(open) => {
-          if (!open) setActiveDialog(null);
-        }}
-        title={config.title}
-        description={config.description}
-        content={config.content}
-        confirmText={config.confirmText ?? ''}
-        confirmCustomColor={config.confirmCustomColor}
-        confirmIcon={config.confirmIcon}
-        confirmVariant={config.confirmVariant}
-        confirmDisabled={config.confirmDisabled}
-        confirmActionNeeded={config.confirmActionNeeded}
-        cancelText={config.cancelText}
-        onConfirmAction={() => actionHandlers[key]?.()}
-      />
-    );
-  });
+        return (
+          <ActionDialog
+            key={key}
+            open={activeDialog === key}
+            onOpenChangeAction={(open) => {
+              if (!open) setActiveDialog(null);
+            }}
+            title={config.title}
+            description={config.description}
+            content={config.content}
+            confirmText={config.confirmText ?? ''}
+            confirmCustomColor={config.confirmCustomColor}
+            confirmIcon={config.confirmIcon}
+            confirmVariant={config.confirmVariant}
+            confirmDisabled={config.confirmDisabled}
+            confirmActionNeeded={config.confirmActionNeeded}
+            cancelText={config.cancelText}
+            onConfirmAction={() => actionHandlers[key]?.()}
+          />
+        );
+      })}
+    </>
+  );
 
   return { actions, truckDialogs };
 }

@@ -131,7 +131,7 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
                 </>
               )}
 
-              {status === DRIVER_STATUS.INACTIVE && (
+              {status === DRIVER_STATUS.DEACTIVATED && (
                 <>
                   <DropdownMenuItem onClick={handleReactivate}>
                     <Power className="h-4 w-4 mr-2 text-green-600" />
