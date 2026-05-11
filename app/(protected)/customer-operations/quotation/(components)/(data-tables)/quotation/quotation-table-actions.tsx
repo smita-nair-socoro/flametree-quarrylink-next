@@ -185,6 +185,8 @@ export function QuotationTableActions({
 
           {/* Archive - always at the bottom for applicable statuses */}
           {quotation.quoteStatus !== 'ARCHIVED' &&
+            quotation.quoteStatus !== 'CONVERTED_TO_JOB' &&
+            quotation.quoteStatus !== 'APPROVED' &&
             quotation.quoteStatus !== 'PENDING' && (
               <>
                 <DropdownMenuSeparator />
