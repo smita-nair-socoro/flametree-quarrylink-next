@@ -9,13 +9,7 @@ import {
 } from '@/components/ui/tooltip';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
-// import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
-
-// import {
-//   Tooltip,
-//   TooltipContent,
-//   TooltipTrigger,
-// } from '@/components/ui/tooltip';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -44,7 +38,16 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const productName = row.original.jobItem.product.productName;
-      return <div className="py-2">{productName}</div>;
+      return <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
+            {productName}
+          </div>
+        </TooltipTrigger>
+        <TooltipContent variant="white">
+          <p>{productName}</p>
+        </TooltipContent>
+      </Tooltip>;
     },
     meta: 'Product',
   },
@@ -102,37 +105,36 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
 
   {
     id: 'totalInvoice',
-    accessorFn: (row) => row.totalInvoice,
+    accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Total Invoice Price" />
       );
     },
-    cell: () => {
-      // Hardcoded $1000 for now as requested
-      const formatted = '$1,000.00';
+    cell: ({ row }) => {
+      const formatted = centsToDollars(row.original.totalInvoiceAmount + row.original.totalDeliveryAmount);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
+              ${formatted}
             </div>
           </TooltipTrigger>
           <TooltipContent variant="white">
-            <p>{formatted}</p>
+            <p>${formatted}</p>
           </TooltipContent>
         </Tooltip>
       );
     },
     meta: 'Total Invoice Price',
   },
-  {
-    id: 'actions',
-    header: () => {
-      return <div></div>;
-    },
-    cell: () => {
-      return <div></div>;
-    },
-  },
+  // {
+  //   id: 'actions',
+  //   header: () => {
+  //     return <div></div>;
+  //   },
+  //   cell: () => {
+  //     return <div></div>;
+  //   },
+  // },
 ];

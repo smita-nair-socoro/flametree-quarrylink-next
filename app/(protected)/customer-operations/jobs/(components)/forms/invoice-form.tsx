@@ -15,16 +15,13 @@ import { cn } from '@/lib/utils';
 import { InvoiceActions } from './invoice-actions';
 
 interface FormProps {
-  // id?: number;
   jobId: number;
 }
 
 export default function InvoiceForm({
-  // id,
   jobId,
 }: FormProps) {
-  // const [isSubmitting, setIsSubmitting] = React.useState(false);
-  // const isViewDetails = Boolean(id);
+
   const [activeTab, setActiveTab] = React.useState<'all' | 'delivery' | 'collection'>('all');
 
   const { data: dockets = [] } = useQuery(DocketsByJobIdQueryOptions(jobId));
@@ -164,6 +161,7 @@ export default function InvoiceForm({
       />
 
       <DataTableClient
+        isShowHideColumns={false}
         key={activeTab}
         columns={createInvoiceColumns}
         data={items}
