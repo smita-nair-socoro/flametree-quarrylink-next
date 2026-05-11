@@ -282,7 +282,6 @@ export function QuotationActionButtons({
         )}
 
         {quotation.quoteStatus !== 'ARCHIVED' &&
-          quotation.quoteStatus !== 'CONVERTED_TO_JOB' &&
           quotation.quoteStatus !== 'APPROVED' &&
           quotation.quoteStatus !== 'PENDING' && (
             <DropdownMenu modal={false}>
@@ -303,13 +302,15 @@ export function QuotationActionButtons({
                       View Job
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem
-                    onSelect={actions.archive}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Archive className="h-4 w-4 mr-2 text-destructive" />
-                    Archive
-                  </DropdownMenuItem>
+                  {quotation.quoteStatus !== 'CONVERTED_TO_JOB' && (
+                    <DropdownMenuItem
+                      onSelect={actions.archive}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Archive className="h-4 w-4 mr-2 text-destructive" />
+                      Archive
+                    </DropdownMenuItem>
+                  )}
                 </div>
               </DropdownMenuContent>
             </DropdownMenu>
