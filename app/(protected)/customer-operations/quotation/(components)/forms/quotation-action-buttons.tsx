@@ -135,6 +135,8 @@ export function QuotationActionButtons({
             )}
 
             {quotation.quoteStatus !== 'ARCHIVED' &&
+              quotation.quoteStatus !== 'CONVERTED_TO_JOB' &&
+              quotation.quoteStatus !== 'APPROVED' &&
               quotation.quoteStatus !== 'PENDING' && (
                 <>
                   {/* <DropdownMenuSeparator /> */}
@@ -280,6 +282,8 @@ export function QuotationActionButtons({
         )}
 
         {quotation.quoteStatus !== 'ARCHIVED' &&
+          quotation.quoteStatus !== 'CONVERTED_TO_JOB' &&
+          quotation.quoteStatus !== 'APPROVED' &&
           quotation.quoteStatus !== 'PENDING' && (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
