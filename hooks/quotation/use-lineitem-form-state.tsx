@@ -221,10 +221,12 @@ export function useLineItemFormState({
   const { data: products } = useQuery(ProductsListQueryOptions());
   const productOptions: SelectOption[] = React.useMemo(() => {
     if (!products) return [];
-    return products.map((product) => ({
-      label: product.productName,
-      value: product.id,
-    }));
+    return products
+      .map((product) => ({
+        label: product.productName,
+        value: product.id,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [products]);
 
   // Customer delivery addresses (for DELIVERY quote type)

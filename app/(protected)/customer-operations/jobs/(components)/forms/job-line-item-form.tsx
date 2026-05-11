@@ -466,10 +466,9 @@ export default function JobLineItemForm({
                     {productDetails?.densityTonnagePerM3 &&
                       productDetails.densityTonnagePerM3 > 0 && (
                         <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
-                          <div className="text-sm font-semibold text-purple-900">
+                          <div className="text-sm text-purple-900">
                             The conversion is using the product density of{' '}
-                            {productDetails.densityTonnagePerM3} TN/m³, which
-                            is managed in your product table.
+                            {productDetails.densityTonnagePerM3} TN/m³.
                           </div>
                         </div>
                       )}
@@ -1040,7 +1039,7 @@ export default function JobLineItemForm({
               suggestions?
             </p>
             <p>
-              This will not affect existing quotes or historical records, but
+              This will not affect existing jobs or historical records, but
               the address will no longer appear as a suggestion for this
               customer.
             </p>

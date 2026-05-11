@@ -141,7 +141,8 @@ export default function QuotationForm({
             value: customer.id!,
           };
         }
-      });
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [customers]);
 
   const getCustomerNameById = React.useCallback(

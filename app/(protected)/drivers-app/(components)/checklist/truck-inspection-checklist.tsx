@@ -4,7 +4,9 @@ import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
 import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
 import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
+import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 
 export default function TruckInspectionChecklist({
   onSubmit,
@@ -22,6 +24,9 @@ export default function TruckInspectionChecklist({
   docketId?: number;
 }) {
   const template = useChecklistTemplateStore((s) => s.truckTemplate);
+  const setTruckInspectionPassed = useTruckInspectionStatusStore(
+    (s) => s.setTruckInspectionPassed,
+  );
   const submitChecklist = useSubmitChecklist();
   const isLoading = !template;
 
@@ -52,13 +57,14 @@ export default function TruckInspectionChecklist({
   const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
-    await submitChecklist.mutateAsync({
+    const result = await submitChecklist.mutateAsync({
       templateId: template.id,
       checklistType: CHECKLIST_TYPE.TRUCK,
       truckId,
       driverId,
       docketId,
       confirmed: false,
+      submittedAt: new Date().toISOString(),
       answers: answers.map((a) => {
         const failOn = failOnAnswerMap.get(a.questionId);
         return {
@@ -70,6 +76,9 @@ export default function TruckInspectionChecklist({
         };
       }),
     });
+    if (result.status === CHECKLIST_STATUS.PASS && docketId != null) {
+      setTruckInspectionPassed(docketId);
+    }
     onSubmit?.();
   };
 
