@@ -130,11 +130,10 @@ export default function DocketsTab({
     }
   }, [selectedDocket]);
 
-  const driverChecklistPassed = isPreStartPassed;
   const truckChecklistPassed =
     selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
-  const checklistsComplete = driverChecklistPassed && truckChecklistPassed;
+  const checklistsComplete = isPreStartPassed && truckChecklistPassed;
 
   const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
   const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
@@ -153,11 +152,7 @@ export default function DocketsTab({
     if (!isPreStartPassed) {
       setIsDrawerOpen(false);
       setSelectedDocket(null);
-    }
-  }, [isPreStartPassed]);
-
-  React.useEffect(() => {
-    if (isPreStartPassed && pendingDocket) {
+    } else if (pendingDocket) {
       setSelectedDocket(pendingDocket);
       setIsDrawerOpen(true);
       setPendingDocket(null);
@@ -367,21 +362,22 @@ export default function DocketsTab({
                       </span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
-                          {selectedDocket.actualLoadSize ||
-                            selectedDocket.plannedLoadSize}
+                          {selectedDocket.docketStatus === 'ASSIGNED'
+                            ? selectedDocket.plannedLoadSize
+                            : (selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
                               : selectedDocket.jobItem?.productSellUom}
                         </span>
-                        {selectedDocket.docketStatus !== 'ASSIGNED' && (
+                        {['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) && (
                           <Button
                             variant="ghost"
                             className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                             onClick={() => {
                               setUpdateValue(
-                                (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize)?.toString() || '',
+                                selectedDocket.actualLoadSize?.toString() ?? '',
                               );
                               setIsUpdateDrawerOpen(true);
                             }}
