@@ -1,5 +1,6 @@
 import { DOCKET_STATUS, DOCKET_TYPE } from './docket-enums';
 import type { DRIVER_STATUS } from './driver-enums';
+import { CHECKLIST_STATUS } from './checklist-enums';
 import { Job } from './job';
 import { Address } from './address';
 import { DriverDTO } from './driver';
@@ -55,6 +56,21 @@ export interface DocketAssignRequest {
   deliveryStartWindow: string;
   deliveryEndWindow: string;
   plannedLoadSize?: number;
+}
+
+export interface DriverAppStatusUpdateRequest {
+  docketStatus: DOCKET_STATUS;
+  reason?: string;
+  notes?: string;
+  latitude?: number;
+  longitude?: number;
+  deliveredProductsConfirmed?: boolean;
+  receiverOnSite?: boolean;
+  receiverName?: string;
+  signatureImage?: string;
+  deliveryNotes?: string;
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
 }
 
 export interface DocketOperationalUpdateRequest {
@@ -235,7 +251,7 @@ export interface DocketDTO {
     id: number;
     checklistDate: string;
     completedAt: string;
-    checklistStatus: string;
+    checklistStatus: CHECKLIST_STATUS;
     hasIssues: boolean;
     notes: string;
     version: number;
@@ -244,7 +260,7 @@ export interface DocketDTO {
     id: number;
     checklistDate: string;
     completedAt: string;
-    checklistStatus: string;
+    checklistStatus: CHECKLIST_STATUS;
     hasIssues: boolean;
     notes: string;
     version: number;
@@ -255,6 +271,19 @@ export interface DocketDTO {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
+}
+
+/** Response from GET /driver-app/assigned */
+export interface DriverAppAssignedDTO extends Omit<DriverDTO, 'trucks'> {
+  latestDriverChecklist?: DocketDTO['driverChecklist'];
+  trucks: {
+    id: number;
+    licensePlate: string;
+    truckType: string;
+    truckStatus: string;
+    tankVolumeM3: number;
+  }[];
+  dockets: DocketDTO[];
 }
 
 /** Truck row from GET scheduler/trucks */

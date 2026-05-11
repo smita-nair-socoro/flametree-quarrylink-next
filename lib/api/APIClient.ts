@@ -52,6 +52,7 @@ import {
   DocketOperationalUpdateRequest,
   DocketOperationalUpdateResponse,
   DispatchDocketDTO,
+  DriverAppAssignedDTO,
   BlockedOperationResponse,
   UnassignOperationResponse,
 } from '../types/docket';
@@ -1128,7 +1129,9 @@ export const APIClient = {
         { body: data },
       ),
     delete: (id: number) =>
-      appClient.Delete<BlockedOperationResponse>(`/socoro/quarrylink/api/driver/${id}`),
+      appClient.Delete<BlockedOperationResponse>(
+        `/socoro/quarrylink/api/driver/${id}`,
+      ),
     deactivate: (id: number) =>
       appClient.Patch<BlockedOperationResponse>(
         `/socoro/quarrylink/api/driver/${id}/deactivate`,
@@ -1172,7 +1175,9 @@ export const APIClient = {
         body: data,
       }),
     delete: (id: number) =>
-      appClient.Delete<BlockedOperationResponse>(`/socoro/quarrylink/api/truck/${id}`),
+      appClient.Delete<BlockedOperationResponse>(
+        `/socoro/quarrylink/api/truck/${id}`,
+      ),
     assignDrivers: (
       truckId: number,
       data: { version: number; driverIds: number[] },
@@ -1333,7 +1338,9 @@ export const APIClient = {
 
   driverApp: {
     getAssignedDockets: () =>
-      appClient.Get<DocketDTO[]>(`/socoro/quarrylink/api/driver-app/assigned`),
+      appClient.Get<DriverAppAssignedDTO>(
+        `/socoro/quarrylink/api/driver-app/assigned`,
+      ),
     getAssignedDocketById: (docketId: number) =>
       appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
     operationalUpdate: (id: number, actualLoadSize: number) =>
@@ -1341,10 +1348,10 @@ export const APIClient = {
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
         { body: { actualLoadSize } },
       ),
-    updateDocketStatus: (id: number, body: object) =>
+    updateDocketStatus: (id: number, formData: FormData) =>
       appClient.Put<DocketDTO>(
         `/socoro/quarrylink/api/driver-app/${id}/status`,
-        { body },
+        { body: formData },
       ),
   },
 

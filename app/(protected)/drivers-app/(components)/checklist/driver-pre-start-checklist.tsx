@@ -53,6 +53,7 @@ export default function DriverPreStartChecklist({
       checklistType: CHECKLIST_TYPE.DRIVER,
       driverId,
       confirmed: false,
+      submittedAt: new Date().toISOString(),
       answers: answers.map((a) => {
         const failOn = failOnAnswerMap.get(a.questionId);
         return {
