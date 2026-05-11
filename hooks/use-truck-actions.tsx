@@ -44,6 +44,7 @@ import {
   useDeleteTruck,
 } from '@/lib/api/truck';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
+import { Spinner } from '@/components/ui/spinner';
 
 interface DialogConfig {
   title: string;
@@ -78,6 +79,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     (UnassignDriverInfo & { id: number }) | null
   >(null);
   const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
   const [selectedDriverIds, setSelectedDriverIds] = React.useState<number[]>(
     [],
   );
@@ -197,12 +199,17 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     }
   };
 
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
+  };
+
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
-    setActiveDialog(null);
     setSelectedDriver(null);
     setBlockedDocketIds([]);
-    router.push(docketLink);
+    handleNavigate(docketLink);
   };
 
   const dialogConfigs = React.useMemo(
@@ -222,6 +229,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: (
           <CannotDeactivateTruckContent
             activeDocketIds={cannotDeactivateDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeactivateDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -251,6 +259,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <CannotDeleteTruckContent
             truck={truckData}
             activeDocketIds={cannotDeleteDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeleteDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -297,6 +306,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <UnassignDriverBlockedContent
             driverName={selectedDriver.driverName}
             activeDocketIds={blockedDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -315,6 +325,8 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       allDrivers,
       assignedDriverIds,
       blockedDocketIds,
+      isNavigating,
+      handleNavigate,
     ],
   );
 
@@ -348,35 +360,45 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     },
   };
 
-  const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => (
-    <ActionDialog
-      key={key}
-      open={activeDialog === key}
-      onOpenChangeAction={(open) => {
-        if (!open) {
-          // TODO: need to change to API response check instead of hardcoding transitioning state
-          if (transitioningRef.current) {
-            transitioningRef.current = false;
-            return;
-          }
-          setActiveDialog(null);
-          setSelectedDriver(null);
-          setBlockedDocketIds([]);
-        }
-      }}
-      title={config.title}
-      description={config.description}
-      content={config.content}
-      confirmText={config.confirmText ?? ''}
-      confirmVariant={config.confirmVariant}
-      confirmCustomColor={config.confirmCustomColor}
-      confirmIcon={config.confirmIcon}
-      confirmActionNeeded={config.confirmActionNeeded}
-      confirmDisabled={config.confirmDisabled}
-      cancelText={config.cancelText}
-      onConfirmAction={() => actionHandlers[key]?.()}
-    />
-  ));
+  const confirmDialogs = (
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 bg-white/60 z-50 flex flex-col items-center justify-center gap-4">
+          <Spinner size="medium" />
+          <p className="text-sm text-muted-foreground">Redirecting...</p>
+        </div>
+      )}
+      {Object.entries(dialogConfigs).map(([key, config]) => (
+        <ActionDialog
+          key={key}
+          open={activeDialog === key}
+          onOpenChangeAction={(open) => {
+            if (!open) {
+              // TODO: need to change to API response check instead of hardcoding transitioning state
+              if (transitioningRef.current) {
+                transitioningRef.current = false;
+                return;
+              }
+              setActiveDialog(null);
+              setSelectedDriver(null);
+              setBlockedDocketIds([]);
+            }
+          }}
+          title={config.title}
+          description={config.description}
+          content={config.content}
+          confirmText={config.confirmText ?? ''}
+          confirmVariant={config.confirmVariant}
+          confirmCustomColor={config.confirmCustomColor}
+          confirmIcon={config.confirmIcon}
+          confirmActionNeeded={config.confirmActionNeeded}
+          confirmDisabled={config.confirmDisabled}
+          cancelText={config.cancelText}
+          onConfirmAction={() => actionHandlers[key]?.()}
+        />
+      ))}
+    </>
+  );
 
   const isGenericTruck = selectedTruck?.model === 'GENERIC';
 

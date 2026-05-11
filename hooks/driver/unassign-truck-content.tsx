@@ -32,9 +32,11 @@ export function UnassignTruckDescription({
 export function UnassignTruckBlockedContent({
   licensePlate,
   activeDocketIds = [],
+  onNavigate,
 }: {
   licensePlate: string;
   activeDocketIds?: number[];
+  onNavigate?: () => void;
 }) {
   const docketCount = activeDocketIds.length;
   const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
@@ -87,6 +89,7 @@ export function UnassignTruckBlockedContent({
             <a
               href={docketLink}
               className="text-[14px] text-[#155DFC] underline font-medium"
+              onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
             >
               {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
             </a>

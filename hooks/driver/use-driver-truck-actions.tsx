@@ -3,6 +3,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeftRight } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { AssignTruckContent } from './assign-truck-content';
 import {
   UnassignTruckContent,
@@ -45,6 +46,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     React.useState<UnassignTruckInfo | null>(null);
   const [selectedTruckIds, setSelectedTruckIds] = React.useState<number[]>([]);
   const [blockedDocketIds, setBlockedDocketIds] = React.useState<number[]>([]);
+  const [isNavigating, setIsNavigating] = React.useState(false);
 
   const haulierId = driverData?.haulier?.id ?? driverData?.haulierId ?? 0;
   const { data: availableTrucksData } = useQuery(
@@ -101,12 +103,17 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     }
   };
 
+  const handleNavigate = (url: string) => {
+    setIsNavigating(true);
+    setActiveDialog(null);
+    router.push(url);
+  };
+
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
-    setActiveDialog(null);
     setSelectedTruck(null);
     setBlockedDocketIds([]);
-    router.push(docketLink);
+    handleNavigate(docketLink);
   };
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
@@ -152,6 +159,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedDocketIds}
+            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
