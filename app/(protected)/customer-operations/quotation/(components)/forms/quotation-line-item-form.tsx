@@ -129,7 +129,6 @@ export default function QuoteLineItemForm({
   const pinnedAddress = isCollection
     ? selectedQuarrySupplierProduct?.quarrySupplier?.address
     : selectedQuotation?.customerWithAddressResponseDto?.billingAddress;
-  console.log('Pinned Address:', pinnedAddress);
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress],

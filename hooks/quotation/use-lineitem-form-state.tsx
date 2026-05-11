@@ -22,7 +22,11 @@ import {
   QuotationWithLineItemsQueryOptions,
 } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { centsToDollarsNum, dollarsToCents, roundToTwoDecimals } from '@/lib/utils/currency';
+import {
+  centsToDollarsNum,
+  dollarsToCents,
+  roundToTwoDecimals,
+} from '@/lib/utils/currency';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -80,11 +84,11 @@ export function useLineItemFormState({
     enabled: isEditing && quoteItemId > 0,
   });
   const selectedQuotationFromStore = useSelectedQuotation();
-  const quotationId = selectedLineItem?.quoteId ?? selectedQuotationFromStore?.id ?? 0;
+  const quotationId =
+    selectedLineItem?.quoteId ?? selectedQuotationFromStore?.id ?? 0;
   const { data: selectedQuotation } = useQuery(
     QuotationWithLineItemsQueryOptions(quotationId),
   );
-  console.log('[lineitem] selectedQuotation billingAddress:', selectedQuotation?.customerWithAddressResponseDto?.billingAddress);
   const createQuoteItem = useCreateQuoteItem();
   const updateQuoteItem = useUpdateQuoteItem();
 
@@ -915,27 +919,33 @@ export function useLineItemFormState({
   React.useEffect(() => {
     const values = form.getValues();
     const totalProductCostPrice = roundToTwoDecimals(
-      (values.productCostQty || 0) * (values.productCostPrice || 0)
+      (values.productCostQty || 0) * (values.productCostPrice || 0),
     );
     const totalTruckCostPrice = roundToTwoDecimals(
-      (values.truckCostQty || 0) * (values.truckCostPrice || 0)
+      (values.truckCostQty || 0) * (values.truckCostPrice || 0),
     );
     const totalProductSellPrice = roundToTwoDecimals(
-      (values.productSellQty || 0) * (values.productSellPrice || 0)
+      (values.productSellQty || 0) * (values.productSellPrice || 0),
     );
     const totalTruckSellPrice = roundToTwoDecimals(
-      (values.truckSellQty || 0) * (values.truckSellPrice || 0)
+      (values.truckSellQty || 0) * (values.truckSellPrice || 0),
     );
-    const costSubtotalExGST = roundToTwoDecimals(totalProductCostPrice + totalTruckCostPrice);
+    const costSubtotalExGST = roundToTwoDecimals(
+      totalProductCostPrice + totalTruckCostPrice,
+    );
     const costGst = roundToTwoDecimals(costSubtotalExGST * 0.1);
     const totalCost = roundToTwoDecimals(costSubtotalExGST + costGst);
-    const totalInvoice = roundToTwoDecimals(totalProductSellPrice + totalTruckSellPrice);
+    const totalInvoice = roundToTwoDecimals(
+      totalProductSellPrice + totalTruckSellPrice,
+    );
     const invoiceGst = roundToTwoDecimals(totalInvoice * 0.1);
     const totalInvoiceInclGst = roundToTwoDecimals(totalInvoice + invoiceGst);
     // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
     const grossProfit = roundToTwoDecimals(totalInvoiceInclGst - totalCost);
     const grossProfitPercentage =
-      totalInvoiceInclGst > 0 ? roundToTwoDecimals((grossProfit / totalInvoiceInclGst) * 100) : 0;
+      totalInvoiceInclGst > 0
+        ? roundToTwoDecimals((grossProfit / totalInvoiceInclGst) * 100)
+        : 0;
 
     setPricingBreakdown({
       totalProductCostPrice,
