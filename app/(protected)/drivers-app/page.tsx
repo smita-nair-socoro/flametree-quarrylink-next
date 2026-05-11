@@ -67,7 +67,6 @@ export default function DriversAppPage() {
   const isDailyChecklistRequired = useDriverChecklistStore(
     (s) => s.isDailyChecklistRequired,
   );
-  console.log('isDailyChecklistRequired', isDailyChecklistRequired);
 
   React.useEffect(() => {
     const checklist = driverData?.latestDriverChecklist;
