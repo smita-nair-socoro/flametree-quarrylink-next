@@ -21,6 +21,7 @@ import {
   Archive,
   Pencil,
   FileSearch,
+  Eye,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
@@ -264,18 +265,6 @@ export function QuotationActionButtons({
           </>
         )}
 
-        {/* {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.viewJob}
-            className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            View Job
-          </Button>
-        )} */}
-
         {quotation.quoteStatus === 'EXPIRED' && (
           <>
             <Button
@@ -304,6 +293,12 @@ export function QuotationActionButtons({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 <div>
+                  {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
+                    <DropdownMenuItem>
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Job
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem
                     onSelect={actions.archive}
                     className="text-destructive focus:text-destructive"
