@@ -40,9 +40,12 @@ const getDialogConfigs = (
 ): Record<string, DialogConfig> => {
   const lineItemName = lineItemData?.productName;
   const productCode = lineItemData?.supplierProductName;
+
   const totalSellPrice = centsToDollars(
-    lineItemData?.totalProductSellPrice || 0,
+    Number(lineItemData?.totalProductSellPrice) +
+      Number(lineItemData?.totalTruckSellPrice),
   );
+
   const productQty = lineItemData?.productSellQty;
   const productUom = lineItemData?.productSellUom;
 
