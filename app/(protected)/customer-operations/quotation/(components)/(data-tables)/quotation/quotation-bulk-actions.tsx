@@ -39,18 +39,15 @@ export function QuotationBulkActions({
   const bulkArchiveMutation = useBulkArchiveQuotations();
 
   const { archivable, nonArchivable } = useMemo(() => {
-    const archivableStatuses = [
-      'DRAFT',
-      'EXPIRED',
-      'DECLINED',
-      'CONVERTED_TO_JOB',
-    ];
+    const archivableStatuses = ['DRAFT', 'EXPIRED', 'DECLINED'];
 
     const archivable = selectedQuotations.filter((q) =>
       archivableStatuses.includes(q.quoteStatus as string)
     );
     const nonArchivable = selectedQuotations.filter(
-      (q) => !archivableStatuses.includes(q.quoteStatus as string)
+      (q) =>
+        !archivableStatuses.includes(q.quoteStatus as string) &&
+        q.quoteStatus !== 'ARCHIVED',
     );
 
     return { archivable, nonArchivable };
