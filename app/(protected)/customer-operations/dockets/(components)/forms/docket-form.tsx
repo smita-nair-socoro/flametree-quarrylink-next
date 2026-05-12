@@ -938,7 +938,7 @@ export default function DocketForm({
                       name="purchaseOrder"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>PO Number (Optional)</FormLabel>
+                          <FormLabel>PO Number</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -956,7 +956,7 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>
                             <MapPin className="w-4 h-4 text-red-500" />
-                            Pick Up Address
+                            Pick Up Address*
                           </FormLabel>
                           <FormControl>
                             <AddressAutoComplete
@@ -1034,7 +1034,7 @@ export default function DocketForm({
                       name="deliveryCollectionStartTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Time Window</FormLabel>
+                          <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
                             <Select
                               key={`start-${field.value || 'empty'}`}
@@ -1068,7 +1068,7 @@ export default function DocketForm({
                       name="deliveryCollectionEndTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Time Window</FormLabel>
+                          <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
                             <Select
                               key={`end-${field.value || 'empty'}`}
@@ -1102,7 +1102,7 @@ export default function DocketForm({
                       name="customerContactName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Name</FormLabel>
+                          <FormLabel>Contact Name*</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -1120,7 +1120,7 @@ export default function DocketForm({
                       name="customerContactPhone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Phone</FormLabel>
+                          <FormLabel>Contact Phone*</FormLabel>
                           <FormControl>
                             <PhoneInput
                               className="w-full"

@@ -432,7 +432,7 @@ export default function TruckForm({
                   name="vin"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>VIN (Optional)</FormLabel>
+                      <FormLabel>VIN</FormLabel>
                       <FormControl>
                         <Input placeholder="ABC123" {...field} />
                       </FormControl>
@@ -630,7 +630,7 @@ export default function TruckForm({
               <FormMultiSelect
                 control={truckForm.control}
                 name="driverIds"
-                label="Drivers (Optional)"
+                label="Drivers"
                 options={selectedHaulierId || isInternal ? driverOptions : []}
                 placeholder={
                   !selectedHaulierId && !isInternal

@@ -619,10 +619,7 @@ export default function AddressDialog(
 
               <div className="flex flex-col gap-2">
                 <Label htmlFor="address2">
-                  Address line 2{' '}
-                  <span className="text-xs text-secondary-foreground">
-                    (Optional)
-                  </span>
+                  Address line 2
                 </Label>
                 <Input
                   value={draftAddress.address2}
