@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions } from '@/lib/api/driver';
@@ -17,6 +18,8 @@ import { useDriverActions } from '@/hooks/use-driver-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DriversPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: drivers } = useQuery(DriversListQueryOptions());
 
   // TEMP: Fetch users to resolve driver app invitation sub by email match.
@@ -47,6 +50,20 @@ export default function DriversPage() {
   ];
 
   const { actions, confirmDialogs, viewDialog } = useDriverActions();
+
+  // Auto-open driver view when navigated from checklist failed email link
+  React.useEffect(() => {
+    const openDriverId = searchParams.get('openDriverId');
+    const section = searchParams.get('section');
+    if (!openDriverId || items.length === 0) return;
+
+    const driver = items.find((d) => d.id === Number(openDriverId));
+    if (driver) {
+      actions.view(driver, { scrollToSection: section ?? undefined });
+      router.replace('/logistics/drivers');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, items]);
 
   const handleRowClick = (driverData: DriverDTO) => {
     actions.view(driverData);

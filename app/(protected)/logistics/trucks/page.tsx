@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions } from '@/lib/api/truck';
@@ -16,6 +17,8 @@ import { useTruckActions } from '@/hooks/use-truck-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function TrucksPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const { data: trucks } = useQuery(TrucksListQueryOptions());
   const { actions, confirmDialogs, viewDialog } = useTruckActions();
 
@@ -65,6 +68,20 @@ export default function TrucksPage() {
   const items: TruckDTO[] = React.useMemo(() => {
     return Array.isArray(trucks) ? trucks : [];
   }, [trucks]);
+
+  // Auto-open truck view when navigated from inspection failed email link
+  React.useEffect(() => {
+    const openTruckId = searchParams.get('openTruckId');
+    const section = searchParams.get('section');
+    if (!openTruckId || items.length === 0) return;
+
+    const truck = items.find((t) => t.id === Number(openTruckId));
+    if (truck) {
+      actions.view(truck, { scrollToSection: section ?? undefined });
+      router.replace('/logistics/trucks');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, items]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'truckStatus', title: 'Status' },

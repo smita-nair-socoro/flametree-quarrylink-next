@@ -432,6 +432,9 @@ export function useDriverActions(driverData?: DriverDTO | null) {
 
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [scrollToSection, setScrollToSection] = React.useState<
+    string | undefined
+  >();
   const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
     React.useState<number[]>([]);
   const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<
@@ -597,11 +600,15 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   };
 
   const actions = {
-    view: (driver?: DriverDTO | null) => {
+    view: (
+      driver?: DriverDTO | null,
+      options?: { scrollToSection?: string },
+    ) => {
       const toSelect = driver ?? driverData;
       if (toSelect != null) {
         useDriverStore.getState().setSelectedDriver(toSelect);
       }
+      setScrollToSection(options?.scrollToSection);
       setViewOpen(true);
     },
 
@@ -673,6 +680,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) setScrollToSection(undefined);
       }}
       hideTrigger
       headerInfo={{
@@ -682,7 +690,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         <DriverActionButtons driver={driverData ?? selectedDriver} />
       }
     >
-      <DriverForm />
+      <DriverForm scrollToSection={scrollToSection} />
     </FormDialog>
   ) : null;
 

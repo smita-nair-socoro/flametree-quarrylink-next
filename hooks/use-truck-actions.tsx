@@ -83,6 +83,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const [selectedDriverIds, setSelectedDriverIds] = React.useState<number[]>(
     [],
   );
+  const [scrollToSection, setScrollToSection] = React.useState<
+    string | undefined
+  >();
   // Prevents ActionDialog's auto-close from resetting activeDialog when
   // transitioning to a follow-up dialog (e.g. unassignDriver → unassignDriverBlocked).
   // Can be removed once ActionDialog is refactored to not auto-close after confirm.
@@ -342,9 +345,13 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
-    view: (truck?: TruckDTO | null) => {
+    view: (
+      truck?: TruckDTO | null,
+      options?: { scrollToSection?: string },
+    ) => {
       const toSelect = truck ?? truckData;
       if (toSelect != null) setSelectedTruck(toSelect);
+      setScrollToSection(options?.scrollToSection);
       setViewOpen(true);
     },
     deactivate: () => setActiveDialog('deactivate'),
@@ -408,6 +415,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) setScrollToSection(undefined);
       }}
       hideTrigger
       dialogTitle="View / Edit Truck"
@@ -427,7 +435,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       headerButtons={<TruckActionButtons truck={truckData ?? selectedTruck} />}
       headerInfo={{ useSelectedTruck: true }}
     >
-      <TruckForm id={selectedTruck?.id} />
+      <TruckForm id={selectedTruck?.id} scrollToSection={scrollToSection} />
     </FormDialog>
   ) : null;
 
