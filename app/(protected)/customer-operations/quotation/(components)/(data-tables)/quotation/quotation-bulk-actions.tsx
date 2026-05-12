@@ -42,7 +42,7 @@ export function QuotationBulkActions({
     const archivableStatuses = ['DRAFT', 'EXPIRED', 'DECLINED'];
 
     const archivable = selectedQuotations.filter((q) =>
-      archivableStatuses.includes(q.quoteStatus as string)
+      archivableStatuses.includes(q.quoteStatus as string),
     );
     const nonArchivable = selectedQuotations.filter(
       (q) =>
@@ -68,7 +68,7 @@ export function QuotationBulkActions({
         notifySuccess(
           `Successfully archived ${archivable.length} quotation${
             archivable.length !== 1 ? 's' : ''
-          }`
+          }`,
         );
         setDialogOpen(false);
         onClearSelection();
@@ -102,7 +102,7 @@ export function QuotationBulkActions({
                 'border-0 flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors rounded-none',
                 activeTab === 'archivable'
                   ? 'border-green-500 text-green-700 border-b-2'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700',
               )}
             >
               Can be Archived ({archivable.length})
@@ -114,7 +114,7 @@ export function QuotationBulkActions({
                 'border-0 flex-1 py-2 px-6 text-sm font-medium border-b-2 transition-colors rounded-none',
                 activeTab === 'non-archivable'
                   ? 'border-red-500 text-red-700 border-b-2'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700',
               )}
             >
               Cannot be Archived ({nonArchivable.length})
@@ -172,8 +172,8 @@ export function QuotationBulkActions({
                       <AlertTriangle className="h-5 w-5 text-[#FF8C00] mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-[#364153]">
                         The following quotations cannot be archived because they
-                        have active statuses (Pending or Approved). Please
-                        update their status manually before archiving.
+                        have statuses (Pending, Approved, or Converted to Job).
+                        Please update their status manually before archiving.
                       </p>
                     </div>
                     {nonArchivable.map((quotation) => (
@@ -218,7 +218,7 @@ export function QuotationBulkActions({
               'px-6 pb-6 pt-4',
               activeTab === 'archivable' && archivable.length > 0
                 ? 'grid grid-cols-2 gap-2'
-                : ''
+                : '',
             )}
           >
             <Button
@@ -227,7 +227,7 @@ export function QuotationBulkActions({
               className={cn(
                 'h-10',
                 !(activeTab === 'archivable' && archivable.length > 0) &&
-                  'w-full h-11'
+                  'w-full h-11',
               )}
             >
               {archivable.length > 0 ? 'Cancel' : 'Close'}
