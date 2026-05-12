@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/form';
 import { signIn } from 'aws-amplify/auth';
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
@@ -51,6 +51,7 @@ export function LoginForm({
   const [tempPassword, setTempPassword] = useState('');
   const [wrongPasswordAttempts, setWrongPasswordAttempts] = useState(0);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refreshUser } = useAuth();
 
   const loginFormSchema = z.object({
@@ -91,7 +92,7 @@ export function LoginForm({
         });
 
         // Redirect to the intended destination
-        router.push(getSafeRedirectUrl());
+        router.push(getSafeRedirectUrl(searchParams));
       } else {
         // Handle additional steps like MFA or NEW_PASSWORD_REQUIRED
         console.log('Additional authentication step required:', nextStep);
@@ -197,7 +198,7 @@ export function LoginForm({
     });
 
     // Redirect to the intended destination
-    router.push(getSafeRedirectUrl());
+    router.push(getSafeRedirectUrl(searchParams));
   }
 
   // async function handleGoogleSignIn() {

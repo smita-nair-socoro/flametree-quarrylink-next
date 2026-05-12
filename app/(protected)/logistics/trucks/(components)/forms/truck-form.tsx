@@ -57,6 +57,7 @@ interface FormProps {
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
   onCancel?: () => void;
+  scrollToSection?: string;
 }
 
 const truckTypeOptions: FormSelectOption[] = [
@@ -80,6 +81,7 @@ export default function TruckForm({
   onDirtyChange,
   className,
   onSuccess,
+  scrollToSection,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
@@ -271,6 +273,24 @@ export default function TruckForm({
       description: 'Check required fields',
     });
   }
+
+  const inspectionSectionRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (scrollToSection !== 'inspection' || !isEditing || !truckData?.id) return;
+
+    const element = inspectionSectionRef.current;
+    if (!element) return;
+
+    const timer = window.setTimeout(() => {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [scrollToSection, isEditing, truckData?.id]);
 
   const { data: inspectionsData } = useQuery({
     ...TruckInspectionsQueryOptions(id ?? 0),
@@ -644,7 +664,7 @@ export default function TruckForm({
           )}
 
           {isEditing && (
-            <div className="flex flex-col gap-4">
+            <div ref={inspectionSectionRef} className="flex flex-col gap-4">
               <div className="flex flex-col gap-4">
                 <Separator />
                 <h2 className="text-lg font-bold">Truck Inspections</h2>

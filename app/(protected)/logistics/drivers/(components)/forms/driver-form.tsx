@@ -60,6 +60,7 @@ interface FormProps {
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
   onCancel?: () => void;
+  scrollToSection?: string;
 }
 
 export default function DriverForm({
@@ -69,6 +70,7 @@ export default function DriverForm({
   onDirtyChange,
   className,
   onSuccess,
+  scrollToSection,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
@@ -234,6 +236,24 @@ export default function DriverForm({
     licensePlate: t.licensePlate,
     status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
   }));
+  const complianceSectionRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id) return;
+
+    const element = complianceSectionRef.current;
+    if (!element) return;
+
+    const timer = window.setTimeout(() => {
+      element.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    }, 400);
+
+    return () => window.clearTimeout(timer);
+  }, [scrollToSection, isEditing, driverData?.id]);
+
   const { data: checklistsData } = useQuery({
     ...DriverPreStartChecklistsQueryOptions(id ?? 0),
     enabled: isEditing && !!id,
@@ -521,7 +541,7 @@ export default function DriverForm({
           )}
 
           {isEditing && (
-            <div className="flex flex-col gap-4">
+            <div ref={complianceSectionRef} className="flex flex-col gap-4">
               <Separator />
               <h2 className="text-lg font-bold">Safety &amp; Compliance</h2>
               <div className="w-full overflow-x-auto">
