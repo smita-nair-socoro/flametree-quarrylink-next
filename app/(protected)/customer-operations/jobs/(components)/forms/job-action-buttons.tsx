@@ -45,13 +45,6 @@ export function JobActionButtons({
     return null;
   }
 
-  const handleResume = () => actions.resume();
-  const handlePause = () => actions.pause();
-  const handleCancel = () => actions.cancel();
-  const handleAddDocket = () => actions.addDocket();
-  const handleViewDockets = () => actions.viewDockets();
-  const handleSettle = () => actions.settle();
-
   // Mobile or compact version - everything in dropdown
   if (!isDesktop || layout === 'compact') {
     return (
@@ -70,17 +63,17 @@ export function JobActionButtons({
             <DropdownMenuContent align="end" className="w-48">
               {job.jobStatus === JOB_STATUS.PAUSED && (
                 <>
-                  <DropdownMenuItem onClick={handleResume}>
+                  <DropdownMenuItem onClick={actions.resume}>
                     <CirclePlay className="h-4 w-4 mr-2" />
                     Resume
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handlePause}>
+                  <DropdownMenuItem onClick={actions.pause}>
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleCancel}>
+                  <DropdownMenuItem onClick={actions.cancel}>
                     <CircleX className="h-4 w-4 mr-2 text-red-600" />
                     <span className="text-red-600">Cancel</span>
                   </DropdownMenuItem>
@@ -89,17 +82,17 @@ export function JobActionButtons({
 
               {job.jobStatus === JOB_STATUS.ACTIVE && (
                 <>
-                  <DropdownMenuItem onClick={handleAddDocket}>
+                  <DropdownMenuItem onClick={actions.addDocket}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Docket
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handlePause}>
+                  <DropdownMenuItem onClick={actions.pause}>
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleCancel}>
+                  <DropdownMenuItem onClick={actions.cancel}>
                     <CircleX className="h-4 w-4 mr-2 text-red-600" />
                     <span className="text-red-600">Cancel</span>
                   </DropdownMenuItem>
@@ -108,22 +101,22 @@ export function JobActionButtons({
 
               {job.jobStatus === JOB_STATUS.IN_PROGRESS && (
                 <>
-                  <DropdownMenuItem onClick={handleAddDocket}>
+                  <DropdownMenuItem onClick={actions.addDocket}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Docket
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleViewDockets}>
+                  <DropdownMenuItem onClick={actions.viewDockets}>
                     <Package className="h-4 w-4 mr-2" />
                     View Dockets
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handlePause}>
+                  <DropdownMenuItem onClick={actions.pause}>
                     <Pause className="h-4 w-4 mr-2" />
                     Pause
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleCancel}>
+                  <DropdownMenuItem onClick={actions.cancel}>
                     <CircleX className="h-4 w-4 mr-2 text-red-600" />
                     <span className="text-red-600">Cancel</span>
                   </DropdownMenuItem>
@@ -132,12 +125,12 @@ export function JobActionButtons({
 
               {job.jobStatus === JOB_STATUS.COMPLETED && (
                 <>
-                  <DropdownMenuItem onClick={handleViewDockets}>
+                  <DropdownMenuItem onClick={actions.viewDockets}>
                     <Package className="h-4 w-4 mr-2" />
                     View Dockets
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSettle}>
+                  <DropdownMenuItem onClick={actions.settle}>
                     <FileCheck2 className="h-4 w-4 mr-2" />
                     Settle
                   </DropdownMenuItem>
@@ -162,7 +155,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleResume}
+              onClick={actions.resume}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
             >
               <CirclePlay className="h-4 w-4 mr-2" />
@@ -179,7 +172,7 @@ export function JobActionButtons({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleCancel}>
+                <DropdownMenuItem onClick={actions.cancel}>
                   <CircleX className="h-4 w-4 mr-2 text-red-600" />
                   <span className="text-red-600">Cancel</span>
                 </DropdownMenuItem>
@@ -193,7 +186,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleAddDocket}
+              onClick={actions.addDocket}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -202,7 +195,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handlePause}
+              onClick={actions.pause}
               className="rounded-none border-r border-gray-200 bg-yellow-50 hover:bg-yellow-100 text-yellow-900 hover:text-yellow-800"
             >
               <Pause className="h-4 w-4 mr-2" />
@@ -219,7 +212,7 @@ export function JobActionButtons({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleCancel}>
+                <DropdownMenuItem onClick={actions.cancel}>
                   <CircleX className="h-4 w-4 mr-2 text-red-600" />
                   <span className="text-red-600">Cancel</span>
                 </DropdownMenuItem>
@@ -233,7 +226,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleAddDocket}
+              onClick={actions.addDocket}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
             >
               <Plus className="h-4 w-4 mr-2" />
@@ -242,7 +235,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleViewDockets}
+              onClick={actions.viewDockets}
               className="rounded-none border-r border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
             >
               <Package className="h-4 w-4 mr-2" />
@@ -259,12 +252,12 @@ export function JobActionButtons({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handlePause}>
+                <DropdownMenuItem onClick={actions.pause}>
                   <Pause className="h-4 w-4 mr-2" />
                   Pause
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleCancel}>
+                <DropdownMenuItem onClick={actions.cancel}>
                   <CircleX className="h-4 w-4 mr-2 text-red-600" />
                   <span className="text-red-600">Cancel</span>
                 </DropdownMenuItem>
@@ -278,7 +271,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleViewDockets}
+              onClick={actions.viewDockets}
               className="rounded-none border-r border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
             >
               <Package className="h-4 w-4 mr-2" />
@@ -287,7 +280,7 @@ export function JobActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleSettle}
+              onClick={actions.settle}
               className="rounded-none border-r border-gray-200 bg-purple-100 hover:bg-purple-200 text-purple-900 hover:text-purple-800"
             >
               <FileCheck2 className="h-4 w-4 mr-2" />

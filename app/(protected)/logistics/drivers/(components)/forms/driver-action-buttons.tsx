@@ -30,7 +30,6 @@ interface DriverActionButtonsProps {
 }
 
 export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, fullDriverData } = useDriverActions(driver);
 
   // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
@@ -50,7 +49,6 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
   // END TEMP
 
   const handleResendInvitation = async () => {
-    setDropdownOpen(false);
     if (!userSub) {
       notifyError('Could not find user account for this driver.');
       return;
@@ -80,21 +78,6 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
 
   const status = driver.driverStatus;
 
-  const handleDeactivate = () => {
-    setDropdownOpen(false);
-    actions.deactivate();
-  };
-
-  const handleReactivate = () => {
-    setDropdownOpen(false);
-    actions.reactivate();
-  };
-
-  const handleDelete = () => {
-    setDropdownOpen(false);
-    actions.delete();
-  };
-
   return (
     <div className="flex items-start">
       {confirmDialogs}
@@ -110,7 +93,7 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
         </Button>
 
         {status !== DRIVER_STATUS.ON_DUTY && (
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -133,7 +116,7 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
 
               {status === DRIVER_STATUS.DEACTIVATED && (
                 <>
-                  <DropdownMenuItem onClick={handleReactivate}>
+                  <DropdownMenuItem onClick={actions.reactivate}>
                     <Power className="h-4 w-4 mr-2 text-green-600" />
                     <span className="text-green-600">Reactivate Driver</span>
                   </DropdownMenuItem>
@@ -144,7 +127,7 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
               {(status === DRIVER_STATUS.ACTIVE ||
                 status === DRIVER_STATUS.PENDING_INVITATION) && (
                 <>
-                  <DropdownMenuItem onClick={handleDeactivate}>
+                  <DropdownMenuItem onClick={actions.deactivate}>
                     <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                     <span className="text-orange-900">Deactivate Driver</span>
                   </DropdownMenuItem>
@@ -152,7 +135,7 @@ export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
                 </>
               )}
 
-              <DropdownMenuItem onClick={handleDelete}>
+              <DropdownMenuItem onClick={actions.delete}>
                 <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                 <span className="text-red-600">Delete Driver</span>
               </DropdownMenuItem>
