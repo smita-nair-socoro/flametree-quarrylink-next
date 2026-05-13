@@ -167,7 +167,7 @@ export function NewPasswordModal({
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password*</FormLabel>
+                  <FormLabel>New Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -200,7 +200,7 @@ export function NewPasswordModal({
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password*</FormLabel>
+                  <FormLabel>Confirm Password</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input

@@ -597,7 +597,7 @@ export default function AddressDialog(
             {/* Form Fields */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="address1">Address line 1*</Label>
+                <Label htmlFor="address1">Address line 1</Label>
                 <Input
                   value={draftAddress.address1}
                   onChange={(e) =>
