@@ -70,8 +70,8 @@ export function StopTransitContent({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-[#DC2626]">
-          Stop Reason (required):
+        <label className="text-sm font-medium text-[#374151]">
+          Stop Reason <span className="text-[#111827]">*</span>
         </label>
         <SelectOptions
           searchLabel="stop reason"
@@ -87,9 +87,9 @@ export function StopTransitContent({
         <label className="text-sm font-medium text-[#374151]">
           Additional Notes{' '}
           {notesRequired ? (
-            <span className="text-[#DC2626]">(required):</span>
+            <span className="text-[#111827]">*</span>
           ) : (
-            <span className="text-[#6B7280]">(optional):</span>
+            <span className="font-normal text-[#6B7280]">(Optional)</span>
           )}
         </label>
         <Textarea
