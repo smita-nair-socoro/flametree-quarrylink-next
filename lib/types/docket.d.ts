@@ -67,10 +67,10 @@ export interface DriverAppStatusUpdateRequest {
   deliveredProductsConfirmed?: boolean;
   receiverOnSite?: boolean;
   receiverName?: string;
-  signatureImage?: string;
+  signatureImage?: Blob | File;
   deliveryNotes?: string;
-  unloadedPhotos?: string[];
-  receivedPhotos?: string[];
+  unloadedPhotos?: File[];
+  receivedPhotos?: File[];
 }
 
 export interface DocketOperationalUpdateRequest {
