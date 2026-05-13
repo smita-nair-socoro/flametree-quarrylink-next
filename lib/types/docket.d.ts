@@ -74,7 +74,7 @@ export interface DriverAppStatusUpdateRequest {
 }
 
 export interface DocketOperationalUpdateRequest {
-  checkWindowTimeConflict: boolean;
+  checkWindowTimeConflict?: boolean;
   docketEmailRecipients?: string[];
   actualLoadSize?: number;
   plannedLoadSize?: number;
@@ -198,6 +198,7 @@ export interface DocketDTO {
     totalQuantityRequired: number;
     allocatedQuantity: number;
     remainingQuantity: number;
+    deliveredQuantity: number;
     productCostUom: string;
     productCostQty: number;
     productCostPrice: number;
