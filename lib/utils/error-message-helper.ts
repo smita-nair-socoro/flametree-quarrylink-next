@@ -1,3 +1,10 @@
+import { DocketDTO } from '../types/docket';
+import {
+  EligibilityBlockingDependencies,
+} from '../types/eligibility-check';
+import { JobDTO, JobItem } from '../types/job';
+import { QuotationDTO } from '../types/quotation';
+
 /**
  * Safely extract error response data from unknown errors.
  */
@@ -27,6 +34,71 @@ export function extractErrorData(error: unknown): unknown {
   }
 
   return null;
+}
+
+/**
+ * Extract all eligibility blocking dependencies from either a success payload or an error payload.
+ */
+export function extractEligibilityBlockingDependencies(
+  data: unknown,
+): EligibilityBlockingDependencies {
+  if (!data || typeof data !== 'object') {
+    return {
+      blockingQuotations: [],
+      blockingJobs: [],
+      blockingDockets: [],
+      blockingJobItems: [],
+      hasBlockingDependencies: false,
+    };
+  }
+
+  const record = data as {
+    blockingQuotations?: unknown;
+    blockingJobs?: unknown;
+    blockingDockets?: unknown;
+    blockingJobItems?: unknown;
+  };
+
+  const blockingQuotations = Array.isArray(record.blockingQuotations)
+    ? record.blockingQuotations.filter(
+        (quotation): quotation is QuotationDTO =>
+          typeof quotation === 'object' &&
+          quotation !== null &&
+          'id' in quotation &&
+          'quoteNumber' in quotation &&
+          'lineItemsCount' in quotation,
+      )
+    : [];
+  const blockingJobs = Array.isArray(record.blockingJobs)
+    ? record.blockingJobs.filter(
+        (job): job is JobDTO =>
+          typeof job === 'object' && job !== null && 'id' in job,
+      )
+    : [];
+  const blockingDockets = Array.isArray(record.blockingDockets)
+    ? record.blockingDockets.filter(
+        (docket): docket is DocketDTO =>
+          typeof docket === 'object' && docket !== null && 'id' in docket,
+      )
+    : [];
+  const blockingJobItems = Array.isArray(record.blockingJobItems)
+    ? record.blockingJobItems.filter(
+        (jobItem): jobItem is JobItem =>
+          typeof jobItem === 'object' && jobItem !== null && 'id' in jobItem,
+      )
+    : [];
+
+  return {
+    blockingQuotations,
+    blockingJobs,
+    blockingDockets,
+    blockingJobItems,
+    hasBlockingDependencies:
+      blockingQuotations.length > 0 ||
+      blockingJobs.length > 0 ||
+      blockingDockets.length > 0 ||
+      blockingJobItems.length > 0,
+  };
 }
 
 /**
