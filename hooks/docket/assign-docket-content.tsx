@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { UserPlus, AlertTriangle, ChevronsUpDown, Check } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { SelectOptions } from '@/components/ui/select-options';
@@ -21,6 +21,7 @@ import {
   type ConflictingDocket,
 } from '@/lib/api/docket';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
+import { appendUtcSuffix } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -50,6 +51,7 @@ interface AssignDocketContentProps extends AssignDocketFormState {
   onHaulerChange: (value: number) => void;
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
+  onClose?: () => void;
 }
 
 type TruckStatusConfig = {
@@ -98,12 +100,14 @@ function ConflictWarning({
   label,
   dockets,
   isLoading,
+  onClose,
 }: {
   label: string;
   dockets: ConflictingDocket[];
   isLoading?: boolean;
+  onClose?: () => void;
 }) {
-  const [isNavigating, setIsNavigating] = React.useState(false);
+  const router = useRouter();
 
   if (isLoading) {
     return (
@@ -116,48 +120,38 @@ function ConflictWarning({
   if (dockets.length === 0) return null;
 
   const ids = dockets.map((d) => d.id).join(',');
-  const href = `/customer-operations/dockets/?docketId=${encodeURIComponent(ids)}`;
 
   return (
-    <>
-      {isNavigating && (
-        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center space-y-4 bg-background/80 backdrop-blur-sm">
-          <Spinner size="medium" />
-          <p className="text-lg text-muted-foreground font-bold">Loading...</p>
-        </div>
-      )}
-      <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
-        <div className="flex items-start gap-2">
-          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-          <div className="flex flex-col gap-1.5">
-            <span className="text-sm font-semibold text-[#461901]">
-              Potential scheduling conflict detected
-            </span>
-            <span className="text-xs text-[#973C00F2]">
-              Another docket is already assigned to this {label} for the same date
-              and time. You can still assign this docket.
-            </span>
-            <div
-              className="rounded-md border px-3 py-2 text-xs"
-              style={{
-                backgroundColor: '#FFF7ED',
-                borderColor: '#FFD6A7',
-                color: '#364153',
-              }}
+    <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
+      <div className="flex items-start gap-2">
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-semibold text-[#461901]">
+            Potential scheduling conflict detected
+          </span>
+          <span className="text-xs text-[#973C00F2]">
+            Another docket is already assigned to this {label} for the same date
+            and time. You can still assign this docket.
+          </span>
+          <div
+            className="rounded-md border px-3 py-2 text-xs"
+            style={{
+              backgroundColor: '#FFF7ED',
+              borderColor: '#FFD6A7',
+              color: '#364153',
+            }}
+          >
+            <span
+              className="font-medium underline cursor-pointer"
+              style={{ color: '#155DFC' }}
+              onClick={() => { onClose?.(); router.push(`/customer-operations/dockets/?docketId=${ids}`); }}
             >
-              <Link
-                href={href}
-                className="font-medium underline"
-                style={{ color: '#155DFC' }}
-                onClick={() => setIsNavigating(true)}
-              >
-                Conflict Dockets
-              </Link>
-            </div>
+              Conflict Dockets
+            </span>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -196,6 +190,7 @@ export function AssignDocketContent({
   onHaulerChange,
   onTruckChange,
   onDriverChange,
+  onClose,
 }: AssignDocketContentProps) {
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const { data: haulierTrucksData } = useQuery(
@@ -233,23 +228,26 @@ export function AssignDocketContent({
     [haulierDriversData],
   );
 
-  const truckConflictRequest = truckSelection && docket
-    ? {
-        truckId: truckSelection,
-        deliveryCollectionDate: docket.deliveryCollectionDate ?? '',
-        deliveryStartWindow: docket.deliveryCollectionStartTime ?? '',
-        deliveryEndWindow: docket.deliveryCollectionEndTime ?? '',
-      }
-    : null;
+  const conflictDates =
+    docket?.deliveryCollectionDate &&
+    docket.deliveryCollectionStartTime &&
+    docket.deliveryCollectionEndTime
+      ? {
+          deliveryCollectionDate: appendUtcSuffix(docket.deliveryCollectionDate),
+          deliveryStartWindow: appendUtcSuffix(docket.deliveryCollectionStartTime),
+          deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+        }
+      : null;
 
-  const driverConflictRequest = driverSelection && docket
-    ? {
-        driverId: driverSelection,
-        deliveryCollectionDate: docket.deliveryCollectionDate ?? '',
-        deliveryStartWindow: docket.deliveryCollectionStartTime ?? '',
-        deliveryEndWindow: docket.deliveryCollectionEndTime ?? '',
-      }
-    : null;
+  const truckConflictRequest =
+    truckSelection && conflictDates
+      ? { truckId: truckSelection, ...conflictDates }
+      : null;
+
+  const driverConflictRequest =
+    driverSelection && conflictDates
+      ? { driverId: driverSelection, ...conflictDates }
+      : null;
 
   const { data: truckConflictData, isFetching: isTruckConflictPending } = useQuery(
     DocketConflictCheckQueryOptions(docket?.id, truckConflictRequest),
@@ -442,7 +440,7 @@ export function AssignDocketContent({
         }
       />
 
-      <ConflictWarning label="truck" dockets={truckConflicts} isLoading={isTruckConflictPending} />
+      <ConflictWarning label="truck" dockets={truckConflicts} isLoading={isTruckConflictPending} onClose={onClose} />
 
       <SelectOptions
         label="Driver"
@@ -455,7 +453,7 @@ export function AssignDocketContent({
         disabled={!truckSelection}
       />
 
-      <ConflictWarning label="driver" dockets={driverConflicts} isLoading={isDriverConflictPending} />
+      <ConflictWarning label="driver" dockets={driverConflicts} isLoading={isDriverConflictPending} onClose={onClose} />
     </div>
   );
 }
