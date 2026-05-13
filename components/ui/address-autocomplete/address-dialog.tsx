@@ -49,78 +49,27 @@ interface AddressDialogProps {
   isCollection?: boolean;
 }
 
-interface AddressFields {
-  address1?: string;
-  address2?: string;
-  city?: string;
-  region?: string;
-  postalCode?: string;
-}
-
 /**
- * Create a Zod schema for validating address fields.
+ * Address Line 1 is optional — if blank it will be filled with the lat/lng
+ * coordinate string before saving. Suburb (city), postal code, and country
+ * are always required so that incomplete reverse-geocode results are caught.
  */
-export function createAddressSchema(address: AddressFields) {
-  let schema = {};
-
-  if (address.address1 !== '') {
-    schema = {
-      ...schema,
-      address1: z
-        .string()
-        .min(1, {
-          message: 'Address line 1 is required',
-        })
-        .max(100, 'Address line 1 must be less than 100 characters')
-        .regex(/^[a-zA-Z0-9\s,.&/()\-]+$/, 'Address contains invalid characters'),
-    };
-  }
-
-  schema = {
-    ...schema,
+export function createAddressSchema() {
+  return z.object({
+    address1: z
+      .string()
+      .max(100, 'Address line 1 must be less than 100 characters')
+      .regex(/^[a-zA-Z0-9\s,.&/()\-.]*$/, 'Address contains invalid characters')
+      .optional(),
     address2: z.string().optional(),
-  };
-
-  if (address.city !== '') {
-    schema = {
-      ...schema,
-      city: z.string().min(1, {
-        message: 'City is required',
-      }),
-    };
-  }
-
-  if (address.region !== '') {
-    schema = {
-      ...schema,
-      region: z.string().min(1, {
-        message: 'State is required',
-      }),
-    };
-  }
-
-  if (address.postalCode !== '') {
-    schema = {
-      ...schema,
-      postalCode: z
-        .string()
-        .min(1, {
-          message: 'Postal code is required',
-        })
-        // Global postal code format: allows alphanumeric, spaces, and hyphens (1-12 chars)
-        // Covers formats like: AU "2000", US "90210" or "90210-1234", UK "SW1A 1AA", CA "K1A 0B1"
-        .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
-    };
-  }
-
-  schema = {
-    ...schema,
-    country: z.string().min(1, {
-      message: 'Country is required',
-    }),
-  };
-
-  return z.object(schema);
+    city: z.string().min(1, { message: 'Suburb is required' }),
+    region: z.string().optional(),
+    postalCode: z
+      .string()
+      .min(1, { message: 'Postal code is required' })
+      .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
+    country: z.string().min(1, { message: 'Country is required' }),
+  });
 }
 
 // Debounce delay for form → map geocoding
@@ -498,22 +447,23 @@ export default function AddressDialog(
     e.stopPropagation();
     setHasAttemptedSave(true);
 
-    const addressSchema = createAddressSchema({
-      address1: address.address1,
-      address2: address.address2,
-      city: address.city,
-      region: address.region,
-      postalCode: address.postalCode,
-    });
+    // If address1 is blank, fall back to the coordinate string
+    const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
+    const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
+    const coordFallback = (!isNaN(lat) && !isNaN(lng)) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '';
+    const finalDraft = {
+      ...draftAddress,
+      address1: draftAddress.address1?.trim() || coordFallback,
+    };
 
     try {
-      addressSchema.parse({
-        address1: draftAddress.address1,
-        address2: draftAddress.address2,
-        city: draftAddress.city,
-        region: draftAddress.region,
-        postalCode: draftAddress.postalCode,
-        country: draftAddress.country,
+      createAddressSchema().parse({
+        address1: finalDraft.address1,
+        address2: finalDraft.address2,
+        city: finalDraft.city,
+        region: finalDraft.region,
+        postalCode: finalDraft.postalCode,
+        country: finalDraft.country,
       });
     } catch (error) {
       const zodError = error as ZodError;
@@ -532,23 +482,21 @@ export default function AddressDialog(
     }
 
     if (
-      draftAddress.address2 !== address.address2 ||
-      draftAddress.postalCode !== address.postalCode ||
-      draftAddress.address1 !== address.address1 ||
-      draftAddress.city !== address.city ||
-      draftAddress.region !== address.region ||
-      draftAddress.country !== address.country
+      finalDraft.address1 !== address.address1 ||
+      finalDraft.address2 !== address.address2 ||
+      finalDraft.city !== address.city ||
+      finalDraft.region !== address.region ||
+      finalDraft.postalCode !== address.postalCode ||
+      finalDraft.country !== address.country
     ) {
-      const newFormattedAddress = updateAndFormatAddress(adrAddressDraft, draftAddress);
+      const newFormattedAddress = updateAndFormatAddress(adrAddressDraft, finalDraft);
 
-      // Fill missing fields with defaults (googlePlaceId if not present)
       setAddress(
         fillMissingAddressFields({
-          ...draftAddress,
+          ...finalDraft,
           formattedAddress: newFormattedAddress,
         }),
       );
-      // Notify react-hook-form of the change
       if (onChange) {
         onChange(newFormattedAddress);
       }
@@ -557,13 +505,7 @@ export default function AddressDialog(
   };
 
   const isMapDisabled = isLoading || isReverseGeocoding;
-  const validationResult = createAddressSchema({
-    address1: address.address1,
-    address2: address.address2,
-    city: address.city,
-    region: address.region,
-    postalCode: address.postalCode,
-  }).safeParse({
+  const validationResult = createAddressSchema().safeParse({
     address1: draftAddress.address1,
     address2: draftAddress.address2,
     city: draftAddress.city,
