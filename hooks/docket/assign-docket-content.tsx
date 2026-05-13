@@ -22,6 +22,7 @@ import {
 } from '@/lib/api/docket';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { appendUtcSuffix } from '@/lib/utils/date';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -257,11 +258,13 @@ export function AssignDocketContent({
     DocketConflictCheckQueryOptions(docket?.id, driverConflictRequest),
   );
 
-  const truckConflicts: ConflictingDocket[] =
-    truckConflictData?.hasConflicts ? truckConflictData.conflictingDocketIds : [];
+  const truckConflicts: ConflictingDocket[] = (
+    truckConflictData?.hasConflicts ? truckConflictData.conflictingDocketIds : []
+  ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
-  const driverConflicts: ConflictingDocket[] =
-    driverConflictData?.hasConflicts ? driverConflictData.conflictingDocketIds : [];
+  const driverConflicts: ConflictingDocket[] = (
+    driverConflictData?.hasConflicts ? driverConflictData.conflictingDocketIds : []
+  ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
   const internalOptions = React.useMemo(() => {
     const h = hauliers.find((h) => h.haulierName === businessName);
