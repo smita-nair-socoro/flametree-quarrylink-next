@@ -6,7 +6,9 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { ProductKeys } from './keys';
+import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { Product } from '../types/product';
+import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { removeNewRecordId } from '../utils';
 
 export const ProductsListQueryOptions = () =>
@@ -78,29 +80,23 @@ export const useUpdateProduct = () => {
 
 export const useDeleteProduct = () => {
   const queryClient = useQueryClient();
-  return useMutation<unknown, Error, number>({
+  return useMutation<PostEligibilityCheckResponse, Error, number>({
     mutationFn: (id: number) => APIClient.products.deleteProduct(id),
-    onMutate: (variables) => {
-      console.log('[Mutation] Delete product vars:', { id: variables });
-    },
     onSuccess: (response, variables) => {
-      console.log('[Mutation] Delete product response:', response);
-      console.log('[Mutation] Delete product variables:', { id: variables });
-      
-      // Remove the deleted product ID from sessionStorage
-      removeNewRecordId('product_main_data_table', variables);
-      
-      queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
-      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
-      queryClient.invalidateQueries({
-        queryKey: ProductKeys.detailWithMaterial(variables),
-      });
-      queryClient.invalidateQueries({
-        queryKey: ProductKeys.detailWithQuarrySupplierProduct(variables),
-      });
-    },
-    onError: (error) => {
-      console.error('Error deleting product:', error);
+      const blocking = extractEligibilityBlockingDependencies(response);
+
+      if (!blocking.hasBlockingDependencies) {
+        removeNewRecordId('product_main_data_table', variables);
+
+        queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
+        queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+        queryClient.invalidateQueries({
+          queryKey: ProductKeys.detailWithMaterial(variables),
+        });
+        queryClient.invalidateQueries({
+          queryKey: ProductKeys.detailWithQuarrySupplierProduct(variables),
+        });
+      }
     },
   });
 };
