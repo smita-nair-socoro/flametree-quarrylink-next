@@ -11,12 +11,8 @@ import {
   DocketDTO,
   DocketOperationalUpdateRequest,
   ConflictCheckRequest,
-  ConflictingDocket,
-  ConflictCheckResponse,
 } from '../types/docket';
 import type { DOCKET_STATUS } from '../types/docket-enums';
-
-export type { ConflictCheckRequest, ConflictingDocket, ConflictCheckResponse };
 
 export const DocketsListQueryOptions = () =>
   queryOptions({
@@ -159,10 +155,17 @@ export const useUpdateDocketStatus = () => {
 export const useOperationalUpdateDocket = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: DocketOperationalUpdateRequest }) =>
-      APIClient.dockets.operationalUpdate(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: DocketOperationalUpdateRequest;
+    }) => APIClient.dockets.operationalUpdate(id, data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(response.docket.id) });
+      queryClient.invalidateQueries({
+        queryKey: DocketKeys.detail(response.docket.id),
+      });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
     },
@@ -174,9 +177,13 @@ export const DocketConflictCheckQueryOptions = (
   request: ConflictCheckRequest | null,
 ) =>
   queryOptions({
-    queryKey: ['docket-conflict-check', docketId, request?.truckId, request?.driverId],
+    queryKey: [
+      'docket-conflict-check',
+      docketId,
+      request?.truckId,
+      request?.driverId,
+    ],
     queryFn: () => APIClient.dockets.conflictCheck(docketId!, request!),
     enabled: !!request && !!docketId,
     staleTime: 0,
   });
-

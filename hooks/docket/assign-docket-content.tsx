@@ -16,10 +16,8 @@ import {
   HaulierDriversQueryOptions,
 } from '@/lib/api/haulier';
 import { useClientStore } from '@/app/stores/client-store';
-import {
-  DocketConflictCheckQueryOptions,
-  type ConflictingDocket,
-} from '@/lib/api/docket';
+import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
+import { ConflictingDocket } from '@/lib/types/docket';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { appendUtcSuffix } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -143,9 +141,11 @@ function ConflictWarning({
             }}
           >
             <span
-              className="font-medium underline cursor-pointer"
-              style={{ color: '#155DFC' }}
-              onClick={() => { onClose?.(); router.push(`/customer-operations/dockets/?docketId=${ids}`); }}
+              className="font-medium underline cursor-pointer text-[#155DFC]"
+              onClick={() => {
+                onClose?.();
+                router.push(`/customer-operations/dockets/?docketId=${ids}`);
+              }}
             >
               Conflict Dockets
             </span>
@@ -234,8 +234,12 @@ export function AssignDocketContent({
     docket.deliveryCollectionStartTime &&
     docket.deliveryCollectionEndTime
       ? {
-          deliveryCollectionDate: appendUtcSuffix(docket.deliveryCollectionDate),
-          deliveryStartWindow: appendUtcSuffix(docket.deliveryCollectionStartTime),
+          deliveryCollectionDate: appendUtcSuffix(
+            docket.deliveryCollectionDate,
+          ),
+          deliveryStartWindow: appendUtcSuffix(
+            docket.deliveryCollectionStartTime,
+          ),
           deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
         }
       : null;
@@ -250,20 +254,24 @@ export function AssignDocketContent({
       ? { driverId: driverSelection, ...conflictDates }
       : null;
 
-  const { data: truckConflictData, isFetching: isTruckConflictPending } = useQuery(
-    DocketConflictCheckQueryOptions(docket?.id, truckConflictRequest),
-  );
+  const { data: truckConflictData, isFetching: isTruckConflictPending } =
+    useQuery(DocketConflictCheckQueryOptions(docket?.id, truckConflictRequest));
 
-  const { data: driverConflictData, isFetching: isDriverConflictPending } = useQuery(
-    DocketConflictCheckQueryOptions(docket?.id, driverConflictRequest),
-  );
+  const { data: driverConflictData, isFetching: isDriverConflictPending } =
+    useQuery(
+      DocketConflictCheckQueryOptions(docket?.id, driverConflictRequest),
+    );
 
   const truckConflicts: ConflictingDocket[] = (
-    truckConflictData?.hasConflicts ? truckConflictData.conflictingDocketIds : []
+    truckConflictData?.hasConflicts
+      ? truckConflictData.conflictingDocketIds
+      : []
   ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
   const driverConflicts: ConflictingDocket[] = (
-    driverConflictData?.hasConflicts ? driverConflictData.conflictingDocketIds : []
+    driverConflictData?.hasConflicts
+      ? driverConflictData.conflictingDocketIds
+      : []
   ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
   const internalOptions = React.useMemo(() => {
@@ -339,7 +347,6 @@ export function AssignDocketContent({
             .map((d) => ({ label: d.driverName, value: d.id })),
     [availableDrivers, truckSelection],
   );
-
 
   function selectHauler(value: number) {
     onHaulerChange(value);
@@ -443,7 +450,12 @@ export function AssignDocketContent({
         }
       />
 
-      <ConflictWarning label="truck" dockets={truckConflicts} isLoading={isTruckConflictPending} onClose={onClose} />
+      <ConflictWarning
+        label="truck"
+        dockets={truckConflicts}
+        isLoading={isTruckConflictPending}
+        onClose={onClose}
+      />
 
       <SelectOptions
         label="Driver"
@@ -456,7 +468,12 @@ export function AssignDocketContent({
         disabled={!truckSelection}
       />
 
-      <ConflictWarning label="driver" dockets={driverConflicts} isLoading={isDriverConflictPending} onClose={onClose} />
+      <ConflictWarning
+        label="driver"
+        dockets={driverConflicts}
+        isLoading={isDriverConflictPending}
+        onClose={onClose}
+      />
     </div>
   );
 }
