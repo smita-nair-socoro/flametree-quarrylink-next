@@ -1,25 +1,18 @@
 import type { AddressType } from '@/lib/types/address';
 import { z } from 'zod';
 
-// Default values for missing address fields
-const DEFAULT_ADDRESS_VALUES = {
-  city: 'Sydney',
-  region: 'NSW',
-  postalCode: '',
-  country: 'Australia',
-} as const;
-
 /**
- * Fills in missing address fields with default values.
- * Used when Google Places API doesn't return complete address data.
+ * Normalises address fields — trims whitespace, preserves whatever the API returned.
+ * Does not substitute hardcoded defaults; missing fields stay empty so validation
+ * can surface them to the user.
  */
 export const fillMissingAddressFields = (address: AddressType): AddressType => {
   return {
     ...address,
-    city: address.city?.trim() || DEFAULT_ADDRESS_VALUES.city,
-    region: address.region?.trim() || DEFAULT_ADDRESS_VALUES.region,
-    postalCode: address.postalCode?.trim() || DEFAULT_ADDRESS_VALUES.postalCode,
-    country: address.country?.trim() || DEFAULT_ADDRESS_VALUES.country,
+    city: address.city?.trim() ?? '',
+    region: address.region?.trim() ?? '',
+    postalCode: address.postalCode?.trim() ?? '',
+    country: address.country?.trim() ?? '',
     googlePlaceId: address.googlePlaceId,
   };
 };
