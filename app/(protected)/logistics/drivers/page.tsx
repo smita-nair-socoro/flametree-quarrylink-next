@@ -99,7 +99,7 @@ export default function DriversPage() {
       descriptionColor: 'text-[#E7000B]',
     },
     {
-      title: 'Failed Pre-starts',
+      title: 'Failed pre-starters',
       value: statistics?.failedPrestarts ?? 0,
       description: `${statistics?.failedPrestartsLast7Days ?? 0} in last 7 days`,
       icon: TriangleAlert,
