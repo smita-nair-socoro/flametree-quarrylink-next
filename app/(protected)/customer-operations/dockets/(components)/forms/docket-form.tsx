@@ -938,7 +938,7 @@ export default function DocketForm({
                       name="purchaseOrder"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>PO Number*</FormLabel>
+                          <FormLabel>PO Number</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -1172,7 +1172,7 @@ export default function DocketForm({
                     name="notes"
                     render={({ field }) => (
                       <FormItem className="col-span-full">
-                        <FormLabel>Notes*</FormLabel>
+                        <FormLabel>Notes</FormLabel>
                         <FormControl>
                           <Textarea
                             className="w-full min-h-[80px]"
