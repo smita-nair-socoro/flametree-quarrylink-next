@@ -477,12 +477,7 @@ const getDialogConfigs = (
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-normal text-[#6A7282]">
-                Additional notes{' '}
-                {declineReason === 'other' ? (
-                  <span className="text-[#111827]">*</span>
-                ) : (
-                  '(Optional)'
-                )}
+                Additional notes{declineReason === 'other' && <>{' '}<span className="text-[#111827]">*</span></>}
               </label>
               <Textarea
                 value={declineNotes}
