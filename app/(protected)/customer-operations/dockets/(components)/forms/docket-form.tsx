@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -31,7 +32,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toLocalDateTime, formatLocalDateTime } from '@/lib/utils/date';
+import { toLocalDateTime, formatLocalDateTime, appendUtcSuffix } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
@@ -79,10 +80,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-const DUMMY_CONFLICTING_DOCKETS = [
-  { id: -1, docketNumber: 'DO-2342' },
-  { id: -2, docketNumber: 'DO-2343' },
-];
 
 interface FormProps {
   id?: number;
@@ -112,12 +109,11 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [conflictingDocketIds, setConflictingDocketIds] = React.useState<number[]>([]);
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
-  const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
-    typeof DocketFormSchema
-  > | null>(null);
+  const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
@@ -303,10 +299,53 @@ export default function DocketForm({
       return;
     }
 
-    // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
     if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
-      setPendingSubmitValues(values);
-      setTimeConflictOpen(true);
+      let startDateTime = values.deliveryCollectionStartTime;
+      let endDateTime = values.deliveryCollectionEndTime;
+      if (values.deliveryCollectionDate) {
+        if (values.deliveryCollectionStartTime && !values.deliveryCollectionStartTime.includes('T')) {
+          startDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionStartTime) ?? startDateTime;
+        }
+        if (values.deliveryCollectionEndTime && !values.deliveryCollectionEndTime.includes('T')) {
+          endDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionEndTime) ?? endDateTime;
+        }
+      }
+      const additionalEmails = values.docketEmail
+        ? values.docketEmail.split(',').map((e) => e.trim())
+        : [];
+      const docketEmailRecipients = Array.from(
+        new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+      );
+      try {
+        setIsSubmitting(true);
+        const result = await operationalUpdateDocket.mutateAsync({
+          id: selectedDocket.id,
+          data: {
+            checkWindowTimeConflict: true,
+            deliveryCollectionDate: values.deliveryCollectionDate
+              ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+              : undefined,
+            deliveryCollectionStartTime: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
+            deliveryCollectionEndTime: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+            plannedLoadSize: values.plannedLoadSize,
+            docketEmailRecipients,
+            truckId: selectedDocket.truckId,
+            driverId: selectedDocket.driverId,
+          },
+        });
+        if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+          setConflictingDocketIds(result.conflictingDocketIds);
+          setTimeConflictOpen(true);
+        } else {
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
+        }
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -557,38 +596,31 @@ export default function DocketForm({
                 <span className="text-sm font-semibold text-[#101828]">
                   New time {timeLabel} conflicts with existing dockets
                 </span>
-                <span className="text-xs" style={{ color: '#973C00' }}>
+                <span className="text-xs text-[#973C00]">
                   The following dockets are already scheduled for this truck and
                   driver at this time. You can still save this change.
                 </span>
               </div>
             </div>
-            <div
-              className="rounded-md border px-3 py-2 text-xs"
-              style={{
-                backgroundColor: '#FFF7ED',
-                borderColor: '#FFD6A7',
-                color: '#364153',
-              }}
-            >
-              <span className="font-medium">Conflicting dockets: </span>
-              {DUMMY_CONFLICTING_DOCKETS.map((cd, i) => (
-                <span key={cd.id}>
-                  <span
-                    className="underline cursor-pointer"
-                    style={{ color: '#155DFC' }}
-                  >
-                    {cd.docketNumber}
-                  </span>
-                  {i < DUMMY_CONFLICTING_DOCKETS.length - 1 ? ', ' : ''}
-                </span>
-              ))}
+            <div className="rounded-md border border-[#FFD6A7] bg-[#FFF7ED] px-3 py-2 text-xs text-[#364153]">
+              <span
+                className="font-medium underline cursor-pointer text-[#155DFC]"
+                onClick={() => {
+                  setTimeConflictOpen(false);
+                  router.push(`/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`);
+                }}
+              >
+                Conflict Dockets
+              </span>
             </div>
           </div>
         }
         confirmText="Save Changes"
         onConfirmAction={async () => {
-          if (pendingSubmitValues) await doSave(pendingSubmitValues);
+          setTimeConflictOpen(false);
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
         }}
       />
 
