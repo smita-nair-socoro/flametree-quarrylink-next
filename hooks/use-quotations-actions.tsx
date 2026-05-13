@@ -436,7 +436,7 @@ const getDialogConfigs = (
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-normal text-[#364153]">
-                Reason for declining <span className="text-[#E7000B]">*</span>
+                Reason for declining <span className="text-[#111827]">*</span>
               </label>
               <Select
                 value={declineReason}
@@ -479,7 +479,7 @@ const getDialogConfigs = (
               <label className="text-sm font-normal text-[#6A7282]">
                 Additional notes{' '}
                 {declineReason === 'other' ? (
-                  <span className="text-[#E7000B]">*</span>
+                  <span className="text-[#111827]">*</span>
                 ) : (
                   '(Optional)'
                 )}

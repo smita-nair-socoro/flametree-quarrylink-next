@@ -164,7 +164,7 @@ export function ResetPasswordConfirmationModal({
               name="confirmationCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirmation Code</FormLabel>
+                  <FormLabel>Confirmation Code*</FormLabel>
                   <FormControl>
                     <Input
                       type="text"
@@ -182,7 +182,7 @@ export function ResetPasswordConfirmationModal({
               name="newPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>New Password*</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
@@ -215,7 +215,7 @@ export function ResetPasswordConfirmationModal({
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm New Password</FormLabel>
+                  <FormLabel>Confirm New Password*</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Input
