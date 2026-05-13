@@ -221,7 +221,7 @@ export default function JobForm({
                       isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                     }
                   >
-                    <FormLabel>Contact Person Name</FormLabel>
+                    <FormLabel>Contact Person Name*</FormLabel>
                     <FormControl>
                       <Input
                         className="w-full"
@@ -246,7 +246,7 @@ export default function JobForm({
                       isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
                     }
                   >
-                    <FormLabel>Contact Person Phone</FormLabel>
+                    <FormLabel>Contact Person Phone*</FormLabel>
                     <FormControl>
                       <PhoneInput
                         className="w-full"
@@ -373,7 +373,7 @@ export default function JobForm({
 
                 return (
                   <FormItem className="col-span-2 col-start-1">
-                    <FormLabel>Receipt Email</FormLabel>
+                    <FormLabel>Receipt Email*</FormLabel>
                     <FormControl>
                       <MultipleInput
                         className="w-full"
