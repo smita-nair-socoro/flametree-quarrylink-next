@@ -27,10 +27,13 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DriverActionButtonsProps {
   driver: DriverDTO | null | undefined;
+  onDelete?: () => void;
 }
 
-export function DriverActionButtons({ driver }: DriverActionButtonsProps) {
-  const { actions, confirmDialogs, fullDriverData } = useDriverActions(driver);
+export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsProps) {
+  const { actions, confirmDialogs, fullDriverData } = useDriverActions(driver, {
+    onDeleteSuccess: onDelete,
+  });
 
   // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
   // Users list is already cached from the drivers page query (React Query dedup).

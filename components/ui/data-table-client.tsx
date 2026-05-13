@@ -280,6 +280,24 @@ export function DataTableClient<TData, TValue>({
     setRowPinning((prev) => ({ ...prev, top }));
   }, [data, newRecordIds]);
 
+  // Synchronously filter out pinned IDs that are no longer in the data so that
+  // table.getTopRows() / getBottomRows() never reference a deleted row during render.
+  // The useEffect above keeps rowPinning state tidy but runs after render — this
+  // useMemo ensures the table always receives valid IDs on every render cycle.
+  const validRowPinning = useMemo(() => {
+    const presentIds = new Set(
+      (data as Array<TData & { id?: number | string; sub?: string }>)
+        .map((r) =>
+          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined,
+        )
+        .filter((v): v is string => v !== undefined),
+    );
+    return {
+      top: rowPinning.top?.filter((id) => presentIds.has(id)) ?? [],
+      bottom: rowPinning.bottom?.filter((id) => presentIds.has(id)) ?? [],
+    };
+  }, [data, rowPinning]);
+
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
     try {
       const stored = getSessionStorage(getStorageKey(key), fallback);
@@ -629,7 +647,7 @@ export function DataTableClient<TData, TValue>({
       globalFilter,
       columnVisibility,
       rowSelection,
-      rowPinning,
+      rowPinning: validRowPinning,
     },
   });
 

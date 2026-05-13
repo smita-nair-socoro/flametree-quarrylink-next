@@ -413,7 +413,10 @@ const getDialogConfigs = (
   return {};
 };
 
-export function useDriverActions(driverData?: DriverDTO | null) {
+export function useDriverActions(
+  driverData?: DriverDTO | null,
+  { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
+) {
   const router = useRouter();
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
@@ -549,6 +552,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       notifySuccess('Driver deleted successfully.');
       setActiveDialog(null);
       setViewOpen(false);
+      onDeleteSuccess?.();
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -687,7 +691,10 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         useSelectedDriver: true,
       }}
       headerButtons={
-        <DriverActionButtons driver={driverData ?? selectedDriver} />
+        <DriverActionButtons
+          driver={driverData ?? selectedDriver}
+          onDelete={() => setViewOpen(false)}
+        />
       }
     >
       <DriverForm scrollToSection={scrollToSection} />
