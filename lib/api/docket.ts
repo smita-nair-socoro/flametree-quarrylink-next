@@ -6,8 +6,17 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys, SchedulerKeys } from './keys';
-import { DocketAssignRequest, DocketDTO, DocketOperationalUpdateRequest } from '../types/docket';
+import {
+  DocketAssignRequest,
+  DocketDTO,
+  DocketOperationalUpdateRequest,
+  ConflictCheckRequest,
+  ConflictingDocket,
+  ConflictCheckResponse,
+} from '../types/docket';
 import type { DOCKET_STATUS } from '../types/docket-enums';
+
+export type { ConflictCheckRequest, ConflictingDocket, ConflictCheckResponse };
 
 export const DocketsListQueryOptions = () =>
   queryOptions({
@@ -159,4 +168,15 @@ export const useOperationalUpdateDocket = () => {
     },
   });
 };
+
+export const DocketConflictCheckQueryOptions = (
+  docketId: number | undefined,
+  request: ConflictCheckRequest | null,
+) =>
+  queryOptions({
+    queryKey: ['docket-conflict-check', docketId, request?.truckId, request?.driverId],
+    queryFn: () => APIClient.dockets.conflictCheck(docketId!, request!),
+    enabled: !!request && !!docketId,
+    staleTime: 0,
+  });
 

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { UserPlus, AlertTriangle, ChevronsUpDown, Check } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { SelectOptions } from '@/components/ui/select-options';
@@ -15,9 +16,11 @@ import {
   HaulierDriversQueryOptions,
 } from '@/lib/api/haulier';
 import { useClientStore } from '@/app/stores/client-store';
-import { DocketsListQueryOptions } from '@/lib/api/docket';
+import {
+  DocketConflictCheckQueryOptions,
+  type ConflictingDocket,
+} from '@/lib/api/docket';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -33,6 +36,7 @@ import {
   CommandItem,
 } from '@/components/ui/command';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 
 export interface AssignDocketFormState {
@@ -47,15 +51,6 @@ interface AssignDocketContentProps extends AssignDocketFormState {
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
 }
-
-type ConflictDocket = { id: number; docketNumber: string };
-
-// Per-truck conflict slots: for each available truck, two pre-assigned dockets are generated
-// covering these time windows. Conflicts are visible regardless of which haulier is selected.
-const MOCK_CONFLICT_SLOTS = [
-  { slotIndex: 0, docketSuffix: 'A', startTime: '00:00', endTime: '23:59' },
-  { slotIndex: 1, docketSuffix: 'B', startTime: '00:00', endTime: '23:59' },
-];
 
 type TruckStatusConfig = {
   badge: string;
@@ -99,66 +94,70 @@ function getTruckStatusConfig(pct: number): TruckStatusConfig {
   };
 }
 
-function toMinutes(time: string): number {
-  // Handle both "HH:MM" and ISO datetime "YYYY-MM-DDTHH:MM:SS"
-  const timePart = time.includes('T') ? time.split('T')[1] : time;
-  const [h, m] = timePart.split(':').map(Number);
-  return h * 60 + m;
-}
-
-function windowsOverlap(
-  s1: string,
-  e1: string,
-  s2: string,
-  e2: string,
-): boolean {
-  return toMinutes(s1) < toMinutes(e2) && toMinutes(s2) < toMinutes(e1);
-}
-
 function ConflictWarning({
   label,
   dockets,
+  isLoading,
 }: {
   label: string;
-  dockets: ConflictDocket[];
+  dockets: ConflictingDocket[];
+  isLoading?: boolean;
 }) {
+  const [isNavigating, setIsNavigating] = React.useState(false);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Spinner size="small" />
+        <span>Checking for conflicts...</span>
+      </div>
+    );
+  }
   if (dockets.length === 0) return null;
+
+  const ids = dockets.map((d) => d.id).join(',');
+  const href = `/customer-operations/dockets/?docketId=${encodeURIComponent(ids)}`;
+
   return (
-    <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
-      <div className="flex items-start gap-2">
-        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-semibold text-[#461901]">
-            Potential scheduling conflict detected
-          </span>
-          <span className="text-xs text-[#973C00F2]">
-            Another docket is already assigned to this {label} for the same date
-            and time. You can still assign this docket.
-          </span>
-          <div
-            className="rounded-md border px-3 py-2 text-xs"
-            style={{
-              backgroundColor: '#FFF7ED',
-              borderColor: '#FFD6A7',
-              color: '#364153',
-            }}
-          >
-            <span className="font-medium">Conflicting dockets: </span>
-            {dockets.map((cd, i) => (
-              <span key={cd.id}>
-                <span
-                  className="underline cursor-pointer"
-                  style={{ color: '#155DFC' }}
-                >
-                  {cd.docketNumber}
-                </span>
-                {i < dockets.length - 1 ? ', ' : ''}
-              </span>
-            ))}
+    <>
+      {isNavigating && (
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center space-y-4 bg-background/80 backdrop-blur-sm">
+          <Spinner size="medium" />
+          <p className="text-lg text-muted-foreground font-bold">Loading...</p>
+        </div>
+      )}
+      <div className="rounded-md border border-amber-400 bg-amber-50 p-3">
+        <div className="flex items-start gap-2">
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-semibold text-[#461901]">
+              Potential scheduling conflict detected
+            </span>
+            <span className="text-xs text-[#973C00F2]">
+              Another docket is already assigned to this {label} for the same date
+              and time. You can still assign this docket.
+            </span>
+            <div
+              className="rounded-md border px-3 py-2 text-xs"
+              style={{
+                backgroundColor: '#FFF7ED',
+                borderColor: '#FFD6A7',
+                color: '#364153',
+              }}
+            >
+              <Link
+                href={href}
+                className="font-medium underline"
+                style={{ color: '#155DFC' }}
+                onClick={() => setIsNavigating(true)}
+              >
+                Conflict Dockets
+              </Link>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -199,7 +198,6 @@ export function AssignDocketContent({
   onDriverChange,
 }: AssignDocketContentProps) {
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const { data: docketsData } = useQuery(DocketsListQueryOptions());
   const { data: haulierTrucksData } = useQuery(
     HaulierTrucksQueryOptions(haulerSelection ?? 0),
   );
@@ -209,12 +207,6 @@ export function AssignDocketContent({
   });
   const businessName = useClientStore((state) => state.getBusinessName());
   const [haulerOpen, setHaulerOpen] = React.useState(false);
-
-  const allDockets: DocketDTO[] = React.useMemo(() => {
-    if (!docketsData) return [];
-    if (Array.isArray(docketsData)) return docketsData;
-    return (docketsData as { content: DocketDTO[] }).content ?? [];
-  }, [docketsData]);
 
   const availableTrucks = React.useMemo(
     () =>
@@ -241,32 +233,37 @@ export function AssignDocketContent({
     [haulierDriversData],
   );
 
-  // Dummy pre-assigned dockets for delivery window conflict demonstration.
-  // One conflict docket is generated per truck (first driver of that truck) so conflicts
-  // are visible no matter which haulier the user selects.
-  const mockAssignedDockets = React.useMemo(() => {
-    if (availableTrucks.length === 0 || availableDrivers.length === 0)
-      return [];
-    const conflictDate = docket?.deliveryCollectionDate
-      ? new Date(docket.deliveryCollectionDate)
-      : new Date();
-    return availableTrucks.flatMap((truck, ti) => {
-      const driver = availableDrivers.find((d) =>
-        d.truckIds.includes(truck.id),
-      );
-      if (!driver) return [];
-      return MOCK_CONFLICT_SLOTS.map((slot) => ({
-        id: -(ti * 10 + slot.slotIndex + 1),
-        docketNumber: `DO-${2340 + ti * 2 + slot.slotIndex}${slot.docketSuffix}`,
-        truckId: truck.id,
-        driverId: driver.id,
-        deliveryCollectionDate: conflictDate,
-        deliveryCollectionStartTime: slot.startTime,
-        deliveryCollectionEndTime: slot.endTime,
-        docketStatus: DOCKET_STATUS.ASSIGNED,
-      }));
-    });
-  }, [availableTrucks, availableDrivers, docket?.deliveryCollectionDate]);
+  const truckConflictRequest = truckSelection && docket
+    ? {
+        truckId: truckSelection,
+        deliveryCollectionDate: docket.deliveryCollectionDate ?? '',
+        deliveryStartWindow: docket.deliveryCollectionStartTime ?? '',
+        deliveryEndWindow: docket.deliveryCollectionEndTime ?? '',
+      }
+    : null;
+
+  const driverConflictRequest = driverSelection && docket
+    ? {
+        driverId: driverSelection,
+        deliveryCollectionDate: docket.deliveryCollectionDate ?? '',
+        deliveryStartWindow: docket.deliveryCollectionStartTime ?? '',
+        deliveryEndWindow: docket.deliveryCollectionEndTime ?? '',
+      }
+    : null;
+
+  const { data: truckConflictData, isFetching: isTruckConflictPending } = useQuery(
+    DocketConflictCheckQueryOptions(docket?.id, truckConflictRequest),
+  );
+
+  const { data: driverConflictData, isFetching: isDriverConflictPending } = useQuery(
+    DocketConflictCheckQueryOptions(docket?.id, driverConflictRequest),
+  );
+
+  const truckConflicts: ConflictingDocket[] =
+    truckConflictData?.hasConflicts ? truckConflictData.conflictingDocketIds : [];
+
+  const driverConflicts: ConflictingDocket[] =
+    driverConflictData?.hasConflicts ? driverConflictData.conflictingDocketIds : [];
 
   const internalOptions = React.useMemo(() => {
     const h = hauliers.find((h) => h.haulierName === businessName);
@@ -342,71 +339,6 @@ export function AssignDocketContent({
     [availableDrivers, truckSelection],
   );
 
-  // Combine real API dockets and mock assigned dockets for conflict detection
-  const candidateDockets = React.useMemo(() => {
-    const realFiltered = allDockets.filter(
-      (d) =>
-        d.id !== docket?.id &&
-        d.docketStatus !== DOCKET_STATUS.VOIDED &&
-        d.docketStatus !== DOCKET_STATUS.CANCELLED,
-    );
-    return [...realFiltered, ...mockAssignedDockets] as Array<{
-      id: number;
-      docketNumber: string;
-      truckId: number;
-      driverId: number;
-      deliveryCollectionDate: Date;
-      deliveryCollectionStartTime: string;
-      deliveryCollectionEndTime: string;
-    }>;
-  }, [allDockets, mockAssignedDockets, docket?.id]);
-
-  const { truckConflicts, driverConflicts } = React.useMemo<{
-    truckConflicts: ConflictDocket[];
-    driverConflicts: ConflictDocket[];
-  }>(() => {
-    if (!truckSelection && !driverSelection)
-      return { truckConflicts: [], driverConflicts: [] };
-
-    const docketDate = docket?.deliveryCollectionDate
-      ? new Date(docket.deliveryCollectionDate).toDateString()
-      : null;
-    const docketStart = docket?.deliveryCollectionStartTime;
-    const docketEnd = docket?.deliveryCollectionEndTime;
-
-    const truckConflicts: ConflictDocket[] = [];
-    const driverConflicts: ConflictDocket[] = [];
-
-    for (const d of candidateDockets) {
-      if (docketDate && d.deliveryCollectionDate) {
-        if (new Date(d.deliveryCollectionDate).toDateString() !== docketDate)
-          continue;
-      }
-
-      const hasTimeOverlap =
-        docketStart &&
-        docketEnd &&
-        d.deliveryCollectionStartTime &&
-        d.deliveryCollectionEndTime
-          ? windowsOverlap(
-              docketStart,
-              docketEnd,
-              d.deliveryCollectionStartTime,
-              d.deliveryCollectionEndTime,
-            )
-          : true;
-
-      if (!hasTimeOverlap) continue;
-
-      const entry = { id: d.id, docketNumber: d.docketNumber };
-      if (truckSelection && d.truckId === truckSelection)
-        truckConflicts.push(entry);
-      if (driverSelection && d.driverId === driverSelection)
-        driverConflicts.push(entry);
-    }
-
-    return { truckConflicts, driverConflicts };
-  }, [candidateDockets, docket, truckSelection, driverSelection]);
 
   function selectHauler(value: number) {
     onHaulerChange(value);
@@ -510,7 +442,7 @@ export function AssignDocketContent({
         }
       />
 
-      <ConflictWarning label="truck" dockets={truckConflicts} />
+      <ConflictWarning label="truck" dockets={truckConflicts} isLoading={isTruckConflictPending} />
 
       <SelectOptions
         label="Driver"
@@ -523,7 +455,7 @@ export function AssignDocketContent({
         disabled={!truckSelection}
       />
 
-      <ConflictWarning label="driver" dockets={driverConflicts} />
+      <ConflictWarning label="driver" dockets={driverConflicts} isLoading={isDriverConflictPending} />
     </div>
   );
 }

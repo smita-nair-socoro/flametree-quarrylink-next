@@ -414,3 +414,26 @@ export interface UnassignOperationResponse {
   truckId?: number;
   activeDockets?: ActiveDocketInfo[];
 }
+
+export interface ConflictCheckRequest {
+  truckId?: number;
+  driverId?: number;
+  deliveryCollectionDate: string;
+  deliveryStartWindow: string;
+  deliveryEndWindow: string;
+}
+
+export interface ConflictingDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: string;
+  deliveryCollectionDate: string;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  plannedLoadSize: number;
+}
+
+export interface ConflictCheckResponse {
+  hasConflicts: boolean;
+  conflictingDocketIds: ConflictingDocket[];
+}
