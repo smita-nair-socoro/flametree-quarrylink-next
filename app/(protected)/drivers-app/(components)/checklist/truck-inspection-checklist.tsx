@@ -56,7 +56,7 @@ export default function TruckInspectionChecklist({
   const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
-    const result = await submitChecklist.mutateAsync({
+    await submitChecklist.mutateAsync({
       templateId: template.id,
       checklistType: CHECKLIST_TYPE.TRUCK,
       truckId,
