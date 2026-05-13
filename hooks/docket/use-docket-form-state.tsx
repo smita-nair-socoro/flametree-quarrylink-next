@@ -272,28 +272,6 @@ export function useDocketFormState({
       },
   });
 
-  React.useEffect(() => {
-    const subscription = docketForm.watch((value, info) => {
-      if (
-        info.name === 'deliveryCollectionStartTime' ||
-        info.name === 'deliveryCollectionEndTime' ||
-        info.name === undefined
-      ) {
-        console.log('[RHF watch change]', {
-          changedField: info.name,
-          type: info.type,
-          start: value.deliveryCollectionStartTime,
-          end: value.deliveryCollectionEndTime,
-          jobId: value.jobId,
-          hydratedKey: hydratedKeyRef.current,
-          previousSelectedJobId: previousSelectedJobIdRef.current,
-        });
-        console.trace('[RHF watch trace]');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [docketForm]);
 
   const [pickUpAddress, setPickUpAddress] =
     React.useState<AddressType>(EMPTY_ADDRESS);
