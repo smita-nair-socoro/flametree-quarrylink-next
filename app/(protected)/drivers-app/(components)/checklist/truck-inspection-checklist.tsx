@@ -4,7 +4,6 @@ import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
 import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
 import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
-import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 
@@ -76,7 +75,7 @@ export default function TruckInspectionChecklist({
         };
       }),
     });
-    if (result.status === CHECKLIST_STATUS.PASS && docketId != null) {
+    if (docketId != null) {
       setTruckInspectionPassed(docketId);
     }
     onSubmit?.();

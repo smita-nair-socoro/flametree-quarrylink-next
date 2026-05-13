@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { DocketDTO } from '@/lib/types/docket';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
-import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { format } from 'date-fns';
 import {
@@ -61,6 +60,9 @@ interface DocketsTabProps {
     docketId?: number,
     truckId?: number,
   ) => void;
+  pendingDocketId?: number | null;
+  onPendingDocketConsumed?: () => void;
+  vehicleInspectionDoneSignal?: number;
 }
 
 type ActionType =
@@ -73,9 +75,11 @@ type ActionType =
 export default function DocketsTab({
   dockets,
   onOpenChecklist,
+  pendingDocketId,
+  onPendingDocketConsumed,
+  vehicleInspectionDoneSignal,
 }: DocketsTabProps) {
   const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
-  const [pendingDocket, setPendingDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
@@ -131,7 +135,7 @@ export default function DocketsTab({
   }, [selectedDocket]);
 
   const truckChecklistPassed =
-    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
+    !!selectedDocket?.hasTodayTruckInspectionByCurrentDriver ||
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
   const checklistsComplete = isPreStartPassed && truckChecklistPassed;
 
@@ -152,17 +156,25 @@ export default function DocketsTab({
     if (!isPreStartPassed) {
       setIsDrawerOpen(false);
       setSelectedDocket(null);
-    } else if (pendingDocket) {
-      setSelectedDocket(pendingDocket);
-      setIsDrawerOpen(true);
-      setPendingDocket(null);
+    } else if (pendingDocketId != null) {
+      const docket = dockets.find((d) => d.id === pendingDocketId);
+      if (docket) {
+        setSelectedDocket(docket);
+        setIsDrawerOpen(true);
+      }
+      onPendingDocketConsumed?.();
     }
-  }, [isPreStartPassed, pendingDocket]);
+  }, [isPreStartPassed, pendingDocketId]);
+
+  React.useEffect(() => {
+    if (vehicleInspectionDoneSignal && vehicleInspectionDoneSignal > 0 && selectedDocketData) {
+      setIsDrawerOpen(true);
+    }
+  }, [vehicleInspectionDoneSignal]);
 
   const openDocketDetails = (docket: DocketDTO) => {
     if (!isPreStartPassed) {
-      setPendingDocket(docket);
-      onOpenChecklist?.('pre-start');
+      onOpenChecklist?.('pre-start', undefined, docket.id, undefined);
       return;
     }
     setSelectedDocket(docket);
@@ -489,8 +501,7 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                  {selectedDocket.truckChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS &&
+                  {!selectedDocket.hasTodayTruckInspectionByCurrentDriver &&
                     !isTruckInspectionPassed(selectedDocket.id) && (
                       <Button
                         variant="outline"

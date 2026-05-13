@@ -248,7 +248,7 @@ export interface DocketDTO {
     longitude: number;
     version: number;
   };
-  driverChecklist: {
+  driverChecklist?: {
     id: number;
     checklistDate: string;
     completedAt: string;
@@ -257,7 +257,7 @@ export interface DocketDTO {
     notes: string;
     version: number;
   };
-  truckChecklist: {
+  truckChecklist?: {
     id: number;
     checklistDate: string;
     completedAt: string;
@@ -266,6 +266,28 @@ export interface DocketDTO {
     notes: string;
     version: number;
   };
+  driverChecklistSubmissionId?: number;
+  truckChecklistSubmissionId?: number;
+  driverChecklistSubmission?: {
+    id: number;
+    checklistDate: string;
+    completedAt: string;
+    checklistStatus: CHECKLIST_STATUS;
+    hasIssues: boolean;
+    notes: string;
+    version: number;
+  };
+  truckChecklistSubmission?: {
+    id: number;
+    checklistDate: string;
+    completedAt: string;
+    checklistStatus: CHECKLIST_STATUS;
+    hasIssues: boolean;
+    notes: string;
+    version: number;
+  };
+  hasTodayDriverPreStart?: boolean;
+  hasTodayTruckInspectionByCurrentDriver?: boolean;
   version: number;
   isDeleted: boolean;
   createdBy: string;
