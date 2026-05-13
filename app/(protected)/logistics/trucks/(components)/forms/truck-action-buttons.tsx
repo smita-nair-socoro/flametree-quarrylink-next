@@ -1,6 +1,5 @@
 'use client';
 
-import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,7 +28,6 @@ export function TruckActionButtons({
   truck,
   onAssignedDockets,
 }: TruckActionButtonsProps) {
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs } = useTruckActions(truck);
 
   if (!truck || !truck.id) {
@@ -37,21 +35,6 @@ export function TruckActionButtons({
   }
 
   const status = normalizeTruckStatus(truck.truckStatus);
-
-  const handleDeactivate = () => {
-    setDropdownOpen(false);
-    actions.deactivate();
-  };
-
-  const handleReactivate = () => {
-    setDropdownOpen(false);
-    actions.reactivate();
-  };
-
-  const handleDelete = () => {
-    setDropdownOpen(false);
-    actions.delete();
-  };
 
   return (
     <div className="flex items-start">
@@ -68,7 +51,7 @@ export function TruckActionButtons({
         </Button>
 
         {status !== TRUCK_STATUS.ON_DUTY && (
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -81,7 +64,7 @@ export function TruckActionButtons({
             <DropdownMenuContent align="end" className="w-48">
               {status === TRUCK_STATUS.DEACTIVATED && (
                 <>
-                  <DropdownMenuItem onClick={handleReactivate}>
+                  <DropdownMenuItem onClick={actions.reactivate}>
                     <Power className="h-4 w-4 mr-2 text-green-600" />
                     <span className="text-green-600">Reactivate Truck</span>
                   </DropdownMenuItem>
@@ -91,7 +74,7 @@ export function TruckActionButtons({
 
               {status === TRUCK_STATUS.ACTIVE && (
                 <>
-                  <DropdownMenuItem onClick={handleDeactivate}>
+                  <DropdownMenuItem onClick={actions.deactivate}>
                     <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                     <span className="text-orange-900">Deactivate Truck</span>
                   </DropdownMenuItem>
@@ -99,7 +82,7 @@ export function TruckActionButtons({
                 </>
               )}
 
-              <DropdownMenuItem onClick={handleDelete}>
+              <DropdownMenuItem onClick={actions.delete}>
                 <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                 <span className="text-red-600">Delete Truck</span>
               </DropdownMenuItem>
