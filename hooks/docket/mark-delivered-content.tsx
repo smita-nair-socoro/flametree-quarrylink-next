@@ -152,7 +152,7 @@ export function MarkDeliveredContent({
 
           <div className="flex flex-col gap-3">
             <label className="text-sm font-medium text-[#374151]">
-              Unloaded Photo
+              Unloaded Photo <span className="text-[#111827]">*</span>
             </label>
             <input
               ref={unloadedPhotoInputRef}
@@ -211,7 +211,7 @@ export function MarkDeliveredContent({
 
           <div className="flex flex-col gap-3">
             <label className="text-sm font-medium text-[#374151]">
-              Receipt Photo
+              Receipt Photo <span className="text-[#111827]">*</span>
             </label>
             <input
               ref={receiptPhotoInputRef}
