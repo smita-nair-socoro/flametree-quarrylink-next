@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { TruckKeys } from './keys';
-import type { TruckDTO } from '../types/truck';
+import type { TruckDTO, TruckStatistics } from '../types/truck';
 
 export const TrucksListQueryOptions = () =>
   queryOptions({
@@ -23,6 +23,14 @@ export const TruckByIdWithDriversQueryOptions = (id: number) =>
   queryOptions({
     queryKey: TruckKeys.drivers(id),
     queryFn: () => APIClient.trucks.getByIdWithDrivers(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const TruckStatisticsQueryOptions = () =>
+  queryOptions({
+    queryKey: TruckKeys.statistics(),
+    queryFn: () => APIClient.trucks.statistics(),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
