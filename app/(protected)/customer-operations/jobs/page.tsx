@@ -72,7 +72,8 @@ export default function CustomersPage() {
   const { actions, viewDialog, confirmDialogs } = useJobActions();
 
   // URL-driven filtering for linked jobs
-  const jobIdsParam = searchParams.get('jobIds');
+  const jobIdsParam =
+    searchParams.get('jobId') ?? searchParams.get('jobIds');
   const jobIdsSet = React.useMemo(() => {
     if (!jobIdsParam) return null;
     const ids = jobIdsParam

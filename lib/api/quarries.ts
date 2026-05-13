@@ -6,6 +6,8 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { QuarryKeys } from './keys';
+import { PostEligibilityCheckResponse } from '../types/eligibility-check';
+import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { Quarry } from '../types/quarry';
 import { removeNewRecordId } from '../utils';
 
@@ -100,18 +102,11 @@ export const useUnarchiveQuarry = () => {
  */
 export const useDeleteQuarryAfterEligibilityCheck = () => {
   const queryClient = useQueryClient();
-  return useMutation<{ blockingQuotes?: unknown[] }, Error, { id: number }>({
+  return useMutation<PostEligibilityCheckResponse, Error, { id: number }>({
     mutationFn: ({ id }: { id: number }) => APIClient.quarries.delete(id),
-    onMutate: (variables) => {
-      console.log('[Mutation] Delete quarry vars:', variables);
-    },
     onSuccess: (response, variables) => {
-      console.log('[Mutation] Delete quarry response:', response);
-      const blocking = Array.isArray(response?.blockingQuotes)
-        ? response.blockingQuotes
-        : [];
-      console.log('[Mutation] blockingQuotes length:', blocking.length);
-      if (blocking.length === 0) {
+      const blocking = extractEligibilityBlockingDependencies(response);
+      if (!blocking.hasBlockingDependencies) {
         queryClient.invalidateQueries({ queryKey: QuarryKeys.list() });
         queryClient.invalidateQueries({
           queryKey: QuarryKeys.detail(variables.id),
@@ -121,9 +116,6 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
         // Remove the deleted quarry/supplier ID from sessionStorage
         removeNewRecordId('quarry_suppliers_table', variables.id);
       }
-    },
-    onError: (error, variables) => {
-      console.error('[Mutation] Delete quarry failed:', { error, variables });
     },
   });
 };

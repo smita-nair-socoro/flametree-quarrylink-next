@@ -23,6 +23,7 @@ import {
   QuotationLineItem,
   QuotationReporting,
 } from '../types/quotation';
+import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
@@ -477,7 +478,7 @@ export const APIClient = {
         body: data,
       }),
     deleteProduct: (id: number) =>
-      appClient.Delete<{ blockingQuotes?: unknown[] }>(
+      appClient.Delete<PostEligibilityCheckResponse>(
         `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
       ),
   },
@@ -515,23 +516,10 @@ export const APIClient = {
       }),
     unarchive: (id: number) =>
       appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
-    delete: (id: number) => {
-      return appClient
-        .Delete<{ blockingQuotes?: unknown[] }>(
-          `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log('[APIClient] quarries.delete response:', res);
-          const len = Array.isArray(res?.blockingQuotes)
-            ? res!.blockingQuotes!.length
-            : 0;
-          console.log('[APIClient] blockingQuotes length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          throw err;
-        });
-    },
+    delete: (id: number) =>
+      appClient.Delete<PostEligibilityCheckResponse>(
+        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
+      ),
     getSuburbs: () =>
       appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
@@ -571,26 +559,10 @@ export const APIClient = {
           body: data,
         },
       ),
-    delete: (quarrySupplierId: number, productId: number) => {
-      return appClient
-        .Delete<{ blockingQuotes?: unknown[] }>(
-          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log(
-            '[APIClient] quarrySupplierProducts.delete response:',
-            res,
-          );
-          const len = Array.isArray(res?.blockingQuotes)
-            ? res!.blockingQuotes!.length
-            : 0;
-          console.log('[APIClient] blockingQuotes length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          throw err;
-        });
-    },
+    delete: (quarrySupplierId: number, productId: number) =>
+      appClient.Delete<PostEligibilityCheckResponse>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
+      ),
   },
 
   customers: {

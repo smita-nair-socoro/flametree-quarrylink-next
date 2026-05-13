@@ -165,13 +165,13 @@ export default function DocketsTab({
       }
       onPendingDocketConsumed?.();
     }
-  }, [isPreStartPassed, pendingDocketId]);
+  }, [isPreStartPassed, pendingDocketId, dockets, onPendingDocketConsumed]);
 
   React.useEffect(() => {
     if (vehicleInspectionDoneSignal && vehicleInspectionDoneSignal > 0 && selectedDocketData) {
       setIsDrawerOpen(true);
     }
-  }, [vehicleInspectionDoneSignal]);
+  }, [vehicleInspectionDoneSignal, selectedDocketData]);
 
   const openDocketDetails = (docket: DocketDTO) => {
     if (!isPreStartPassed) {
