@@ -25,7 +25,6 @@ import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
 import { Loader2 } from 'lucide-react';
 import { AddressType } from '@/lib/types/address';
-import { fillMissingAddressFields } from './autocomplete-validators';
 import { CountrySelect } from '../country-select';
 import { StateSelect } from '../state-select';
 import { Country } from 'country-state-city';
@@ -446,6 +445,7 @@ export default function AddressDialog(
     e.preventDefault();
     e.stopPropagation();
     setHasAttemptedSave(true);
+    setErrorMap({});
 
     // If address1 is blank, fall back to the coordinate string
     const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
@@ -491,12 +491,14 @@ export default function AddressDialog(
     ) {
       const newFormattedAddress = updateAndFormatAddress(adrAddressDraft, finalDraft);
 
-      setAddress(
-        fillMissingAddressFields({
-          ...finalDraft,
-          formattedAddress: newFormattedAddress,
-        }),
-      );
+      const saved = { ...finalDraft, formattedAddress: newFormattedAddress };
+      setAddress({
+        ...saved,
+        city: saved.city?.trim() ?? '',
+        region: saved.region?.trim() ?? '',
+        postalCode: saved.postalCode?.trim() ?? '',
+        country: saved.country?.trim() ?? '',
+      });
       if (onChange) {
         onChange(newFormattedAddress);
       }
@@ -550,13 +552,6 @@ export default function AddressDialog(
                   name="address1"
                   placeholder="Address line 1"
                 />
-                {errorMap.address1 && (
-                  <FormMessages
-                    type="error"
-                    className="pt-1 text-sm"
-                    messages={[errorMap.address1]}
-                  />
-                )}
               </div>
 
               <div className="flex flex-col gap-2">
