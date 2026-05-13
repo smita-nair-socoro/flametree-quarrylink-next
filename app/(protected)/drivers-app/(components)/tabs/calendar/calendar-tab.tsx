@@ -132,8 +132,8 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
           </div>
           <div className="flex items-center gap-2.5">
             <Truck className="w-4 h-4 text-[#94A3B8] shrink-0" />
-            <span className="text-[13px] text-[#64748B] font-mono">
-              {docket.truckType}
+            <span className="text-[13px] text-[#64748B]">
+              {docket.truck?.licensePlate ?? docket.truckType}
             </span>
           </div>
         </div>

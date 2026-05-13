@@ -44,13 +44,14 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
 
   const updateStatus = useDriverAppUpdateDocketStatus();
 
-  const fileToBase64 = (file: File): Promise<string> =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  const base64ToBlob = (base64: string): Blob => {
+    const [header, data] = base64.split(',');
+    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+    const binary = atob(data);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new Blob([bytes], { type: mime });
+  };
 
   const handleMarkArrived = async () => {
     if (!docketData?.id) return;
@@ -101,20 +102,15 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
   const handleMarkDelivered = async () => {
     if (!docketData?.id) return;
     try {
-      const [unloadedPhotos, receivedPhotos] = await Promise.all([
-        unloadedPhoto ? fileToBase64(unloadedPhoto).then((b) => [b]) : Promise.resolve(undefined),
-        receiptPhoto ? fileToBase64(receiptPhoto).then((b) => [b]) : Promise.resolve(undefined),
-      ]);
-
       await updateStatus.mutateAsync({
         id: docketData.id,
         docketStatus: DOCKET_STATUS.DELIVERED,
         deliveredProductsConfirmed,
         receiverOnSite,
         receiverName: receiverName.trim() || undefined,
-        signatureImage: receiverSignature || undefined,
-        unloadedPhotos,
-        receivedPhotos,
+        signatureImage: receiverSignature ? base64ToBlob(receiverSignature) : undefined,
+        unloadedPhotos: unloadedPhoto ? [unloadedPhoto] : undefined,
+        receivedPhotos: receiptPhoto ? [receiptPhoto] : undefined,
       });
       notifySuccess('Docket marked as Delivered');
       setActiveDialog(null);
