@@ -65,6 +65,7 @@ import { TruckDTO } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
   DriverDTO,
+  DriverStatistics,
   PatchDriverInfoDTO,
   PatchDriverTypeDTO,
   PatchDriverTrucksDTO,
@@ -1139,6 +1140,8 @@ export const APIClient = {
           },
         },
       ),
+    statistics: () =>
+      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
   },
 
   trucks: {

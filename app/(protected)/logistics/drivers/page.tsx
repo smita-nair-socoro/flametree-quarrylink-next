@@ -4,7 +4,7 @@ import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { DriversListQueryOptions } from '@/lib/api/driver';
+import { DriversListQueryOptions, DriverStatisticsQueryOptions } from '@/lib/api/driver';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { DriverDTO } from '@/lib/types/driver';
 import {
@@ -21,6 +21,7 @@ export default function DriversPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: drivers } = useQuery(DriversListQueryOptions());
+  const { data: statistics } = useQuery(DriverStatisticsQueryOptions());
 
   // TEMP: Fetch users to resolve driver app invitation sub by email match.
   // Once the backend adds userSub to DriverDTO, remove this query and the
@@ -72,8 +73,8 @@ export default function DriversPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Drivers',
-      value: '3',
-      description: '2 Internal | 1 External',
+      value: statistics?.totalDrivers ?? 0,
+      description: `${statistics?.internalDrivers ?? 0} Internal | ${statistics?.externalDrivers ?? 0} External`,
       icon: UsersRound,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -81,8 +82,8 @@ export default function DriversPage() {
     },
     {
       title: 'Available for Dispatch',
-      value: '3',
-      description: '0 out of 3 on duty',
+      value: statistics?.driversAvailableForDispatch ?? 0,
+      description: `${statistics?.driversOnDuty ?? 0} out of ${statistics?.totalDrivers ?? 0} on duty`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -90,8 +91,8 @@ export default function DriversPage() {
     },
     {
       title: 'Assigned to Trucks',
-      value: '0',
-      description: '3 drivers without a truck',
+      value: statistics?.driversAssignedToTrucks ?? 0,
+      description: `${statistics?.driversWithoutTrucks ?? 0} drivers without a truck`,
       icon: Truck,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -99,7 +100,7 @@ export default function DriversPage() {
     },
     {
       title: 'Failed pre-starters',
-      value: '0',
+      value: statistics?.failedPrestartsLast7Days ?? 0,
       description: 'Since last week',
       icon: TriangleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
