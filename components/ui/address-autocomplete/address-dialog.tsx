@@ -597,7 +597,7 @@ export default function AddressDialog(
             {/* Form Fields */}
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="address1">Address line 1</Label>
+                <Label htmlFor="address1">Address line 1*</Label>
                 <Input
                   value={draftAddress.address1}
                   onChange={(e) =>
@@ -635,7 +635,7 @@ export default function AddressDialog(
 
               <div className="flex gap-4">
                 <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="city">City</Label>
+                  <Label htmlFor="city">City*</Label>
                   <Input
                     value={draftAddress.city}
                     onChange={(e) =>
@@ -655,7 +655,7 @@ export default function AddressDialog(
                   )}
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="region">State / Province / Region</Label>
+                  <Label htmlFor="region">State / Province / Region*</Label>
                   <StateSelect
                     value={draftAddress.region}
                     onChange={(stateName) =>
@@ -677,7 +677,7 @@ export default function AddressDialog(
 
               <div className="flex gap-4">
                 <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="postalCode">Postal Code</Label>
+                  <Label htmlFor="postalCode">Postal Code*</Label>
                   <Input
                     value={draftAddress.postalCode}
                     onChange={(e) =>
@@ -697,7 +697,7 @@ export default function AddressDialog(
                   )}
                 </div>
                 <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="country">Country</Label>
+                  <Label htmlFor="country">Country*</Label>
                   <CountrySelect
                     value={draftAddress.country}
                     onChange={handleCountryChange}
