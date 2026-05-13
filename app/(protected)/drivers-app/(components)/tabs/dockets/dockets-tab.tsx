@@ -38,6 +38,7 @@ import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 const getCustomerName = (
   customerDto?: CustomerDTO,
@@ -348,8 +349,10 @@ export default function DocketsTab({
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Phone</span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.customerContactPhone ||
-                          selectedDocket.job?.contactPersonPhone}
+                        {formatPhoneNumber(
+                          selectedDocket.customerContactPhone ||
+                            selectedDocket.job?.contactPersonPhone,
+                        )}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -547,9 +550,7 @@ export default function DocketsTab({
                       </span>
                     </Button>
                   )}
-                  {selectedDocket.docketStatus !== 'STOPPED' &&
-                    selectedDocket.docketStatus !== 'ARRIVED' &&
-                    selectedDocket.docketStatus !== 'ASSIGNED' && (
+                  {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                       <Button
                         variant="outline"
                         onClick={() => handleAction('stop')}
@@ -588,6 +589,17 @@ export default function DocketsTab({
                         Back to In Transit
                       </Button>
                     </>
+                  )}
+                  {['ARRIVED', 'DELIVERED', 'ASSIGNED'].includes(
+                    selectedDocket.docketStatus,
+                  ) && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      onClick={() => setIsDrawerOpen(false)}
+                    >
+                      Close
+                    </Button>
                   )}
                 </div>
               </div>
