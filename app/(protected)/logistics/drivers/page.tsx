@@ -101,7 +101,7 @@ export default function DriversPage() {
     {
       title: 'Failed pre-starters',
       value: statistics?.failedPrestartsLast7Days ?? 0,
-      description: `Since last week`,
+      description: 'Since last week',
       icon: TriangleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#733E0A]',
