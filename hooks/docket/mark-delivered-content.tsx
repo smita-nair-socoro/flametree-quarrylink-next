@@ -137,7 +137,7 @@ export function MarkDeliveredContent({
           <div className="flex flex-col gap-3">
             <label className="text-sm font-medium text-[#374151]">
               Delivered Products Confirmed{' '}
-              <span className="text-[#DC2626]">*</span>
+              <span className="text-[#111827]">*</span>
             </label>
             <label className="flex items-center gap-3 text-sm text-[#6A7282]">
               <Checkbox
@@ -287,7 +287,7 @@ export function MarkDeliveredContent({
             <>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium text-[#374151]">
-                  Receiver Name <span className="text-[#DC2626]">*</span>
+                  Receiver Name <span className="text-[#111827]">*</span>
                 </label>
                 <Input
                   value={receiverName}
@@ -299,7 +299,7 @@ export function MarkDeliveredContent({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <label className="text-sm font-medium text-[#374151]">
-                    Receiver Signature <span className="text-[#DC2626]">*</span>
+                    Receiver Signature <span className="text-[#111827]">*</span>
                   </label>
                   <button
                     type="button"
