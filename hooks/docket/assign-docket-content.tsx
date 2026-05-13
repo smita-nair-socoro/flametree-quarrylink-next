@@ -362,7 +362,7 @@ export function AssignDocketContent({
   return (
     <div className="flex flex-col gap-4">
       <div className="space-y-2">
-        <Label>Hauler</Label>
+        <Label>Hauler*</Label>
         <Popover open={haulerOpen} onOpenChange={setHaulerOpen} modal>
           <PopoverTrigger asChild>
             <Button
@@ -421,7 +421,7 @@ export function AssignDocketContent({
       </div>
 
       <ColorSelect
-        label="Truck"
+        label="Truck*"
         searchPlaceholder="Search trucks..."
         options={truckColorOptions}
         value={truckSelection}
@@ -458,7 +458,7 @@ export function AssignDocketContent({
       />
 
       <SelectOptions
-        label="Driver"
+        label="Driver*"
         searchLabel="driver"
         options={driverOptions}
         value={driverSelection}

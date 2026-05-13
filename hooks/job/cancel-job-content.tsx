@@ -216,8 +216,8 @@ export function CancelJobContent({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label className="text-[14px] font-medium text-[#E7000B]">
-          Cancellation Reason (required):
+        <label className="text-[14px] font-medium text-[#364153]">
+          Cancellation Reason <span className="text-[#111827]">*</span>
         </label>
         <SelectOptions
           searchLabel="cancellation reason"
@@ -231,12 +231,7 @@ export function CancelJobContent({
 
       <div className="flex flex-col gap-2">
         <label className="text-[14px] font-normal text-[#6A7282]">
-          Additional notes{' '}
-          {cancelReason === CANCEL_REASON_LABELS.other ? (
-            <span className="text-[#E7000B]">*</span>
-          ) : (
-            '(Optional)'
-          )}
+          Additional notes{cancelReason === CANCEL_REASON_LABELS.other && <>{' '}<span className="text-[#111827]">*</span></>}
         </label>
         <Textarea
           value={cancelNotes}
