@@ -348,7 +348,7 @@ export default function TruckForm({
                 {isEditing ? (
                   <>
                     <FormItem>
-                      <FormLabel>Haulier</FormLabel>
+                      <FormLabel>Haulier*</FormLabel>
                       <Input
                         value={
                           selectedHaulierInfo?.haulierName ??
@@ -360,7 +360,7 @@ export default function TruckForm({
                     </FormItem>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormItem>
-                        <FormLabel>Haulier Email Address</FormLabel>
+                        <FormLabel>Haulier Email Address*</FormLabel>
                         <Input
                           value={selectedHaulierInfo?.emailAddress ?? ''}
                           disabled
@@ -368,7 +368,7 @@ export default function TruckForm({
                         />
                       </FormItem>
                       <FormItem>
-                        <FormLabel>Haulier Phone Number</FormLabel>
+                        <FormLabel>Haulier Phone Number*</FormLabel>
                         <PhoneInput
                           defaultCountry="AU"
                           value={selectedHaulierInfo?.phoneNumber ?? ''}
@@ -380,7 +380,7 @@ export default function TruckForm({
                   </>
                 ) : isInternal ? (
                   <FormItem className="mb-5">
-                    <FormLabel>Haulier</FormLabel>
+                    <FormLabel>Haulier*</FormLabel>
                     <Input
                       value={
                         internalHaulier?.haulierName ??

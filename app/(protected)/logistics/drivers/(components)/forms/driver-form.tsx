@@ -336,7 +336,7 @@ export default function DriverForm({
 
             {isInternal ? (
               <FormItem>
-                <FormLabel>Haulier</FormLabel>
+                <FormLabel>Haulier*</FormLabel>
                 <Input
                   value={
                     internalHaulier?.haulierName ??
@@ -410,7 +410,7 @@ export default function DriverForm({
               {isEditing && (
                 <>
                   <FormItem>
-                    <FormLabel>Haulier Email Address</FormLabel>
+                    <FormLabel>Haulier Email Address*</FormLabel>
                     <Input
                       value={selectedHaulierInfo?.emailAddress ?? ''}
                       disabled
@@ -419,7 +419,7 @@ export default function DriverForm({
                   </FormItem>
 
                   <FormItem>
-                    <FormLabel>Haulier Phone Number</FormLabel>
+                    <FormLabel>Haulier Phone Number*</FormLabel>
                     <PhoneInput
                       defaultCountry="AU"
                       value={selectedHaulierInfo?.phoneNumber ?? ''}

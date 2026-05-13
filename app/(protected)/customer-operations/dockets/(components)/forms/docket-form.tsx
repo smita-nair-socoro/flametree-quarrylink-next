@@ -684,7 +684,7 @@ export default function DocketForm({
                       name="quarryName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Quarry / Supplier</FormLabel>
+                          <FormLabel>Quarry / Supplier*</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -768,7 +768,7 @@ export default function DocketForm({
                             name="productUoM"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Product UoM</FormLabel>
+                                <FormLabel>Product UoM*</FormLabel>
                                 <FormControl>
                                   <Input
                                     className="w-full"
