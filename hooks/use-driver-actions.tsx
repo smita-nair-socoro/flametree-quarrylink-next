@@ -481,7 +481,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       cannotDeleteDocketIds,
       selectedTruck,
       blockedTruckDocketIds,
-      isNavigating,
     ],
   );
 
