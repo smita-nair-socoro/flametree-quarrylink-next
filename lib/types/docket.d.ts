@@ -67,10 +67,10 @@ export interface DriverAppStatusUpdateRequest {
   deliveredProductsConfirmed?: boolean;
   receiverOnSite?: boolean;
   receiverName?: string;
-  signatureImage?: string;
+  signatureImage?: Blob | File;
   deliveryNotes?: string;
-  unloadedPhotos?: string[];
-  receivedPhotos?: string[];
+  unloadedPhotos?: File[];
+  receivedPhotos?: File[];
 }
 
 export interface DocketOperationalUpdateRequest {
@@ -249,7 +249,7 @@ export interface DocketDTO {
     longitude: number;
     version: number;
   };
-  driverChecklist: {
+  driverChecklist?: {
     id: number;
     checklistDate: string;
     completedAt: string;
@@ -258,7 +258,7 @@ export interface DocketDTO {
     notes: string;
     version: number;
   };
-  truckChecklist: {
+  truckChecklist?: {
     id: number;
     checklistDate: string;
     completedAt: string;
@@ -267,6 +267,28 @@ export interface DocketDTO {
     notes: string;
     version: number;
   };
+  driverChecklistSubmissionId?: number;
+  truckChecklistSubmissionId?: number;
+  driverChecklistSubmission?: {
+    id: number;
+    checklistDate: string;
+    completedAt: string;
+    checklistStatus: CHECKLIST_STATUS;
+    hasIssues: boolean;
+    notes: string;
+    version: number;
+  };
+  truckChecklistSubmission?: {
+    id: number;
+    checklistDate: string;
+    completedAt: string;
+    checklistStatus: CHECKLIST_STATUS;
+    hasIssues: boolean;
+    notes: string;
+    version: number;
+  };
+  hasTodayDriverPreStart?: boolean;
+  hasTodayTruckInspectionByCurrentDriver?: boolean;
   version: number;
   isDeleted: boolean;
   createdBy: string;
@@ -392,4 +414,27 @@ export interface UnassignOperationResponse {
   driverId?: number;
   truckId?: number;
   activeDockets?: ActiveDocketInfo[];
+}
+
+export interface ConflictCheckRequest {
+  truckId?: number;
+  driverId?: number;
+  deliveryCollectionDate: string;
+  deliveryStartWindow: string;
+  deliveryEndWindow: string;
+}
+
+export interface ConflictingDocket {
+  id: number;
+  docketNumber: string;
+  docketStatus: string;
+  deliveryCollectionDate: string;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  plannedLoadSize: number;
+}
+
+export interface ConflictCheckResponse {
+  hasConflicts: boolean;
+  conflictingDocketIds: ConflictingDocket[];
 }

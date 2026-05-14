@@ -90,3 +90,15 @@ export interface DriverDTO {
   lastModifiedBy?: string;
   updatedAt?: string;
 }
+
+export interface DriverStatistics {
+  totalDrivers: number;
+  internalDrivers: number;
+  externalDrivers: number;
+  driversAvailableForDispatch: number;
+  driversOnDuty: number;
+  driversAssignedToTrucks: number;
+  driversWithoutTrucks: number;
+  failedPrestarts: number;
+  failedPrestartsLast7Days: number;
+}

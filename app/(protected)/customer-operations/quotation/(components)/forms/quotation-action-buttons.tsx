@@ -284,7 +284,7 @@ export function QuotationActionButtons({
         {quotation.quoteStatus !== 'ARCHIVED' &&
           quotation.quoteStatus !== 'APPROVED' &&
           quotation.quoteStatus !== 'PENDING' && (
-            <DropdownMenu modal={false}>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"

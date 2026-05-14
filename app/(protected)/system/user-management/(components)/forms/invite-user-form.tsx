@@ -224,10 +224,7 @@ export default function InviteUserForm({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Phone Number{' '}
-                  <span className="text-muted-foreground">(optional)</span>
-                </FormLabel>
+                <FormLabel>Phone Number</FormLabel>
                 <FormControl>
                   <PhoneInput
                     className="w-full"

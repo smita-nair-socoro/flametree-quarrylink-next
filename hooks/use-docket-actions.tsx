@@ -473,6 +473,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             onHaulerChange={setAssignHauler}
             onTruckChange={setAssignTruck}
             onDriverChange={setAssignDriver}
+            onClose={() => { setActiveDialog(null); setViewOpen(false); }}
           />
         ),
         confirmText: 'Assign docket',

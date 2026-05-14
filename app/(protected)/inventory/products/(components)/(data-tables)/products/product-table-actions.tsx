@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -8,6 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductStore } from '@/app/stores/product-store';
@@ -30,6 +31,12 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
     actions.view();
   };
 
+  const handleDelete = () => {
+    setSelectedProduct(product);
+    setDropdownOpen(false);
+    actions.delete();
+  };
+
   return (
     <div>
       {confirmDialogs}
@@ -44,6 +51,14 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
           <DropdownMenuItem onClick={handleView}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
+          </DropdownMenuItem>
+          <Separator />
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-destructive focus:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+            Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

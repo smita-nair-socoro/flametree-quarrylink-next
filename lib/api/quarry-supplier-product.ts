@@ -7,6 +7,8 @@ import {
 import { APIClient } from './APIClient';
 import { QuarrySupplierProductKeys } from './keys';
 import { ProductKeys } from './keys';
+import { PostEligibilityCheckResponse } from '../types/eligibility-check';
+import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { QuarrySupplierProduct } from '../types/quarry';
 
 export const QuarrySupplierProductDetailQueryOptions = (
@@ -87,7 +89,7 @@ export const useUpdateQuarrySupplierProduct = () => {
 export const useDeleteQuarrySupplierProduct = () => {
   const queryClient = useQueryClient();
   return useMutation<
-    { blockingQuotes?: unknown[] },
+    PostEligibilityCheckResponse,
     Error,
     { quarrySupplierId: number; productId: number }
   >({
@@ -98,20 +100,10 @@ export const useDeleteQuarrySupplierProduct = () => {
       quarrySupplierId: number;
       productId: number;
     }) => APIClient.quarrySupplierProducts.delete(quarrySupplierId, productId),
-    onMutate: (variables) => {
-      console.log('[Mutation] Delete quarry-supplier-product vars:', variables);
-    },
     onSuccess: (response, variables) => {
-      console.log(
-        '[Mutation] Delete quarry-supplier-product response:',
-        response
-      );
-      const blocking = Array.isArray(response?.blockingQuotes)
-        ? response.blockingQuotes
-        : [];
-      console.log('[Mutation] blockingQuotes length:', blocking.length);
+      const blocking = extractEligibilityBlockingDependencies(response);
       // If not blocked (empty list), deletion occurred -> invalidate caches
-      if (blocking.length === 0) {
+      if (!blocking.hasBlockingDependencies) {
         queryClient.invalidateQueries({
           queryKey: QuarrySupplierProductKeys.detail(
             variables.quarrySupplierId,
@@ -128,12 +120,6 @@ export const useDeleteQuarrySupplierProduct = () => {
         });
       }
       // If blocked, we intentionally do not invalidate; caller will handle UI
-    },
-    onError: (error, variables) => {
-      console.error('[Mutation] Delete quarry-supplier-product failed:', {
-        error,
-        variables,
-      });
     },
   });
 };

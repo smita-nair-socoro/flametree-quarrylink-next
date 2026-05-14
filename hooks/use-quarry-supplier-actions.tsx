@@ -2,6 +2,8 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
+import { CannotDeleteEligibilityCheckContent } from '@/hooks/eligibility-check/cannot-delete-eligibility-check-content';
+import { EligibilityBlockingDependencies } from '@/lib/types/eligibility-check';
 import { Quarry } from '@/lib/types/quarry';
 import QuarrySupplierForm from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-form';
 import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarries-suppliers/(components)/forms/quarry-supplier-action-buttons';
@@ -13,31 +15,13 @@ import {
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
 import { useQueryClient } from '@tanstack/react-query';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
+import {
+  extractEligibilityBlockingDependencies,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
-
-interface BlockingQuote {
-  id?: number;
-  quoteNumber?: string;
-  customerId?: number;
-  customerName?: string;
-  phone?: string;
-  projectName?: string;
-  quoteStatus?: string;
-  deliveryStartDate?: string;
-  expiryDate?: string;
-  deliveryWindowStart?: string;
-  deliveryWindowEnd?: string;
-  totalCostPrice?: number;
-  totalSellPrice?: number;
-  emailRecipients?: string[];
-  lineItemsCount?: number;
-  inclDeliveryCost?: boolean;
-  version?: number;
-}
 
 interface DialogConfig {
   title?: string;
@@ -76,24 +60,10 @@ const canUnarchive = (quarrySupplierData?: Quarry | null): boolean => {
 const getDialogConfigs = (
   quarrySupplierData?: Quarry | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[]
+  blockingDependencies?: EligibilityBlockingDependencies
 ): Record<string, DialogConfig> => {
   const name = quarrySupplierData?.name;
   const type = quarrySupplierData?.quarrySupplierType;
-
-  const blockingQuoteLength = blockingQuotes?.length ?? 0;
-  const blockingQuoteNumbers =
-    blockingQuotes?.map((q) => q.quoteNumber).filter(Boolean) ?? [];
-  const blockingQuoteIdList =
-    blockingQuotes
-      ?.map((q) => (typeof q.id === 'number' ? q.id : null))
-      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
-  const blockingHref =
-    blockingQuoteIdList.length > 0
-      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-        blockingQuoteIdList.join(',')
-      )}`
-      : undefined;
 
   if (selectedAction?.key === 'delete') {
     return {
@@ -220,43 +190,10 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-4">
-            <div className="text-[16px] text-[#364153]">
-              <div>
-                Cannot delete while this supplier is referenced in quotes.
-              </div>
-              <div>Resolve active quotes first, then try again.</div>
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Usage:
-              </span>
-              <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3 text-[13.7px] text-[#101828]">
-                {blockingHref ? (
-                  <>
-                    <Link
-                      href={blockingHref}
-                      className="text-[15px] text-[#155DFC] font-medium"
-                    >
-                      <span className="text-[15px] text-blue-700 font-normal ">
-                        {blockingQuoteLength} active quotes:{' '}
-                      </span>
-                    </Link>
-                    <span className="underline">{blockingQuoteNumbers.join(', ')}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[14px] text-[#364153] font-normal">
-                      {blockingQuoteLength} active quotes:{' '}
-                    </span>
-                    <span className="text-[14px] text-[#155DFC] font-medium underline">
-                      {blockingQuoteNumbers.join(', ')}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
+          <CannotDeleteEligibilityCheckContent
+            blockingDependencies={blockingDependencies}
+            entityLabel={type === 'QUARRY' ? 'quarry' : 'supplier'}
+          />
         ),
         confirmText: 'OK',
         confirmVariant: 'outline',
@@ -311,9 +248,14 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
-    []
-  );
+  const [blockingDependencies, setBlockingDependencies] =
+    React.useState<EligibilityBlockingDependencies>({
+      blockingQuotations: [],
+      blockingJobs: [],
+      blockingDockets: [],
+      blockingJobItems: [],
+      hasBlockingDependencies: false,
+    });
   const [editFormType, setEditFormType] = React.useState<string>(
     quarrySupplierData?.quarrySupplierType || 'QUARRY'
   );
@@ -327,7 +269,7 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
   const dialogConfigs = getDialogConfigs(
     activeQuarrySupplier,
     selectedAction || undefined,
-    blockingQuotes
+    blockingDependencies
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -421,7 +363,13 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
-            setBlockingQuotes([]);
+            setBlockingDependencies({
+              blockingQuotations: [],
+              blockingJobs: [],
+              blockingDockets: [],
+              blockingJobItems: [],
+              hasBlockingDependencies: false,
+            });
           }
         }}
         title={config.title ?? ''}
@@ -443,9 +391,17 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
                 break;
               }
               try {
-                await deleteQuarryAfterEligibilityCheck({
+                const response = await deleteQuarryAfterEligibilityCheck({
                   id: quarrySupplierId,
                 });
+
+                const blocked = extractEligibilityBlockingDependencies(response);
+                if (blocked.hasBlockingDependencies) {
+                  setBlockingDependencies(blocked);
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                  return;
+                }
 
                 notifySuccess(
                   `${selectedQuarrySupplier?.name} deleted successfully.`
@@ -458,31 +414,12 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
                   error: e,
                 });
 
-                // Check if it's a 409 error with blocking quotes
                 const errorData = extractErrorData(e);
-                const rawBlocked =
-                  errorData &&
-                    typeof errorData === 'object' &&
-                    'blockingQuotes' in errorData &&
-                    Array.isArray(
-                      (errorData as { blockingQuotes?: unknown })
-                        .blockingQuotes
-                    )
-                    ? ((errorData as { blockingQuotes: unknown[] })
-                      .blockingQuotes as unknown[])
-                    : [];
-                const blocked: BlockingQuote[] = rawBlocked.map((b: any) => ({
-                  id: typeof b?.id === 'number' ? b.id : undefined,
-                  quoteNumber:
-                    typeof b?.quoteNumber === 'string'
-                      ? b.quoteNumber
-                      : b?.id
-                        ? String(b.id)
-                        : undefined,
-                }));
+                const blocked =
+                  extractEligibilityBlockingDependencies(errorData);
 
-                if (blocked.length > 0) {
-                  setBlockingQuotes(blocked);
+                if (blocked.hasBlockingDependencies) {
+                  setBlockingDependencies(blocked);
                   setSelectedAction({ key: 'cannotDelete' });
                   setActiveDialog('cannotDelete');
                 } else {

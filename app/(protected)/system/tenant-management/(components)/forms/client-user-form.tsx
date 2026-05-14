@@ -281,7 +281,7 @@ export function EditClientUserForm({
                 name="email"
                 render={({ field }) => (
                   <FormItem className={isDesktop ? 'col-span-2' : ''}>
-                    <FormLabel>Email Address (Cannot be changed)</FormLabel>
+                    <FormLabel>Email Address* (Cannot be changed)</FormLabel>
                     <FormControl>
                       <Input {...field} disabled readOnly />
                     </FormControl>

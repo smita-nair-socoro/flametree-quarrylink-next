@@ -275,10 +275,8 @@ export default function QuoteReviewDocument({
           <div className="space-y-2">
             <label className="text-sm font-normal text-[#6A7282]">
               Additional notes{' '}
-              {declineReason === 'other' ? (
+              {declineReason === 'other' && (
                 <span className="text-[#E7000B]">*</span>
-              ) : (
-                '(Optional)'
               )}
             </label>
             <Textarea

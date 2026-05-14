@@ -182,9 +182,9 @@ export default function DocketsPage() {
               <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
                 <div className="mt-1 text-sm text-muted-foreground">
                   {docketIdsSet ? (
-                    <>
-                      <span>Showing a selected docket</span>
-                    </>
+                    <span>
+                      Showing {docketIdsSet.size === 1 ? 'a selected docket' : `${docketIdsSet.size} selected dockets`}
+                    </span>
                   ) : linkedJobNumberParam ? (
                     <>
                       <span>Showing dockets</span>
@@ -206,21 +206,25 @@ export default function DocketsPage() {
                 </Button>
               </div>
             )}
-            <DataTableClient
-              tableId={
-                docketIdsSet
-                  ? `docket_filtered_${Array.from(docketIdsSet).join('_')}`
-                  : linkedJobId
-                    ? `docket_linked_${linkedJobId}`
-                    : 'docket_main_data_table'
-              }
-              data={filteredItems ?? []}
-              columns={docketColumns}
-              facetDefinition={facetDefs}
-              searchPlaceHolder="Search dockets..."
-              onRowClick={handleRowClick}
-              defaultSorting={[{ id: 'docketNumber', desc: false }]}
-            />
+            {(() => {
+              const tableId = docketIdsSet
+                ? `docket_filtered_${Array.from(docketIdsSet).join('_')}`
+                : linkedJobId
+                  ? `docket_linked_${linkedJobId}`
+                  : 'docket_main_data_table';
+              return (
+                <DataTableClient
+                  key={tableId}
+                  tableId={tableId}
+                  data={filteredItems ?? []}
+                  columns={docketColumns}
+                  facetDefinition={facetDefs}
+                  searchPlaceHolder="Search dockets..."
+                  onRowClick={handleRowClick}
+                  defaultSorting={[{ id: 'docketNumber', desc: false }]}
+                />
+              );
+            })()}
           </>
         )}
       </div>

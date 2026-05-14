@@ -2,12 +2,16 @@
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
+import { EligibilityBlockingDependencies } from '@/lib/types/eligibility-check';
 import { ActionDialog } from '@/components/action-dialog';
+import { CannotDeleteEligibilityCheckContent } from '@/hooks/eligibility-check/cannot-delete-eligibility-check-content';
 import SupplierForm from '@/app/(protected)/inventory/products/(components)/forms/supplier-form';
-import { TriangleAlert, CircleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { useDeleteQuarrySupplierProduct } from '@/lib/api/quarry-supplier-product';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
-import Link from 'next/link';
+import {
+  extractEligibilityBlockingDependencies,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import { useSupplierStore } from '@/app/stores/supplier-store';
 
 interface DialogConfig {
@@ -32,33 +36,13 @@ interface SelectedAction {
   key: string;
 }
 
-interface BlockingQuote {
-  id?: number;
-  quoteNumber: string;
-  lineItemsCount: number;
-}
-
 const getDialogConfigs = (
   quarryData?: QuarrySupplierProduct | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[],
+  blockingDependencies?: EligibilityBlockingDependencies,
 ): Record<string, DialogConfig> => {
   const quarryName = quarryData?.quarryName ?? quarryData?.supplierProductName;
   const supplierProductCode = quarryData?.supplierProductCode;
-  const blockingQuoteLength = blockingQuotes?.length ?? 0;
-
-  const blockingQuoteNumbers =
-    blockingQuotes?.map((quote: BlockingQuote) => quote.quoteNumber) ?? [];
-  const blockingQuoteIdList =
-    blockingQuotes
-      ?.map((quote) => (typeof quote.id === 'number' ? quote.id : null))
-      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
-  const blockingHref =
-    blockingQuoteIdList.length > 0
-      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuoteIdList.join(','),
-        )}`
-      : undefined;
 
   if (selectedAction?.key === 'cannotDelete') {
     return {
@@ -82,50 +66,10 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-4">
-            <div className="text-[14px] text-[#364153]">
-              This supplier cannot be removed because it has pending business
-              activities:
-            </div>
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-[14px] text-[#101828]">
-                Active Usage:
-              </span>
-              <div className="bg-[#FEF2F2] border border-[#EFC9C9] rounded-md p-3">
-                {blockingHref ? (
-                  <>
-                    <Link
-                      href={blockingHref}
-                      className="text-[15px] text-[#155DFC] font-medium"
-                    >
-                      <span className="text-[15px] text-blue-700 font-normal">
-                        {blockingQuoteLength} active quotes:{' '}
-                      </span>
-                    </Link>
-                    <span>{blockingQuoteNumbers.join(', ')}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[14px] text-[#364153] font-normal">
-                      {blockingQuoteLength} active quotes:{' '}
-                    </span>
-                    <span className="text-[14px] text-[#155DFC] font-medium underline">
-                      {blockingQuoteNumbers.join(', ')}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
-            <div className="bg-[#EFF6FF] border border-[#BEDBFF] rounded-md p-3">
-              <div className="flex items-start gap-2 self-stretch">
-                <CircleAlert className="h-5 w-5 text-[#193CB8]" />
-                <span className="text-[14px] text-[#193CB8] font-normal">
-                  Removing this supplier now would disrupt ongoig business
-                  operations.
-                </span>
-              </div>
-            </div>
-          </div>
+          <CannotDeleteEligibilityCheckContent
+            blockingDependencies={blockingDependencies}
+            entityLabel="supplier"
+          />
         ),
         confirmActionNeeded: false,
       },
@@ -195,9 +139,14 @@ export function useSupplierActions(
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
-    [],
-  );
+  const [blockingDependencies, setBlockingDependencies] =
+    React.useState<EligibilityBlockingDependencies>({
+      blockingQuotations: [],
+      blockingJobs: [],
+      blockingDockets: [],
+      blockingJobItems: [],
+      hasBlockingDependencies: false,
+    });
 
   const selectedSupplier = useSupplierStore((s) => s.selectedSupplier);
   const setSelectedSupplier = useSupplierStore((s) => s.setSelectedSupplier);
@@ -208,7 +157,7 @@ export function useSupplierActions(
   const dialogConfigs = getDialogConfigs(
     selectedSupplier,
     selectedAction || undefined,
-    blockingQuotes,
+    blockingDependencies,
   );
 
   const createDialogAction = (actionKey: string, action: () => void) => {
@@ -250,6 +199,13 @@ export function useSupplierActions(
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
+            setBlockingDependencies({
+              blockingQuotations: [],
+              blockingJobs: [],
+              blockingDockets: [],
+              blockingJobItems: [],
+              hasBlockingDependencies: false,
+            });
           }
         }}
         title={config.title ?? ''}
@@ -271,12 +227,19 @@ export function useSupplierActions(
                 break;
               }
               try {
-                await deleteQuarrySupplierProduct({
+                const response = await deleteQuarrySupplierProduct({
                   quarrySupplierId: activeQuarrySupplierId,
                   productId: selectedSupplier.productId,
                 });
 
-                // Deleted successfully; close dialog
+                const blocked = extractEligibilityBlockingDependencies(response);
+                if (blocked.hasBlockingDependencies) {
+                  setBlockingDependencies(blocked);
+                  setSelectedAction({ key: 'cannotDelete' });
+                  setActiveDialog('cannotDelete');
+                  return;
+                }
+
                 setActiveDialog(null);
                 setSelectedAction(null);
               } catch (e: unknown) {
@@ -284,23 +247,12 @@ export function useSupplierActions(
                   error: e,
                 });
 
-                // Backend returns 409 with blockingQuotes when deletion is blocked
                 const errorData = extractErrorData(e);
-                const blocked: BlockingQuote[] =
-                  errorData &&
-                  typeof errorData === 'object' &&
-                  'blockingQuotes' in errorData &&
-                  Array.isArray(
-                    (errorData as { blockingQuotes?: BlockingQuote[] })
-                      .blockingQuotes,
-                  )
-                    ? (errorData as { blockingQuotes: BlockingQuote[] })
-                        .blockingQuotes
-                    : [];
+                const blocked =
+                  extractEligibilityBlockingDependencies(errorData);
 
-                if (blocked.length > 0) {
-                  // Open cannotDelete modal to show info
-                  setBlockingQuotes(blocked);
+                if (blocked.hasBlockingDependencies) {
+                  setBlockingDependencies(blocked);
                   setSelectedAction({ key: 'cannotDelete' });
                   setActiveDialog('cannotDelete');
                 } else {

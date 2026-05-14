@@ -64,7 +64,7 @@ export function VoidDocketContent({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-[#364153]">
-          Reason for voiding <span className="text-[#DC2626]">*</span>
+          Reason for voiding <span className="text-[#111827]">*</span>
         </label>
         <SelectOptions
           searchLabel="void reason"
@@ -78,12 +78,7 @@ export function VoidDocketContent({
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-[#364153]">
-          Additional notes{' '}
-          {notesRequired ? (
-            <span className="text-[#DC2626]">*</span>
-          ) : (
-            <span className="font-normal text-[#6B7280]">(Optional)</span>
-          )}
+          Additional notes{notesRequired && <>{' '}<span className="text-[#111827]">*</span></>}
         </label>
         <Textarea
           value={voidNotes}

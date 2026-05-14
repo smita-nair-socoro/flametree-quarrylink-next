@@ -5,10 +5,10 @@ import { ProductDetails } from '@/lib/types/product';
 import { ActionDialog } from '@/components/action-dialog';
 import ProductForm from '@/app/(protected)/inventory/products/(components)/forms/product-form';
 import { ProductActionButtons } from '@/app/(protected)/inventory/products/(components)/forms/product-action-buttons';
+import { CannotDeleteEligibilityCheckContent } from '@/hooks/eligibility-check/cannot-delete-eligibility-check-content';
 import {
   TriangleAlert,
   Ban,
-  CircleAlert,
   CircleCheckBig,
   Info,
 } from 'lucide-react';
@@ -17,8 +17,11 @@ import { Badge } from '@/components/ui/badge';
 import { useDeleteProduct, useUpdateProduct } from '@/lib/api/product';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useProductStore } from '@/app/stores/product-store';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
-import Link from 'next/link';
+import { EligibilityBlockingDependencies } from '@/lib/types/eligibility-check';
+import {
+  extractEligibilityBlockingDependencies,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -41,34 +44,14 @@ interface SelectedAction {
   key: string;
 }
 
-interface BlockingQuote {
-  id?: number;
-  quoteNumber: string;
-  lineItemsCount: number;
-}
-
 const getDialogConfigs = (
   productData?: ProductDetails | null,
   selectedAction?: SelectedAction,
-  blockingQuotes?: BlockingQuote[],
+  blockingDependencies?: EligibilityBlockingDependencies,
 ): Record<string, DialogConfig> => {
   const productName = productData?.productName;
   const productCode = productData?.productCode;
   const productStatus = productData?.isActive ? 'Available' : 'Unavailable';
-
-  const blockingQuoteLength = blockingQuotes?.length ?? 0;
-  const blockingQuoteNumbers =
-    blockingQuotes?.map((quote: BlockingQuote) => quote.quoteNumber) ?? [];
-  const blockingQuoteIdList =
-    blockingQuotes
-      ?.map((quote) => (typeof quote.id === 'number' ? quote.id : null))
-      .filter((v): v is number => Number.isFinite(v as number)) ?? [];
-  const blockingHref =
-    blockingQuoteIdList.length > 0
-      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuoteIdList.join(','),
-        )}`
-      : undefined;
 
   if (selectedAction?.key === 'unavailable') {
     return {
@@ -298,73 +281,10 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-5">
-            <span className="text-[15px] text-[#364153] font-normal">
-              This product cannot be deleted because it has pending business
-              activities:
-            </span>
-            <div className="flex flex-col gap-3">
-              <span className="font-medium text-[#101828] text-[14px]">
-                Active Usage:
-              </span>
-              <div className="bg-[#FFF7ED] border border-[#FFD6A7] rounded-md p-3">
-                {blockingHref ? (
-                  <>
-                    <Link
-                      href={blockingHref}
-                      className="text-[15px] text-[#155DFC] font-medium"
-                    >
-                      <span className="text-[15px] text-blue-700 font-normal ">
-                        {blockingQuoteLength} active quotes:{' '}
-                      </span>
-                    </Link>
-                    <span>{blockingQuoteNumbers.join(', ')}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[14px] text-[#364153] font-normal">
-                      {blockingQuoteLength} active quotes:{' '}
-                    </span>
-                    <span className="text-[14px] text-[#155DFC] font-medium underline">
-                      {blockingQuoteNumbers.join(', ')}
-                    </span>
-                  </>
-                )}
-              </div>
-              <div className="border-1 border-[#BEDBFF] bg-[#EFF6FF] rounded-md p-3 ">
-                <div className="flex justify-start gap-2">
-                  <CircleAlert className="h-[16px] w-[16px] flex-shrink-0 text-[#155DFC] mt-1" />
-                  <span className="text-[14px] text-[#193CB8] font-normal">
-                    Deleting this product now would disrupt ongoing business
-                    operations.
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1">
-                <span className="font-medium text-[#101828] text-[14px]">
-                  Recommended Action:
-                </span>
-                <span className="text-[#6A7282] text-[14px]">
-                  Complete these activities first:
-                </span>
-              </div>
-              <div className="border-1 border-[#B9F8CF] rounded-md p-[16.625px] bg-[#F0FDF4]">
-                <div className="flex items-start gap-2 self-stretch">
-                  <CircleCheckBig className="h-[23px] w-[18px] text-[#00A63E] flex-shrink-0" />
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-[14px] text-[#101828] font-medium">
-                      Complete Active Quotes
-                    </span>
-                    <span className="text-[13px] text-[#6A7282] font-normal">
-                      Remove the product from active quotes
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <CannotDeleteEligibilityCheckContent
+            blockingDependencies={blockingDependencies}
+            entityLabel="product"
+          />
         ),
         confirmActionNeeded: false,
       },
@@ -381,9 +301,14 @@ export function useProductActions(productData?: ProductDetails | null) {
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const [blockingQuotes, setBlockingQuotes] = React.useState<BlockingQuote[]>(
-    [],
-  );
+  const [blockingDependencies, setBlockingDependencies] =
+    React.useState<EligibilityBlockingDependencies>({
+      blockingQuotations: [],
+      blockingJobs: [],
+      blockingDockets: [],
+      blockingJobItems: [],
+      hasBlockingDependencies: false,
+    });
 
   const { mutateAsync: deleteProduct } = useDeleteProduct();
   const updateProductMutation = useUpdateProduct();
@@ -395,7 +320,7 @@ export function useProductActions(productData?: ProductDetails | null) {
   const dialogConfigs = getDialogConfigs(
     selectedProduct ?? null,
     selectedAction || undefined,
-    blockingQuotes,
+    blockingDependencies,
   );
 
   const createDialogAction = (actionKey: string, action: () => void) => {
@@ -429,29 +354,26 @@ export function useProductActions(productData?: ProductDetails | null) {
     }
 
     try {
-      await deleteProduct(activeProductId);
+      const response = await deleteProduct(activeProductId);
+      const blocked = extractEligibilityBlockingDependencies(response);
+
+      if (blocked.hasBlockingDependencies) {
+        setBlockingDependencies(blocked);
+        setSelectedAction({ key: 'cannotDelete' });
+        setActiveDialog('cannotDelete');
+        return;
+      }
+
       notifySuccess('Product deleted successfully.');
       setViewOpen(false);
       setSelectedAction(null);
       setActiveDialog(null);
     } catch (error: unknown) {
-      // Backend returns 409 with blocking items when deletion is blocked
       const errorData = extractErrorData(error);
-      const blocked: BlockingQuote[] =
-        errorData &&
-        typeof errorData === 'object' &&
-        'blockingQuotes' in errorData &&
-        Array.isArray(
-          (errorData as { blockingQuotes?: BlockingQuote[] }).blockingQuotes,
-        )
-          ? (errorData as { blockingQuotes: BlockingQuote[] }).blockingQuotes
-          : [];
+      const blocked = extractEligibilityBlockingDependencies(errorData);
 
-      console.log('blocked', blocked);
-
-      if (blocked.length > 0) {
-        // Open cannotDelete modal to show info
-        setBlockingQuotes(blocked);
+      if (blocked.hasBlockingDependencies) {
+        setBlockingDependencies(blocked);
         setSelectedAction({ key: 'cannotDelete' });
         setActiveDialog('cannotDelete');
       } else {
@@ -473,6 +395,13 @@ export function useProductActions(productData?: ProductDetails | null) {
           if (!open) {
             setActiveDialog(null);
             setSelectedAction(null);
+            setBlockingDependencies({
+              blockingQuotations: [],
+              blockingJobs: [],
+              blockingDockets: [],
+              blockingJobItems: [],
+              hasBlockingDependencies: false,
+            });
           }
         }}
         title={config.title ?? ''}
