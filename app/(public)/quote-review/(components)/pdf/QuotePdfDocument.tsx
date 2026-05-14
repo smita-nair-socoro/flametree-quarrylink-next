@@ -19,6 +19,7 @@ export interface QuotationData {
     accountManager: string;
     status: QUOTE_STATUS;
     logoUrl?: string;
+    logoError?: boolean;
   };
   customer: {
     customerName: string;
@@ -84,7 +85,7 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
     <Document>
       <Page size="A4" style={styles.page} wrap>
         {/* Fixed Header */}
-        <QuoteNavbarPdf {...data.navbar} tenantDetails={tenantDetails} />
+        <QuoteNavbarPdf {...data.navbar} tenantDetails={tenantDetails} logoError={data.navbar.logoError} />
 
         {/* Main Content */}
         <View style={styles.content}>
