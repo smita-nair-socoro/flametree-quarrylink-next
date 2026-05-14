@@ -584,6 +584,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     truck: UnassignTruckInfo & { id: number },
   ) => {
     if (driverId == null) return;
+    transitioningRef.current = true;
     try {
       const response = await unassignTruckMutation.mutateAsync({
         driverId,
@@ -595,7 +596,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       const blocked = response?.activeDockets ?? [];
       if (blocked.length > 0) {
         setBlockedTruckDocketIds(blocked.map((d) => d.id));
-        transitioningRef.current = true;
         setSelectedAction({ key: 'unassignTruckBlocked' });
         setActiveDialog('unassignTruckBlocked');
         return;
@@ -604,6 +604,8 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
+      transitioningRef.current = false;
+      setActiveDialog(null);
       notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
     }
   };
