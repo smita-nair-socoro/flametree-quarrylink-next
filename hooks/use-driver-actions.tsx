@@ -18,7 +18,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import {
   UnassignTruckDescription,
   UnassignTruckBlockedContent,
@@ -185,7 +188,14 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
-                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
+                    onClick={
+                      onNavigate
+                        ? (e) => {
+                            e.preventDefault();
+                            onNavigate();
+                          }
+                        : undefined
+                    }
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -284,7 +294,14 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
-                    onClick={onNavigate ? (e) => { e.preventDefault(); onNavigate(); } : undefined}
+                    onClick={
+                      onNavigate
+                        ? (e) => {
+                            e.preventDefault();
+                            onNavigate();
+                          }
+                        : undefined
+                    }
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -470,7 +487,10 @@ export function useDriverActions(driverData?: DriverDTO | null) {
         activeDocketIds,
         selectedTruck,
         blockedTruckDocketIds,
-        () => handleNavigate(`/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`),
+        () =>
+          handleNavigate(
+            `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`,
+          ),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
@@ -494,14 +514,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDeactivate = async () => {
     if (driverId == null) return;
     try {
-      const response = await deactivateDriverMutation.mutateAsync(driverId);
-      const blocked = response?.activeDockets ?? [];
-      if (blocked.length > 0) {
-        setCannotDeactivateDocketIds(blocked.map((d) => d.id));
-        setSelectedAction({ key: 'cannotDeactivate' });
-        setActiveDialog('cannotDeactivate');
-        return;
-      }
+      await deactivateDriverMutation.mutateAsync(driverId);
       notifySuccess('Driver deactivated successfully.');
       const current = useDriverStore.getState().selectedDriver;
       if (current) {
@@ -512,6 +525,16 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       }
       setActiveDialog(null);
     } catch (error) {
+      const errorData = extractErrorData(error) as {
+        activeDockets?: Array<{ id: number }>;
+      } | null;
+      const blocked = errorData?.activeDockets ?? [];
+      if (blocked.length > 0) {
+        setCannotDeactivateDocketIds(blocked.map((d) => d.id));
+        setSelectedAction({ key: 'cannotDeactivate' });
+        setActiveDialog('cannotDeactivate');
+        return;
+      }
       notifyError(extractErrorMessage(error));
     }
   };
@@ -537,18 +560,21 @@ export function useDriverActions(driverData?: DriverDTO | null) {
   const handleDelete = async () => {
     if (driverId == null) return;
     try {
-      const response = await deleteDriverMutation.mutateAsync(driverId);
-      const blocked = response?.activeDockets ?? [];
+      await deleteDriverMutation.mutateAsync(driverId);
+      notifySuccess('Driver deleted successfully.');
+      setActiveDialog(null);
+      setViewOpen(false);
+    } catch (error) {
+      const errorData = extractErrorData(error) as {
+        activeDockets?: Array<{ id: number }>;
+      } | null;
+      const blocked = errorData?.activeDockets ?? [];
       if (blocked.length > 0) {
         setCannotDeleteDocketIds(blocked.map((d) => d.id));
         setSelectedAction({ key: 'cannotDelete' });
         setActiveDialog('cannotDelete');
         return;
       }
-      notifySuccess('Driver deleted successfully.');
-      setActiveDialog(null);
-      setViewOpen(false);
-    } catch (error) {
       notifyError(extractErrorMessage(error));
     }
   };
@@ -557,6 +583,7 @@ export function useDriverActions(driverData?: DriverDTO | null) {
     truck: UnassignTruckInfo & { id: number },
   ) => {
     if (driverId == null) return;
+    transitioningRef.current = true;
     try {
       const response = await unassignTruckMutation.mutateAsync({
         driverId,
@@ -568,7 +595,6 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       const blocked = response?.activeDockets ?? [];
       if (blocked.length > 0) {
         setBlockedTruckDocketIds(blocked.map((d) => d.id));
-        transitioningRef.current = true;
         setSelectedAction({ key: 'unassignTruckBlocked' });
         setActiveDialog('unassignTruckBlocked');
         return;
@@ -577,6 +603,8 @@ export function useDriverActions(driverData?: DriverDTO | null) {
       setActiveDialog(null);
       setSelectedTruck(null);
     } catch (error) {
+      transitioningRef.current = false;
+      setActiveDialog(null);
       notifyError(extractErrorMessage(error) || 'Failed to unassign truck.');
     }
   };
