@@ -328,7 +328,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       allDrivers,
       assignedDriverIds,
       blockedDocketIds,
-      isNavigating,
       handleNavigate,
     ],
   );
