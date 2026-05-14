@@ -5,6 +5,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { ComplianceTableActions } from './compliance-table-actions';
 import { TableBadges } from '@/components/table-badges';
 import { ChecklistItem } from '@/lib/types/checklist';
+import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { DateCell } from '@/components/date-cell';
 import {
   Tooltip,
@@ -70,6 +71,12 @@ export const complianceColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'actions',
     header: () => null,
-    cell: ({ row }) => <ComplianceTableActions record={row.original} />,
+    cell: ({ row }) => {
+      const { status } = row.original;
+      if (status !== CHECKLIST_STATUS.PASS && status !== CHECKLIST_STATUS.FAIL) {
+        return null;
+      }
+      return <ComplianceTableActions record={row.original} />;
+    },
   },
 ];
