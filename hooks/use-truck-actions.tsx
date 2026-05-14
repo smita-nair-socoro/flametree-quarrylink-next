@@ -9,7 +9,7 @@ import { TruckDTO } from '@/lib/types/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -116,16 +116,17 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDeactivate = async () => {
     if (!truckData?.id) return;
     try {
-      const response = await deactivateTruck.mutateAsync(truckData.id);
-      const blocked = response?.activeDockets ?? [];
+      await deactivateTruck.mutateAsync(truckData.id);
+      notifySuccess('Truck deactivated successfully.');
+      setActiveDialog(null);
+    } catch (error: unknown) {
+      const errorData = extractErrorData(error) as { activeDockets?: Array<{ id: number }> } | null;
+      const blocked = errorData?.activeDockets ?? [];
       if (blocked.length > 0) {
         setCannotDeactivateDocketIds(blocked.map((d) => d.id));
         setActiveDialog('cannot_deactivate');
         return;
       }
-      notifySuccess('Truck deactivated successfully.');
-      setActiveDialog(null);
-    } catch (error: unknown) {
       notifyError(extractErrorMessage(error) || 'Failed to deactivate truck.');
       setActiveDialog(null);
     }
@@ -145,17 +146,18 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const handleDelete = async () => {
     if (!truckData?.id) return;
     try {
-      const response = await deleteTruck.mutateAsync(truckData.id);
-      const blocked = response?.activeDockets ?? [];
+      await deleteTruck.mutateAsync(truckData.id);
+      notifySuccess('Truck deleted successfully.');
+      setActiveDialog(null);
+      setViewOpen(false);
+    } catch (error: unknown) {
+      const errorData = extractErrorData(error) as { activeDockets?: Array<{ id: number }> } | null;
+      const blocked = errorData?.activeDockets ?? [];
       if (blocked.length > 0) {
         setCannotDeleteDocketIds(blocked.map((d) => d.id));
         setActiveDialog('cannot_delete');
         return;
       }
-      notifySuccess('Truck deleted successfully.');
-      setActiveDialog(null);
-      setViewOpen(false);
-    } catch (error: unknown) {
       notifyError(extractErrorMessage(error) || 'Failed to delete truck.');
       setActiveDialog(null);
     }
