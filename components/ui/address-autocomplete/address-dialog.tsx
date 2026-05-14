@@ -382,8 +382,10 @@ export default function AddressDialog(
     const hasLocation = !!(
       draftAddress.city?.trim() || draftAddress.address1?.trim()
     );
+    const hasAddress1 = !!draftAddress.address1?.trim();
+    const hasPostalCode = !!draftAddress.postalCode?.trim();
 
-    if (!hasCountry || !hasLocation) {
+    if (!hasCountry || !hasLocation || !hasAddress1 || !hasPostalCode) {
       return;
     }
 
