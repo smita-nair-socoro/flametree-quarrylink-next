@@ -77,7 +77,6 @@ export function DocketDetailsPanel({
   useEffect(() => {
     setPlannedLoadSizeValue(fullDocket?.plannedLoadSize?.toString() || fullDocket?.actualLoadSize?.toString() || '0');
     setActualLoadSizeValue(fullDocket?.actualLoadSize?.toString() || fullDocket?.plannedLoadSize?.toString() || '0');
-    console.log(fullDocket);
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
 
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
