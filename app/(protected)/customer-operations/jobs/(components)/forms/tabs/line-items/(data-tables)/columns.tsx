@@ -150,7 +150,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 						? 'm³'
 						: row.original.productSellUom;
 
-			const displayText = `${formatNumberThousandSeparator(productSellQty || 0, 0)} ${productSellUom}`;
+			const displayText = `${formatNumberThousandSeparator(productSellQty, 0)} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
 					<TooltipTrigger asChild>
@@ -180,7 +180,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 					: row.original.productSellUom === 'M3'
 						? 'm³'
 						: row.original.productSellUom;
-			const displayText = `${formatNumberThousandSeparator(remainingQuantity || 0, 0)} ${productSellUom}`;
+			const displayText = `${formatNumberThousandSeparator(remainingQuantity, 0)} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
 					<TooltipTrigger asChild>

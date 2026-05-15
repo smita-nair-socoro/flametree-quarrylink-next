@@ -46,12 +46,12 @@ export function transformQuoteData(
         deliveryAddress:
           item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
         truckType: item.truckType || 'N/A',
-        capacity: `${formatNumberThousandSeparator(item.totalQuantityRequired || 0, 0)} ${
+        capacity: `${formatNumberThousandSeparator(item.totalQuantityRequired, 0)} ${
           item.productSellUom === 'KG_20'
             ? 'x 20kg'
             : item.productSellUom || 'units'
         } per delivery`,
-        quantity: `${formatNumberThousandSeparator(item.productSellQty || 0, 0)} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
+        quantity: `${formatNumberThousandSeparator(item.productSellQty, 0)} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
         totalPrice: item.totalProductSellPrice || 0, // Product price only
         deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
       };

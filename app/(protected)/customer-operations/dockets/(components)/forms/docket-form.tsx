@@ -912,7 +912,7 @@ export default function DocketForm({
                           Total Remaining Product Availability in Job
                         </span>
                         <span className="text-sm font-medium">
-                          {formatNumberThousandSeparator(selectedJobLineItemDetails().remainingQty || 0, 0)}{' '}
+                          {formatNumberThousandSeparator(selectedJobLineItemDetails().remainingQty, 0)}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
