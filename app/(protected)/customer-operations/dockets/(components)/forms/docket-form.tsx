@@ -585,7 +585,7 @@ export default function DocketForm({
                 {selectedDocket?.loadSize != null && (
                   <>
                     {' '}
-                    · {formatNumberThousandSeparator(selectedDocket.loadSize || 0, 0)}{' '}
+                    · {formatNumberThousandSeparator(selectedDocket.loadSize, 0)}{' '}
                     {selectedDocket.jobItem?.productSellUom}
                   </>
                 )}

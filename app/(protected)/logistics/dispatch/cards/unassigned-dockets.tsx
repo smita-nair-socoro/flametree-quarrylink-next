@@ -108,7 +108,7 @@ function DraggableDocketCard({
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize) || 0)}{' '}
+            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize))}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -177,7 +177,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize) || 0)}{' '}
+            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize))}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
