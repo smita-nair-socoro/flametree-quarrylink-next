@@ -21,6 +21,11 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
   Calendar,
+  CheckCircle,
+  CircleCheckBig,
+  Eye,
+  FileX,
+  ImageOff,
   Clock,
   FileText,
   Info,
@@ -1292,6 +1297,143 @@ export default function DocketForm({
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Sign Off Section */}
+              {isEditing &&
+                isDelivery &&
+                (currentStatus === DOCKET_STATUS.DELIVERED ||
+                  currentStatus === DOCKET_STATUS.INVOICED) &&
+                !!(
+                  selectedDocket?.signatureImage ||
+                  selectedDocket?.unloadedPhotos?.length ||
+                  selectedDocket?.receivedPhotos?.length ||
+                  selectedDocket?.receiverName
+                ) && (
+                  <div className="border rounded-md p-4 flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <span className="text-[17px] font-medium">Sign Off</span>
+                      </div>
+                      {selectedDocket?.deliveredAt && (
+                        <span className="text-sm text-muted-foreground">
+                          Delivered at{' '}
+                          {format(new Date(selectedDocket.deliveredAt), 'hh:mm a')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver Name
+                        </span>
+                        <span
+                          className="text-sm font-semibold"
+                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                        >
+                          {selectedDocket?.receiverName ?? 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver On Site
+                        </span>
+                        <span
+                          className="text-sm font-semibold"
+                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                        >
+                          {selectedDocket?.receiverName ? 'Yes' : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Unloaded Photo
+                        </span>
+                        {selectedDocket?.unloadedPhotos?.[0] ? (
+                          <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.unloadedPhotos[0]}
+                              alt="Unloaded photo"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                              <Eye className="w-7 h-7 text-white" />
+                              <div className="flex items-center gap-1 text-white text-xs font-medium">
+                                <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                Photo Captured
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No photo provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Receipt Photo
+                        </span>
+                        {selectedDocket?.receivedPhotos?.[0] ? (
+                          <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.receivedPhotos[0]}
+                              alt="Receipt photo"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                              <Eye className="w-7 h-7 text-white" />
+                              <div className="flex items-center gap-1 text-white text-xs font-medium">
+                                <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                Photo Captured
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No photo provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver Signature
+                        </span>
+                        {selectedDocket?.signatureImage ? (
+                          <div className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.signatureImage}
+                              alt="Receiver signature"
+                              className="max-h-full max-w-full object-contain p-2"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <FileX className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No signature provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
