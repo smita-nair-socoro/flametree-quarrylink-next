@@ -88,7 +88,7 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
         loadSize = row.original.plannedLoadSize || 0;
       }
       const productSellUom = row.original.jobItem.productSellUom;
-      const formattedQty = formatNumberThousandSeparator(loadSize);
+      const formattedQty = formatNumberThousandSeparator(loadSize, 0);
       const formattedLoadSize =
         productSellUom === 'TN'
           ? `${formattedQty} TN`

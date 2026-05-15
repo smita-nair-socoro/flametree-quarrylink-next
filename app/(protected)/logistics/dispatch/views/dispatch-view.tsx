@@ -136,7 +136,7 @@ function formatCargoLineForUnassign(d: DispatchDocket): string {
         : d.productSellUom || '';
   const product = d.productName || 'Product';
   const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
-  return `${product} • ${formatNumberThousandSeparator(loadSize)} ${uom}`.trim();
+  return `${product} • ${formatNumberThousandSeparator(loadSize, 0)} ${uom}`.trim();
 }
 
 function assignmentDateDisplayForUnassign(

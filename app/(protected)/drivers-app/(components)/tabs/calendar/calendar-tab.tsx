@@ -141,7 +141,7 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
 
         <div className="flex justify-between items-center mt-2 pt-2">
           <span className="text-[16px] font-bold text-[#0F172A]">
-            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize))}
+            {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize), 0)}
             {docket.jobItem?.productSellUom === 'TN'
               ? 'T'
               : docket.jobItem?.productSellUom === 'M3'

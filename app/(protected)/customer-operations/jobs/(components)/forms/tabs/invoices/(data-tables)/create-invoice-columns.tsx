@@ -10,6 +10,7 @@ import {
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { centsToDollars } from '@/lib/utils/currency';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -76,16 +77,17 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
+      const formattedQty = formatNumberThousandSeparator(productSellQty || 0, 0);
       const formattedLoadSize =
         productSellUom === 'TN'
-          ? `${productSellQty} TN`
+          ? `${formattedQty} TN`
           : productSellUom === 'M3'
-            ? `${productSellQty} m³`
+            ? `${formattedQty} m³`
             : productSellUom === 'KG_20'
-              ? `${productSellQty} x 20kg`
+              ? `${formattedQty} x 20kg`
               : productSellUom === 'BULKA'
-                ? `${productSellQty} Bulka`
-                : productSellQty || 'N/A';
+                ? `${formattedQty} Bulka`
+                : formattedQty || 'N/A';
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
