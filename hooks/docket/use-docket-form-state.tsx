@@ -346,14 +346,19 @@ export function useDocketFormState({
         jobDetails?.contactPersonPhone ?? jobFromList?.contactPersonPhone ?? '',
 
       customerEmail:
-        jobDetails?.customerWithAddressResponse?.email ??
-        jobFromList?.customerWithAddressResponse?.email ??
+        jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
+        jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
         '',
 
-      additionalDocketEmails:
-        jobDetails?.emailRecipients?.join(', ') ??
-        jobFromList?.emailRecipients?.join(', ') ??
-        '',
+      additionalDocketEmails: (() => {
+        const contactEmail =
+          jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
+          jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
+          '';
+        const recipients =
+          jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
+        return recipients.filter((e) => e !== contactEmail).join(', ');
+      })(),
 
       createdBy: '',
       lastModifiedBy: '',

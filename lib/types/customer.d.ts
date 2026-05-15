@@ -63,6 +63,7 @@ export interface CustomerWithAddressResponseDTO {
   contactName: string;
   phone: string;
   email: string;
+  contactPersonEmail?: string;
   billingAddressId?: number;
   billingAddress: Address;
   creditLimit: number;
