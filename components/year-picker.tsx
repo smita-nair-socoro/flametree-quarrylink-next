@@ -15,7 +15,6 @@ interface YearPickerProps {
   onChangeAction: (date: Date | undefined) => void;
   className?: string;
   placeholder?: string;
-  startYear?: number;
 }
 
 export function YearPicker({
@@ -23,11 +22,11 @@ export function YearPicker({
   onChangeAction,
   className,
   placeholder = 'Pick a year',
-  startYear = 1900,
 }: YearPickerProps) {
   const [open, setOpen] = React.useState(false);
 
   const currentYear = new Date().getFullYear();
+  const startYear = 1980;
   const endYear = currentYear;
   const years = Array.from(
     { length: endYear - startYear + 1 },
