@@ -1332,7 +1332,7 @@ export default function DocketForm({
                           Receiver Name
                         </span>
                         <span
-                          className="text-sm font-semibold"
+                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
                           style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
                         >
                           {selectedDocket?.receiverName ?? 'N/A'}
@@ -1343,7 +1343,7 @@ export default function DocketForm({
                           Receiver On Site
                         </span>
                         <span
-                          className="text-sm font-semibold"
+                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
                           style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
                         >
                           {selectedDocket?.receiverName ? 'Yes' : 'N/A'}
