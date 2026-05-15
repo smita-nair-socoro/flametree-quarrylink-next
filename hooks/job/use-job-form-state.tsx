@@ -305,13 +305,17 @@ export function useJobFormState({
         };
 
         if (isEditing && jobId) {
-          await updateJob.mutateAsync({
+          const updated = await updateJob.mutateAsync({
             id: jobId,
             data: {
               ...(jobDetails as JobDTO),
               ...payload,
             } as JobDTO,
           });
+
+          if (updated) {
+            useJobStore.getState().setSelectedJob(updated);
+          }
 
           notifySuccess('Job updated successfully');
         } else {

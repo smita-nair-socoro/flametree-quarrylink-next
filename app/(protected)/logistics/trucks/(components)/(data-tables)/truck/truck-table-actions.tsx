@@ -76,13 +76,15 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
               </DropdownMenuItem>
             </>
           )}
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleDelete}>
-              <Delete className="h-4 w-4 mr-2 text-red-600" />
-              <span className="text-red-600">Delete Truck</span>
-            </DropdownMenuItem>
-          </>
+          {status !== TRUCK_STATUS.ON_DUTY && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDelete}>
+                <Delete className="h-4 w-4 mr-2 text-red-600" />
+                <span className="text-red-600">Delete Truck</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

@@ -26,7 +26,7 @@ export function YearPicker({
   const [open, setOpen] = React.useState(false);
 
   const currentYear = new Date().getFullYear();
-  const startYear = 1900;
+  const startYear = 1980;
   const endYear = currentYear;
   const years = Array.from(
     { length: endYear - startYear + 1 },

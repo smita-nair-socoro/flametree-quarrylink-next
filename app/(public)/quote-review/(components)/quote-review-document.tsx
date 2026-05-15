@@ -43,6 +43,7 @@ export default function QuoteReviewDocument({
   quoteData,
   token,
 }: QuoteReviewDocumentProps) {
+  const [logoError, setLogoError] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [approveFullName, setApproveFullName] = useState('');
@@ -275,10 +276,8 @@ export default function QuoteReviewDocument({
           <div className="space-y-2">
             <label className="text-sm font-normal text-[#6A7282]">
               Additional notes{' '}
-              {declineReason === 'other' ? (
+              {declineReason === 'other' && (
                 <span className="text-[#E7000B]">*</span>
-              ) : (
-                '(Optional)'
               )}
             </label>
             <Textarea
@@ -351,7 +350,7 @@ export default function QuoteReviewDocument({
   const handleDownloadPDF = async () => {
     try {
       await downloadQuotePdf(
-        quotationData,
+        { ...quotationData, navbar: { ...quotationData.navbar, logoError } },
         quoteId,
         `QuarryLink-Quote-${quotationData.navbar.quoteNumber}`,
         undefined,
@@ -489,6 +488,8 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+            logoError={logoError}
+            onLogoError={() => setLogoError(true)}
           />
 
           {/* Status Banner */}

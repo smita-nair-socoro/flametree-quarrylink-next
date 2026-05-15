@@ -42,6 +42,7 @@ import {
 interface FormProps {
   productId?: number;
   quarrySupplierId?: number;
+  existingQuarryIds?: number[];
   onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
@@ -57,6 +58,7 @@ import {
 export default function SupplierForm({
   productId,
   quarrySupplierId,
+  existingQuarryIds = [],
   onCancel,
   onSuccess,
   onSaved,
@@ -105,17 +107,17 @@ export default function SupplierForm({
     return quarrySupplierProductData;
   }, [quarrySupplierProductData]);
 
-  // Map quarries to supplier options
+  // Map quarries to supplier options, excluding already-linked quarries (unless editing that quarry)
   const supplierOptions = React.useMemo(() => {
     if (!quarriesData) return [];
 
-    return quarriesData.map((quarry) => {
-      return {
+    return quarriesData
+      .filter((quarry) => !existingQuarryIds.includes(quarry.id) || quarry.id === quarrySupplierId)
+      .map((quarry) => ({
         label: quarry.name,
         value: quarry.id,
-      };
-    });
-  }, [quarriesData]);
+      }));
+  }, [quarriesData, existingQuarryIds, quarrySupplierId]);
 
   // TODO: Zod Validation
   const supplierForm = useForm<z.infer<typeof NewSupplierFormSchema>>({

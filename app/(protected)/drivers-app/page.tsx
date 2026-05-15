@@ -34,6 +34,9 @@ export default function DriversAppPage() {
   const [checklistTruckId, setChecklistTruckId] = useState<
     number | undefined
   >();
+  const [pendingDocketId, setPendingDocketId] = useState<number | null>(null);
+  const [vehicleInspectionDoneSignal, setVehicleInspectionDoneSignal] =
+    useState(0);
   const [activeTab, setActiveTab] = useState<'dockets' | 'calendar'>('dockets');
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
@@ -174,6 +177,7 @@ export default function DriversAppPage() {
                     setChecklistTruckLicensePlate(undefined);
                     setChecklistDocketId(undefined);
                     setChecklistTruckId(undefined);
+                    setPendingDocketId(null);
                     setIsChecklistPromptOpen(true);
                   }}
                 >
@@ -185,6 +189,9 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
+                pendingDocketId={pendingDocketId}
+                onPendingDocketConsumed={() => setPendingDocketId(null)}
+                vehicleInspectionDoneSignal={vehicleInspectionDoneSignal}
                 onOpenChecklist={(
                   type,
                   truckLicensePlate,
@@ -195,6 +202,9 @@ export default function DriversAppPage() {
                   setChecklistTruckLicensePlate(truckLicensePlate);
                   setChecklistDocketId(docketId);
                   setChecklistTruckId(truckId);
+                  if (type === 'pre-start' && docketId != null) {
+                    setPendingDocketId(docketId);
+                  }
                   setIsChecklistPromptOpen(true);
                 }}
               />
@@ -294,8 +304,18 @@ export default function DriversAppPage() {
         driverId={driverData?.id}
         truckId={checklistTruckId}
         docketId={checklistDocketId}
-        onCompleteExternally={() => setIsChecklistPromptOpen(false)}
-        onCompleteNow={() => setIsChecklistPromptOpen(false)}
+        onCompleteExternally={() => {
+          setIsChecklistPromptOpen(false);
+          if (checklistType === 'vehicle-inspection') {
+            setVehicleInspectionDoneSignal((s) => s + 1);
+          }
+        }}
+        onCompleteNow={() => {
+          setIsChecklistPromptOpen(false);
+          if (checklistType === 'vehicle-inspection') {
+            setVehicleInspectionDoneSignal((s) => s + 1);
+          }
+        }}
       />
     </div>
   );

@@ -23,6 +23,7 @@ import {
   QuotationLineItem,
   QuotationReporting,
 } from '../types/quotation';
+import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { toLocalDateTime } from '../utils/date';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
@@ -55,6 +56,8 @@ import {
   DriverAppAssignedDTO,
   BlockedOperationResponse,
   UnassignOperationResponse,
+  ConflictCheckRequest,
+  ConflictCheckResponse,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
@@ -62,6 +65,7 @@ import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
   DriverDTO,
+  DriverStatistics,
   PatchDriverInfoDTO,
   PatchDriverTypeDTO,
   PatchDriverTrucksDTO,
@@ -477,7 +481,7 @@ export const APIClient = {
         body: data,
       }),
     deleteProduct: (id: number) =>
-      appClient.Delete<{ blockingQuotes?: unknown[] }>(
+      appClient.Delete<PostEligibilityCheckResponse>(
         `/socoro/quarrylink/api/product/${id}/post-eligibility-check`,
       ),
   },
@@ -515,23 +519,10 @@ export const APIClient = {
       }),
     unarchive: (id: number) =>
       appClient.Put<Quarry>(`/socoro/quarrylink/api/quarries/${id}/unarchive`),
-    delete: (id: number) => {
-      return appClient
-        .Delete<{ blockingQuotes?: unknown[] }>(
-          `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log('[APIClient] quarries.delete response:', res);
-          const len = Array.isArray(res?.blockingQuotes)
-            ? res!.blockingQuotes!.length
-            : 0;
-          console.log('[APIClient] blockingQuotes length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          throw err;
-        });
-    },
+    delete: (id: number) =>
+      appClient.Delete<PostEligibilityCheckResponse>(
+        `/socoro/quarrylink/api/quarries/${id}/post-eligibility-check`,
+      ),
     getSuburbs: () =>
       appClient.Get<string[]>(`/socoro/quarrylink/api/quarries/suburbs`),
     deleteProductFromQuarry: (quarryProductPriceId: number) =>
@@ -571,26 +562,10 @@ export const APIClient = {
           body: data,
         },
       ),
-    delete: (quarrySupplierId: number, productId: number) => {
-      return appClient
-        .Delete<{ blockingQuotes?: unknown[] }>(
-          `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
-        )
-        .then((res) => {
-          console.log(
-            '[APIClient] quarrySupplierProducts.delete response:',
-            res,
-          );
-          const len = Array.isArray(res?.blockingQuotes)
-            ? res!.blockingQuotes!.length
-            : 0;
-          console.log('[APIClient] blockingQuotes length from delete:', len);
-          return res;
-        })
-        .catch((err) => {
-          throw err;
-        });
-    },
+    delete: (quarrySupplierId: number, productId: number) =>
+      appClient.Delete<PostEligibilityCheckResponse>(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}/post-eligibility-check`,
+      ),
   },
 
   customers: {
@@ -947,6 +922,11 @@ export const APIClient = {
       appClient.Get<ChecklistSubmission>(
         `/socoro/quarrylink/api/dockets/${docketId}/pre-start-checklist`,
       ),
+    conflictCheck: (id: number, data: ConflictCheckRequest) =>
+      appClient.Post<ConflictCheckResponse>(
+        `/socoro/quarrylink/api/dockets/${id}/conflict-check`,
+        { body: data },
+      ),
   },
 
   checklists: {
@@ -1160,6 +1140,8 @@ export const APIClient = {
           },
         },
       ),
+    statistics: () =>
+      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
   },
 
   trucks: {

@@ -1,3 +1,10 @@
+import { DocketDTO } from '../types/docket';
+import {
+  EligibilityBlockingDependencies,
+} from '../types/eligibility-check';
+import { JobDTO, JobItem } from '../types/job';
+import { QuotationDTO } from '../types/quotation';
+
 /**
  * Safely extract error response data from unknown errors.
  */
@@ -30,6 +37,85 @@ export function extractErrorData(error: unknown): unknown {
 }
 
 /**
+ * Extract all eligibility blocking dependencies from either a success payload or an error payload.
+ */
+export function extractEligibilityBlockingDependencies(
+  data: unknown,
+): EligibilityBlockingDependencies {
+  if (!data || typeof data !== 'object') {
+    return {
+      blockingQuotations: [],
+      blockingJobs: [],
+      blockingDockets: [],
+      blockingJobItems: [],
+      hasBlockingDependencies: false,
+    };
+  }
+
+  const record = data as {
+    blockingQuotations?: unknown;
+    blockingJobs?: unknown;
+    blockingDockets?: unknown;
+    blockingJobItems?: unknown;
+  };
+
+  const blockingQuotations = Array.isArray(record.blockingQuotations)
+    ? record.blockingQuotations.filter(
+        (quotation): quotation is QuotationDTO =>
+          typeof quotation === 'object' &&
+          quotation !== null &&
+          'id' in quotation &&
+          'quoteNumber' in quotation &&
+          'lineItemsCount' in quotation,
+      )
+    : [];
+  const blockingJobs = Array.isArray(record.blockingJobs)
+    ? record.blockingJobs.filter(
+        (job): job is JobDTO =>
+          typeof job === 'object' && job !== null && 'id' in job,
+      )
+    : [];
+  const blockingDockets = Array.isArray(record.blockingDockets)
+    ? record.blockingDockets.filter(
+        (docket): docket is DocketDTO =>
+          typeof docket === 'object' && docket !== null && 'id' in docket,
+      )
+    : [];
+  const blockingJobItems = Array.isArray(record.blockingJobItems)
+    ? record.blockingJobItems.filter(
+        (jobItem): jobItem is JobItem =>
+          typeof jobItem === 'object' && jobItem !== null && 'id' in jobItem,
+      )
+    : [];
+
+  return {
+    blockingQuotations,
+    blockingJobs,
+    blockingDockets,
+    blockingJobItems,
+    hasBlockingDependencies:
+      blockingQuotations.length > 0 ||
+      blockingJobs.length > 0 ||
+      blockingDockets.length > 0 ||
+      blockingJobItems.length > 0,
+  };
+}
+
+function formatFieldName(field: string): string {
+  return field
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function joinValidationMessages(messages: Record<string, unknown>): string {
+  return Object.entries(messages)
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+    .map(([field, msg]) => `${formatFieldName(field)}: ${msg}`)
+    .join(', ');
+}
+
+/**
  * Safely extract a human-readable message from unknown errors.
  */
 export function extractErrorMessage(error: unknown): string {
@@ -43,6 +129,19 @@ export function extractErrorMessage(error: unknown): string {
   ) {
     const responseData = (error as { response?: { data?: unknown } }).response
       ?.data;
+
+    // Handle validation shape: { messages: { field: string }, error: string }
+    if (
+      responseData &&
+      typeof responseData === 'object' &&
+      'messages' in responseData &&
+      typeof (responseData as { messages?: unknown }).messages === 'object' &&
+      (responseData as { messages?: unknown }).messages !== null
+    ) {
+      const messages = (responseData as { messages: Record<string, unknown> }).messages;
+      const joined = joinValidationMessages(messages);
+      if (joined) return joined;
+    }
 
     if (
       responseData &&
@@ -69,6 +168,19 @@ export function extractErrorMessage(error: unknown): string {
     ) {
       return (responseData as { message: string }).message;
     }
+  }
+
+  // Handle top-level validation shape: { messages: { field: string }, error: string }
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'messages' in error &&
+    typeof (error as { messages?: unknown }).messages === 'object' &&
+    (error as { messages?: unknown }).messages !== null
+  ) {
+    const messages = (error as { messages: Record<string, unknown> }).messages;
+    const joined = joinValidationMessages(messages);
+    if (joined) return joined;
   }
 
   // Handle backend error shape: { errors: [{ message: string }] }

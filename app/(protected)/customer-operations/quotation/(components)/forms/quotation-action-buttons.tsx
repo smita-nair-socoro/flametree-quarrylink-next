@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  // Plus, Used for duplicate action
+  Copy,
   Send,
   MoreHorizontal,
   // Printer,
@@ -134,6 +134,11 @@ export function QuotationActionButtons({
               </>
             )}
 
+            <DropdownMenuItem onSelect={() => actions.duplicate()}>
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate Quote
+            </DropdownMenuItem>
+
             {quotation.quoteStatus !== 'ARCHIVED' &&
               quotation.quoteStatus !== 'CONVERTED_TO_JOB' &&
               quotation.quoteStatus !== 'APPROVED' &&
@@ -163,17 +168,6 @@ export function QuotationActionButtons({
       {duplicateDialog}
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* Current stage hide it Duplicate */}
-        {/* <Button
-          variant="ghost"
-          size="sm"
-          onClick={actions.duplicate}
-          className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Duplicate
-        </Button> */}
-
         {/* Preview Quote - available for all statuses */}
         <Button
           variant="ghost"
@@ -183,6 +177,17 @@ export function QuotationActionButtons({
         >
           <FileSearch className="h-4 w-4 mr-2" />
           Preview Quote
+        </Button>
+
+        {/* Duplicate Quote - available for all statuses */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => actions.duplicate()}
+          className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+        >
+          <Copy className="h-4 w-4 mr-2" />
+          Duplicate Quote
         </Button>
 
         {/* Status-specific primary actions */}
@@ -284,7 +289,7 @@ export function QuotationActionButtons({
         {quotation.quoteStatus !== 'ARCHIVED' &&
           quotation.quoteStatus !== 'APPROVED' &&
           quotation.quoteStatus !== 'PENDING' && (
-            <DropdownMenu modal={false}>
+            <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"

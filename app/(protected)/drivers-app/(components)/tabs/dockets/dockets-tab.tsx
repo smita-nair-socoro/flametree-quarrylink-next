@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { DocketDTO } from '@/lib/types/docket';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
-import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { format } from 'date-fns';
 import {
@@ -39,6 +38,7 @@ import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 const getCustomerName = (
   customerDto?: CustomerDTO,
@@ -61,6 +61,9 @@ interface DocketsTabProps {
     docketId?: number,
     truckId?: number,
   ) => void;
+  pendingDocketId?: number | null;
+  onPendingDocketConsumed?: () => void;
+  vehicleInspectionDoneSignal?: number;
 }
 
 type ActionType =
@@ -73,9 +76,11 @@ type ActionType =
 export default function DocketsTab({
   dockets,
   onOpenChecklist,
+  pendingDocketId,
+  onPendingDocketConsumed,
+  vehicleInspectionDoneSignal,
 }: DocketsTabProps) {
   const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
-  const [pendingDocket, setPendingDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
   const [isUpdateDrawerOpen, setIsUpdateDrawerOpen] = React.useState(false);
   const [updateValue, setUpdateValue] = React.useState('');
@@ -131,7 +136,7 @@ export default function DocketsTab({
   }, [selectedDocket]);
 
   const truckChecklistPassed =
-    selectedDocket?.truckChecklist?.checklistStatus === CHECKLIST_STATUS.PASS ||
+    !!selectedDocket?.hasTodayTruckInspectionByCurrentDriver ||
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
   const checklistsComplete = isPreStartPassed && truckChecklistPassed;
 
@@ -152,17 +157,25 @@ export default function DocketsTab({
     if (!isPreStartPassed) {
       setIsDrawerOpen(false);
       setSelectedDocket(null);
-    } else if (pendingDocket) {
-      setSelectedDocket(pendingDocket);
-      setIsDrawerOpen(true);
-      setPendingDocket(null);
+    } else if (pendingDocketId != null) {
+      const docket = dockets.find((d) => d.id === pendingDocketId);
+      if (docket) {
+        setSelectedDocket(docket);
+        setIsDrawerOpen(true);
+      }
+      onPendingDocketConsumed?.();
     }
-  }, [isPreStartPassed, pendingDocket]);
+  }, [isPreStartPassed, pendingDocketId, dockets, onPendingDocketConsumed]);
+
+  React.useEffect(() => {
+    if (vehicleInspectionDoneSignal && vehicleInspectionDoneSignal > 0 && selectedDocketData) {
+      setIsDrawerOpen(true);
+    }
+  }, [vehicleInspectionDoneSignal, selectedDocketData]);
 
   const openDocketDetails = (docket: DocketDTO) => {
     if (!isPreStartPassed) {
-      setPendingDocket(docket);
-      onOpenChecklist?.('pre-start');
+      onOpenChecklist?.('pre-start', undefined, docket.id, undefined);
       return;
     }
     setSelectedDocket(docket);
@@ -336,8 +349,10 @@ export default function DocketsTab({
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Phone</span>
                       <span className="text-[14px] font-medium text-gray-900">
-                        {selectedDocket.customerContactPhone ||
-                          selectedDocket.job?.contactPersonPhone}
+                        {formatPhoneNumber(
+                          selectedDocket.customerContactPhone ||
+                            selectedDocket.job?.contactPersonPhone,
+                        )}
                       </span>
                     </div>
                     <Separator className="bg-gray-100 -my-1" />
@@ -489,8 +504,8 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                  {selectedDocket.truckChecklist?.checklistStatus !==
-                    CHECKLIST_STATUS.PASS &&
+                  {selectedDocket.docketStatus !== 'DELIVERED' &&
+                    !selectedDocket.hasTodayTruckInspectionByCurrentDriver &&
                     !isTruckInspectionPassed(selectedDocket.id) && (
                       <Button
                         variant="outline"
@@ -536,9 +551,7 @@ export default function DocketsTab({
                       </span>
                     </Button>
                   )}
-                  {selectedDocket.docketStatus !== 'STOPPED' &&
-                    selectedDocket.docketStatus !== 'ARRIVED' &&
-                    selectedDocket.docketStatus !== 'ASSIGNED' && (
+                  {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                       <Button
                         variant="outline"
                         onClick={() => handleAction('stop')}
@@ -577,6 +590,17 @@ export default function DocketsTab({
                         Back to In Transit
                       </Button>
                     </>
+                  )}
+                  {['ARRIVED', 'DELIVERED', 'ASSIGNED'].includes(
+                    selectedDocket.docketStatus,
+                  ) && (
+                    <Button
+                      variant="outline"
+                      className="w-full h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                      onClick={() => setIsDrawerOpen(false)}
+                    >
+                      Close
+                    </Button>
                   )}
                 </div>
               </div>

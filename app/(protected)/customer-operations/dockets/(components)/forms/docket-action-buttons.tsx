@@ -173,7 +173,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
 
 export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
-  const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
   if (!docket || !docket.id) {
     return null;
@@ -193,13 +192,6 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
   const primaryAction = currentActions[0];
   const secondaryActions = currentActions.slice(1);
 
-  const handleAction = (actionType: ActionType) => {
-    setDropdownOpen(false);
-    if (actions[actionType]) {
-      actions[actionType]();
-    }
-  };
-
   return (
     <div className="flex items-start">
       {confirmDialogs}
@@ -208,7 +200,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => handleAction(primaryAction.action)}
+          onClick={() => actions[primaryAction.action]?.()}
           className={`rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800 ${primaryAction.className || ''}`}
         >
           <primaryAction.icon className="h-4 w-4 mr-2" />
@@ -216,10 +208,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
         </Button>
 
         {secondaryActions.length > 0 && (
-          <DropdownMenu
-            open={dropdownOpen}
-            onOpenChange={setDropdownOpen}
-            modal={false}>
+          <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
@@ -233,9 +222,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
                 <React.Fragment key={`${item.label}-${index}`}>
                   {item.separator && <DropdownMenuSeparator />}
                   <DropdownMenuItem
-                    onSelect={() => {
-                      handleAction(item.action);
-                    }}
+                    onSelect={() => actions[item.action]?.()}
                     className={item.className}
                   >
                     <item.icon

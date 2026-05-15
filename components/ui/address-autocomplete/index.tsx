@@ -1,9 +1,7 @@
 'use client';
-// import { FormMessages } from '../form-messages';
 import { Button } from '@/components/ui/button';
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
   CommandList,
 } from '@/components/ui/command';
@@ -14,7 +12,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import AddressDialog from './address-dialog';
 import { Command as CommandPrimitive } from 'cmdk';
 import { AddressType } from '@/lib/types/address';
-import { fillMissingAddressFields } from './autocomplete-validators';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { geocodePostalAddress, type GeocodedSuggestion } from '@/lib/utils/geocoding';
 import { cn } from '@/lib/utils';
@@ -32,13 +29,11 @@ interface AddressAutoCompleteProps {
   searchInput: string;
   setSearchInput: (searchInput: string) => void;
   dialogTitle: string;
-  showInlineError?: boolean;
   placeholder?: string;
   // React Hook Form props
   value?: string;
   onChange?: (value: string) => void;
   onBlur?: () => void;
-  name?: string;
   readOnly?: boolean;
   useSuggestions?: boolean;
   pinnedAddress?: AddressType;
@@ -146,6 +141,14 @@ export const formatAddressFromComponents = (address: AddressType): string => {
   return parts.join(', ');
 };
 
+const trimAddressFields = (address: AddressType): AddressType => ({
+  ...address,
+  city: address.city?.trim() ?? '',
+  region: address.region?.trim() ?? '',
+  postalCode: address.postalCode?.trim() ?? '',
+  country: address.country?.trim() ?? '',
+});
+
 const PO_BOX_PATTERN = /^P\.?O\.?\s*Box\b/i;
 
 export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
@@ -153,7 +156,6 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
     address,
     setAddress,
     dialogTitle,
-    showInlineError = true,
     searchInput,
     setSearchInput,
     placeholder,
@@ -283,7 +285,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           currentAddress.lng === formattedData.lng;
 
         if (!same) {
-          setAddress(fillMissingAddressFields(formattedData));
+          setAddress(trimAddressFields(formattedData));
         }
         setAdrAddress(data.adrFormatAddress || '');
         // Notify react-hook-form of the change
@@ -305,7 +307,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
   const handleManualEntry = () => {
     // Pre-populate with search input if available
     if (searchInput.trim()) {
-      const updatedAddress = fillMissingAddressFields({
+      const updatedAddress = trimAddressFields({
         ...address,
         address1: searchInput.trim(),
         formattedAddress: searchInput.trim(),
@@ -353,17 +355,13 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
       ...address,
       formattedAddress: suggestedAddress,
     };
-    // Fill missing fields with defaults (city, region, postalCode, country, googlePlaceId)
-    const nextAddress = fillMissingAddressFields(baseAddress);
+    const nextAddress = trimAddressFields(baseAddress);
     setAddress(nextAddress);
     if (onChange) {
       onChange(suggestedAddress);
     }
     setSearchInput('');
   };
-
-  // Use the provided delete handler for prop-based addresses
-  const handleDeleteHistoryAddress = onDeleteHistoryAddressProp;
 
   return (
     <>
@@ -414,10 +412,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
         <AddressAutoCompleteInput
           searchInput={searchInput}
           setSearchInput={setSearchInput}
-          selectedPlaceId={selectedPlaceId}
           setSelectedPlaceId={setSelectedPlaceId}
           setIsOpenDialog={setIsOpen}
-          showInlineError={showInlineError}
           placeholder={placeholder}
           onManualEntry={handleManualEntry}
           onBlur={onBlur}
@@ -427,7 +423,7 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
           historyAddresses={historyAddresses}
           isCollection={isCollection}
           onSelectSuggestion={handleSelectSuggestion}
-          onDeleteHistoryAddress={handleDeleteHistoryAddress}
+          onDeleteHistoryAddress={onDeleteHistoryAddressProp}
           ariaInvalid={ariaInvalid}
           ariaDescribedBy={ariaDescribedBy}
           inputId={inputId}
@@ -439,10 +435,8 @@ export default function AddressAutoComplete(props: AddressAutoCompleteProps) {
 }
 
 interface CommonProps {
-  selectedPlaceId: string;
   setSelectedPlaceId: (placeId: string) => void;
   setIsOpenDialog: (isOpen: boolean) => void;
-  showInlineError?: boolean;
   searchInput: string;
   setSearchInput: (searchInput: string) => void;
   placeholder?: string;
@@ -464,9 +458,7 @@ interface CommonProps {
 function AddressAutoCompleteInput(props: CommonProps) {
   const {
     setSelectedPlaceId,
-    // selectedPlaceId,
     setIsOpenDialog,
-    // showInlineError,
     searchInput,
     setSearchInput,
     placeholder,
@@ -641,13 +633,6 @@ function AddressAutoCompleteInput(props: CommonProps) {
           disabled={readOnly}
         />
       </div>
-      {/* {searchInput !== '' && !isOpen && !selectedPlaceId && showInlineError && (
-        <FormMessages
-          type="error"
-          className="pt-1 text-sm"
-          messages={['Select a valid address from the list']}
-        />
-      )} */}
       {isOpen && (
         <div className="relative animate-in fade-in-0 zoom-in-95 h-auto">
           <CommandList>
@@ -767,7 +752,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
                               };
                               onSelectSuggestion?.(
                                 geocoded.formattedAddress,
-                                fillMissingAddressFields(geocodedAddress),
+                                trimAddressFields(geocodedAddress),
                               );
                               setIsOpenDialog(true);
                             }}
@@ -797,12 +782,6 @@ function AddressAutoCompleteInput(props: CommonProps) {
                   </>
                 )}
 
-                <CommandEmpty>
-                  {showAutocompleteSuggestions &&
-                    !autocompleteLoading &&
-                    hasNoResults &&
-                    null}
-                </CommandEmpty>
               </CommandGroup>
             </div>
           </CommandList>

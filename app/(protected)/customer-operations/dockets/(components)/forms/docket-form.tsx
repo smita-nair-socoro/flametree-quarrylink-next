@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -21,6 +22,11 @@ import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
   Calendar,
+  CheckCircle,
+  CircleCheckBig,
+  Eye,
+  FileX,
+  ImageOff,
   Clock,
   FileText,
   Info,
@@ -31,7 +37,7 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toLocalDateTime, formatLocalDateTime } from '@/lib/utils/date';
+import { toLocalDateTime, formatLocalDateTime, appendUtcSuffix } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
@@ -79,10 +85,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-const DUMMY_CONFLICTING_DOCKETS = [
-  { id: -1, docketNumber: 'DO-2342' },
-  { id: -2, docketNumber: 'DO-2343' },
-];
 
 interface FormProps {
   id?: number;
@@ -112,12 +114,11 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
+  const [conflictingDocketIds, setConflictingDocketIds] = React.useState<number[]>([]);
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
-  const [pendingSubmitValues, setPendingSubmitValues] = React.useState<z.infer<
-    typeof DocketFormSchema
-  > | null>(null);
+  const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
@@ -181,23 +182,23 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-      currentStatus === DOCKET_STATUS.ASSIGNED ||
-      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.STOPPED ||
-      currentStatus === DOCKET_STATUS.ARRIVED
+        currentStatus === DOCKET_STATUS.ASSIGNED ||
+        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.STOPPED ||
+        currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-      currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY);
+        currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.ARRIVED ||
-      currentStatus === DOCKET_STATUS.DELIVERED
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY ||
-      currentStatus === DOCKET_STATUS.COLLECTED);
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -303,10 +304,53 @@ export default function DocketForm({
       return;
     }
 
-    // For ASSIGNED dockets, always show the conflict confirmation dialog first (API check TBD)
     if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
-      setPendingSubmitValues(values);
-      setTimeConflictOpen(true);
+      let startDateTime = values.deliveryCollectionStartTime;
+      let endDateTime = values.deliveryCollectionEndTime;
+      if (values.deliveryCollectionDate) {
+        if (values.deliveryCollectionStartTime && !values.deliveryCollectionStartTime.includes('T')) {
+          startDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionStartTime) ?? startDateTime;
+        }
+        if (values.deliveryCollectionEndTime && !values.deliveryCollectionEndTime.includes('T')) {
+          endDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionEndTime) ?? endDateTime;
+        }
+      }
+      const additionalEmails = values.docketEmail
+        ? values.docketEmail.split(',').map((e) => e.trim())
+        : [];
+      const docketEmailRecipients = Array.from(
+        new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+      );
+      try {
+        setIsSubmitting(true);
+        const result = await operationalUpdateDocket.mutateAsync({
+          id: selectedDocket.id,
+          data: {
+            checkWindowTimeConflict: true,
+            deliveryCollectionDate: values.deliveryCollectionDate
+              ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+              : undefined,
+            deliveryCollectionStartTime: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
+            deliveryCollectionEndTime: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+            plannedLoadSize: values.plannedLoadSize,
+            docketEmailRecipients,
+            truckId: selectedDocket.truckId,
+            driverId: selectedDocket.driverId,
+          },
+        });
+        if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+          setConflictingDocketIds(result.conflictingDocketIds);
+          setTimeConflictOpen(true);
+        } else {
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
+        }
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      } finally {
+        setIsSubmitting(false);
+      }
       return;
     }
 
@@ -325,9 +369,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -430,18 +474,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -498,15 +542,6 @@ export default function DocketForm({
   const newStart = docketForm.watch('deliveryCollectionStartTime');
   const newEnd = docketForm.watch('deliveryCollectionEndTime');
 
-  console.log('[DocketForm instance]', {
-    id,
-    jobId,
-    isQuickDocket,
-    isEditing,
-    selectedJobId,
-    start: newStart,
-    end: newEnd,
-  });
   const timeLabel =
     newStart && newEnd && deliveryDate
       ? `${newStart} – ${newEnd} on ${format(deliveryDate, 'd MMM')}`
@@ -566,38 +601,32 @@ export default function DocketForm({
                 <span className="text-sm font-semibold text-[#101828]">
                   New time {timeLabel} conflicts with existing dockets
                 </span>
-                <span className="text-xs" style={{ color: '#973C00' }}>
+                <span className="text-xs text-[#973C00]">
                   The following dockets are already scheduled for this truck and
                   driver at this time. You can still save this change.
                 </span>
               </div>
             </div>
-            <div
-              className="rounded-md border px-3 py-2 text-xs"
-              style={{
-                backgroundColor: '#FFF7ED',
-                borderColor: '#FFD6A7',
-                color: '#364153',
-              }}
-            >
-              <span className="font-medium">Conflicting dockets: </span>
-              {DUMMY_CONFLICTING_DOCKETS.map((cd, i) => (
-                <span key={cd.id}>
-                  <span
-                    className="underline cursor-pointer"
-                    style={{ color: '#155DFC' }}
-                  >
-                    {cd.docketNumber}
-                  </span>
-                  {i < DUMMY_CONFLICTING_DOCKETS.length - 1 ? ', ' : ''}
-                </span>
-              ))}
+            <div className="rounded-md border border-[#FFD6A7] bg-[#FFF7ED] px-3 py-2 text-xs text-[#364153]">
+              <span
+                className="font-medium underline cursor-pointer text-[#155DFC]"
+                onClick={() => {
+                  setTimeConflictOpen(false);
+                  onCancel?.();
+                  router.push(`/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`);
+                }}
+              >
+                Conflict Dockets
+              </span>
             </div>
           </div>
         }
         confirmText="Save Changes"
         onConfirmAction={async () => {
-          if (pendingSubmitValues) await doSave(pendingSubmitValues);
+          setTimeConflictOpen(false);
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
         }}
       />
 
@@ -684,7 +713,7 @@ export default function DocketForm({
                       name="quarryName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Quarry / Supplier</FormLabel>
+                          <FormLabel>Quarry / Supplier*</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -726,8 +755,8 @@ export default function DocketForm({
                             <FormItem>
                               <FormLabel>
                                 {details.truckUom === 'Hourly'
-                                  ? 'Hours Required'
-                                  : 'Delivery Distance'}
+                                  ? 'Hours Required*'
+                                  : 'Delivery Distance*'}
                               </FormLabel>
                               <FormControl>
                                 <Input
@@ -756,7 +785,7 @@ export default function DocketForm({
                             <FormSelect
                               control={docketForm.control}
                               name="truckType"
-                              label="Suggested Truck Type"
+                              label="Suggested Truck Type*"
                               searchLabel="Truck Type"
                               options={truckTypeOptions}
                               placeholder="Select Truck Type"
@@ -768,7 +797,7 @@ export default function DocketForm({
                             name="productUoM"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Product UoM</FormLabel>
+                                <FormLabel>Product UoM*</FormLabel>
                                 <FormControl>
                                   <Input
                                     className="w-full"
@@ -789,7 +818,7 @@ export default function DocketForm({
                               const maxLoadSize = details.remainingQty;
                               return (
                                 <FormItem>
-                                  <FormLabel>Planned Load Size</FormLabel>
+                                  <FormLabel>Planned Load Size*</FormLabel>
                                   <FormControl>
                                     <Input
                                       className="w-full"
@@ -829,7 +858,7 @@ export default function DocketForm({
                               name="actualLoadSize"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Actual Load Size</FormLabel>
+                                  <FormLabel>Actual Load Size*</FormLabel>
                                   <FormControl>
                                     <Input
                                       className="w-full"
@@ -938,7 +967,7 @@ export default function DocketForm({
                       name="purchaseOrder"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>PO Number (Optional)</FormLabel>
+                          <FormLabel>PO Number</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -956,7 +985,7 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>
                             <MapPin className="w-4 h-4 text-red-500" />
-                            Pick Up Address
+                            Pick Up Address*
                           </FormLabel>
                           <FormControl>
                             <AddressAutoComplete
@@ -983,7 +1012,7 @@ export default function DocketForm({
                           <FormItem>
                             <FormLabel>
                               <MapPin className="w-4 h-4 text-green-500" />
-                              Delivery Address
+                              Delivery Address*
                             </FormLabel>
                             <FormControl>
                               <AddressAutoComplete
@@ -1034,7 +1063,7 @@ export default function DocketForm({
                       name="deliveryCollectionStartTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Start Time Window</FormLabel>
+                          <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
                             <Select
                               key={`start-${field.value || 'empty'}`}
@@ -1068,7 +1097,7 @@ export default function DocketForm({
                       name="deliveryCollectionEndTime"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>End Time Window</FormLabel>
+                          <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
                             <Select
                               key={`end-${field.value || 'empty'}`}
@@ -1102,7 +1131,7 @@ export default function DocketForm({
                       name="customerContactName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Name</FormLabel>
+                          <FormLabel>Contact Name*</FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -1120,7 +1149,7 @@ export default function DocketForm({
                       name="customerContactPhone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Phone</FormLabel>
+                          <FormLabel>Contact Phone*</FormLabel>
                           <FormControl>
                             <PhoneInput
                               className="w-full"
@@ -1143,7 +1172,7 @@ export default function DocketForm({
                         : [];
                       return (
                         <FormItem className={'col-span-2 col-start-1'}>
-                          <FormLabel>Docket Email</FormLabel>
+                          <FormLabel>Docket Email*</FormLabel>
                           <FormControl>
                             <MultipleInput
                               className="w-full"
@@ -1240,14 +1269,15 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
-                                .checklistStatus === 'PASS'
-                                ? 'text-green-600'
-                                : selectedDocket.driverChecklist
-                                  .checklistStatus === 'FAIL'
-                                  ? 'text-red-600'
-                                  : 'text-muted-foreground'
-                                }`}
+                              className={`text-xs font-semibold ${
+                                selectedDocket.driverChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.driverChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1273,14 +1303,15 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
-                                .checklistStatus === 'PASS'
-                                ? 'text-green-600'
-                                : selectedDocket.truckChecklist
-                                  .checklistStatus === 'FAIL'
-                                  ? 'text-red-600'
-                                  : 'text-muted-foreground'
-                                }`}
+                              className={`text-xs font-semibold ${
+                                selectedDocket.truckChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.truckChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}
@@ -1299,6 +1330,143 @@ export default function DocketForm({
                           </Button>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+              {/* Sign Off Section */}
+              {isEditing &&
+                isDelivery &&
+                (currentStatus === DOCKET_STATUS.DELIVERED ||
+                  currentStatus === DOCKET_STATUS.INVOICED) &&
+                !!(
+                  selectedDocket?.signatureImage ||
+                  selectedDocket?.unloadedPhotos?.length ||
+                  selectedDocket?.receivedPhotos?.length ||
+                  selectedDocket?.receiverName
+                ) && (
+                  <div className="border rounded-md p-4 flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                        <span className="text-[17px] font-medium">Sign Off</span>
+                      </div>
+                      {selectedDocket?.deliveredAt && (
+                        <span className="text-sm text-muted-foreground">
+                          Delivered at{' '}
+                          {format(new Date(selectedDocket.deliveredAt), 'hh:mm a')}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver Name
+                        </span>
+                        <span
+                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
+                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                        >
+                          {selectedDocket?.receiverName ?? 'N/A'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver On Site
+                        </span>
+                        <span
+                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
+                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                        >
+                          {selectedDocket?.receiverName ? 'Yes' : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Unloaded Photo
+                        </span>
+                        {selectedDocket?.unloadedPhotos?.[0] ? (
+                          <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.unloadedPhotos[0]}
+                              alt="Unloaded photo"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                              <Eye className="w-7 h-7 text-white" />
+                              <div className="flex items-center gap-1 text-white text-xs font-medium">
+                                <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                Photo Captured
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No photo provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Receipt Photo
+                        </span>
+                        {selectedDocket?.receivedPhotos?.[0] ? (
+                          <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.receivedPhotos[0]}
+                              alt="Receipt photo"
+                              className="w-full h-full object-cover"
+                            />
+                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                              <Eye className="w-7 h-7 text-white" />
+                              <div className="flex items-center gap-1 text-white text-xs font-medium">
+                                <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                Photo Captured
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No photo provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className="text-sm text-muted-foreground">
+                          Receiver Signature
+                        </span>
+                        {selectedDocket?.signatureImage ? (
+                          <div className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={selectedDocket.signatureImage}
+                              alt="Receiver signature"
+                              className="max-h-full max-w-full object-contain p-2"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
+                            <FileX className="w-5 h-5" style={{ color: '#99A1AF' }} />
+                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                              No signature provided
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -1357,6 +1525,13 @@ export default function DocketForm({
                 updatedAt={selectedDocket?.updatedAt}
               />
             )}
+
+            {docketForm.formState.isSubmitted &&
+              Object.keys(docketForm.formState.errors).length > 0 && (
+                <p className="text-sm text-red-600">
+                  Some required fields are invalid. Please review the form and try again.
+                </p>
+              )}
 
             {isDesktop && (
               <div className="flex justify-end space-x-2 col-span-2 mb-6">

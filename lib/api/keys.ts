@@ -90,6 +90,7 @@ export const DriverKeys = {
   detail: (id: number) => [...DriverKeys.all, 'detail', id] as const,
   assignments: (id: number) => [...DriverKeys.all, 'assignments', id] as const,
   checklists: (id: number) => [...DriverKeys.all, 'checklists', id] as const,
+  statistics: () => [...DriverKeys.all, 'statistics'] as const,
 };
 
 export const DocketKeys = {

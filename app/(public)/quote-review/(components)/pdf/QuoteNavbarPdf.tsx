@@ -12,6 +12,7 @@ export interface QuoteNavbarPdfProps {
   status: QUOTE_STATUS;
   tenantDetails?: StripeTenantDetailsSnapshot;
   logoUrl?: string;
+  logoError?: boolean;
 }
 
 // Helper function to get initials from tenant name
@@ -85,6 +86,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   status,
   tenantDetails,
   logoUrl,
+  logoError = false,
 }) => {
   const statusStyle = getStatusBadgeStyle(status);
 
@@ -114,7 +116,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
                   style={styles.logo}
                 />
               </>
-            ) : logoUrl ? (
+            ) : logoUrl && !logoError ? (
               /* eslint-disable-next-line jsx-a11y/alt-text */
               <Image
                 src={logoUrl}

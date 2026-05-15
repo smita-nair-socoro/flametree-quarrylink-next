@@ -12,7 +12,7 @@ import {
 import { JobTableActions } from './job-table-actions';
 // import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
-// import { centsToDollars } from '@/lib/utils/currency';
+import { centsToDollars } from '@/lib/utils/currency';
 
 export const jobColumns: ColumnDef<JobDTO>[] = [
   {
@@ -77,31 +77,35 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
   },
   {
     id: 'uninvoicedDockets',
-    accessorFn: (row) => row.uninvoicedDockets,
+    accessorFn: (row) => row.uninvoicedDocketsAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title={
-          <div className="flex items-center gap-1">
-            Uninvoiced Dockets{' '}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-help" onClick={(e) => e.stopPropagation()}>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>(ex-GST)</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        } />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Uninvoiced Dockets{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>(incl. GST)</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
       );
     },
     cell: ({ row }) => {
-      const unInvoicedDockets = row.original.uninvoicedDockets
-        ? row.original.uninvoicedDockets
-        : '0';
-      return <div>${unInvoicedDockets}</div>;
+      const amount = row.original.uninvoicedDocketsAmount ?? 0;
+      return <div>${centsToDollars(amount * 1.1)}</div>;
     },
     meta: 'Uninvoiced Dockets',
   },
