@@ -1,7 +1,7 @@
 // Number format helper functions
-export function formatNumberThousandSeparator(number: number): string {
+export function formatNumberThousandSeparator(number: number, decimals = 2): string {
   return number.toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
   });
 }
