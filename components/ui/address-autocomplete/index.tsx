@@ -633,7 +633,7 @@ function AddressAutoCompleteInput(props: CommonProps) {
           disabled={readOnly}
         />
       </div>
-      {isOpen && (
+      {isOpen && (showInitialSuggestions || showAutocompleteSuggestions) && (
         <div className="relative animate-in fade-in-0 zoom-in-95 h-auto">
           <CommandList>
             <div className="absolute top-1.5 z-50 w-full">

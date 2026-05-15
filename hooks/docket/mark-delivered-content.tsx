@@ -148,6 +148,12 @@ export function MarkDeliveredContent({
               />
               <span>Please check this box</span>
             </label>
+            {!deliveredProductsConfirmed && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+                You must confirm the delivered products before proceeding.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-3">
@@ -164,6 +170,12 @@ export function MarkDeliveredContent({
                 event.currentTarget.value = '';
               }}
             />
+            {!unloadedPhotoPreviewUrl && (
+              <p className="text-xs text-red-500 flex items-center gap-1">
+                <CircleAlert className="h-3.5 w-3.5 shrink-0" />
+                Unloaded photo is required before marking as delivered.
+              </p>
+            )}
             {unloadedPhotoPreviewUrl ? (
               <div className="relative overflow-hidden rounded-md border border-[#D1D5DB] bg-[#F9FAFB]">
                 <img

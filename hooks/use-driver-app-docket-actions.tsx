@@ -168,9 +168,10 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
 
   const isMarkDeliveredFormValid = React.useMemo(() => {
     if (!deliveredProductsConfirmed) return false;
+    if (!unloadedPhoto) return false;
     if (!receiverOnSite) return true;
     return Boolean(receiverName.trim() && receiverSignature.trim());
-  }, [deliveredProductsConfirmed, receiverName, receiverOnSite, receiverSignature]);
+  }, [deliveredProductsConfirmed, unloadedPhoto, receiverName, receiverOnSite, receiverSignature]);
 
   const dialogConfigs = React.useMemo(
     () => ({
