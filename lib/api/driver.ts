@@ -1,6 +1,7 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverKeys, UserKeys } from './keys';
+import { removeNewRecordId } from '../utils';
 import type { DriverDTO, DriverStatistics, PutDriverDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
 import { useDriverStore } from '@/app/stores/driver-store';
 
@@ -144,7 +145,8 @@ export const useDeleteDriver = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => APIClient.drivers.delete(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
+      removeNewRecordId('driver_main_data_table', id);
       queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
       useDriverStore.getState().setSelectedDriver(null);
     },
