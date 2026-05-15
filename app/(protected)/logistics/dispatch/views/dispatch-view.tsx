@@ -25,6 +25,7 @@ import type {
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import {
   DispatchDriversTrucksFilter,
@@ -135,7 +136,7 @@ function formatCargoLineForUnassign(d: DispatchDocket): string {
         : d.productSellUom || '';
   const product = d.productName || 'Product';
   const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
-  return `${product} • ${loadSize} ${uom}`.trim();
+  return `${product} • ${formatNumberThousandSeparator(loadSize || 0)} ${uom}`.trim();
 }
 
 function assignmentDateDisplayForUnassign(

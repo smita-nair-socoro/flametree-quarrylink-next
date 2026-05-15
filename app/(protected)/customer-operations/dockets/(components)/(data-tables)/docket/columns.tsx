@@ -10,6 +10,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -159,16 +160,17 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
         loadSize = row.original.plannedLoadSize || 0;
       }
       const productUom = row.original.jobItem.productSellUom;
+      const formattedQty = formatNumberThousandSeparator(loadSize);
       const formattedLoadSize =
         productUom === 'TN'
-          ? `${loadSize} TN`
+          ? `${formattedQty} TN`
           : productUom === 'M3'
-            ? `${loadSize} m³`
+            ? `${formattedQty} m³`
             : productUom === 'KG_20'
-              ? `${loadSize} x 20kg`
+              ? `${formattedQty} x 20kg`
               : productUom === 'BULKA'
-                ? `${loadSize} Bulka`
-                : loadSize;
+                ? `${formattedQty} Bulka`
+                : formattedQty;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

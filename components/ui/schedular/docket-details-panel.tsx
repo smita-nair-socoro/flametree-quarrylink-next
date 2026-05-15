@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
 import { formatTimeRange } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
@@ -209,7 +210,7 @@ export function DocketDetailsPanel({
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span className="text-sm text-gray-500">Quantity</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {docket.actualLoadSize}{' '}
+                  {formatNumberThousandSeparator(docket.actualLoadSize || 0)}{' '}
                   {docket.jobItem?.productSellUom === 'M3'
                     ? 'm³'
                     : docket.jobItem?.productSellUom === 'KG_20'

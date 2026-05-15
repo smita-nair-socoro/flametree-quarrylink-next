@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { JobItem } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
 	Tooltip,
@@ -179,7 +180,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 					: row.original.productSellUom === 'M3'
 						? 'm³'
 						: row.original.productSellUom;
-			const displayText = `${remainingQuantity} ${productSellUom}`;
+			const displayText = `${formatNumberThousandSeparator(remainingQuantity || 0)} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
 					<TooltipTrigger asChild>

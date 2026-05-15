@@ -29,6 +29,7 @@ import {
 } from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
 import { Button } from '@/components/ui/button';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TableBadges } from '@/components/table-badges';
 
 type ViewType = 'trucks' | 'drivers';
@@ -91,7 +92,7 @@ function formatSellUomLabel(uom: string | undefined): string {
 function formatLoadLine(d: WeekViewDocket): string {
   const u = formatSellUomLabel(d.productSellUom);
   const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
-  return `${loadSize} ${u}`.trim();
+  return `${formatNumberThousandSeparator(loadSize || 0)} ${u}`.trim();
 }
 
 function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {

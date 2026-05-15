@@ -27,6 +27,7 @@ import {
   DispatchTruckResource,
 } from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 type MonthViewDocket = DispatchBoardDocketRow & {
   driverName?: string;
@@ -95,7 +96,7 @@ function DocketChip({
           {docket.docketNumber || 'No Number'}
         </span>
         <span>
-          {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
+          {formatNumberThousandSeparator(Number(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize) || 0)}{' '}
           {docket.productSellUom === 'M3'
             ? 'm³'
             : docket.productSellUom === 'KG_20'

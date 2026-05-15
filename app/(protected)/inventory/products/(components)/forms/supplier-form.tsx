@@ -1,5 +1,6 @@
 'use client';
 
+import { formatDollars } from '@/lib/utils/currency';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -613,8 +614,8 @@ export default function SupplierForm({
                         return (
                           <li key={label} className="text-sm text-amber-700 ">
                             <strong>{label}:</strong> Cost $
-                            {costValue.toFixed(2)} {'>'} Sell $
-                            {sellValue.toFixed(2)} (Margin: {margin.toFixed(2)}
+                            {formatDollars(costValue)} {'>'} Sell $
+                            {formatDollars(sellValue)} (Margin: {margin.toFixed(2)}
                             %)
                           </li>
                         );
