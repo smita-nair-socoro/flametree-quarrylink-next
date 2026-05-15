@@ -497,6 +497,7 @@ export default function TruckForm({
                             );
                           }}
                           placeholder="Select Year"
+                          startYear={1980}
                         />
                       </FormControl>
                       <FormMessage />
