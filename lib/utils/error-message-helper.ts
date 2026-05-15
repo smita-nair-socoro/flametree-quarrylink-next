@@ -101,6 +101,20 @@ export function extractEligibilityBlockingDependencies(
   };
 }
 
+function formatFieldName(field: string): string {
+  return field
+    .replace(/([A-Z])/g, ' $1')
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function joinValidationMessages(messages: Record<string, unknown>): string {
+  return Object.entries(messages)
+    .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+    .map(([field, msg]) => `${formatFieldName(field)}: ${msg}`)
+    .join(', ');
+}
+
 /**
  * Safely extract a human-readable message from unknown errors.
  */
@@ -115,6 +129,19 @@ export function extractErrorMessage(error: unknown): string {
   ) {
     const responseData = (error as { response?: { data?: unknown } }).response
       ?.data;
+
+    // Handle validation shape: { messages: { field: string }, error: string }
+    if (
+      responseData &&
+      typeof responseData === 'object' &&
+      'messages' in responseData &&
+      typeof (responseData as { messages?: unknown }).messages === 'object' &&
+      (responseData as { messages?: unknown }).messages !== null
+    ) {
+      const messages = (responseData as { messages: Record<string, unknown> }).messages;
+      const joined = joinValidationMessages(messages);
+      if (joined) return joined;
+    }
 
     if (
       responseData &&
@@ -141,6 +168,19 @@ export function extractErrorMessage(error: unknown): string {
     ) {
       return (responseData as { message: string }).message;
     }
+  }
+
+  // Handle top-level validation shape: { messages: { field: string }, error: string }
+  if (
+    typeof error === 'object' &&
+    error !== null &&
+    'messages' in error &&
+    typeof (error as { messages?: unknown }).messages === 'object' &&
+    (error as { messages?: unknown }).messages !== null
+  ) {
+    const messages = (error as { messages: Record<string, unknown> }).messages;
+    const joined = joinValidationMessages(messages);
+    if (joined) return joined;
   }
 
   // Handle backend error shape: { errors: [{ message: string }] }

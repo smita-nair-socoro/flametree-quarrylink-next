@@ -86,7 +86,7 @@ export interface DocketOperationalUpdateRequest {
 }
 
 export interface DocketOperationalUpdateResponse {
-  docket: DocketDTO;
+  docket?: DocketDTO;
   conflictingDocketIds: number[];
 }
 

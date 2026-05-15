@@ -2,6 +2,7 @@ import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@ta
 import { APIClient } from './APIClient';
 import { TruckKeys } from './keys';
 import type { TruckDTO } from '../types/truck';
+import { useTruckStore } from '@/app/stores/truck-store';
 
 export const TrucksListQueryOptions = () =>
   queryOptions({
@@ -44,9 +45,10 @@ export const useUpdateTruck = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: TruckDTO }) =>
       APIClient.trucks.update(id, data),
-    onSuccess: (_data, { id }) => {
+    onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.list() });
+      useTruckStore.getState().setSelectedTruck(data);
     },
   });
 };
@@ -58,6 +60,7 @@ export const useDeleteTruck = () => {
     mutationFn: (id: number) => APIClient.trucks.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.list() });
+      useTruckStore.getState().setSelectedTruck(null);
     },
   });
 };
@@ -67,9 +70,13 @@ export const useUnassignDriverFromTruck = () => {
   return useMutation({
     mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverId: number } }) =>
       APIClient.trucks.unassignDriver(truckId, data),
-    onSuccess: (_data, { truckId }) => {
+    onSuccess: async (_data, { truckId }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.drivers(truckId) });
+      try {
+        const updated = await APIClient.trucks.getById(truckId);
+        useTruckStore.getState().setSelectedTruck(updated);
+      } catch { /* non-critical */ }
     },
   });
 };
@@ -79,9 +86,10 @@ export const useAssignDriversToTruck = () => {
   return useMutation({
     mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverIds: number[] } }) =>
       APIClient.trucks.assignDrivers(truckId, data),
-    onSuccess: (_data, { truckId }) => {
+    onSuccess: (data, { truckId }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.drivers(truckId) });
+      useTruckStore.getState().setSelectedTruck(data);
     },
   });
 };
@@ -90,9 +98,13 @@ export const useDeactivateTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => APIClient.trucks.deactivate(id),
-    onSuccess: (_data, id) => {
+    onSuccess: async (_data, id) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.list() });
+      try {
+        const updated = await APIClient.trucks.getById(id);
+        useTruckStore.getState().setSelectedTruck(updated);
+      } catch { /* non-critical */ }
     },
   });
 };
@@ -108,9 +120,10 @@ export const useReactivateTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => APIClient.trucks.reactivate(id),
-    onSuccess: (_data, id) => {
-      queryClient.invalidateQueries({ queryKey: TruckKeys.detail(id) });
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: TruckKeys.detail(data.id!) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.list() });
+      useTruckStore.getState().setSelectedTruck(data);
     },
   });
 };

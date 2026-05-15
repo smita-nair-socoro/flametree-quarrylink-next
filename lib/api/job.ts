@@ -7,6 +7,7 @@ import {
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
 import type { JobDTO, JobItem } from '../types/job';
+import { useJobStore } from '@/app/stores/job-store';
 
 /**
  * Mutation hook for creating a new job.
@@ -64,9 +65,10 @@ export const useCancelJob = () => {
       additionalNotes: string;
     }) => APIClient.jobs.cancelJob(id, cancelReason, additionalNotes),
 
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data);
     },
   });
 };
@@ -79,7 +81,7 @@ export const useCreateJobItem = () => {
       return response;
     },
 
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({
         queryKey: JobKeys.detail(data.jobId),
@@ -88,6 +90,15 @@ export const useCreateJobItem = () => {
         queryKey: [...JobKeys.detail(data.jobId), 'with-line-items'],
       });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+
+      // Sync Zustand store so the FormDialog status badge reflects the
+      // backend-driven transition (e.g. COMPLETED/SETTLED → IN_PROGRESS)
+      try {
+        const updatedJob = await APIClient.jobs.getJobItems(data.jobId);
+        useJobStore.getState().setSelectedJob(updatedJob);
+      } catch {
+        // non-critical — badge will catch up on next open
+      }
     },
   });
 };
@@ -103,6 +114,7 @@ export const useUpdateJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data);
     },
   });
 };
@@ -117,6 +129,7 @@ export const useSettleJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data);
     },
   });
 };
@@ -126,10 +139,19 @@ export const useUpdateJobItem = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<JobItem> }) =>
       APIClient.jobs.updateJobItem(id, data),
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.jobId) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+
+      // Sync Zustand store so the FormDialog status badge reflects the
+      // backend-driven transition (e.g. COMPLETED/SETTLED → IN_PROGRESS)
+      try {
+        const updatedJob = await APIClient.jobs.getJobItems(data.jobId);
+        useJobStore.getState().setSelectedJob(updatedJob);
+      } catch {
+        // non-critical — badge will catch up on next open
+      }
     },
   });
 };
@@ -154,6 +176,7 @@ export const useResumeJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data);
     },
   });
 };
@@ -172,6 +195,7 @@ export const usePauseJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data);
     },
   });
 };

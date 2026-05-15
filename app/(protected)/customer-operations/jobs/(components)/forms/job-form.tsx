@@ -67,7 +67,7 @@ export default function JobForm({
     id,
     onDirtyChange,
     onSaved,
-    onSuccess,
+    onSuccess: id ? undefined : onSuccess,
   });
 
   const statusBanner = React.useMemo(() => {
