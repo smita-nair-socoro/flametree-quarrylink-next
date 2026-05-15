@@ -576,7 +576,10 @@ export default function ProductForm({
                       dialogWidth="700px"
                       contentClass="-mt-5"
                     >
-                      <SupplierForm productId={activeProductId ?? undefined} />
+                      <SupplierForm
+                        productId={activeProductId ?? undefined}
+                        existingQuarryIds={selectedProduct?.quarrySupplierProducts?.map((q) => q.quarrySupplierId) ?? []}
+                      />
                     </FormDialog>
                   )}
                 </div>
