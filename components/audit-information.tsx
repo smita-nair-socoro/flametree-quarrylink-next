@@ -1,6 +1,12 @@
 import { formatLocalDateShort } from '@/lib/utils/date';
 import { cn } from '@/lib/utils';
 
+function formatActor(actor?: string | null): string {
+  if (!actor) return '—';
+  if (actor.toLowerCase() === 'anonymoususer') return 'Accounting Software';
+  return actor;
+}
+
 interface AuditInformationProps {
   createdBy?: string | null;
   lastModifiedBy?: string | null;
@@ -22,11 +28,11 @@ export function AuditInformation({
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-3 md:pl-2 gap-6 md:max-w-3xl">
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-foreground">Created By:</p>
-          <p className="text-sm text-muted-foreground">{createdBy || '—'}</p>
+          <p className="text-sm text-muted-foreground">{formatActor(createdBy)}</p>
         </div>
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-foreground">Last Modified By:</p>
-          <p className="text-sm text-muted-foreground">{lastModifiedBy || '—'}</p>
+          <p className="text-sm text-muted-foreground">{formatActor(lastModifiedBy)}</p>
         </div>
         <div className="flex items-center gap-2">
           <p className="text-sm font-semibold text-foreground">Created Date:</p>
