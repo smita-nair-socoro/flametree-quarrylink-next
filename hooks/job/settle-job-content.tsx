@@ -90,11 +90,11 @@ export function SettleJobContent({
 
       <div className="flex flex-col gap-2">
         <span className="text-[14px] font-medium text-[#111827]">
-          Resolve outstanding invoices or payments:
+          Resolve outstanding dockets or payments:
         </span>
         <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
-          <li>All dockets must be in Paid, Cash Sale, or Voided status</li>
-          <li>Outstanding balance must be $0</li>
+          <li>All dockets must be in <span className="font-medium">Invoiced</span>, <span className="font-medium">Cash Sale</span>, or <span className="font-medium">Voided</span> status</li>
+          <li>Uninvoiced balance must be <span className="font-medium">$0</span></li>
         </ul>
       </div>
     </div>
