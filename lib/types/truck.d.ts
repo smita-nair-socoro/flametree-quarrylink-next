@@ -51,3 +51,15 @@ export interface TruckResource {
   drivers: string;
   haulierName?: string;
 }
+
+export interface TruckStatistics {
+  totalTrucks: number;
+  combinationTrucks: number;
+  singleUnitTrucks: number;
+  trucksOnDuty: number;
+  trucksWithDrivers: number;
+  driversAssigned: number;
+  trucksWithoutDrivers: number;
+  failedInspections: number;
+  failedInspectionsLast7Days: number;
+}

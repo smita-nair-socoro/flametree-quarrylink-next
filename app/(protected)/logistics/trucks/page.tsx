@@ -4,7 +4,7 @@ import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { TrucksListQueryOptions } from '@/lib/api/truck';
+import { TrucksListQueryOptions, TruckStatisticsQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
 import {
   DataTableClient,
@@ -20,6 +20,7 @@ export default function TrucksPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: trucks } = useQuery(TrucksListQueryOptions());
+  const { data: statistics } = useQuery(TruckStatisticsQueryOptions());
   const { actions, confirmDialogs, viewDialog } = useTruckActions();
 
   const handleRowClick = (truckData: TruckDTO) => {
@@ -29,8 +30,8 @@ export default function TrucksPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Trucks',
-      value: '7',
-      description: '3 combination | 4 single unit',
+      value: statistics?.totalTrucks ?? 0,
+      description: `${statistics?.combinationTrucks ?? 0} combination | ${statistics?.singleUnitTrucks ?? 0} single unit`,
       icon: Truck,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -38,8 +39,8 @@ export default function TrucksPage() {
     },
     {
       title: 'Trucks on duty',
-      value: '2',
-      description: '2 out of 7 on duty',
+      value: statistics?.trucksOnDuty ?? 0,
+      description: `${statistics?.trucksOnDuty ?? 0} out of ${statistics?.totalTrucks ?? 0} on duty`,
       icon: Activity,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -47,8 +48,8 @@ export default function TrucksPage() {
     },
     {
       title: 'Drivers assigned',
-      value: '0',
-      description: '7 trucks without a driver',
+      value: statistics?.trucksWithDrivers ?? 0,
+      description: `${statistics?.trucksWithoutDrivers ?? 0} trucks without a driver`,
       icon: CircleUser,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -56,7 +57,7 @@ export default function TrucksPage() {
     },
     {
       title: 'Failed inspections',
-      value: '0',
+      value: statistics?.failedInspectionsLast7Days ?? 0,
       description: 'Since last week',
       icon: TriangleAlert,
       iconBgColor: 'bg-[#FEF9C2]',

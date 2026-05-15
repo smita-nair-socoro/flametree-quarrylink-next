@@ -61,7 +61,7 @@ import {
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
-import { TruckDTO } from '../types/truck';
+import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
   DriverDTO,
@@ -1204,6 +1204,8 @@ export const APIClient = {
           },
         },
       ),
+    statistics: () =>
+      appClient.Get<TruckStatistics>(`/socoro/quarrylink/api/truck/statistics`),
   },
 
   hauliers: {
