@@ -607,6 +607,7 @@ export default function DocketForm({
                 className="font-medium underline cursor-pointer text-[#155DFC]"
                 onClick={() => {
                   setTimeConflictOpen(false);
+                  onCancel?.();
                   router.push(`/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`);
                 }}
               >

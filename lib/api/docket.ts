@@ -163,9 +163,11 @@ export const useOperationalUpdateDocket = () => {
       data: DocketOperationalUpdateRequest;
     }) => APIClient.dockets.operationalUpdate(id, data),
     onSuccess: (response) => {
-      queryClient.invalidateQueries({
-        queryKey: DocketKeys.detail(response.docket.id),
-      });
+      if (response.docket) {
+        queryClient.invalidateQueries({
+          queryKey: DocketKeys.detail(response.docket.id),
+        });
+      }
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
     },
