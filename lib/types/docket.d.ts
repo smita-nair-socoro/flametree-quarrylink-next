@@ -149,6 +149,8 @@ export interface DocketDTO {
   deliveryPhotos: string[];
   unloadedPhotos?: string[];
   receivedPhotos?: string[];
+  receiverName?: string;
+  receiverOnSite?: boolean;
   gpsLocation: string;
   productEstimatedVolume: number;
   purchaseOrder: string;
