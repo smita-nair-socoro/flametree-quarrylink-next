@@ -346,8 +346,8 @@ export function useDocketFormState({
         jobDetails?.contactPersonPhone ?? jobFromList?.contactPersonPhone ?? '',
 
       customerEmail:
-        jobDetails?.customerWithAddressResponse?.email ??
-        jobFromList?.customerWithAddressResponse?.email ??
+        jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
+        jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
         '',
 
       additionalDocketEmails:
