@@ -350,10 +350,15 @@ export function useDocketFormState({
         jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
         '',
 
-      additionalDocketEmails:
-        jobDetails?.emailRecipients?.join(', ') ??
-        jobFromList?.emailRecipients?.join(', ') ??
-        '',
+      additionalDocketEmails: (() => {
+        const contactEmail =
+          jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
+          jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
+          '';
+        const recipients =
+          jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
+        return recipients.filter((e) => e !== contactEmail).join(', ');
+      })(),
 
       createdBy: '',
       lastModifiedBy: '',
