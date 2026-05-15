@@ -504,7 +504,8 @@ export default function DocketsTab({
 
                 {/* Action Buttons */}
                 <div className="flex flex-col gap-3 pb-2">
-                  {!selectedDocket.hasTodayTruckInspectionByCurrentDriver &&
+                  {selectedDocket.docketStatus !== 'DELIVERED' &&
+                    !selectedDocket.hasTodayTruckInspectionByCurrentDriver &&
                     !isTruckInspectionPassed(selectedDocket.id) && (
                       <Button
                         variant="outline"
