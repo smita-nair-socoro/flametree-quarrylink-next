@@ -583,12 +583,14 @@ export default function DocketsTab({
                           Mark Delivered
                         </span>
                       </Button>
+                      {/* Back to In Transit — hidden for now
                       <Button
                         variant="outline"
                         className="w-full border-[#6366F1] text-[#6366F1] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
                       >
                         Back to In Transit
                       </Button>
+                      */}
                     </>
                   )}
                   {['ARRIVED', 'DELIVERED', 'ASSIGNED'].includes(
