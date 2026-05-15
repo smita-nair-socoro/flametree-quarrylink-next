@@ -190,7 +190,7 @@ export function QuestionCard({
             </div>
             <CollapsibleContent className="space-y-3">
               <Textarea
-                placeholder="Notes (Optional)"
+                placeholder="Notes"
                 className="resize-none min-h-[80px] bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
                 value={notes}
                 onChange={(e) => onNotesChange(e.target.value)}
@@ -356,7 +356,7 @@ export function BaseChecklist({
         {/* Additional Notes */}
         <div className="flex flex-col gap-2 pb-5">
           <h2 className="text-gray-900 font-bold text-[16px]">
-            Additional Notes (Optional)
+            Additional Notes
           </h2>
           <Textarea
             placeholder="Add any additional notes or concerns..."

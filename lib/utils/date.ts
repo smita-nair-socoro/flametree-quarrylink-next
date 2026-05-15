@@ -28,6 +28,19 @@ export function parseAsUTC(dateString: string): Date {
 }
 
 /**
+ * Append 'Z' (UTC) to a backend datetime string that lacks timezone info.
+ * Use when sending datetime strings back to APIs that require timezone context.
+ *
+ * @param dateString - Date string from backend (e.g., "2026-05-22T08:00:00")
+ * @returns The same string with 'Z' appended if no timezone was present
+ */
+export function appendUtcSuffix(dateString: string): string {
+  if (!dateString) return dateString;
+  if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) return dateString;
+  return dateString + 'Z';
+}
+
+/**
  * Format a date string to the user's local timezone.
  * Converts UTC dates from backend to browser local time for display.
  *

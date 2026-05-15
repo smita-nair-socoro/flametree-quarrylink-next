@@ -1,7 +1,7 @@
 import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverKeys, UserKeys } from './keys';
-import type { DriverDTO, PutDriverDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
+import type { DriverDTO, DriverStatistics, PutDriverDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
 
 export const DriversListQueryOptions = () =>
   queryOptions({
@@ -26,6 +26,14 @@ export const DriverAssignmentsQueryOptions = (id: number) =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
     enabled: !!id,
+  });
+
+export const DriverStatisticsQueryOptions = () =>
+  queryOptions({
+    queryKey: DriverKeys.statistics(),
+    queryFn: () => APIClient.drivers.statistics(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
   });
 
 export const DriverPreStartChecklistsQueryOptions = (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>

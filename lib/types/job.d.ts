@@ -17,6 +17,7 @@ export interface JobDTO {
   contactPersonPhone?: string;
   docketEmail?: string;
   uninvoicedDockets?: number;
+  uninvoicedDocketsAmount?: number;
   quoteId?: number;
   emailRecipients?: string[];
   estimatedStartDate?: string;

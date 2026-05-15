@@ -56,6 +56,8 @@ import {
   DriverAppAssignedDTO,
   BlockedOperationResponse,
   UnassignOperationResponse,
+  ConflictCheckRequest,
+  ConflictCheckResponse,
 } from '../types/docket';
 import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
@@ -63,6 +65,7 @@ import { TruckDTO } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
   DriverDTO,
+  DriverStatistics,
   PatchDriverInfoDTO,
   PatchDriverTypeDTO,
   PatchDriverTrucksDTO,
@@ -919,6 +922,11 @@ export const APIClient = {
       appClient.Get<ChecklistSubmission>(
         `/socoro/quarrylink/api/dockets/${docketId}/pre-start-checklist`,
       ),
+    conflictCheck: (id: number, data: ConflictCheckRequest) =>
+      appClient.Post<ConflictCheckResponse>(
+        `/socoro/quarrylink/api/dockets/${id}/conflict-check`,
+        { body: data },
+      ),
   },
 
   checklists: {
@@ -1132,6 +1140,8 @@ export const APIClient = {
           },
         },
       ),
+    statistics: () =>
+      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
   },
 
   trucks: {
