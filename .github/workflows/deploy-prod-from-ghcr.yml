@@ -1,0 +1,191 @@
+# .github/workflows/deploy-prod-from-ghcr.yml
+name: Deploy Production Static Site from GHCR to S3 + CloudFront
+
+on:
+  workflow_run:
+    workflows:
+      - Publish Production Web Build to GHCR
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GHCR tag to deploy, e.g. release-v1.2.3 or latest-prod"
+        required: true
+        default: "latest-prod"
+      suffix:
+        description: "Image name suffix"
+        required: true
+        default: "oras-web"
+      invalidate_all:
+        description: "Invalidate /*"
+        required: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "true"
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-2
+  PROD_ENVIRONMENT: prod
+
+concurrency:
+  group: deploy-prod-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy production static site
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+       github.event.workflow_run.conclusion == 'success' &&
+       startsWith(github.event.workflow_run.head_branch, 'release/'))
+
+    environment: prod
+
+    env:
+      SUFFIX: ${{ github.event_name == 'workflow_dispatch' && inputs.suffix || 'oras-web' }}
+      INVALIDATE_ALL: ${{ github.event_name == 'workflow_dispatch' && inputs.invalidate_all || 'true' }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Resolve deployment tag
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            TAG="${{ inputs.tag }}"
+          else
+            HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+            VERSION="${HEAD_BRANCH#release/}"
+
+            if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "::error ::Workflow-run deploy only supports release/X.Y.Z branches. Got: $HEAD_BRANCH"
+              exit 1
+            fi
+
+            TAG="release-v${VERSION}"
+          fi
+
+          if [[ -z "$TAG" ]]; then
+            echo "::error ::Unable to resolve deployment tag."
+            exit 1
+          fi
+
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          echo "Deploying tag: $TAG"
+
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Compute image ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          REPO_LC="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          SUFFIX_LC="$(echo '${{ env.SUFFIX }}' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')"
+          echo "IMAGE_REF=ghcr.io/${OWNER_LC}/${REPO_LC}-${SUFFIX_LC}" >> "$GITHUB_ENV"
+
+      - name: Pull static artifact from GHCR
+        run: |
+          set -euo pipefail
+          mkdir -p _pkg
+          oras pull "${IMAGE_REF}:${TAG}" -o _pkg
+          test -f _pkg/site.tar.gz || (echo "::error ::site.tar.gz not found in artifact" && exit 1)
+          ls -lah _pkg
+
+      - name: Extract site build
+        run: |
+          set -euo pipefail
+          rm -rf site
+          mkdir -p site
+          tar -xzf _pkg/site.tar.gz -C site
+
+      - name: Generate production config.json
+        env:
+          COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
+          COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+          COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }}
+          COGNITO_HOSTED_UI_DOMAIN: ${{ vars.COGNITO_HOSTED_UI_DOMAIN }}
+          AMPLIFY_AUTH_REGION: ${{ vars.AMPLIFY_AUTH_REGION }}
+          AMPLIFY_AUTH_USER_POOL_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_ID }}
+          AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID }}
+          GOOGLE_MAPS_API_KEY: ${{ vars.GOOGLE_MAPS_API_KEY }}
+          API_URL: ${{ vars.API_URL }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+          jq -n \
+            --arg cognitoDomain "$COGNITO_DOMAIN" \
+            --arg cognitoClientId "$COGNITO_CLIENT_ID" \
+            --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg cognitoHostedUiDomain "$COGNITO_HOSTED_UI_DOMAIN" \
+            --arg amplifyAuthRegion "$AMPLIFY_AUTH_REGION" \
+            --arg amplifyAuthUserPoolId "$AMPLIFY_AUTH_USER_POOL_ID" \
+            --arg amplifyAuthUserPoolWebClientId "$AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID" \
+            --arg googleMapsApiKey "$GOOGLE_MAPS_API_KEY" \
+            --arg apiUrl "$API_URL" \
+            --arg sentryDsn "$SENTRY_DSN" \
+            --arg clarityProjectId "$CLARITY_PROJECT_ID" \
+            '{
+              COGNITO_DOMAIN: $cognitoDomain,
+              COGNITO_CLIENT_ID: $cognitoClientId,
+              COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+              COGNITO_HOSTED_UI_DOMAIN: $cognitoHostedUiDomain,
+              AMPLIFY_AUTH_REGION: $amplifyAuthRegion,
+              AMPLIFY_AUTH_USER_POOL_ID: $amplifyAuthUserPoolId,
+              AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: $amplifyAuthUserPoolWebClientId,
+              GOOGLE_MAPS_API_KEY: $googleMapsApiKey,
+              API_URL: $apiUrl,
+              SENTRY_DSN: $sentryDsn,
+              CLARITY_PROJECT_ID: $clarityProjectId
+            }' > site/config.json
+
+          echo "Generated config.json keys:"
+          jq 'keys' site/config.json
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gh-actions-prod-web-${{ github.run_id }}
+          mask-aws-account-id: true
+
+      - name: Upload static site files to S3
+        run: |
+          set -euo pipefail
+          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" --delete
+
+      - name: Create CloudFront invalidation
+        run: |
+          set -euo pipefail
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            PATHS='/*'
+          else
+            PATHS='/config.json /index.html'
+          fi
+
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths ${PATHS}
