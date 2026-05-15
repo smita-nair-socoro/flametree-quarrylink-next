@@ -128,6 +128,35 @@ export default function JobLineItemForm({
     }
   }, [lineItemType]);
 
+  // Clear qty when truck UoM changes to a manual-input type (no conversion available)
+  const MANUAL_TRUCK_UOMS = ['HOURLY', 'LOAD', 'KM'];
+  const truckSellUom = jobLineItemForm.watch('truckSellUom');
+  const truckCostUom = jobLineItemForm.watch('truckCostUom');
+  const prevTruckSellUomRef = React.useRef(truckSellUom);
+  const prevTruckCostUomRef = React.useRef(truckCostUom);
+
+  React.useEffect(() => {
+    if (
+      prevTruckSellUomRef.current !== truckSellUom &&
+      MANUAL_TRUCK_UOMS.includes(truckSellUom)
+    ) {
+      jobLineItemForm.setValue('truckSellQty', 0);
+    }
+    prevTruckSellUomRef.current = truckSellUom;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truckSellUom]);
+
+  React.useEffect(() => {
+    if (
+      prevTruckCostUomRef.current !== truckCostUom &&
+      MANUAL_TRUCK_UOMS.includes(truckCostUom)
+    ) {
+      jobLineItemForm.setValue('truckCostQty', 0);
+    }
+    prevTruckCostUomRef.current = truckCostUom;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truckCostUom]);
+
   // - Delivery: Use customer's billing address
   // - Collection: Use selected quarry supplier's address
   const pinnedAddress = isCollection
@@ -1039,9 +1068,8 @@ export default function JobLineItemForm({
               suggestions?
             </p>
             <p>
-              This will not affect existing jobs or historical records, but
-              the address will no longer appear as a suggestion for this
-              customer.
+              This will not affect existing jobs or historical records, but the
+              address will no longer appear as a suggestion for this customer.
             </p>
           </>
         }

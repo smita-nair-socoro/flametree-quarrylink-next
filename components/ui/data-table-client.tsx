@@ -983,7 +983,7 @@ export function DataTableClient<TData, TValue>({
               </div>
             )}
 
-            {isShowHideColumns && (
+            {isShowHideColumns && !isMobile && (
               <div ref={showHideRef} className="ml-auto flex-shrink-0">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

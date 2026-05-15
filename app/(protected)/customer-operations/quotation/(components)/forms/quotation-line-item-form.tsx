@@ -123,6 +123,35 @@ export default function QuoteLineItemForm({
 
   const isCollection = quoteItemType === QUOTE_ITEM_TYPE.COLLECTION;
 
+  // Clear qty when truck UoM changes to a manual-input type (no conversion available)
+  const MANUAL_TRUCK_UOMS = ['HOURLY', 'LOAD', 'KM'];
+  const truckSellUom = quotationLineItemForm.watch('truckSellUom');
+  const truckCostUom = quotationLineItemForm.watch('truckCostUom');
+  const prevTruckSellUomRef = React.useRef(truckSellUom);
+  const prevTruckCostUomRef = React.useRef(truckCostUom);
+
+  React.useEffect(() => {
+    if (
+      prevTruckSellUomRef.current !== truckSellUom &&
+      MANUAL_TRUCK_UOMS.includes(truckSellUom)
+    ) {
+      quotationLineItemForm.setValue('truckSellQty', 0);
+    }
+    prevTruckSellUomRef.current = truckSellUom;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truckSellUom]);
+
+  React.useEffect(() => {
+    if (
+      prevTruckCostUomRef.current !== truckCostUom &&
+      MANUAL_TRUCK_UOMS.includes(truckCostUom)
+    ) {
+      quotationLineItemForm.setValue('truckCostQty', 0);
+    }
+    prevTruckCostUomRef.current = truckCostUom;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truckCostUom]);
+
   // Determine pinned address based on quote item type:
   // - Delivery: Use customer's billing address
   // - Collection: Use selected quarry supplier's address

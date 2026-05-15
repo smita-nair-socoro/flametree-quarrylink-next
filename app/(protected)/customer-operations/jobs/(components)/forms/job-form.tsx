@@ -137,7 +137,7 @@ export default function JobForm({
               name="poNumber"
               render={({ field }) => (
                 <FormItem className="col-span-2 col-start-1">
-                  <FormLabel>PO Number (Optional)</FormLabel>
+                  <FormLabel>PO Number</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
@@ -296,7 +296,7 @@ export default function JobForm({
                 name="deliveryWindowStart"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window</FormLabel>
+                    <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
                       <Select
                         key={`start-${field.value || 'empty'}`}
@@ -330,7 +330,7 @@ export default function JobForm({
                 name="deliveryWindowEnd"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>End Time Window</FormLabel>
+                    <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
                       <Select
                         key={`end-${field.value || 'empty'}`}

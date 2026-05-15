@@ -5,6 +5,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { InspectionTableActions } from './inspection-table-actions';
 import { TableBadges } from '@/components/table-badges';
 import { ChecklistItem } from '@/lib/types/checklist';
+import { CHECKLIST_STATUS } from '@/lib/types/checklist-enums';
 import { DateCell } from '@/components/date-cell';
 import {
   Tooltip,
@@ -70,6 +71,12 @@ export const inspectionColumns: ColumnDef<ChecklistItem>[] = [
   {
     id: 'actions',
     header: () => null,
-    cell: ({ row }) => <InspectionTableActions record={row.original} />,
+    cell: ({ row }) => {
+      const { status } = row.original;
+      if (status !== CHECKLIST_STATUS.PASS && status !== CHECKLIST_STATUS.FAIL) {
+        return null;
+      }
+      return <InspectionTableActions record={row.original} />;
+    },
   },
 ];
