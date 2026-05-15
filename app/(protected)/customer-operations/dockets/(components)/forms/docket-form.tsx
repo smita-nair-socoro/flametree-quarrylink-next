@@ -1384,6 +1384,13 @@ export default function DocketForm({
               />
             )}
 
+            {docketForm.formState.isSubmitted &&
+              Object.keys(docketForm.formState.errors).length > 0 && (
+                <p className="text-sm text-red-600">
+                  Some required fields are invalid. Please review the form and try again.
+                </p>
+              )}
+
             {isDesktop && (
               <div className="flex justify-end space-x-2 col-span-2 mb-6">
                 <Button variant="outline" type="button" onClick={onCancel}>
