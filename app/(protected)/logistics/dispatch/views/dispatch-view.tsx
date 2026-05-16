@@ -347,11 +347,30 @@ export function DispatchView({
   }, [viewType, trucksData]);
 
   const filterCustomerOptions = useMemo(() => {
-    const names = dockets
-      .map((d) => d.customerName)
-      .filter(Boolean) as string[];
-    return Array.from(new Set(names)).sort();
-  }, [dockets]);
+    const names = new Set<string>();
+
+    if (viewType === 'trucks' && trucksData?.resources) {
+      for (const r of trucksData.resources) {
+        if (isDispatchTruckResource(r)) {
+          for (const d of r.dockets || []) {
+            if (d.customerName) names.add(d.customerName);
+          }
+        }
+      }
+    } else if (viewType === 'drivers' && driversData?.resources) {
+      for (const r of driversData.resources) {
+        if (isDispatchDriverResource(r)) {
+          for (const d of r.dockets || []) {
+            if (d.customerName) names.add(d.customerName);
+          }
+        }
+      }
+    }
+
+    const uniqueNames = Array.from(names).sort();
+    // console.log('Customer Options:', uniqueNames);
+    return uniqueNames;
+  }, [viewType, trucksData, driversData]);
 
   const filteredMappedResources = useMemo(() => {
     let allowedTruckIds = new Set<string>();
@@ -776,19 +795,8 @@ export function DispatchView({
       : null;
 
   const unassignedDocketsForBoard = useMemo(() => {
-    return dockets.filter((d) => {
-      if (d.docketStatus !== DOCKET_STATUS.UNASSIGNED) return false;
-      if (boardFilter.customerNames.length > 0) {
-        if (
-          !d.customerName ||
-          !boardFilter.customerNames.includes(d.customerName)
-        ) {
-          return false;
-        }
-      }
-      return true;
-    });
-  }, [dockets, boardFilter.customerNames]);
+    return dockets.filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED);
+  }, [dockets]);
 
   return (
     <DndContext
