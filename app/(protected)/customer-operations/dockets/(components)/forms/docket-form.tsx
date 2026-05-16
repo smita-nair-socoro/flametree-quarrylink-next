@@ -1419,13 +1419,8 @@ export default function DocketForm({
                             'font-semibold',
                             selectedDocket?.receiverName
                               ? 'text-base'
-                              : 'text-sm',
+                              : 'text-sm text-[#99A1AF]',
                           )}
-                          style={
-                            !selectedDocket?.receiverName
-                              ? { color: '#99A1AF' }
-                              : undefined
-                          }
                         >
                           {selectedDocket?.receiverName ?? 'N/A'}
                         </span>
@@ -1439,13 +1434,8 @@ export default function DocketForm({
                             'font-semibold',
                             selectedDocket?.receiverName
                               ? 'text-base'
-                              : 'text-sm',
+                              : 'text-sm text-[#99A1AF]',
                           )}
-                          style={
-                            !selectedDocket?.receiverName
-                              ? { color: '#99A1AF' }
-                              : undefined
-                          }
                         >
                           {selectedDocket?.receiverName ? 'Yes' : 'N/A'}
                         </span>
@@ -1475,14 +1465,8 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <ImageOff
-                              className="w-5 h-5"
-                              style={{ color: '#99A1AF' }}
-                            />
-                            <span
-                              className="text-xs"
-                              style={{ color: '#99A1AF' }}
-                            >
+                            <ImageOff className="w-5 h-5 text-[#99A1AF]" />
+                            <span className="text-xs text-[#99A1AF]">
                               No photo provided
                             </span>
                           </div>
@@ -1511,14 +1495,8 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <ImageOff
-                              className="w-5 h-5"
-                              style={{ color: '#99A1AF' }}
-                            />
-                            <span
-                              className="text-xs"
-                              style={{ color: '#99A1AF' }}
-                            >
+                            <ImageOff className="w-5 h-5 text-[#99A1AF]" />
+                            <span className="text-xs text-[#99A1AF]">
                               No photo provided
                             </span>
                           </div>
@@ -1540,14 +1518,8 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <FileX
-                              className="w-5 h-5"
-                              style={{ color: '#99A1AF' }}
-                            />
-                            <span
-                              className="text-xs"
-                              style={{ color: '#99A1AF' }}
-                            >
+                            <FileX className="w-5 h-5 text-[#99A1AF]" />
+                            <span className="text-xs text-[#99A1AF]">
                               No signature provided
                             </span>
                           </div>
