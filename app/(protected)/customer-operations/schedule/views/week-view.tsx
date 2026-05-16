@@ -241,6 +241,15 @@ export function ScheduleWeekView({
     return resources.flatMap((r) => r.dockets);
   }, [resources]);
 
+  const customerNames = useMemo(() => {
+    const names = allDockets
+      .map((d) => d.customerName)
+      .filter(Boolean) as string[];
+    console.log(names);
+    console.log(allDockets);
+    return Array.from(new Set(names)).sort();
+  }, [allDockets]);
+
   const headerStats = useMemo(() => {
     const assignedDockets = allDockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
@@ -282,7 +291,7 @@ export function ScheduleWeekView({
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
-      <ScheduleFilter viewType={viewType} />
+      <ScheduleFilter viewType={viewType} customers={customerNames} />
       <div className="border-b border-[#E2E8F0] pl-6 py-2.5 bg-white shrink-0">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-[12px] font-medium text-[#64748B]">

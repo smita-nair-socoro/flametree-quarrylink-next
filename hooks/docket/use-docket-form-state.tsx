@@ -516,7 +516,7 @@ export function useDocketFormState({
 
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
-        ? (selectedDocket.loadSize ?? 0)
+        ? (selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0)
         : 0;
 
     return {

@@ -80,12 +80,8 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      let loadSize: number = 0;
-      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
-        loadSize = row.original.actualLoadSize || 0;
-      } else {
-        loadSize = row.original.plannedLoadSize || 0;
-      }
+      const loadSize =
+        row.original.actualLoadSize ?? row.original.plannedLoadSize ?? 0;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedLoadSize =
         productSellUom === 'TN'

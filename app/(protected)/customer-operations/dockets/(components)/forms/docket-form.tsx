@@ -37,7 +37,11 @@ import {
   UserPlus,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { toLocalDateTime, formatLocalDateTime, appendUtcSuffix } from '@/lib/utils/date';
+import {
+  toLocalDateTime,
+  formatLocalDateTime,
+  appendUtcSuffix,
+} from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
@@ -85,7 +89,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-
 interface FormProps {
   id?: number;
   onCancel?: () => void;
@@ -114,7 +117,9 @@ export default function DocketForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
-  const [conflictingDocketIds, setConflictingDocketIds] = React.useState<number[]>([]);
+  const [conflictingDocketIds, setConflictingDocketIds] = React.useState<
+    number[]
+  >([]);
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
@@ -308,18 +313,34 @@ export default function DocketForm({
       let startDateTime = values.deliveryCollectionStartTime;
       let endDateTime = values.deliveryCollectionEndTime;
       if (values.deliveryCollectionDate) {
-        if (values.deliveryCollectionStartTime && !values.deliveryCollectionStartTime.includes('T')) {
-          startDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionStartTime) ?? startDateTime;
+        if (
+          values.deliveryCollectionStartTime &&
+          !values.deliveryCollectionStartTime.includes('T')
+        ) {
+          startDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionStartTime,
+            ) ?? startDateTime;
         }
-        if (values.deliveryCollectionEndTime && !values.deliveryCollectionEndTime.includes('T')) {
-          endDateTime = combineDateAndTime(values.deliveryCollectionDate, values.deliveryCollectionEndTime) ?? endDateTime;
+        if (
+          values.deliveryCollectionEndTime &&
+          !values.deliveryCollectionEndTime.includes('T')
+        ) {
+          endDateTime =
+            combineDateAndTime(
+              values.deliveryCollectionDate,
+              values.deliveryCollectionEndTime,
+            ) ?? endDateTime;
         }
       }
       const additionalEmails = values.docketEmail
         ? values.docketEmail.split(',').map((e) => e.trim())
         : [];
       const docketEmailRecipients = Array.from(
-        new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+        new Set(
+          [selectedJob.customerEmail, ...additionalEmails].filter(Boolean),
+        ),
       );
       try {
         setIsSubmitting(true);
@@ -328,17 +349,30 @@ export default function DocketForm({
           data: {
             checkWindowTimeConflict: true,
             deliveryCollectionDate: values.deliveryCollectionDate
-              ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+              ? appendUtcSuffix(
+                  format(
+                    values.deliveryCollectionDate,
+                    "yyyy-MM-dd'T'00:00:00.000",
+                  ),
+                )
               : undefined,
-            deliveryCollectionStartTime: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
-            deliveryCollectionEndTime: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+            deliveryCollectionStartTime: startDateTime
+              ? appendUtcSuffix(startDateTime)
+              : undefined,
+            deliveryCollectionEndTime: endDateTime
+              ? appendUtcSuffix(endDateTime)
+              : undefined,
             plannedLoadSize: values.plannedLoadSize,
+            actualLoadSize: values.plannedLoadSize,
             docketEmailRecipients,
             truckId: selectedDocket.truckId,
             driverId: selectedDocket.driverId,
           },
         });
-        if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+        if (
+          result.conflictingDocketIds &&
+          result.conflictingDocketIds.length > 0
+        ) {
           setConflictingDocketIds(result.conflictingDocketIds);
           setTimeConflictOpen(true);
         } else {
@@ -502,7 +536,13 @@ export default function DocketForm({
           ? undefined
           : values.truckType || lineItemDetails.truckType || undefined,
         plannedLoadSize: values.plannedLoadSize,
-        actualLoadSize: values.actualLoadSize,
+        actualLoadSize:
+          isEditing &&
+          (currentStatus === DOCKET_STATUS.UNASSIGNED ||
+            currentStatus === DOCKET_STATUS.ASSIGNED ||
+            currentStatus === DOCKET_STATUS.PENDING)
+            ? values.plannedLoadSize
+            : values.actualLoadSize,
         grossTruckWeight: 100,
         tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
@@ -582,11 +622,14 @@ export default function DocketForm({
               </span>
               <span className="text-xs text-[#6A7282]">
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
-                {selectedDocket?.loadSize != null && (
+                {(selectedDocket?.plannedLoadSize ??
+                  selectedDocket?.loadSize) != null && (
                   <>
                     {' '}
-                    · {selectedDocket.loadSize}{' '}
-                    {selectedDocket.jobItem?.productSellUom}
+                    ·{' '}
+                    {selectedDocket?.plannedLoadSize ??
+                      selectedDocket?.loadSize}{' '}
+                    {selectedDocket?.jobItem?.productSellUom}
                   </>
                 )}
               </span>
@@ -613,7 +656,9 @@ export default function DocketForm({
                 onClick={() => {
                   setTimeConflictOpen(false);
                   onCancel?.();
-                  router.push(`/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`);
+                  router.push(
+                    `/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`,
+                  );
                 }}
               >
                 Conflict Dockets
@@ -1349,12 +1394,17 @@ export default function DocketForm({
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <CheckCircle className="w-5 h-5 text-green-500" />
-                        <span className="text-[17px] font-medium">Sign Off</span>
+                        <span className="text-[17px] font-medium">
+                          Sign Off
+                        </span>
                       </div>
                       {selectedDocket?.deliveredAt && (
                         <span className="text-sm text-muted-foreground">
                           Delivered at{' '}
-                          {format(new Date(selectedDocket.deliveredAt), 'hh:mm a')}
+                          {format(
+                            new Date(selectedDocket.deliveredAt),
+                            'hh:mm a',
+                          )}
                         </span>
                       )}
                     </div>
@@ -1365,8 +1415,17 @@ export default function DocketForm({
                           Receiver Name
                         </span>
                         <span
-                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
-                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                          className={cn(
+                            'font-semibold',
+                            selectedDocket?.receiverName
+                              ? 'text-base'
+                              : 'text-sm',
+                          )}
+                          style={
+                            !selectedDocket?.receiverName
+                              ? { color: '#99A1AF' }
+                              : undefined
+                          }
                         >
                           {selectedDocket?.receiverName ?? 'N/A'}
                         </span>
@@ -1376,8 +1435,17 @@ export default function DocketForm({
                           Receiver On Site
                         </span>
                         <span
-                          className={cn('font-semibold', selectedDocket?.receiverName ? 'text-base' : 'text-sm')}
-                          style={!selectedDocket?.receiverName ? { color: '#99A1AF' } : undefined}
+                          className={cn(
+                            'font-semibold',
+                            selectedDocket?.receiverName
+                              ? 'text-base'
+                              : 'text-sm',
+                          )}
+                          style={
+                            !selectedDocket?.receiverName
+                              ? { color: '#99A1AF' }
+                              : undefined
+                          }
                         >
                           {selectedDocket?.receiverName ? 'Yes' : 'N/A'}
                         </span>
@@ -1407,8 +1475,14 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
-                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                            <ImageOff
+                              className="w-5 h-5"
+                              style={{ color: '#99A1AF' }}
+                            />
+                            <span
+                              className="text-xs"
+                              style={{ color: '#99A1AF' }}
+                            >
                               No photo provided
                             </span>
                           </div>
@@ -1437,8 +1511,14 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <ImageOff className="w-5 h-5" style={{ color: '#99A1AF' }} />
-                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                            <ImageOff
+                              className="w-5 h-5"
+                              style={{ color: '#99A1AF' }}
+                            />
+                            <span
+                              className="text-xs"
+                              style={{ color: '#99A1AF' }}
+                            >
                               No photo provided
                             </span>
                           </div>
@@ -1460,8 +1540,14 @@ export default function DocketForm({
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
-                            <FileX className="w-5 h-5" style={{ color: '#99A1AF' }} />
-                            <span className="text-xs" style={{ color: '#99A1AF' }}>
+                            <FileX
+                              className="w-5 h-5"
+                              style={{ color: '#99A1AF' }}
+                            />
+                            <span
+                              className="text-xs"
+                              style={{ color: '#99A1AF' }}
+                            >
                               No signature provided
                             </span>
                           </div>
@@ -1529,7 +1615,8 @@ export default function DocketForm({
             {docketForm.formState.isSubmitted &&
               Object.keys(docketForm.formState.errors).length > 0 && (
                 <p className="text-sm text-red-600">
-                  Some required fields are invalid. Please review the form and try again.
+                  Some required fields are invalid. Please review the form and
+                  try again.
                 </p>
               )}
 

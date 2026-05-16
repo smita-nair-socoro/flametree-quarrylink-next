@@ -52,6 +52,7 @@ export type ResourceFilterOption = {
 
 export type DispatchBoardFilterState = {
   jobStatuses: string[];
+  customerNames: string[];
   driverIds: string[];
   driverStatuses: DRIVER_STATUS[];
   truckBusinessTypes: TRUCK_BUSINESS_TYPE[];
@@ -61,6 +62,7 @@ export type DispatchBoardFilterState = {
 
 export const DEFAULT_DISPATCH_BOARD_FILTER: DispatchBoardFilterState = {
   jobStatuses: [],
+  customerNames: [],
   driverIds: [],
   driverStatuses: [],
   truckBusinessTypes: [],
@@ -73,6 +75,7 @@ type Props = {
   driverOptions: ResourceFilterOption[];
   truckOptions: ResourceFilterOption[];
   haulierOptions: ResourceFilterOption[];
+  customerOptions: string[];
   isLoadingResources?: boolean;
   filter: DispatchBoardFilterState;
   onFilterChange: (next: DispatchBoardFilterState) => void;
@@ -83,6 +86,7 @@ export function DispatchDriversTrucksFilter({
   driverOptions,
   truckOptions,
   haulierOptions,
+  customerOptions,
   isLoadingResources,
   filter,
   onFilterChange,
@@ -100,6 +104,14 @@ export function DispatchDriversTrucksFilter({
       jobStatuses: filter.jobStatuses.includes(status)
         ? filter.jobStatuses.filter((s) => s !== status)
         : [...filter.jobStatuses, status],
+    });
+  };
+
+  const toggleCustomerName = (name: string) => {
+    setFilter({
+      customerNames: filter.customerNames.includes(name)
+        ? filter.customerNames.filter((n) => n !== name)
+        : [...filter.customerNames, name],
     });
   };
 
@@ -210,13 +222,54 @@ export function DispatchDriversTrucksFilter({
             </PopoverContent>
           </Popover>
 
-          <button
-            type="button"
-            className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors"
-          >
-            <Plus className="w-4 h-4 text-gray-500" />
-            <span className="font-medium text-gray-700">Customer</span>
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.customerNames.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+              >
+                <Plus className="w-4 h-4 text-gray-500" />
+                <span
+                  className={`font-medium text-gray-700 ${filter.customerNames.length > 0 ? 'mr-1' : ''}`}
+                >
+                  Customer
+                </span>
+                {filter.customerNames.length > 0 && (
+                  <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[180px] truncate">
+                    {filter.customerNames.length === 1
+                      ? filter.customerNames[0]
+                      : `${filter.customerNames.length} selected`}
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Search customers..."
+                  className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                />
+                <CommandList>
+                  <CommandEmpty>No customer found.</CommandEmpty>
+                  <CommandGroup>
+                    {customerOptions.map((customer) => (
+                      <CommandItem
+                        key={customer}
+                        onSelect={() => toggleCustomerName(customer)}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={filter.customerNames.includes(customer)}
+                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                        />
+                        <span>{customer}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
           <div className="w-[1px] h-5 bg-gray-200 mx-2" />
 

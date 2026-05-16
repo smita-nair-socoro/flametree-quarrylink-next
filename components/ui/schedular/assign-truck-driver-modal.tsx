@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
-import type { DispatchDocket } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
+import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import type {
   DispatchTruckResource,
   DispatchDriverResource,

@@ -1,8 +1,20 @@
-import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverKeys, UserKeys } from './keys';
 import { removeNewRecordId } from '../utils';
-import type { DriverDTO, DriverStatistics, PutDriverDTO, PatchDriverInfoDTO, PatchDriverTypeDTO, PatchDriverTrucksDTO, PatchDriverHaulierDTO } from '../types/driver';
+import type {
+  DriverDTO,
+  PutDriverDTO,
+  PatchDriverInfoDTO,
+  PatchDriverTypeDTO,
+  PatchDriverTrucksDTO,
+  PatchDriverHaulierDTO,
+} from '../types/driver';
 import { useDriverStore } from '@/app/stores/driver-store';
 
 export const DriversListQueryOptions = () =>
@@ -38,7 +50,10 @@ export const DriverStatisticsQueryOptions = () =>
     staleTime: 5_000,
   });
 
-export const DriverPreStartChecklistsQueryOptions = (driverId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+export const DriverPreStartChecklistsQueryOptions = (
+  driverId: number,
+  params?: { page?: number; size?: number; sort?: string[] },
+) =>
   queryOptions({
     queryKey: DriverKeys.checklists(driverId),
     queryFn: () => APIClient.drivers.getPreStartChecklists(driverId, params),
@@ -102,15 +117,22 @@ export const usePatchDriverType = () => {
 export const useUnassignTruckFromDriver = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ driverId, data }: { driverId: number; data: { version: number; truckId: number } }) =>
-      APIClient.drivers.unassignTruck(driverId, data),
+    mutationFn: ({
+      driverId,
+      data,
+    }: {
+      driverId: number;
+      data: { version: number; truckId: number };
+    }) => APIClient.drivers.unassignTruck(driverId, data),
     onSuccess: async (_data, { driverId }) => {
       queryClient.invalidateQueries({ queryKey: DriverKeys.detail(driverId) });
       queryClient.invalidateQueries({ queryKey: DriverKeys.list() });
       try {
         const updated = await APIClient.drivers.getById(driverId);
         useDriverStore.getState().setSelectedDriver(updated);
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
     },
   });
 };
@@ -163,7 +185,9 @@ export const useDeactivateDriver = () => {
       try {
         const updated = await APIClient.drivers.getById(id);
         useDriverStore.getState().setSelectedDriver(updated);
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
     },
   });
 };
@@ -179,4 +203,3 @@ export const useReactivateDriver = () => {
     },
   });
 };
-

@@ -179,6 +179,11 @@ export function ScheduleMonthView({
     return grouped;
   }, [dockets]);
 
+  const customerNames = useMemo(() => {
+    const names = dockets.map((d) => d.customerName).filter(Boolean) as string[];
+    return Array.from(new Set(names)).sort();
+  }, [dockets]);
+
   const headerStats = useMemo(() => {
     const assignedDockets = dockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
@@ -225,7 +230,7 @@ export function ScheduleMonthView({
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
-      <ScheduleFilter viewType="trucks" />
+      <ScheduleFilter viewType="trucks" customers={customerNames} />
       {/* Fixed top bar */}
       <div className="border-b pl-6 py-2.5 bg-white shrink-0">
         <div className="flex items-center gap-3">

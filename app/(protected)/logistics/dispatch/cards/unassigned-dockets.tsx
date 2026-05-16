@@ -11,60 +11,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
-import { format, startOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   DispatchDocket,
   formatTimeRange,
   formatDate,
-} from '../views/dispatch-view';
-
-function parseCollectionStartMs(iso: string | undefined): number {
-  if (!iso) return 0;
-  const local = iso.includes('T') ? iso.replace('Z', '') : iso;
-  const t = new Date(local).getTime();
-  return Number.isNaN(t) ? 0 : t;
-}
-
-function dayBucketMs(iso: string | undefined): number {
-  const ms = parseCollectionStartMs(iso);
-  if (!ms) return 0;
-  return startOfDay(new Date(ms)).getTime();
-}
-
-/**
- * Comparable “volume” in m³ when product density is available (same basis as job line item:
- * 1 TN → m³ via densityTonnagePerM3). Without density, falls back to raw loadSize.
- */
-function normalizedLoadM3ForSort(docket: DispatchDocket): number {
-  const density = docket.jobItem?.product?.densityTonnagePerM3;
-  const uom = docket.productSellUom;
-  const qty = Number(docket.loadSize);
-  if (!Number.isFinite(qty)) return 0;
-
-  if (density != null && density > 0) {
-    if (uom === 'TN') return qty / density;
-    if (uom === 'M3') return qty;
-    if (uom === 'KG_20' || uom === 'BULKA') {
-      return (qty * 0.02) / density;
-    }
-  }
-
-  return qty;
-}
+  parseCollectionStartMs,
+  dayBucketMs,
+  normalizedLoadM3ForSort,
+  matchesUnassignedSearch,
+} from '@/lib/utils/dispatch-helper';
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
-
-function matchesUnassignedSearch(
-  docket: DispatchDocket,
-  query: string,
-): boolean {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  const num = (docket.docketNumber || '').toLowerCase();
-  const customer = (docket.customerName || '').toLowerCase();
-  return num.includes(q) || customer.includes(q);
-}
 
 function DraggableDocketCard({
   docket,

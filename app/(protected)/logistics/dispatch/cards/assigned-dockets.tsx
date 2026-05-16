@@ -7,7 +7,7 @@ import {
   DispatchDocket,
   formatTime,
   formatTimeRange,
-} from '../views/dispatch-view';
+} from '@/lib/utils/dispatch-helper';
 import { TableBadges } from '@/components/table-badges';
 import { TruckResource } from '@/lib/types/truck';
 
@@ -544,6 +544,7 @@ export default function AssignedDockets({
   onSelectDocket,
   // onUnassignDocket,
   viewType = 'drivers',
+  focusDocket,
 }: {
   // date: Date;
   trucks: TruckResource[];
@@ -555,10 +556,78 @@ export default function AssignedDockets({
   onSelectDocket?: (id: string | null) => void;
   // onUnassignDocket?: () => void;
   viewType?: 'trucks' | 'drivers';
+  focusDocket?: DispatchDocket | null;
 }) {
   const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(
     null,
   );
+
+  // Calculate max valid percentage across all trucks for the focus docket
+  const focusLoadSize = focusDocket
+    ? focusDocket.actualLoadSize ||
+      focusDocket.plannedLoadSize ||
+      focusDocket.loadSize ||
+      0
+    : 0;
+
+  const maxValidPercentage = React.useMemo(() => {
+    if (!focusDocket || focusLoadSize <= 0) return 0;
+    let max = 0;
+    for (const truck of trucks) {
+      const cap = truck.capacity || 0;
+      if (cap > 0) {
+        const pct = (focusLoadSize / cap) * 100;
+        if (pct <= 100 && pct > max) {
+          max = pct;
+        }
+      }
+    }
+    return max;
+  }, [trucks, focusDocket, focusLoadSize]);
+
+  const sortedTrucks = React.useMemo(() => {
+    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0) {
+      return trucks;
+    }
+
+    return [...trucks].sort((a, b) => {
+      const capA = a.capacity || 0;
+      const capB = b.capacity || 0;
+      const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
+      const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
+
+      const isValidA = pctA > 0 && pctA <= 100;
+      const isValidB = pctB > 0 && pctB <= 100;
+
+      // 1. Valid fits (<= 100%) come first
+      if (isValidA && !isValidB) return -1;
+      if (!isValidA && isValidB) return 1;
+
+      // 2. If both are valid, sort descending (closest to 100% first)
+      if (isValidA && isValidB) {
+        return pctB - pctA;
+      }
+
+      // 3. 0% capacity trucks go next (before exceeded fits)
+      if (pctA === 0 && pctB !== 0) return 1;
+      if (pctA !== 0 && pctB === 0) return -1;
+      if (pctA === 0 && pctB === 0) return 0;
+
+      // 4. Exceeded fits (> 100%) come last
+      const isExceedA = pctA > 100;
+      const isExceedB = pctB > 100;
+
+      if (isExceedA && !isExceedB) return 1;
+      if (!isExceedA && isExceedB) return -1;
+
+      // 5. If both exceed, sort ascending (least exceeded first)
+      if (isExceedA && isExceedB) {
+        return pctA - pctB;
+      }
+
+      return 0;
+    });
+  }, [trucks, focusDocket, viewType, focusLoadSize]);
 
   const renderTruckCard = (truck: TruckResource) => {
     const isExpanded = expandedTruckId === truck.id;
@@ -572,6 +641,91 @@ export default function AssignedDockets({
     const DOCKET_WIDTH = 160;
     const innerWidthStr =
       maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
+
+    let utilisationNode = null;
+    if (focusDocket && viewType === 'trucks') {
+      const cap = truck.capacity || 0;
+      const pct = cap > 0 ? (focusLoadSize / cap) * 100 : 0;
+      const displayPct = Math.round(pct);
+      const isExceeds = pct > 100;
+      const isMostEfficient =
+        !isExceeds && pct === maxValidPercentage && pct > 0;
+
+      let colorTheme = {
+        container: 'bg-amber-50 border-amber-200',
+        text: 'text-slate-700',
+        pctText: 'text-amber-700',
+        badgeBg: 'bg-amber-100',
+        badgeText: 'text-amber-800',
+        barBg: 'bg-amber-200',
+        barFill: 'bg-amber-500',
+        label: 'Under capacity',
+      };
+
+      if (isExceeds) {
+        colorTheme = {
+          container: 'bg-red-50 border-red-200',
+          text: 'text-slate-700',
+          pctText: 'text-red-700',
+          badgeBg: 'bg-red-100',
+          badgeText: 'text-red-800',
+          barBg: 'bg-red-200',
+          barFill: 'bg-red-500',
+          label: 'Exceeds limit',
+        };
+      } else if (isMostEfficient) {
+        colorTheme = {
+          container: 'bg-emerald-50 border-emerald-200',
+          text: 'text-slate-700',
+          pctText: 'text-emerald-700',
+          badgeBg: 'bg-emerald-100',
+          badgeText: 'text-emerald-800',
+          barBg: 'bg-emerald-200',
+          barFill: 'bg-emerald-500',
+          label: 'Most efficient fit',
+        };
+      }
+
+      const uom =
+        focusDocket.productSellUom === 'M3'
+          ? 'm³'
+          : focusDocket.productSellUom === 'KG_20'
+            ? 'x 20kg'
+            : focusDocket.productSellUom || '';
+
+      utilisationNode = (
+        <div
+          className={`px-3 py-2 rounded-lg border flex flex-col gap-1.5 ${colorTheme.container}`}
+        >
+          <div className="flex items-center gap-3">
+            <span className={`text-[12px] font-semibold ${colorTheme.text}`}>
+              Load utilisation
+            </span>
+            <div
+              className={`flex-1 h-2 rounded-full overflow-hidden ${colorTheme.barBg}`}
+            >
+              <div
+                className={`h-full rounded-full ${colorTheme.barFill}`}
+                style={{ width: `${Math.min(pct, 100)}%` }}
+              />
+            </div>
+            <span className={`text-[13px] font-bold ${colorTheme.pctText}`}>
+              {displayPct}%
+            </span>
+            <span
+              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${colorTheme.badgeBg} ${colorTheme.badgeText}`}
+            >
+              {colorTheme.label}
+            </span>
+          </div>
+          {isExceeds && (
+            <span className="text-[12px] font-medium text-red-600">
+              {focusLoadSize} {uom} vs {cap} m³
+            </span>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div
@@ -628,7 +782,7 @@ export default function AssignedDockets({
                 </div>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
                   <span className="text-[18px] font-bold text-[#0F172A]">
-                    1
+                    {truck.driversCount}
                   </span>
                   <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
                     Drivers
@@ -664,6 +818,7 @@ export default function AssignedDockets({
               </>
             )}
           </div>
+          {utilisationNode}
         </div>
 
         {/* Scrollable Time Slots */}
@@ -725,7 +880,7 @@ export default function AssignedDockets({
     <div
       className={`flex gap-4 h-full ${expandedTruckId ? '' : 'overflow-x-auto'}`}
     >
-      {trucks.map((truck) => renderTruckCard(truck))}
+      {sortedTrucks.map((truck) => renderTruckCard(truck))}
     </div>
   );
 }
