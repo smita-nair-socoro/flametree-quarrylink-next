@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
 import { formatTimeRange } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
@@ -8,9 +9,10 @@ import { Button } from '@/components/ui/button';
 import { Map } from '@/components/ui/map';
 import { TableBadges } from '@/components/table-badges';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
-import { DocketByIdQueryOptions } from '@/lib/api/docket';
+import { DocketByIdQueryOptions, useOperationalUpdateDocket } from '@/lib/api/docket';
 import { useQuery } from '@tanstack/react-query';
 import type { Address } from '@/lib/types/address';
+import { toast } from 'sonner';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -67,6 +69,43 @@ export function DocketDetailsPanel({
     enabled: !!docketId,
   });
 
+  const [plannedLoadSizeValue, setPlannedLoadSizeValue] = useState<string>('');
+  const [actualLoadSizeValue, setActualLoadSizeValue] = useState<string>('');
+
+  const operationalUpdateMutation = useOperationalUpdateDocket();
+
+  useEffect(() => {
+    setPlannedLoadSizeValue(fullDocket?.plannedLoadSize?.toString() || fullDocket?.actualLoadSize?.toString() || '0');
+    setActualLoadSizeValue(fullDocket?.actualLoadSize?.toString() || fullDocket?.plannedLoadSize?.toString() || '0');
+  }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
+
+  const handleSaveLoadSize = (type: 'planned' | 'actual') => {
+    if (!fullDocket) return;
+
+    let payload: { plannedLoadSize?: number; actualLoadSize?: number } = {};
+
+    if (fullDocket.docketStatus === DOCKET_STATUS.UNASSIGNED || fullDocket.docketStatus === DOCKET_STATUS.ASSIGNED) {
+      const val = parseFloat(type === 'planned' ? plannedLoadSizeValue : actualLoadSizeValue) || 0;
+      payload = { plannedLoadSize: val, actualLoadSize: val };
+    } else if (
+      fullDocket.docketStatus === DOCKET_STATUS.IN_TRANSIT ||
+      fullDocket.docketStatus === DOCKET_STATUS.ARRIVED ||
+      fullDocket.docketStatus === DOCKET_STATUS.DELIVERED
+    ) {
+      payload = { actualLoadSize: parseFloat(actualLoadSizeValue) || 0 };
+    } else {
+      return;
+    }
+
+    operationalUpdateMutation.mutate(
+      { id: docketId, data: payload },
+      {
+        onSuccess: () => toast.success('Load size updated successfully'),
+        onError: () => toast.error('Failed to update load size'),
+      }
+    );
+  };
+
   const docket = fullDocket;
 
   if (isLoading || !docket) {
@@ -79,6 +118,8 @@ export function DocketDetailsPanel({
 
   const isUnassigned = docket.docketStatus === DOCKET_STATUS.UNASSIGNED;
   const isAssigned = docket.docketStatus === DOCKET_STATUS.ASSIGNED;
+  const showActualLoadSize = docket.docketStatus === DOCKET_STATUS.IN_TRANSIT || docket.docketStatus === DOCKET_STATUS.ARRIVED || docket.docketStatus === DOCKET_STATUS.DELIVERED;
+  const isDocketFinalised = docket.docketStatus === DOCKET_STATUS.INVOICED
 
   const collectionDay = getCollectionDayForDisplay(docket);
 
@@ -179,31 +220,76 @@ export function DocketDetailsPanel({
               </div>
             )}
 
-            {isUnassigned ||
-            (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-              docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
-              <div>
-                <div className="text-xs text-gray-500 mb-1">Load quantity</div>
-                <div className="flex justify-between gap-2">
-                  <Input
-                    type="text"
-                    key={docket.id}
-                    suffix={
-                      docket.jobItem?.productSellUom === 'M3'
-                        ? 'm³'
-                        : docket.jobItem?.productSellUom === 'KG_20'
-                          ? 'x 20kg'
-                          : docket.jobItem?.productSellUom
-                    }
-                    defaultValue={
-                      docket.actualLoadSize || docket.plannedLoadSize || '0'
-                    }
-                    className=""
-                  />
-                  <Button variant="default" className="cursor-pointer">
-                    Save
-                  </Button>
+            {!isDocketFinalised ||
+              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1">
+                  <div className="text-xs text-gray-500 mb-1">Planned Load Size</div>
+                  <div className="flex justify-between gap-2">
+                    <Input
+                      type="text"
+                      key={`planned-${docket.id}`}
+                      suffix={
+                        docket.jobItem?.productSellUom === 'M3'
+                          ? 'm³'
+                          : docket.jobItem?.productSellUom === 'KG_20'
+                            ? 'x 20kg'
+                            : docket.jobItem?.productSellUom === 'BULKA'
+                              ? 'Bulka'
+                              : docket.jobItem?.productSellUom
+                      }
+                      value={plannedLoadSizeValue}
+                      onChange={(e) => {
+                        const inputVal = e.target.value;
+                        const numVal = parseFloat(inputVal);
+                        const maxVal =
+                          (docket.plannedLoadSize || 0) +
+                          (docket.jobItem?.remainingQuantity || 0);
+
+                        if (!isNaN(numVal) && numVal > maxVal) {
+                          setPlannedLoadSizeValue(maxVal.toString());
+                        } else {
+                          setPlannedLoadSizeValue(inputVal);
+                        }
+                      }}
+                      disabled={isDocketFinalised || showActualLoadSize}
+                    />
+                    {!isDocketFinalised && !showActualLoadSize && (
+                      <Button variant="default" className="cursor-pointer" onClick={() => handleSaveLoadSize('planned')} disabled={operationalUpdateMutation.isPending}>
+                        Save
+                      </Button>
+                    )}
+                  </div>
                 </div>
+                {showActualLoadSize && (
+                  <div className="flex flex-col gap-1">
+                    <div className="text-xs text-gray-500 mb-1">Actual Load Size</div>
+                    <div className="flex justify-between gap-2">
+                      <Input
+                        type="text"
+                        key={`actual-${docket.id}`}
+                        suffix={
+                          docket.jobItem?.productSellUom === 'M3'
+                            ? 'm³'
+                            : docket.jobItem?.productSellUom === 'KG_20'
+                              ? 'x 20kg'
+                              : docket.jobItem?.productSellUom === 'BULKA'
+                                ? 'Bulka'
+                                : docket.jobItem?.productSellUom
+                        }
+                        value={actualLoadSizeValue}
+                        onChange={(e) => setActualLoadSizeValue(e.target.value)}
+                        disabled={isDocketFinalised}
+                      />
+                      {!isDocketFinalised && (
+                        <Button variant="default" className="cursor-pointer" onClick={() => handleSaveLoadSize('actual')} disabled={operationalUpdateMutation.isPending}>
+                          Save
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
@@ -218,6 +304,77 @@ export function DocketDetailsPanel({
                 </span>
               </div>
             )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+            <h3 className="text-xs font-bold text-[#475569] tracking-widest uppercase">
+              Job Progress
+            </h3>
+          </div>
+          <div className="p-4">
+            <div className="grid grid-cols-2 gap-4 mb-5">
+              <div>
+                <div className="text-[13px] font-medium text-[#475569] mb-1">Total ordered</div>
+                <div className="text-md font-bold text-[#0F172A]">
+                  {docket.jobItem.totalQuantityRequired?.toFixed(1) || '0.0'}{' '}
+                  {docket.jobItem.productSellUom === 'M3'
+                    ? 'm³'
+                    : docket.jobItem?.productSellUom === 'KG_20'
+                      ? 'x 20kg'
+                      : docket.jobItem?.productSellUom === 'BULKA'
+                        ? 'Bulka'
+                        : docket.jobItem?.productSellUom === 'TN'
+                          ? 'TN'
+                          : docket.jobItem?.productSellUom}
+                </div>
+              </div>
+              <div>
+                <div className="text-[13px] font-medium text-[#475569] mb-1">Remaining</div>
+                <div className="text-md font-bold text-[#0F172A]">
+                  {docket.jobItem.remainingQuantity?.toFixed(1) || '0.0'}{' '}
+                  {docket.jobItem.productSellUom === 'M3'
+                    ? 'm³'
+                    : docket.jobItem?.productSellUom === 'KG_20'
+                      ? 'x 20kg'
+                      : docket.jobItem?.productSellUom === 'BULKA'
+                        ? 'Bulka'
+                        : docket.jobItem?.productSellUom === 'TN'
+                          ? 'TN'
+                          : docket.jobItem?.productSellUom}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[13px] font-medium text-[#475569]">
+                Delivered: {docket.jobItem.deliveredQuantity?.toFixed(1) || '0.0'}{' '}
+                {docket.jobItem.productSellUom === 'TN' ? 'TN' :
+                  docket.jobItem.productSellUom === 'M3' ? 'm³' :
+                    docket.jobItem.productSellUom === 'KG_20' ? 'x 20kg' :
+                      docket.jobItem.productSellUom === 'BULKA' ? 'Bulka' :
+                        docket.jobItem.productSellUom}
+              </span>
+              <span className="text-[13px] font-bold text-[#0F172A]">
+                {docket.jobItem.totalQuantityRequired > 0
+                  ? Math.round((docket.jobItem.deliveredQuantity / docket.jobItem.totalQuantityRequired) * 100)
+                  : 0}%
+              </span>
+            </div>
+            <div className="w-full bg-[#F1F5F9] rounded-full h-1.5 overflow-hidden">
+              <div
+                className="bg-[#6366F1] h-1.5 rounded-full"
+                style={{
+                  width: `${Math.min(
+                    docket.jobItem.totalQuantityRequired > 0
+                      ? (docket.jobItem.deliveredQuantity / docket.jobItem.totalQuantityRequired) * 100
+                      : 0,
+                    100
+                  )}%`
+                }}
+              ></div>
+            </div>
           </div>
         </div>
 
@@ -237,13 +394,13 @@ export function DocketDetailsPanel({
             </div>
             {(!docket.jobItem ||
               docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-              <div className="flex flex-col gap-0 text-sm font-medium">
-                <div className=" text-gray-500">Delivery</div>
-                <div className=" text-gray-900">
-                  {dispatchAddressLabel(docket.deliveryAddress)}
+                <div className="flex flex-col gap-0 text-sm font-medium">
+                  <div className=" text-gray-500">Delivery</div>
+                  <div className=" text-gray-900">
+                    {dispatchAddressLabel(docket.deliveryAddress)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
 
