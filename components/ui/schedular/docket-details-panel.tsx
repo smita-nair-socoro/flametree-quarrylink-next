@@ -210,7 +210,7 @@ export function DocketDetailsPanel({
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <span className="text-sm text-gray-500">Quantity</span>
                 <span className="text-sm font-medium text-gray-900">
-                  {formatNumberThousandSeparator(docket.actualLoadSize || 0)}{' '}
+                  {formatNumberThousandSeparator(docket.actualLoadSize)}{' '}
                   {docket.jobItem?.productSellUom === 'M3'
                     ? 'm³'
                     : docket.jobItem?.productSellUom === 'KG_20'

@@ -899,7 +899,7 @@ export default function DocketForm({
                           Current docket:
                         </span>
                         <span className="text-sm font-medium">
-                          {formatNumberThousandSeparator(docketForm.watch('plannedLoadSize') || 0, 0)}{' '}
+                          {formatNumberThousandSeparator(docketForm.watch('plannedLoadSize'), 0)}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
