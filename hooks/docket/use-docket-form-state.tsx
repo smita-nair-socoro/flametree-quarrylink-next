@@ -13,6 +13,7 @@ import { APIClient } from '@/lib/api/APIClient';
 import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 
@@ -217,8 +218,7 @@ const mapSelectedJobToFormValues = (
     selectedJob.contactName || currentValues.customerContactName,
   customerContactPhone:
     selectedJob.contactPhone || currentValues.customerContactPhone,
-  docketEmail:
-    selectedJob.additionalDocketEmails || currentValues.docketEmail,
+  docketEmail: selectedJob.additionalDocketEmails || currentValues.docketEmail,
 
   deliveryCollectionStartTime:
     formatTimeString(selectedJob.startTimeWindow) ||
@@ -255,8 +255,7 @@ export function useDocketFormState({
    */
   const isJobLocked = !isEditing && !isQuickDocket && !!jobId;
 
-  const [isDirtyTrackingReady, setIsDirtyTrackingReady] =
-    React.useState(false);
+  const [isDirtyTrackingReady, setIsDirtyTrackingReady] = React.useState(false);
 
   const hydratedKeyRef = React.useRef<string | null>(null);
   const previousSelectedJobIdRef = React.useRef<number | null>(null);
@@ -267,11 +266,10 @@ export function useDocketFormState({
     defaultValues: initialDocket
       ? mapDocketToFormValues(initialDocket)
       : {
-        ...EMPTY_DOCKET_FORM_VALUES,
-        jobId: isJobLocked && jobId ? jobId : 0,
-      },
+          ...EMPTY_DOCKET_FORM_VALUES,
+          jobId: isJobLocked && jobId ? jobId : 0,
+        },
   });
-
 
   const [pickUpAddress, setPickUpAddress] =
     React.useState<AddressType>(EMPTY_ADDRESS);
@@ -516,7 +514,7 @@ export function useDocketFormState({
 
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
-        ? (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize || 0)
+        ? selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize || 0
         : 0;
 
     return {
@@ -636,6 +634,7 @@ export function useDocketFormState({
   });
 
   const loadSize = docketForm.watch('plannedLoadSize');
+  const actualLoadSize = docketForm.watch('actualLoadSize');
   const truckQty = docketForm.watch('truckQty');
   const jobLineItemId = docketForm.watch('jobLineItemId');
 
@@ -643,8 +642,17 @@ export function useDocketFormState({
     const details = selectedJobLineItemDetails();
     const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
 
+    const currentStatus = selectedDocket?.docketStatus;
+    const effectiveLoadSize =
+      isEditing &&
+      currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+      currentStatus !== DOCKET_STATUS.ASSIGNED &&
+      currentStatus !== DOCKET_STATUS.PENDING
+        ? actualLoadSize || 0
+        : loadSize || 0;
+
     const productSell = roundToTwoDecimals(
-      centsToDollarsNum(details.productSell) * (loadSize || 0),
+      centsToDollarsNum(details.productSell) * effectiveLoadSize,
     );
 
     let calculatedTruckQty = 0;
@@ -654,7 +662,7 @@ export function useDocketFormState({
         calculatedTruckQty = truckQty || 0;
       } else {
         calculatedTruckQty = calculateConvertedQty(
-          loadSize || 0,
+          effectiveLoadSize,
           details.productUom,
           details.truckUom,
           density,
@@ -677,7 +685,16 @@ export function useDocketFormState({
       gst,
       total,
     };
-  }, [selectedJobLineItemDetails, loadSize, truckQty, jobLineItemId]);
+  }, [
+    selectedJobLineItemDetails,
+    loadSize,
+    actualLoadSize,
+    truckQty,
+    jobLineItemId,
+    isEditing,
+    selectedDocket?.docketStatus,
+    productDetailsQuery.data?.densityTonnagePerM3,
+  ]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(
     () => [
