@@ -84,6 +84,7 @@ export interface DocketOperationalUpdateRequest {
   deliveryCollectionDate?: string;
   deliveryCollectionStartTime?: string;
   deliveryCollectionEndTime?: string;
+  deliveryDistanceQuantity?: number;
 }
 
 export interface DocketOperationalUpdateResponse {

@@ -288,6 +288,51 @@ export default function DocketForm({
             return;
           }
           payload.actualLoadSize = actualLoadSize;
+
+          const lineItemDetails = selectedJobLineItemDetails();
+          const isCollection = lineItemDetails.type === 'COLLECTION';
+
+          if (!isCollection) {
+            if (lineItemDetails.needTruckQty) {
+              payload.deliveryDistanceQuantity = values.truckQty || 0;
+            } else {
+              const density = productDetails?.densityTonnagePerM3 || 1;
+              let deliveryDistanceUom = lineItemDetails.truckUom || 'TN';
+              const validUoms = [
+                'KG_20',
+                'KM',
+                'LOAD',
+                'TN',
+                'BULKA',
+                'HOURLY',
+                'M3',
+              ];
+              if (!validUoms.includes(deliveryDistanceUom)) {
+                const uomMap: Record<string, string> = {
+                  '20kg': 'KG_20',
+                  km: 'KM',
+                  Load: 'LOAD',
+                  TN: 'TN',
+                  Bulka: 'BULKA',
+                  Hourly: 'HOURLY',
+                  m3: 'M3',
+                };
+                deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
+              }
+
+              const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
+              if (manualInputUoms.includes(deliveryDistanceUom)) {
+                payload.deliveryDistanceQuantity = values.truckQty || 0;
+              } else {
+                payload.deliveryDistanceQuantity = calculateConvertedQty(
+                  actualLoadSize,
+                  lineItemDetails.productUom,
+                  deliveryDistanceUom,
+                  density,
+                );
+              }
+            }
+          }
         }
         try {
           setIsSubmitting(true);
