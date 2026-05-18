@@ -15,9 +15,11 @@ import type {
   DispatchBoardTruckRef,
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
+import { useOperationalUpdateDocket } from '@/lib/api/docket';
+import { toast } from 'sonner';
 
 function calculateVolumeM3(
   loadSize: number,
@@ -61,6 +63,42 @@ export function AssignTruckDriverModal({
 }: AssignTruckDriverModalProps) {
   const [adjustingTruck, setAdjustingTruck] =
     useState<DispatchBoardTruckRef | null>(null);
+  const [adjustLoadValue, setAdjustLoadValue] = useState<string>('');
+
+  const operationalUpdateMutation = useOperationalUpdateDocket();
+
+  useEffect(() => {
+    if (adjustingTruck && docket) {
+      const defaultLoad = Math.floor(
+        (adjustingTruck.tankVolumeM3 || 0) * (docket.productDensity || 1)
+      );
+      setAdjustLoadValue(defaultLoad.toString());
+    }
+  }, [adjustingTruck, docket]);
+
+  const handleAdjustLoadClick = () => {
+    if (!docket || !adjustingTruck || !adjustLoadValue) return;
+
+    operationalUpdateMutation.mutate(
+      {
+        id: docket.id,
+        data: {
+          actualLoadSize: Number(adjustLoadValue),
+          plannedLoadSize: Number(adjustLoadValue),
+          checkWindowTimeConflict: false,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Load size adjusted successfully');
+          setAdjustingTruck(null);
+        },
+        onError: () => {
+          toast.error('Failed to adjust load size');
+        },
+      }
+    );
+  };
 
   const trucksWithStats = useMemo(() => {
     if (!driver?.trucks || !docket) return [];
@@ -136,10 +174,10 @@ export function AssignTruckDriverModal({
                 <div className="flex items-start gap-2 self-stretch">
                   <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1 text-orange-800" />
                   <div className="flex flex-col gap-1">
-                    <span className="text-[15px] text-yellow-800 font-medium">
+                    <span className="text-[16px] text-yellow-800 font-medium">
                       Load vs truck limits
                     </span>
-                    <span className="text-sm text-yellow-800">
+                    <span className="text-[15px] text-yellow-800">
                       <span className="font-bold">
                         {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         {docket.productSellUom}
@@ -185,6 +223,7 @@ export function AssignTruckDriverModal({
                     (adjustingTruck.tankVolumeM3 || 0) *
                     (docket.productDensity || 1),
                   )}
+                  onChange={(e) => setAdjustLoadValue(e.target.value)}
                   className="bg-white"
                 />
                 <span className="text-xs text-gray-500">
@@ -224,9 +263,10 @@ export function AssignTruckDriverModal({
               <Button
                 variant="default"
                 className="px-6 rounded-lg font-medium bg-blue-600 hover:bg-blue-700"
-                disabled
+                onClick={handleAdjustLoadClick}
+                disabled={!adjustLoadValue || operationalUpdateMutation.isPending}
               >
-                Adjust load and continue
+                {operationalUpdateMutation.isPending ? 'Adjusting...' : 'Adjust load and continue'}
               </Button>
             </div>
           </>
@@ -293,7 +333,17 @@ export function AssignTruckDriverModal({
                       <div
                         key={d.id ?? d.driverName}
                         onClick={() => {
-                          if (d.id != null) onAssign(d.id);
+                          const docketVol = calculateVolumeM3(
+                            docket.actualLoadSize || docket.plannedLoadSize || 0,
+                            docket.productSellUom || 'TN',
+                            docket.productDensity || 1,
+                          );
+                          const truckVol = truck.tankVolumeM3 || 0;
+                          if (truckVol > 0 && docketVol > truckVol) {
+                            setAdjustingTruck(truck as DispatchBoardTruckRef);
+                          } else if (d.id != null) {
+                            onAssign(d.id);
+                          }
                         }}
                         className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${index === 0
                           ? 'border-purple-400 bg-white'
