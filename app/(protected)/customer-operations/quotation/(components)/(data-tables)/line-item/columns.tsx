@@ -3,6 +3,7 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import {
@@ -136,7 +137,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
         row.original.productSellUom === 'KG_20'
           ? 'x 20kg'
           : row.original.productSellUom;
-      const displayText = `${productSellQty} ${productSellUom}`;
+      const displayText = `${formatNumberThousandSeparator(productSellQty)} ${productSellUom}`;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

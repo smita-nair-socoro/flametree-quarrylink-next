@@ -8,6 +8,7 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { jobLineItemsColumns } from './(data-tables)/columns';
 import { JobItem } from '@/lib/types/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
+import { formatDollars } from '@/lib/utils/currency';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
@@ -174,7 +175,13 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 											%
 										</span>
 										<span className="text-lg font-medium ml-5">
-											{pricingBreakdown.grossProfit}
+											{Number(pricingBreakdown.grossProfit) >= 0
+												? ''
+												: '-'}
+											$
+											{formatDollars(Math.abs(
+												Number(pricingBreakdown.grossProfit)
+											))}
 										</span>
 									</div>
 								</div>

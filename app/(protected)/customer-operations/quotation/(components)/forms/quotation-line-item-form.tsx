@@ -987,7 +987,7 @@ export default function QuoteLineItemForm({
                         </span>
                         <span className="text-lg font-medium ml-3">
                           {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {Math.abs(pricingBreakdown.grossProfit).toFixed(2)}
+                          {formatDollars(Math.abs(pricingBreakdown.grossProfit))}
                         </span>
                       </div>
                     </>

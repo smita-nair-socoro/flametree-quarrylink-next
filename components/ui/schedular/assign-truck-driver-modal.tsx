@@ -16,6 +16,7 @@ import type {
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
 import { useState, useMemo } from 'react';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
 
 function calculateVolumeM3(
@@ -125,7 +126,7 @@ export function AssignTruckDriverModal({
                     {docket.docketNumber}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {docket.productName} • {docket.loadSize}{' '}
+                    {docket.productName} • {formatNumberThousandSeparator(docket.loadSize)}{' '}
                     {docket.productSellUom}
                   </span>
                 </div>
@@ -140,7 +141,7 @@ export function AssignTruckDriverModal({
                     </span>
                     <span className="text-sm text-yellow-800">
                       <span className="font-bold">
-                        {docket.loadSize} {docket.productSellUom}
+                        {formatNumberThousandSeparator(docket.loadSize)} {docket.productSellUom}
                       </span>{' '}
                       exceeds capacity. Truck {adjustingTruck.licensePlate}{' '}
                       allows up to{' '}
@@ -350,7 +351,7 @@ export function AssignTruckDriverModal({
                       </span>
                       <div className="flex items-baseline gap-1">
                         <span className="font-bold text-xl text-gray-900">
-                          {docket.loadSize}
+                          {formatNumberThousandSeparator(docket.loadSize)}
                         </span>
                         <span className="font-bold text-gray-900">
                           {docket.productSellUom === 'M3'
@@ -426,7 +427,7 @@ export function AssignTruckDriverModal({
                               </span>
                               {t.isOverVolume ? (
                                 <span className="text-xs font-medium text-red-700 mt-0.5">
-                                  Does not fit — {docket.loadSize}{' '}
+                                  Does not fit — {formatNumberThousandSeparator(docket.loadSize)}{' '}
                                   {docket.productSellUom} exceeds capacity
                                 </span>
                               ) : (

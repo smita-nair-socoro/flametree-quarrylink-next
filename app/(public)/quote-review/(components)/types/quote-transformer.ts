@@ -7,6 +7,7 @@ import {
   QUOTE_ITEM_TYPE as QuoteItemType,
 } from '@/lib/types/quotation-enums';
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 
 /**
@@ -45,12 +46,12 @@ export function transformQuoteData(
         deliveryAddress:
           item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
         truckType: item.truckType || 'N/A',
-        capacity: `${item.totalQuantityRequired || 0} ${
+        capacity: `${formatNumberThousandSeparator(item.totalQuantityRequired)} ${
           item.productSellUom === 'KG_20'
             ? 'x 20kg'
             : item.productSellUom || 'units'
         } per delivery`,
-        quantity: `${item.productSellQty || 0} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
+        quantity: `${formatNumberThousandSeparator(item.productSellQty)} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
         totalPrice: item.totalProductSellPrice || 0, // Product price only
         deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
       };
