@@ -137,7 +137,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
         row.original.productSellUom === 'KG_20'
           ? 'x 20kg'
           : row.original.productSellUom;
-      const displayText = `${formatNumberThousandSeparator(productSellQty, 0)} ${productSellUom}`;
+      const displayText = `${formatNumberThousandSeparator(productSellQty)} ${productSellUom}`;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

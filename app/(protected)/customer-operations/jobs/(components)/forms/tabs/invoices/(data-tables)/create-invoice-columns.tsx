@@ -77,7 +77,7 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
-      const formattedQty = formatNumberThousandSeparator(productSellQty, 0);
+      const formattedQty = formatNumberThousandSeparator(productSellQty);
       const formattedLoadSize =
         productSellUom === 'TN'
           ? `${formattedQty} TN`
