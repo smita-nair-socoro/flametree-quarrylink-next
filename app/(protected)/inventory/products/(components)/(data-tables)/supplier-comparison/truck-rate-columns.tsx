@@ -6,6 +6,11 @@ import { Star } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { MobileTruckRateComparisonCard } from '@/components/mobile/mobile-truck-rate-comparison-card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 // ─── Column factory ───────────────────────────────────────────────────────────
 
@@ -37,7 +42,14 @@ export function createTruckRateColumns(
             ) : (
               <div className="w-7 shrink-0" />
             )}
-            <p className="font-medium text-[#101828]">{name}</p>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <p className="font-medium text-[#101828] truncate block max-w-[160px]">{name}</p>
+              </TooltipTrigger>
+              <TooltipContent variant="white">
+                <p>{name}</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         );
       },
