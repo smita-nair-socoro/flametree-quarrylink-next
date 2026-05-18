@@ -41,6 +41,7 @@ interface FormProps {
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
+  activeTab?: string;
 }
 
 export default function JobForm({
@@ -50,6 +51,7 @@ export default function JobForm({
   onSaved,
   onCancel,
   onSuccess,
+  activeTab,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
@@ -464,6 +466,7 @@ export default function JobForm({
                 tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
                 tabsTriggerClassName="h-8 flex-1 justify-center"
                 enableDropdownOnMobile={true}
+                value={activeTab}
               />
             </div>
           )}

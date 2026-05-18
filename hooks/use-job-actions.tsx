@@ -72,6 +72,7 @@ export function useJobActions(jobData?: JobDetails | null) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const selectedJob = useJobStore((s) => s.selectedJob);
+  const pendingJobFormTab = useJobStore((s) => s.pendingJobFormTab);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [addDocketOpen, setAddDocketOpen] = React.useState(false);
@@ -306,6 +307,7 @@ export function useJobActions(jobData?: JobDetails | null) {
     settle_blocked: async () => {
       setActiveDialog(null);
       setSettleBlockedData(null);
+      useJobStore.getState().setPendingJobFormNav('Invoices', true);
     },
     pause: () => handlePauseJob(),
   };
@@ -431,6 +433,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       onOpenChangeAction={(open) => {
         setViewOpen(open);
         if (!open) {
+          useJobStore.getState().clearPendingJobFormNav();
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
@@ -442,7 +445,10 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm canEdit={canEdit} />
+      <JobForm
+        canEdit={canEdit}
+        activeTab={pendingJobFormTab}
+      />
     </FormDialog>
   ) : null;
 
