@@ -49,6 +49,7 @@ export interface TruckResource {
   businessType: TRUCK_BUSINESS_TYPE;
   trips: number;
   drivers: string;
+  driversCount?: number;
   haulierName?: string;
 }
 

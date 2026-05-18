@@ -142,18 +142,18 @@ export function InvoiceActions({
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <p className="text-md font-semibold text-[#101828]">
-                      Include Delivery Prices
+                      Separate Delivery Line Items
                     </p>
                     <p className="text-sm leading-relaxed text-[#6A7282]">
                       {includeDeliveryPrices ? (
                         <>
-                          Delivery prices will be shown as separate line items
-                          for each docket
+                          Delivery charges will appear as separate invoice for
+                          each docket.
                         </>
                       ) : (
                         <>
-                          Delivery prices will be included in the product line
-                          items for each docket
+                          Delivery charges will be included in the product line
+                          item totals for each docket.
                         </>
                       )}
                     </p>

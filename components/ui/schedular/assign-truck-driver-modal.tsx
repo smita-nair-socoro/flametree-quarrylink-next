@@ -8,16 +8,18 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
-import type { DispatchDocket } from '@/app/(protected)/logistics/dispatch/views/dispatch-view';
+import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import type {
   DispatchTruckResource,
   DispatchDriverResource,
   DispatchBoardTruckRef,
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
+import { useOperationalUpdateDocket } from '@/lib/api/docket';
+import { toast } from 'sonner';
 
 function calculateVolumeM3(
   loadSize: number,
@@ -61,12 +63,47 @@ export function AssignTruckDriverModal({
 }: AssignTruckDriverModalProps) {
   const [adjustingTruck, setAdjustingTruck] =
     useState<DispatchBoardTruckRef | null>(null);
+  const [adjustLoadValue, setAdjustLoadValue] = useState<string>('');
+
+  const operationalUpdateMutation = useOperationalUpdateDocket();
+
+  useEffect(() => {
+    if (adjustingTruck && docket) {
+      const defaultLoad = Math.floor(
+        (adjustingTruck.tankVolumeM3 || 0) * (docket.productDensity || 1)
+      );
+      setAdjustLoadValue(defaultLoad.toString());
+    }
+  }, [adjustingTruck, docket]);
+
+  const handleAdjustLoadClick = () => {
+    if (!docket || !adjustingTruck || !adjustLoadValue) return;
+
+    operationalUpdateMutation.mutate(
+      {
+        id: docket.id,
+        data: {
+          actualLoadSize: Number(adjustLoadValue),
+          plannedLoadSize: Number(adjustLoadValue),
+          checkWindowTimeConflict: false,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success('Load size adjusted successfully');
+          setAdjustingTruck(null);
+        },
+        onError: () => {
+          toast.error('Failed to adjust load size');
+        },
+      }
+    );
+  };
 
   const trucksWithStats = useMemo(() => {
     if (!driver?.trucks || !docket) return [];
-
     const docketVol = calculateVolumeM3(
-      docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize || 0,
+      docket.actualLoadSize || docket.plannedLoadSize || 0,
       docket.productSellUom || 'TN',
       docket.productDensity || 1,
     );
@@ -105,16 +142,14 @@ export function AssignTruckDriverModal({
       <DialogContent className="sm:max-w-[425px] md:max-w-[500px] p-0 gap-0 overflow-hidden">
         {adjustingTruck && docket ? (
           <>
-            <DialogHeader className="px-6 border-b border-gray-100 flex flex-row items-center justify-between">
+            <DialogHeader className="px-6">
               <DialogTitle className="text-xl font-bold text-gray-900">
                 Adjust load to use this truck
               </DialogTitle>
             </DialogHeader>
             <div className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar max-h-[75vh]">
               <p className="text-sm text-gray-500">
-                Reduce the load (same unit as on the docket: tonnes, m³, or bulk
-                bags) so it fits this truck's body and payload limits, then we
-                complete the assignment with the driver you selected.
+                This load does not fit the truck's body volume and/or payload limit. Enter a lower amount in the same unit as the docket to continue.
               </p>
 
               <div className="flex items-center gap-3">
@@ -126,7 +161,7 @@ export function AssignTruckDriverModal({
                     {docket.docketNumber}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {docket.productName} • {formatNumberThousandSeparator(docket.loadSize)}{' '}
+                    {docket.productName} • {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                     {docket.productSellUom}
                   </span>
                 </div>
@@ -134,14 +169,15 @@ export function AssignTruckDriverModal({
 
               <div className="border-1 rounded-md p-3 bg-yellow-50 border-yellow-200">
                 <div className="flex items-start gap-2 self-stretch">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1 text-orange-800" />
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5 text-orange-800" />
                   <div className="flex flex-col gap-1">
-                    <span className="text-[15px] text-yellow-800 font-medium">
+                    <span className="text-[16px] text-yellow-800 font-medium">
                       Load vs truck limits
                     </span>
-                    <span className="text-sm text-yellow-800">
+                    <span className="text-[15px] text-yellow-800">
                       <span className="font-bold">
-                        {formatNumberThousandSeparator(docket.loadSize)} {docket.productSellUom}
+                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
+                        {docket.productSellUom}
                       </span>{' '}
                       exceeds capacity. Truck {adjustingTruck.licensePlate}{' '}
                       allows up to{' '}
@@ -182,15 +218,16 @@ export function AssignTruckDriverModal({
                   type="number"
                   defaultValue={Math.floor(
                     (adjustingTruck.tankVolumeM3 || 0) *
-                      (docket.productDensity || 1),
+                    (docket.productDensity || 1),
                   )}
+                  onChange={(e) => setAdjustLoadValue(e.target.value)}
                   className="bg-white"
                 />
                 <span className="text-xs text-gray-500">
                   Enter up to{' '}
                   {Math.floor(
                     (adjustingTruck.tankVolumeM3 || 0) *
-                      (docket.productDensity || 1),
+                    (docket.productDensity || 1),
                   )}{' '}
                   {docket.productSellUom} for this truck.
                 </span>
@@ -223,9 +260,10 @@ export function AssignTruckDriverModal({
               <Button
                 variant="default"
                 className="px-6 rounded-lg font-medium bg-blue-600 hover:bg-blue-700"
-                disabled
+                onClick={handleAdjustLoadClick}
+                disabled={!adjustLoadValue || operationalUpdateMutation.isPending}
               >
-                Adjust load and continue
+                {operationalUpdateMutation.isPending ? 'Adjusting...' : 'Adjust load and continue'}
               </Button>
             </div>
           </>
@@ -261,7 +299,7 @@ export function AssignTruckDriverModal({
                     <div className="flex flex-col">
                       <span className="text-sm text-gray-500 mb-1">Load</span>
                       <span className="font-bold text-gray-900">
-                        {docket.loadSize}{' '}
+                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         {docket.productSellUom === 'M3'
                           ? 'm³'
                           : docket.productSellUom === 'KG_20'
@@ -292,13 +330,22 @@ export function AssignTruckDriverModal({
                       <div
                         key={d.id ?? d.driverName}
                         onClick={() => {
-                          if (d.id != null) onAssign(d.id);
+                          const docketVol = calculateVolumeM3(
+                            docket.actualLoadSize || docket.plannedLoadSize || 0,
+                            docket.productSellUom || 'TN',
+                            docket.productDensity || 1,
+                          );
+                          const truckVol = truck.tankVolumeM3 || 0;
+                          if (truckVol > 0 && docketVol > truckVol) {
+                            setAdjustingTruck(truck as DispatchBoardTruckRef);
+                          } else if (d.id != null) {
+                            onAssign(d.id);
+                          }
                         }}
-                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          index === 0
-                            ? 'border-purple-400 bg-white'
-                            : 'border-gray-200 bg-white hover:border-purple-300'
-                        }`}
+                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${index === 0
+                          ? 'border-purple-400 bg-white'
+                          : 'border-gray-200 bg-white hover:border-purple-300'
+                          }`}
                       >
                         <span className="font-bold text-gray-900 text-[15px]">
                           {d.driverName}
@@ -351,7 +398,7 @@ export function AssignTruckDriverModal({
                       </span>
                       <div className="flex items-baseline gap-1">
                         <span className="font-bold text-xl text-gray-900">
-                          {formatNumberThousandSeparator(docket.loadSize)}
+                          {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         </span>
                         <span className="font-bold text-gray-900">
                           {docket.productSellUom === 'M3'
@@ -388,21 +435,19 @@ export function AssignTruckDriverModal({
                               onAssign(t.id);
                             }
                           }}
-                          className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${
-                            t.isOverVolume
-                              ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50/50'
-                              : index === 0
-                                ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
-                                : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
-                          }`}
+                          className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${t.isOverVolume
+                            ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50/50'
+                            : index === 0
+                              ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
+                              : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
+                            }`}
                         >
                           <div className="flex items-center gap-4">
                             <div
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
-                                t.isOverVolume
-                                  ? 'bg-yellow-100 border-yellow-200'
-                                  : 'bg-gray-50 border-gray-100'
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${t.isOverVolume
+                                ? 'bg-yellow-100 border-yellow-200'
+                                : 'bg-gray-50 border-gray-100'
+                                }`}
                             >
                               <Truck
                                 className={`w-5 h-5 ${t.isOverVolume ? 'text-yellow-700' : 'text-gray-600'}`}
@@ -427,7 +472,7 @@ export function AssignTruckDriverModal({
                               </span>
                               {t.isOverVolume ? (
                                 <span className="text-xs font-medium text-red-700 mt-0.5">
-                                  Does not fit — {formatNumberThousandSeparator(docket.loadSize)}{' '}
+                                  Does not fit — {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                                   {docket.productSellUom} exceeds capacity
                                 </span>
                               ) : (

@@ -48,8 +48,9 @@ const TRUCK_OPTIONS = [
   { name: 'TRUCK5', rego: 'TRUCK5' },
 ];
 
-export function ScheduleFilter({ viewType }: { viewType: 'drivers' | 'trucks' }) {
+export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'drivers' | 'trucks', customers?: string[] }) {
   const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>(['All (Except Unassigned)']);
+  const [selectedCustomers, setSelectedCustomers] = React.useState<string[]>([]);
   const [selectedDrivers, setSelectedDrivers] = React.useState<string[]>([]);
   const [selectedDriverStatuses, setSelectedDriverStatuses] = React.useState<string[]>([]);
   const [selectedTruckType, setSelectedTruckType] = React.useState<string[]>([]);
@@ -58,6 +59,12 @@ export function ScheduleFilter({ viewType }: { viewType: 'drivers' | 'trucks' })
 
   const toggleStatus = (status: string) => {
     setSelectedStatuses((prev) => (prev[0] === status ? [] : [status]));
+  };
+
+  const toggleCustomer = (customer: string) => {
+    setSelectedCustomers((prev) =>
+      prev.includes(customer) ? prev.filter((c) => c !== customer) : [...prev, customer]
+    );
   };
 
   const toggleDriver = (driverName: string) => {
@@ -126,10 +133,45 @@ export function ScheduleFilter({ viewType }: { viewType: 'drivers' | 'trucks' })
             </PopoverContent>
           </Popover>
 
-          <button className="flex items-center gap-1.5 border border-gray-200 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors">
-            <Plus className="w-4 h-4 text-gray-500" />
-            <span className="font-medium text-gray-700">Customer</span>
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedCustomers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                <Plus className="w-4 h-4 text-gray-500" />
+                <span className={`font-medium text-gray-700 ${selectedCustomers.length > 0 ? 'mr-1' : ''}`}>Customer</span>
+                {selectedCustomers.length > 0 && (
+                  <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
+                    {selectedCustomers.length === 1 ? selectedCustomers[0] : `${selectedCustomers.length} selected`}
+                  </span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0" align="start">
+              <Command>
+                <CommandInput
+                  placeholder="Search customers..."
+                  className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                />
+                <CommandList>
+                  <CommandEmpty>No customer found.</CommandEmpty>
+                  <CommandGroup>
+                    {customers.map((customer) => (
+                      <CommandItem
+                        key={customer}
+                        onSelect={() => toggleCustomer(customer)}
+                        className="flex items-center gap-2 cursor-pointer"
+                      >
+                        <Checkbox
+                          checked={selectedCustomers.includes(customer)}
+                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                        />
+                        <span>{customer}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
 
           <div className="w-[1px] h-5 bg-gray-200 mx-2" />
 
@@ -347,6 +389,7 @@ export function ScheduleFilter({ viewType }: { viewType: 'drivers' | 'trucks' })
             <button
               onClick={() => {
                 setSelectedStatuses([]);
+                setSelectedCustomers([]);
                 setSelectedDrivers([]);
                 setSelectedDriverStatuses([]);
                 setSelectedTruckType([]);
