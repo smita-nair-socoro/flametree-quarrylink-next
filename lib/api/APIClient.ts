@@ -59,7 +59,13 @@ import {
   ConflictCheckRequest,
   ConflictCheckResponse,
 } from '../types/docket';
-import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
+import {
+  JobDTO,
+  JobDetails,
+  JobItem,
+  Invoice,
+  InvoiceDetails,
+} from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
@@ -1141,7 +1147,9 @@ export const APIClient = {
         },
       ),
     statistics: () =>
-      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
+      appClient.Get<DriverStatistics>(
+        `/socoro/quarrylink/api/driver/statistics`,
+      ),
   },
 
   trucks: {
@@ -1311,7 +1319,9 @@ export const APIClient = {
     getAll: (jobId: number) =>
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
-      appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
+      appClient.Get<InvoiceDetails>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}`,
+      ),
     create: (data: {
       mode: 'INDIVIDUAL' | 'BULK';
       docketIds: number[];

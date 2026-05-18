@@ -3,7 +3,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { Invoice } from '@/lib/types/user';
-import { InvoiceTableActions } from './inoice-table-actions';
+// import { InvoiceTableActions } from './inoice-table-actions';
 import {
   Tooltip,
   TooltipContent,
@@ -87,9 +87,8 @@ export const invoiceColumns: ColumnDef<Invoice>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: ({ row }) => {
-      const invoice = row.original;
-      return <InvoiceTableActions invoice={invoice} />;
+    cell: () => {
+      return <div></div>;
     },
   },
 ];

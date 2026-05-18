@@ -39,16 +39,18 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const productName = row.original.jobItem.product.productName;
-      return <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
-            {productName}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{productName}</p>
-        </TooltipContent>
-      </Tooltip>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
+              {productName}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{productName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Product',
   },
@@ -110,11 +112,14 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title="Total Invoice Price" />
+        <TableClientSortableHeader
+          column={column}
+          title="Total Invoice Price"
+        />
       );
     },
     cell: ({ row }) => {
-      const formatted = centsToDollars(row.original.totalInvoiceAmount + row.original.totalDeliveryAmount);
+      const formatted = centsToDollars(row.original.totalInvoiceAmount);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

@@ -534,6 +534,9 @@ export default function DocketForm({
         }
       }
 
+      // Round to 2 decimal places to avoid out of bounds errors on the backend
+      deliveryDistanceQuantity = Math.round(deliveryDistanceQuantity * 100) / 100;
+
       const payload = {
         jobId: values.jobId,
         jobItemId: values.jobLineItemId,
