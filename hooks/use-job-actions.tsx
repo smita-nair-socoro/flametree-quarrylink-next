@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { JobDTO, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
+import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/invoice-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
@@ -72,10 +73,10 @@ export function useJobActions(jobData?: JobDetails | null) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const selectedJob = useJobStore((s) => s.selectedJob);
-  const pendingJobFormTab = useJobStore((s) => s.pendingJobFormTab);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [addDocketOpen, setAddDocketOpen] = React.useState(false);
+  const [addInvoiceOpen, setAddInvoiceOpen] = React.useState(false);
   const [pauseDocketAction, setPauseDocketAction] = React.useState<
     'stop' | 'allow'
   >('stop');
@@ -307,7 +308,7 @@ export function useJobActions(jobData?: JobDetails | null) {
     settle_blocked: async () => {
       setActiveDialog(null);
       setSettleBlockedData(null);
-      useJobStore.getState().setPendingJobFormNav('Invoices', true);
+      setAddInvoiceOpen(true);
     },
     pause: () => handlePauseJob(),
   };
@@ -433,7 +434,6 @@ export function useJobActions(jobData?: JobDetails | null) {
       onOpenChangeAction={(open) => {
         setViewOpen(open);
         if (!open) {
-          useJobStore.getState().clearPendingJobFormNav();
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
@@ -445,10 +445,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm
-        canEdit={canEdit}
-        activeTab={pendingJobFormTab}
-      />
+      <JobForm canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
@@ -470,10 +467,29 @@ export function useJobActions(jobData?: JobDetails | null) {
     </FormDialog>
   ) : null;
 
+  const addInvoiceDialog = addInvoiceOpen && jobId ? (
+    <FormDialog
+      dialogTitle="Create Invoice"
+      open={addInvoiceOpen}
+      onOpenChangeAction={(open) => {
+        setAddInvoiceOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setAddInvoiceOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+    >
+      <InvoiceForm jobId={jobId} />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
     viewDialog,
     addDocketDialog,
+    addInvoiceDialog,
   };
 }

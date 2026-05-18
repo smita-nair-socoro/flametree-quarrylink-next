@@ -9,16 +9,9 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { FormDialog } from '@/components/form-dialog';
 import InvoiceForm from '../../invoice-form';
-import { useJobStore } from '@/app/stores/job-store';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const [createOpen, setCreateOpen] = React.useState(false);
-  const pendingInvoiceCreate = useJobStore((s) => s.pendingInvoiceCreate);
-
-  React.useEffect(() => {
-    if (pendingInvoiceCreate) setCreateOpen(true);
-  }, [pendingInvoiceCreate]);
 
   const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
 
@@ -32,12 +25,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
         )}
       >
         <span className="text-lg font-semibold">Invoices</span>
-        <FormDialog
-          dialogTitle="Create Invoice"
-          buttonTitle="Create Invoice"
-          open={createOpen}
-          onOpenChangeAction={setCreateOpen}
-        >
+        <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
           <InvoiceForm jobId={jobId} />
         </FormDialog>
       </div>
