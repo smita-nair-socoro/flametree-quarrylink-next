@@ -102,7 +102,6 @@ export function AssignTruckDriverModal({
 
   const trucksWithStats = useMemo(() => {
     if (!driver?.trucks || !docket) return [];
-
     const docketVol = calculateVolumeM3(
       docket.actualLoadSize || docket.plannedLoadSize || 0,
       docket.productSellUom || 'TN',
@@ -170,7 +169,7 @@ export function AssignTruckDriverModal({
 
               <div className="border-1 rounded-md p-3 bg-yellow-50 border-yellow-200">
                 <div className="flex items-start gap-2 self-stretch">
-                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-1 text-orange-800" />
+                  <AlertTriangle className="h-5 w-5 flex-shrink-0 mt-0.5 text-orange-800" />
                   <div className="flex flex-col gap-1">
                     <span className="text-[16px] text-yellow-800 font-medium">
                       Load vs truck limits

@@ -95,14 +95,14 @@ export function DocketDetailsPanel({
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
 
-    const truckQty = calculateConvertedQty(fullDocket.plannedLoadSize || 0, fullDocket.jobItem?.productSellUom || 'TN', fullDocket.jobItem?.truckSellUom || 'TN', fullDocket.jobItem?.product?.densityTonnagePerM3 || 1);
-    let payload: { plannedLoadSize?: number; actualLoadSize?: number } = {};
+    let payload: { plannedLoadSize?: number; actualLoadSize?: number; deliveryDistanceQuantity?: number } = {};
+    let val = 0;
 
     if (
       fullDocket.docketStatus === DOCKET_STATUS.UNASSIGNED ||
       fullDocket.docketStatus === DOCKET_STATUS.ASSIGNED
     ) {
-      const val =
+      val =
         parseFloat(
           type === 'planned' ? plannedLoadSizeValue : actualLoadSizeValue,
         ) || 0;
@@ -112,10 +112,49 @@ export function DocketDetailsPanel({
       fullDocket.docketStatus === DOCKET_STATUS.ARRIVED ||
       fullDocket.docketStatus === DOCKET_STATUS.DELIVERED
     ) {
-      payload = { actualLoadSize: parseFloat(actualLoadSizeValue) || 0 };
+      val = parseFloat(actualLoadSizeValue) || 0;
+      payload = { actualLoadSize: val };
     } else {
       return;
     }
+
+    const isCollection = fullDocket.jobItem?.jobItemType === 'COLLECTION';
+    let deliveryDistanceQuantity = fullDocket.deliveryDistanceQuantity || 0;
+
+    if (!isCollection) {
+      // needTruckQty is true if truck uom is Hourly, Load, KM (as per use-docket-form-state.tsx)
+      const needTruckQty =
+        fullDocket.jobItem?.truckSellUom === 'HOURLY' ||
+        fullDocket.jobItem?.truckSellUom === 'LOAD' ||
+        fullDocket.jobItem?.truckSellUom === 'KM';
+
+      if (!needTruckQty) {
+        let deliveryDistanceUom = fullDocket.jobItem?.truckSellUom || 'TN';
+        const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+        if (!validUoms.includes(deliveryDistanceUom)) {
+          const uomMap: Record<string, string> = {
+            '20kg': 'KG_20',
+            km: 'KM',
+            Load: 'LOAD',
+            TN: 'TN',
+            Bulka: 'BULKA',
+            Hourly: 'HOURLY',
+            m3: 'M3',
+          };
+          deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
+        }
+
+        deliveryDistanceQuantity = calculateConvertedQty(
+          val,
+          fullDocket.jobItem?.productSellUom || 'TN',
+          deliveryDistanceUom,
+          fullDocket.jobItem?.product?.densityTonnagePerM3 || 1,
+        );
+      }
+    }
+
+    payload.deliveryDistanceQuantity = deliveryDistanceQuantity;
+    console.log(payload);
 
     operationalUpdateMutation.mutate(
       { id: docketId, data: payload },

@@ -121,7 +121,6 @@ function DraggableDocketCard({
 }
 
 export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
-  console.log(docket);
   return (
     <div className="bg-white border border-[#E2E8F0] rounded-xl flex overflow-hidden shadow-2xl shrink-0 rotate-2 cursor-grabbing w-[320px]">
       {/* Drag Handle Area */}

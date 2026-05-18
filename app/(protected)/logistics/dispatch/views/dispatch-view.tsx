@@ -369,7 +369,6 @@ export function DispatchView({
     }
 
     const uniqueNames = Array.from(names).sort();
-    // console.log('Customer Options:', uniqueNames);
     return uniqueNames;
   }, [viewType, trucksData, driversData]);
 
