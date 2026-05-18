@@ -10,7 +10,7 @@ import DocketForm from '@/app/(protected)/customer-operations/dockets/(component
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
-import { useSettleJob } from '@/lib/api/job';
+import { useSettleJob, JobItemsQueryOptions } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { DocketDTO } from '@/lib/types/docket';
@@ -166,7 +166,6 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
-        confirmActionNeeded: false,
       },
       pause: {
         title: 'Pause Job',
@@ -201,11 +200,10 @@ export function useJobActions(jobData?: JobDetails | null) {
     if (!jobId) return;
 
     try {
-      const updated = await settleJobMutation.mutateAsync(jobId);
+      await settleJobMutation.mutateAsync(jobId);
       notifySuccess('Job settled successfully.');
       setActiveDialog(null);
       setSettleBlockedData(null);
-      useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
       const errorData = extractErrorData(error) as {
         unfinalisedDocketsCount?: number;

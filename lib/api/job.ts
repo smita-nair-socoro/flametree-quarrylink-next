@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
-import type { JobDTO, JobItem, CompleteJobResponse } from '../types/job';
+import type { JobDTO, JobItem, CompleteJobResponse, SettleJobResponse } from '../types/job';
 import { useJobStore } from '@/app/stores/job-store';
 
 /**
@@ -65,10 +65,15 @@ export const useCancelJob = () => {
       additionalNotes: string;
     }) => APIClient.jobs.cancelJob(id, cancelReason, additionalNotes),
 
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
-      useJobStore.getState().setSelectedJob(data);
+      try {
+        const updatedJob = await APIClient.jobs.getJobItems(data.id);
+        useJobStore.getState().setSelectedJob(updatedJob);
+      } catch {
+        useJobStore.getState().setSelectedJob(data);
+      }
     },
   });
 };
@@ -110,11 +115,16 @@ export const useUpdateJob = () => {
     mutationFn: ({ id, data }: { id: number; data: JobDTO }) =>
       APIClient.jobs.updateJob(id, data),
 
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
-      useJobStore.getState().setSelectedJob(data);
+      try {
+        const updatedJob = await APIClient.jobs.getJobItems(data.id);
+        useJobStore.getState().setSelectedJob(updatedJob);
+      } catch {
+        useJobStore.getState().setSelectedJob(data);
+      }
     },
   });
 };
@@ -123,13 +133,28 @@ export const useSettleJob = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id: number) => APIClient.jobs.settle(id),
+    mutationFn: async (id: number) => {
+      const response = await APIClient.jobs.settle(id);
+      if (!response.job) {
+        const error = new Error('Settlement blocked') as Error & {
+          response: { status: number; statusText: string; data: SettleJobResponse };
+        };
+        error.response = { status: 200, statusText: 'OK', data: response };
+        throw error;
+      }
+      return response;
+    },
 
-    onSuccess: (data) => {
+    onSuccess: async (data, id) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
-      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
-      useJobStore.getState().setSelectedJob(data);
+      try {
+        const updatedJob = await APIClient.jobs.getJobItems(id);
+        useJobStore.getState().setSelectedJob(updatedJob);
+      } catch {
+        useJobStore.getState().setSelectedJob(data.job!);
+      }
     },
   });
 };
