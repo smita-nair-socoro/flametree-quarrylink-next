@@ -600,10 +600,10 @@ function AddressAutoCompleteInput(props: CommonProps) {
       <div
         aria-invalid={ariaInvalid}
         className={cn(
-          'flex h-11 md:h-9 w-full items-center rounded-md border border-input px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] focus-within:ring-ring/50 focus-within:border-ring md:text-sm',
+          'flex h-11 md:h-9 w-full items-center rounded-md border px-3 py-1 text-base shadow-xs ring-offset-background focus-within:ring-[3px] md:text-sm',
           ariaInvalid
             ? 'border-destructive focus-within:border-destructive focus-within:ring-destructive/20'
-            : null,
+            : 'border-input focus-within:border-ring focus-within:ring-ring/50',
         )}
       >
         <CommandPrimitive.Input

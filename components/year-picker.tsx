@@ -15,6 +15,7 @@ interface YearPickerProps {
   onChangeAction: (date: Date | undefined) => void;
   className?: string;
   placeholder?: string;
+  'aria-invalid'?: boolean;
 }
 
 export function YearPicker({
@@ -22,6 +23,7 @@ export function YearPicker({
   onChangeAction,
   className,
   placeholder = 'Pick a year',
+  'aria-invalid': ariaInvalid,
 }: YearPickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -38,6 +40,7 @@ export function YearPicker({
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          aria-invalid={ariaInvalid}
           className={cn(
             'w-full justify-start text-left font-normal',
             !value && 'text-muted-foreground',

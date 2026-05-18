@@ -294,7 +294,7 @@ export default function JobForm({
               <FormField
                 control={jobForm.control}
                 name="deliveryWindowStart"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
@@ -303,7 +303,7 @@ export default function JobForm({
                         value={field.value || ''}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 
@@ -328,7 +328,7 @@ export default function JobForm({
               <FormField
                 control={jobForm.control}
                 name="deliveryWindowEnd"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
@@ -337,7 +337,7 @@ export default function JobForm({
                         value={field.value || ''}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 

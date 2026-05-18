@@ -1061,7 +1061,7 @@ export default function DocketForm({
                     <FormField
                       control={docketForm.control}
                       name="deliveryCollectionStartTime"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
@@ -1071,7 +1071,7 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
@@ -1095,7 +1095,7 @@ export default function DocketForm({
                     <FormField
                       control={docketForm.control}
                       name="deliveryCollectionEndTime"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
@@ -1105,7 +1105,7 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
