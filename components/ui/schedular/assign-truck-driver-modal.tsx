@@ -16,6 +16,7 @@ import type {
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
 import { useState, useMemo } from 'react';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
 
 function calculateVolumeM3(
@@ -65,7 +66,7 @@ export function AssignTruckDriverModal({
     if (!driver?.trucks || !docket) return [];
 
     const docketVol = calculateVolumeM3(
-      docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize || 0,
+      docket.actualLoadSize || docket.plannedLoadSize || 0,
       docket.productSellUom || 'TN',
       docket.productDensity || 1,
     );
@@ -125,7 +126,7 @@ export function AssignTruckDriverModal({
                     {docket.docketNumber}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {docket.productName} • {docket.loadSize}{' '}
+                    {docket.productName} • {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                     {docket.productSellUom}
                   </span>
                 </div>
@@ -140,7 +141,8 @@ export function AssignTruckDriverModal({
                     </span>
                     <span className="text-sm text-yellow-800">
                       <span className="font-bold">
-                        {docket.loadSize} {docket.productSellUom}
+                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
+                        {docket.productSellUom}
                       </span>{' '}
                       exceeds capacity. Truck {adjustingTruck.licensePlate}{' '}
                       allows up to{' '}
@@ -181,7 +183,7 @@ export function AssignTruckDriverModal({
                   type="number"
                   defaultValue={Math.floor(
                     (adjustingTruck.tankVolumeM3 || 0) *
-                      (docket.productDensity || 1),
+                    (docket.productDensity || 1),
                   )}
                   className="bg-white"
                 />
@@ -189,7 +191,7 @@ export function AssignTruckDriverModal({
                   Enter up to{' '}
                   {Math.floor(
                     (adjustingTruck.tankVolumeM3 || 0) *
-                      (docket.productDensity || 1),
+                    (docket.productDensity || 1),
                   )}{' '}
                   {docket.productSellUom} for this truck.
                 </span>
@@ -260,7 +262,7 @@ export function AssignTruckDriverModal({
                     <div className="flex flex-col">
                       <span className="text-sm text-gray-500 mb-1">Load</span>
                       <span className="font-bold text-gray-900">
-                        {docket.loadSize}{' '}
+                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         {docket.productSellUom === 'M3'
                           ? 'm³'
                           : docket.productSellUom === 'KG_20'
@@ -293,11 +295,10 @@ export function AssignTruckDriverModal({
                         onClick={() => {
                           if (d.id != null) onAssign(d.id);
                         }}
-                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          index === 0
-                            ? 'border-purple-400 bg-white'
-                            : 'border-gray-200 bg-white hover:border-purple-300'
-                        }`}
+                        className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${index === 0
+                          ? 'border-purple-400 bg-white'
+                          : 'border-gray-200 bg-white hover:border-purple-300'
+                          }`}
                       >
                         <span className="font-bold text-gray-900 text-[15px]">
                           {d.driverName}
@@ -350,7 +351,7 @@ export function AssignTruckDriverModal({
                       </span>
                       <div className="flex items-baseline gap-1">
                         <span className="font-bold text-xl text-gray-900">
-                          {docket.loadSize}
+                          {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         </span>
                         <span className="font-bold text-gray-900">
                           {docket.productSellUom === 'M3'
@@ -387,21 +388,19 @@ export function AssignTruckDriverModal({
                               onAssign(t.id);
                             }
                           }}
-                          className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${
-                            t.isOverVolume
-                              ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50/50'
-                              : index === 0
-                                ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
-                                : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
-                          }`}
+                          className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${t.isOverVolume
+                            ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50/50'
+                            : index === 0
+                              ? 'border-green-400 bg-green-50/30 hover:bg-green-50/50'
+                              : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
+                            }`}
                         >
                           <div className="flex items-center gap-4">
                             <div
-                              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${
-                                t.isOverVolume
-                                  ? 'bg-yellow-100 border-yellow-200'
-                                  : 'bg-gray-50 border-gray-100'
-                              }`}
+                              className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${t.isOverVolume
+                                ? 'bg-yellow-100 border-yellow-200'
+                                : 'bg-gray-50 border-gray-100'
+                                }`}
                             >
                               <Truck
                                 className={`w-5 h-5 ${t.isOverVolume ? 'text-yellow-700' : 'text-gray-600'}`}
@@ -426,7 +425,7 @@ export function AssignTruckDriverModal({
                               </span>
                               {t.isOverVolume ? (
                                 <span className="text-xs font-medium text-red-700 mt-0.5">
-                                  Does not fit — {docket.loadSize}{' '}
+                                  Does not fit — {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                                   {docket.productSellUom} exceeds capacity
                                 </span>
                               ) : (

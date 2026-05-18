@@ -33,7 +33,9 @@ export function isDispatchDriverResource(
   return 'driverName' in r;
 }
 
-export function inferTruckBusinessType(r: DispatchTruckResource): TRUCK_BUSINESS_TYPE {
+export function inferTruckBusinessType(
+  r: DispatchTruckResource,
+): TRUCK_BUSINESS_TYPE {
   const dt = r.drivers?.[0]?.driverType;
   if (dt === DRIVER_TYPE.SUBCONTRACTOR) {
     return TRUCK_BUSINESS_TYPE.EXTERNAL;
@@ -101,7 +103,7 @@ export function formatCargoLineForUnassign(d: DispatchDocket): string {
         ? 'x 20kg'
         : d.productSellUom || '';
   const product = d.productName || 'Product';
-  const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
+  const loadSize = d.actualLoadSize || d.plannedLoadSize || 0;
   return `${product} • ${loadSize} ${uom}`.trim();
 }
 
@@ -218,7 +220,7 @@ export function dayBucketMs(iso: string | undefined): number {
 export function normalizedLoadM3ForSort(docket: DispatchDocket): number {
   const density = docket.jobItem?.product?.densityTonnagePerM3;
   const uom = docket.productSellUom;
-  const qty = Number(docket.loadSize);
+  const qty = Number(docket.actualLoadSize || docket.plannedLoadSize || 0);
   if (!Number.isFinite(qty)) return 0;
 
   if (density != null && density > 0) {

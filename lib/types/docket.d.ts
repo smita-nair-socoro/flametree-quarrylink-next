@@ -363,7 +363,6 @@ export interface DispatchAssignedDocket {
   productName: string;
   plannedLoadSize?: number;
   actualLoadSize?: number;
-  loadSize: number;
   customerName: string;
   pickUpSuburb: string;
   pickUpState: string;

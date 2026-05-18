@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { Maximize2, Minimize2, GripVertical, Lock } from 'lucide-react';
+import { Maximize2, Minimize2, GripVertical, Lock, Infinity } from 'lucide-react';
 import {
   DispatchDocket,
   formatTime,
@@ -10,6 +10,7 @@ import {
 } from '@/lib/utils/dispatch-helper';
 import { TableBadges } from '@/components/table-badges';
 import { TruckResource } from '@/lib/types/truck';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 const TIME_SLOTS = [
   '06:00',
@@ -216,11 +217,10 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-0 h-full p-1.5 transition-colors ${
-        isOver
-          ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
-          : 'bg-transparent'
-      }`}
+      className={`min-h-0 h-full p-1.5 transition-colors ${isOver
+        ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
+        : 'bg-transparent'
+        }`}
     >
       {children}
     </div>
@@ -454,11 +454,11 @@ function DocketCard({
     endBoundaryHour >= GRID_SPAN_HOURS - 1e-6
       ? '00:00'
       : TIME_SLOTS[
-          Math.min(
-            Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
-            TIME_SLOTS.length - 1,
-          )
-        ];
+      Math.min(
+        Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
+        TIME_SLOTS.length - 1,
+      )
+      ];
 
   return (
     <div
@@ -488,9 +488,7 @@ function DocketCard({
             <div className={`font-bold ${colors.text} truncate text-[15px]`}>
               {docket.docketNumber}{' '}
               <span className={`${colors.text} font-semibold text-[12px] ml-1`}>
-                {docket.actualLoadSize ||
-                  docket.plannedLoadSize ||
-                  docket.loadSize}{' '}
+                {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                 {docket.productSellUom === 'M3'
                   ? 'm³'
                   : docket.productSellUom === 'KG_20'
@@ -565,9 +563,7 @@ export default function AssignedDockets({
   // Calculate max valid percentage across all trucks for the focus docket
   const focusLoadSize = focusDocket
     ? focusDocket.actualLoadSize ||
-      focusDocket.plannedLoadSize ||
-      focusDocket.loadSize ||
-      0
+    focusDocket.plannedLoadSize || 0
     : 0;
 
   const maxValidPercentage = React.useMemo(() => {
@@ -650,6 +646,8 @@ export default function AssignedDockets({
       const isExceeds = pct > 100;
       const isMostEfficient =
         !isExceeds && pct === maxValidPercentage && pct > 0;
+      const isGeneric = truck.name?.toLowerCase().includes('generic');
+
 
       let colorTheme = {
         container: 'bg-amber-50 border-amber-200',
@@ -661,6 +659,19 @@ export default function AssignedDockets({
         barFill: 'bg-amber-500',
         label: 'Under capacity',
       };
+
+      if (isGeneric) {
+        colorTheme = {
+          container: 'bg-gray-50 border-gray-200',
+          text: 'text-slate-700',
+          pctText: 'text-gray-700',
+          badgeBg: 'bg-gray-100',
+          badgeText: 'text-gray-800',
+          barBg: 'bg-gray-200',
+          barFill: 'bg-gray-500',
+          label: 'Open Capacity',
+        };
+      }
 
       if (isExceeds) {
         colorTheme = {
@@ -686,13 +697,6 @@ export default function AssignedDockets({
         };
       }
 
-      const uom =
-        focusDocket.productSellUom === 'M3'
-          ? 'm³'
-          : focusDocket.productSellUom === 'KG_20'
-            ? 'x 20kg'
-            : focusDocket.productSellUom || '';
-
       utilisationNode = (
         <div
           className={`px-3 py-2 rounded-lg border flex flex-col gap-1.5 ${colorTheme.container}`}
@@ -709,8 +713,8 @@ export default function AssignedDockets({
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
-            <span className={`text-[13px] font-bold ${colorTheme.pctText}`}>
-              {displayPct}%
+            <span className={`text-[13px] font-bold ${colorTheme.pctText} flex items-center`}>
+              {isGeneric ? <><Infinity className="w-5 h-5" />%</> : `${displayPct}%`}
             </span>
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${colorTheme.badgeBg} ${colorTheme.badgeText}`}
@@ -718,11 +722,6 @@ export default function AssignedDockets({
               {colorTheme.label}
             </span>
           </div>
-          {isExceeds && (
-            <span className="text-[12px] font-medium text-red-600">
-              {focusLoadSize} {uom} vs {cap} m³
-            </span>
-          )}
         </div>
       );
     }
@@ -730,9 +729,8 @@ export default function AssignedDockets({
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
-          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-        }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+          }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
@@ -765,8 +763,8 @@ export default function AssignedDockets({
             {viewType === 'trucks' ? (
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
-                  <span className="text-[18px] font-bold text-[#0F172A]">
-                    {truck.capacity} m³
+                  <span className="flex items-center justify-center gap-1 text-[18px] font-bold text-[#0F172A]">
+                    {truck.name?.toLowerCase().includes('generic') ? <Infinity className="w-5 h-5" /> : truck.capacity} m³
                   </span>
                   <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
                     Capacity

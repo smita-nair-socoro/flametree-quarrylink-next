@@ -176,7 +176,7 @@ const mapDocketToFormValues = (
 ): FormValues => ({
   jobId: docket.jobId ?? 0,
   jobLineItemId: docket.jobItemId ?? 0,
-  plannedLoadSize: docket.plannedLoadSize ?? docket.loadSize ?? 0,
+  plannedLoadSize: docket.plannedLoadSize ?? 0,
   actualLoadSize: docket.actualLoadSize ?? 0,
   truckQty: docket.deliveryDistanceQuantity ?? 0,
   pickUpAddressId: String(docket.pickUpAddress?.id ?? ''),
@@ -516,7 +516,7 @@ export function useDocketFormState({
 
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
-        ? (selectedDocket.plannedLoadSize ?? selectedDocket.loadSize ?? 0)
+        ? (selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize || 0)
         : 0;
 
     return {

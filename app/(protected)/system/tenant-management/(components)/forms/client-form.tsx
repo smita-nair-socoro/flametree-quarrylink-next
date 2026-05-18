@@ -439,16 +439,14 @@ export default function ClientForm({
                       {paymentTerm})
                     </span>
                     <span className="text-sm font-normal">
-                      ${(Number(currentUnitPrice) * numberOfUsers).toFixed(2)}
+                      ${formatCurrency(Number(currentUnitPrice) * numberOfUsers)}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-50 border-b border-[#E5E5E5]">
                     <span className="text-sm font-normal">GST (10%)</span>
                     <span className="text-sm font-normal">
                       $
-                      {(Number(currentUnitPrice) * numberOfUsers * 0.1).toFixed(
-                        2,
-                      )}
+                      {formatCurrency(Number(currentUnitPrice) * numberOfUsers * 0.1)}
                     </span>
                   </div>
                   <div className="flex justify-between py-4 px-4 bg-slate-100">

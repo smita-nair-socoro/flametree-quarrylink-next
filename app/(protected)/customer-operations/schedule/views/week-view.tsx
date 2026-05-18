@@ -29,6 +29,7 @@ import {
 } from '@/lib/types/docket';
 import { ScheduleFilter } from './schedule-filter';
 import { Button } from '@/components/ui/button';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TableBadges } from '@/components/table-badges';
 
 type ViewType = 'trucks' | 'drivers';
@@ -90,8 +91,8 @@ function formatSellUomLabel(uom: string | undefined): string {
 
 function formatLoadLine(d: WeekViewDocket): string {
   const u = formatSellUomLabel(d.productSellUom);
-  const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
-  return `${loadSize} ${u}`.trim();
+  const loadSize = d.actualLoadSize || d.plannedLoadSize;
+  return `${formatNumberThousandSeparator(loadSize)} ${u}`.trim();
 }
 
 function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
@@ -127,9 +128,8 @@ function DocketChip({
         e.stopPropagation();
         onClick();
       }}
-      className={`w-full text-left cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition hover:brightness-[0.98] ${colorClass} ${
-        isSelected ? 'ring-2 ring-[#8B5CF6] ring-offset-1' : ''
-      }`}
+      className={`w-full text-left cursor-pointer rounded-lg border px-2.5 py-2 shadow-sm transition hover:brightness-[0.98] ${colorClass} ${isSelected ? 'ring-2 ring-[#8B5CF6] ring-offset-1' : ''
+        }`}
     >
       <div
         className={`flex items-start justify-between gap-2 text-[11px] leading-tight font-bold`}
@@ -342,21 +342,18 @@ export function ScheduleWeekView({
                 return (
                   <div
                     key={day.toISOString()}
-                    className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${
-                      isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
-                    }`}
+                    className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
+                      }`}
                   >
                     <span
-                      className={`text-[11px] font-semibold uppercase tracking-wide ${
-                        isSelectedDate ? 'text-violet-700' : 'text-[#64748B]'
-                      }`}
+                      className={`text-[11px] font-semibold uppercase tracking-wide ${isSelectedDate ? 'text-violet-700' : 'text-[#64748B]'
+                        }`}
                     >
                       {format(day, 'EEE')}
                     </span>
                     <span
-                      className={`text-[18px] font-bold leading-none ${
-                        isSelectedDate ? 'text-violet-700' : 'text-[#0F172A]'
-                      }`}
+                      className={`text-[18px] font-bold leading-none ${isSelectedDate ? 'text-violet-700' : 'text-[#0F172A]'
+                        }`}
                     >
                       {format(day, 'd')}
                     </span>
@@ -415,9 +412,8 @@ export function ScheduleWeekView({
                     return (
                       <div
                         key={`${resource.id}-${day.toISOString()}`}
-                        className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${
-                          isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
-                        }`}
+                        className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
+                          }`}
                       >
                         <div className="flex flex-col gap-2 flex-1 min-h-0">
                           {visible.map((docket) => (

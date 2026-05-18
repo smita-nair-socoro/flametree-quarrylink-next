@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
 import { format } from 'date-fns';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   DispatchDocket,
@@ -44,11 +45,10 @@ function DraggableDocketCard({
     <div
       ref={setNodeRef}
       onClick={onSelect}
-      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${
-        isSelected
-          ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
-          : 'border-[#E2E8F0]'
-      } ${isDragging ? 'opacity-50' : ''}`}
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected
+        ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
+        : 'border-[#E2E8F0]'
+        } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
       <div
@@ -66,7 +66,7 @@ function DraggableDocketCard({
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
+            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -121,6 +121,7 @@ function DraggableDocketCard({
 }
 
 export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
+  console.log(docket);
   return (
     <div className="bg-white border border-[#E2E8F0] rounded-xl flex overflow-hidden shadow-2xl shrink-0 rotate-2 cursor-grabbing w-[320px]">
       {/* Drag Handle Area */}
@@ -135,7 +136,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize}{' '}
+            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -290,21 +291,19 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'this_day'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              }`}
           >
             This day
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'all_dates'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              }`}
           >
             All dates
           </button>

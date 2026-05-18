@@ -85,7 +85,7 @@ export const calculateJobPricing = (
     totalTruckCostPrice: centsToDollars(totalTruckCostCents),
     totalProductSellPrice: centsToDollars(totalProductSellCents),
     totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-    grossProfit: centsToDollars(grossProfitCents),
+    grossProfit: new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(grossProfitCents / 100),
     costSubtotalExGST: centsToDollars(totalCostCents),
     costGst: centsToDollars(costGstCents),
     totalCost: centsToDollars(totalCostCentsWithGST),
