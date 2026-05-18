@@ -55,7 +55,7 @@ type PricingBreakdown = {
   totalProductSellPrice: number;
   totalTruckSellPrice: number;
   totalInvoice: number;
-  grossProfit: number;
+  grossProfit: string;
   grossProfitPercentage: number;
   costSubtotalExGST: number;
   costGst: number;
@@ -915,7 +915,7 @@ export function useJobLineItemFormState({
       totalProductSellPrice: 0,
       totalTruckSellPrice: 0,
       totalInvoice: 0,
-      grossProfit: 0,
+      grossProfit: '$0.00',
       grossProfitPercentage: 0,
       costSubtotalExGST: 0,
       costGst: 0,
@@ -968,7 +968,7 @@ export function useJobLineItemFormState({
       totalProductSellPrice,
       totalTruckSellPrice,
       totalInvoice,
-      grossProfit,
+      grossProfit: new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(grossProfit),
       grossProfitPercentage,
       costSubtotalExGST,
       costGst,

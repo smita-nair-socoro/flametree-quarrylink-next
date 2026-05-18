@@ -1013,7 +1013,7 @@ export default function JobLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          ${formatDollars(pricingBreakdown.grossProfit)}
+                          {pricingBreakdown.grossProfit}
                         </span>
                       </div>
                     </>
