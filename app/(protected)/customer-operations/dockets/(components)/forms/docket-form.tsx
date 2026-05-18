@@ -18,6 +18,7 @@ import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
 import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
@@ -650,7 +651,7 @@ export default function DocketForm({
           <form
             id="add-new-docket-form"
             className={cn('w-full flex flex-col gap-8', className)}
-            onSubmit={docketForm.handleSubmit(onSubmit)}
+            onSubmit={docketForm.handleSubmit(onSubmit, scrollToFirstError)}
           >
             {statusBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
@@ -1541,7 +1542,7 @@ export default function DocketForm({
                 <Button
                   className="cursor-pointer"
                   type="button"
-                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting
@@ -1557,7 +1558,7 @@ export default function DocketForm({
                 <Button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting

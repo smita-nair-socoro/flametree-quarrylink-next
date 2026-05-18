@@ -14,6 +14,7 @@ import {
 import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -119,7 +120,7 @@ export default function JobForm({
         <form
           id="add-new-job-form"
           className={cn('py-1 w-full flex flex-col', className)}
-          onSubmit={jobForm.handleSubmit(onSubmit)}
+          onSubmit={jobForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {statusBanner}
 

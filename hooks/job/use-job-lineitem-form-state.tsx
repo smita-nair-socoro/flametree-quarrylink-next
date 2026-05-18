@@ -27,6 +27,7 @@ import {
   roundToTwoDecimals,
 } from '@/lib/utils/currency';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { JobItem } from '@/lib/types/job';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
@@ -1002,7 +1003,7 @@ export function useJobLineItemFormState({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    form.handleSubmit(onSubmit)(e);
+    form.handleSubmit(onSubmit, scrollToFirstError)(e);
   };
 
   async function onSubmit(values: FormValues) {

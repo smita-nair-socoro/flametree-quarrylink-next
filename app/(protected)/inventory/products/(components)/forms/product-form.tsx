@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -360,7 +361,7 @@ export default function ProductForm({
             className,
             isSubmitting && 'pointer-events-none',
           )}
-          onSubmit={productForm.handleSubmit(onSubmit)}
+          onSubmit={productForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {(isEditing || createStep === 1) && (
             <>

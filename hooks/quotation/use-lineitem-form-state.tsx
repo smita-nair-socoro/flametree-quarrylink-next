@@ -22,6 +22,7 @@ import {
   QuotationWithLineItemsQueryOptions,
 } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import {
   centsToDollarsNum,
   dollarsToCents,
@@ -986,7 +987,7 @@ export function useLineItemFormState({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    form.handleSubmit(onSubmit)(e);
+    form.handleSubmit(onSubmit, scrollToFirstError)(e);
   };
 
   async function onSubmit(values: FormValues) {

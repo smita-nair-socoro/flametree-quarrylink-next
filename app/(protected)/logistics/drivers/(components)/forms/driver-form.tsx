@@ -52,6 +52,7 @@ import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { AuditInformation } from '@/components/audit-information';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 
 interface FormProps {
   id?: number;
@@ -199,6 +200,7 @@ export default function DriverForm({
       isEditing ? 'Failed to Update Driver' : 'Failed to Add Driver',
       { description: 'Check required fields' },
     );
+    scrollToFirstError();
   }
 
   const effectiveHaulierId = isInternal

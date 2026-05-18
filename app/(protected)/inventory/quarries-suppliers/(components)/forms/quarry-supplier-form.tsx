@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -257,7 +258,7 @@ export default function QuarrySupplierForm({
             className,
             isSubmitting && 'pointer-events-none',
           )}
-          onSubmit={quarrySupplierForm.handleSubmit(onSubmit)}
+          onSubmit={quarrySupplierForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {/* Type Selection */}
           <FormField

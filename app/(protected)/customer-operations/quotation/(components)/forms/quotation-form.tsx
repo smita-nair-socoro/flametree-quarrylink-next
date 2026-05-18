@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { cn, splitReasonNote } from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -405,7 +406,7 @@ export default function QuotationForm({
               duplicateQuotation.isPending) &&
               'pointer-events-none',
           )}
-          onSubmit={quotationForm.handleSubmit(onSubmit)}
+          onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
