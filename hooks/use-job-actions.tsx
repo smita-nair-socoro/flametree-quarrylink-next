@@ -22,7 +22,6 @@ import {
 import {
   SettleJobDescription,
   SettleJobContent,
-  SettleJobInitialContent,
 } from '@/hooks/job/settle-job-content';
 import {
   PauseJobDescription,
@@ -152,14 +151,6 @@ export function useJobActions(jobData?: JobDetails | null) {
         ) : null,
         confirmActionNeeded: false,
         cancelText: 'Close',
-      },
-      settle: {
-        title: 'Settle Job',
-        description: <SettleJobDescription job={jobData} />,
-        content: <SettleJobInitialContent />,
-        confirmText: 'Settle Job',
-        confirmCustomColor: '#8E51FF',
-        cancelText: 'Cancel',
       },
       settle_blocked: {
         title: 'Settlement Blocked',
@@ -314,9 +305,6 @@ export function useJobActions(jobData?: JobDetails | null) {
   const actionHandlers: Record<string, () => Promise<void>> = {
     resume: () => handleResumeJob(),
     cancel: handleCancelJob,
-    settle: async () => {
-      handleSettleJob();
-    },
     settle_blocked: async () => {
       setActiveDialog(null);
       setSettleBlockedData(null);
@@ -401,7 +389,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       }
     },
 
-    settle: createDialogAction('settle'),
+    settle: () => { handleSettleJob(); },
   };
 
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
