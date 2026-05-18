@@ -155,6 +155,7 @@ export interface DocketDTO {
   productEstimatedVolume: number;
   purchaseOrder: string;
   totalInvoiceAmount: number;
+  totalProductAmount: number;
   totalDeliveryAmount: number;
   job: {
     id: number;

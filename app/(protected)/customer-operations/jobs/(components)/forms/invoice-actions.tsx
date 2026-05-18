@@ -26,7 +26,6 @@ interface InvoicesBulkActionsProps {
   onClearSelection: () => void;
 }
 
-
 export function InvoiceActions({
   selectedDockets,
   onClearSelection,
@@ -39,7 +38,7 @@ export function InvoiceActions({
     React.useState(false);
 
   const hasDeliveryCost = selectedDockets.some(
-    (d) => d.jobItem?.jobItemType !== 'COLLECTION'
+    (d) => d.jobItem?.jobItemType !== 'COLLECTION',
   );
 
   const createInvoiceMutation = useCreateInvoice({
@@ -96,7 +95,13 @@ export function InvoiceActions({
                   <div className="flex items-center justify-between gap-4 text-sm">
                     <span className="text-gray-700">Total Product Amount:</span>
                     <span className="font-bold v text-lg">
-                      ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalInvoiceAmount, 0))}
+                      $
+                      {centsToDollars(
+                        selectedDockets.reduce(
+                          (acc, docket) => acc + docket.totalProductAmount,
+                          0,
+                        ),
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-4 text-sm">
@@ -104,7 +109,13 @@ export function InvoiceActions({
                       Total Delivery Amount:
                     </span>
                     <span className="font-bold text-[#101828] text-lg">
-                      ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalDeliveryAmount, 0))}
+                      $
+                      {centsToDollars(
+                        selectedDockets.reduce(
+                          (acc, docket) => acc + docket.totalDeliveryAmount,
+                          0,
+                        ),
+                      )}
                     </span>
                   </div>
                 </>
@@ -112,7 +123,13 @@ export function InvoiceActions({
                 <div className="flex items-center justify-between gap-4 text-sm">
                   <span className="text-gray-700">Total Amount:</span>
                   <span className="font-bold text-[#101828] text-lg">
-                    ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalInvoiceAmount, 0))}
+                    $
+                    {centsToDollars(
+                      selectedDockets.reduce(
+                        (acc, docket) => acc + docket.totalInvoiceAmount,
+                        0,
+                      ),
+                    )}
                   </span>
                 </div>
               )}
@@ -130,8 +147,8 @@ export function InvoiceActions({
                     <p className="text-sm leading-relaxed text-[#6A7282]">
                       {includeDeliveryPrices ? (
                         <>
-                          Delivery prices will be shown as separate line items for
-                          each docket
+                          Delivery prices will be shown as separate line items
+                          for each docket
                         </>
                       ) : (
                         <>
@@ -168,7 +185,9 @@ export function InvoiceActions({
                 createInvoiceMutation.mutate({
                   mode: isIndividual ? 'INDIVIDUAL' : 'BULK',
                   docketIds: selectedDockets.map((d) => d.id),
-                  inclDeliveryCost: hasDeliveryCost ? includeDeliveryPrices : false,
+                  inclDeliveryCost: hasDeliveryCost
+                    ? includeDeliveryPrices
+                    : false,
                 });
               }}
             >
