@@ -22,7 +22,7 @@ import {
   QuotationWithLineItemsQueryOptions,
 } from '@/lib/api/quotation';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { scrollToFirstError } from '@/lib/utils';
 import {
   centsToDollarsNum,
   dollarsToCents,

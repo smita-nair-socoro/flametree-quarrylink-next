@@ -165,6 +165,13 @@ export function addSyncErrorRecordId(
   }
 }
 
+export function scrollToFirstError() {
+  setTimeout(() => {
+    const el = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 0);
+}
+
 /**
  * Splits a reason string on the first hyphen into a reason and an optional note.
  * e.g. "Bad weather - reschedule to 9-10am" → { reason: "Bad weather", note: "reschedule to 9-10am" }

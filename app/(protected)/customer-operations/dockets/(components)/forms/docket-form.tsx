@@ -17,8 +17,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { addNewRecordId, cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,

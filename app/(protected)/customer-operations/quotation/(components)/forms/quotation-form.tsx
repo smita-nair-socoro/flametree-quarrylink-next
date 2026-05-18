@@ -10,8 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn, splitReasonNote } from '@/lib/utils';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';

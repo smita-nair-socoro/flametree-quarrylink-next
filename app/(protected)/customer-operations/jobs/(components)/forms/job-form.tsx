@@ -13,8 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { cn } from '@/lib/utils';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { cn, scrollToFirstError } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { PhoneInput } from '@/components/ui/phone-input';

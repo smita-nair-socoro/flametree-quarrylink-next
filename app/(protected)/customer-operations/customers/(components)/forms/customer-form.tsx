@@ -11,8 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn, addNewRecordId, addSyncErrorRecordId } from '@/lib/utils';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { cn, addNewRecordId, addSyncErrorRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';

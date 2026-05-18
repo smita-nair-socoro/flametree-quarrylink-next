@@ -12,8 +12,7 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { cn, addNewRecordId } from '@/lib/utils';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
+import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';

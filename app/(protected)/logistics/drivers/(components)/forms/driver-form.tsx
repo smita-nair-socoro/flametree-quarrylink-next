@@ -44,7 +44,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useClientStore } from '@/app/stores/client-store';
-import { addNewRecordId } from '@/lib/utils';
+import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
@@ -52,7 +52,6 @@ import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { AuditInformation } from '@/components/audit-information';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
-import { scrollToFirstError } from '@/lib/utils/scroll-to-error';
 
 interface FormProps {
   id?: number;
