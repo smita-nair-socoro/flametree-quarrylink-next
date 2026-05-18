@@ -293,4 +293,7 @@ export const BADGE_COLORS: Record<string, string> = {
   FAIL: 'bg-red-100 text-red-800 border-red-900',
   CONFIRMED: 'bg-yellow-100 text-yellow-800 border-yellow-900',
   GENERIC: 'bg-pink-600 border-pink-100, text-pink-100',
+  SYNCED: 'bg-green-100 text-green-800 border-green-900',
+  'READY FOR COLLECTION': 'bg-green-100 text-green-800 border-green-900',
+  READY_FOR_COLLECTION: 'bg-green-100 text-green-800 border-green-900',
 };

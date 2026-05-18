@@ -11,6 +11,7 @@ import { TableBadges } from '@/components/table-badges';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
+import { InvoiceTableActions } from './invoice-table-actions';
 
 export const invoicesColumns: ColumnDef<Invoice>[] = [
   {
@@ -98,8 +99,9 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     header: () => {
       return <div></div>;
     },
-    cell: () => {
-      return <div></div>;
+    cell: ({ row }) => {
+      const invoice = row.original;
+      return <InvoiceTableActions invoiceId={invoice.id} />;
     },
   },
 ];
