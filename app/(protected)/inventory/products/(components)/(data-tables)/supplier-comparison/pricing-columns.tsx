@@ -109,8 +109,15 @@ export function createPricingColumns(
             ) : (
               <div className="w-7 shrink-0" />
             )}
-            <div>
-              <p className="font-medium text-[#101828]">{name}</p>
+            <div className="min-w-0">
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <p className="font-medium text-[#101828] truncate block max-w-[160px]">{name}</p>
+                </TooltipTrigger>
+                <TooltipContent variant="white">
+                  <p>{name}</p>
+                </TooltipContent>
+              </Tooltip>
               <p className="text-xs text-muted-foreground">{unit}</p>
             </div>
           </div>
