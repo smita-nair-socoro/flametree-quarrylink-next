@@ -66,12 +66,12 @@ export const createTeamMemberColumns = (
     id: 'role',
     accessorFn: (row) => {
       const groups = row.groups;
-      if (!groups || !Array.isArray(groups) || groups.length === 0) return 3;
+      if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
       const g = groups.join(',').toLowerCase();
-      if (g.includes('super_admin') || g.includes('superadmin')) return 2;
-      if (g.includes('driver')) return 1;
-      if (g.includes('admin')) return 0;
-      return 3;
+      if (g.includes('super_admin') || g.includes('superadmin')) return 'Super Admin';
+      if (g.includes('driver')) return 'Driver';
+      if (g.includes('admin')) return 'Admin';
+      return 'User';
     },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Role" />;
