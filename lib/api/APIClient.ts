@@ -59,7 +59,7 @@ import {
   ConflictCheckRequest,
   ConflictCheckResponse,
 } from '../types/docket';
-import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
+import { JobDTO, JobDetails, JobItem, Invoice, CompleteJobResponse } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
@@ -1067,6 +1067,8 @@ export const APIClient = {
       }),
     settle: (id: number) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
+    complete: (id: number) =>
+      appClient.Put<CompleteJobResponse>(`/socoro/quarrylink/api/job/${id}/complete`),
   },
 
   drivers: {
