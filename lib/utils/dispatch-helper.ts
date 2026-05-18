@@ -244,3 +244,30 @@ export function matchesUnassignedSearch(
   const customer = (docket.customerName || '').toLowerCase();
   return num.includes(q) || customer.includes(q);
 }
+
+export const calculateConvertedQty = (
+  quantity: number,
+  fromUom: string,
+  toUom: string,
+  density: number = 1,
+) => {
+  if (fromUom === toUom) return quantity;
+
+  let quantityInTn = quantity;
+  const normalizedFrom = fromUom.toLowerCase();
+  const normalizedTo = toUom.toLowerCase();
+
+  if (normalizedFrom === 'm3' || normalizedFrom === 'bulka') {
+    quantityInTn = quantity * density;
+  } else if (normalizedFrom === '20kg' || normalizedFrom === 'kg_20') {
+    quantityInTn = quantity / 50;
+  }
+
+  if (normalizedTo === 'm3' || normalizedTo === 'bulka') {
+    return quantityInTn / density;
+  } else if (normalizedTo === '20kg' || normalizedTo === 'kg_20') {
+    return quantityInTn * 50;
+  }
+
+  return quantityInTn;
+};

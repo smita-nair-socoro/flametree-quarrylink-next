@@ -17,6 +17,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import type { Address } from '@/lib/types/address';
 import { toast } from 'sonner';
+import { calculateConvertedQty } from '@/lib/utils/dispatch-helper';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -81,19 +82,20 @@ export function DocketDetailsPanel({
   useEffect(() => {
     setPlannedLoadSizeValue(
       fullDocket?.plannedLoadSize?.toString() ||
-        fullDocket?.actualLoadSize?.toString() ||
-        '0',
+      fullDocket?.actualLoadSize?.toString() ||
+      '0',
     );
     setActualLoadSizeValue(
       fullDocket?.actualLoadSize?.toString() ||
-        fullDocket?.plannedLoadSize?.toString() ||
-        '0',
+      fullDocket?.plannedLoadSize?.toString() ||
+      '0',
     );
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
 
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
 
+    const truckQty = calculateConvertedQty(fullDocket.plannedLoadSize || 0, fullDocket.jobItem?.productSellUom || 'TN', fullDocket.jobItem?.truckSellUom || 'TN', fullDocket.jobItem?.product?.densityTonnagePerM3 || 1);
     let payload: { plannedLoadSize?: number; actualLoadSize?: number } = {};
 
     if (
@@ -242,8 +244,8 @@ export function DocketDetailsPanel({
             )}
 
             {!isDocketFinalised ||
-            (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-              docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1">
                   <div className="text-xs text-gray-500 mb-1">
@@ -403,10 +405,10 @@ export function DocketDetailsPanel({
               <span className="text-[13px] font-bold text-[#0F172A]">
                 {docket.jobItem.totalQuantityRequired > 0
                   ? Math.round(
-                      (docket.jobItem.deliveredQuantity /
-                        docket.jobItem.totalQuantityRequired) *
-                        100,
-                    )
+                    (docket.jobItem.deliveredQuantity /
+                      docket.jobItem.totalQuantityRequired) *
+                    100,
+                  )
                   : 0}
                 %
               </span>
@@ -418,8 +420,8 @@ export function DocketDetailsPanel({
                   width: `${Math.min(
                     docket.jobItem.totalQuantityRequired > 0
                       ? (docket.jobItem.deliveredQuantity /
-                          docket.jobItem.totalQuantityRequired) *
-                          100
+                        docket.jobItem.totalQuantityRequired) *
+                      100
                       : 0,
                     100,
                   )}%`,
@@ -445,13 +447,13 @@ export function DocketDetailsPanel({
             </div>
             {(!docket.jobItem ||
               docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-              <div className="flex flex-col gap-0 text-sm font-medium">
-                <div className=" text-gray-500">Delivery</div>
-                <div className=" text-gray-900">
-                  {dispatchAddressLabel(docket.deliveryAddress)}
+                <div className="flex flex-col gap-0 text-sm font-medium">
+                  <div className=" text-gray-500">Delivery</div>
+                  <div className=" text-gray-900">
+                    {dispatchAddressLabel(docket.deliveryAddress)}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
           </div>
         </div>
 

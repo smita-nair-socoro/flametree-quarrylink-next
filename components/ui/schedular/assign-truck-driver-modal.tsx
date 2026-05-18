@@ -143,16 +143,14 @@ export function AssignTruckDriverModal({
       <DialogContent className="sm:max-w-[425px] md:max-w-[500px] p-0 gap-0 overflow-hidden">
         {adjustingTruck && docket ? (
           <>
-            <DialogHeader className="px-6 border-b border-gray-100 flex flex-row items-center justify-between">
+            <DialogHeader className="px-6">
               <DialogTitle className="text-xl font-bold text-gray-900">
                 Adjust load to use this truck
               </DialogTitle>
             </DialogHeader>
             <div className="p-6 flex flex-col gap-4 overflow-y-auto custom-scrollbar max-h-[75vh]">
               <p className="text-sm text-gray-500">
-                Reduce the load (same unit as on the docket: tonnes, m³, or bulk
-                bags) so it fits this truck's body and payload limits, then we
-                complete the assignment with the driver you selected.
+                This load does not fit the truck's body volume and/or payload limit. Enter a lower amount in the same unit as the docket to continue.
               </p>
 
               <div className="flex items-center gap-3">
