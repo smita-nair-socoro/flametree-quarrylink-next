@@ -585,7 +585,7 @@ export default function DocketForm({
                 {selectedDocket?.loadSize != null && (
                   <>
                     {' '}
-                    · {selectedDocket.loadSize}{' '}
+                    · {formatNumberThousandSeparator(selectedDocket.loadSize)}{' '}
                     {selectedDocket.jobItem?.productSellUom}
                   </>
                 )}
@@ -899,7 +899,7 @@ export default function DocketForm({
                           Current docket:
                         </span>
                         <span className="text-sm font-medium">
-                          {docketForm.watch('plannedLoadSize')}{' '}
+                          {formatNumberThousandSeparator(docketForm.watch('plannedLoadSize'))}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
@@ -912,7 +912,7 @@ export default function DocketForm({
                           Total Remaining Product Availability in Job
                         </span>
                         <span className="text-sm font-medium">
-                          {selectedJobLineItemDetails().remainingQty}{' '}
+                          {formatNumberThousandSeparator(selectedJobLineItemDetails().remainingQty)}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
                             : selectedJobLineItemDetails().productUom === 'm3'
