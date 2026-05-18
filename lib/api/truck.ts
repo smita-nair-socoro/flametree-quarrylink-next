@@ -1,7 +1,12 @@
-import { keepPreviousData, queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  queryOptions,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { TruckKeys } from './keys';
-import type { TruckDTO, TruckStatistics } from '../types/truck';
+import type { TruckDTO } from '../types/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 
 export const TrucksListQueryOptions = () =>
@@ -76,15 +81,22 @@ export const useDeleteTruck = () => {
 export const useUnassignDriverFromTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverId: number } }) =>
-      APIClient.trucks.unassignDriver(truckId, data),
+    mutationFn: ({
+      truckId,
+      data,
+    }: {
+      truckId: number;
+      data: { version: number; driverId: number };
+    }) => APIClient.trucks.unassignDriver(truckId, data),
     onSuccess: async (_data, { truckId }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.drivers(truckId) });
       try {
         const updated = await APIClient.trucks.getById(truckId);
         useTruckStore.getState().setSelectedTruck(updated);
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
     },
   });
 };
@@ -92,8 +104,13 @@ export const useUnassignDriverFromTruck = () => {
 export const useAssignDriversToTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ truckId, data }: { truckId: number; data: { version: number; driverIds: number[] } }) =>
-      APIClient.trucks.assignDrivers(truckId, data),
+    mutationFn: ({
+      truckId,
+      data,
+    }: {
+      truckId: number;
+      data: { version: number; driverIds: number[] };
+    }) => APIClient.trucks.assignDrivers(truckId, data),
     onSuccess: (data, { truckId }) => {
       queryClient.invalidateQueries({ queryKey: TruckKeys.detail(truckId) });
       queryClient.invalidateQueries({ queryKey: TruckKeys.drivers(truckId) });
@@ -112,12 +129,17 @@ export const useDeactivateTruck = () => {
       try {
         const updated = await APIClient.trucks.getById(id);
         useTruckStore.getState().setSelectedTruck(updated);
-      } catch { /* non-critical */ }
+      } catch {
+        /* non-critical */
+      }
     },
   });
 };
 
-export const TruckInspectionsQueryOptions = (truckId: number, params?: { page?: number; size?: number; sort?: string[] }) =>
+export const TruckInspectionsQueryOptions = (
+  truckId: number,
+  params?: { page?: number; size?: number; sort?: string[] },
+) =>
   queryOptions({
     queryKey: TruckKeys.inspections(truckId),
     queryFn: () => APIClient.trucks.getInspections(truckId, params),
