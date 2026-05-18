@@ -174,13 +174,7 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 											%
 										</span>
 										<span className="text-lg font-medium ml-5">
-											{Number(pricingBreakdown.grossProfit) >= 0
-												? ''
-												: '-'}
-											$
-											{Math.abs(
-												Number(pricingBreakdown.grossProfit)
-											).toFixed(2)}
+											{pricingBreakdown.grossProfit}
 										</span>
 									</div>
 								</div>
