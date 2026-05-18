@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
-import type { JobDTO, JobItem } from '../types/job';
+import type { JobDTO, JobItem, CompleteJobResponse } from '../types/job';
 import { useJobStore } from '@/app/stores/job-store';
 
 /**
@@ -177,6 +177,21 @@ export const useResumeJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
       useJobStore.getState().setSelectedJob(data);
+    },
+  });
+};
+
+export const useCompleteJob = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: number) => APIClient.jobs.complete(id),
+
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.job.id) });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      useJobStore.getState().setSelectedJob(data.job);
     },
   });
 };
