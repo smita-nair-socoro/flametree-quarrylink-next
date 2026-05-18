@@ -38,7 +38,6 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
         )}
       >
         <span className="text-lg font-semibold">Line Items</span>
-        {/* will be changed to a formDialog later in another task */}
         <FormDialog
           dialogTitle="Add Product"
           buttonTitle="Add New Product"
