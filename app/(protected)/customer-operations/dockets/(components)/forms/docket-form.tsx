@@ -187,24 +187,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -396,11 +396,11 @@ export default function DocketForm({
             checkWindowTimeConflict: true,
             deliveryCollectionDate: values.deliveryCollectionDate
               ? appendUtcSuffix(
-                  format(
-                    values.deliveryCollectionDate,
-                    "yyyy-MM-dd'T'00:00:00.000",
-                  ),
-                )
+                format(
+                  values.deliveryCollectionDate,
+                  "yyyy-MM-dd'T'00:00:00.000",
+                ),
+              )
               : undefined,
             deliveryCollectionStartTime: startDateTime
               ? appendUtcSuffix(startDateTime)
@@ -449,9 +449,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -557,18 +557,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -587,9 +587,9 @@ export default function DocketForm({
         plannedLoadSize: values.plannedLoadSize,
         actualLoadSize:
           isEditing &&
-          (currentStatus === DOCKET_STATUS.UNASSIGNED ||
-            currentStatus === DOCKET_STATUS.ASSIGNED ||
-            currentStatus === DOCKET_STATUS.PENDING)
+            (currentStatus === DOCKET_STATUS.UNASSIGNED ||
+              currentStatus === DOCKET_STATUS.ASSIGNED ||
+              currentStatus === DOCKET_STATUS.PENDING)
             ? values.plannedLoadSize
             : values.actualLoadSize,
         grossTruckWeight: 100,
@@ -673,16 +673,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -934,7 +934,7 @@ export default function DocketForm({
                                       {...field}
                                       onChange={(e) => {
                                         const maxLimit = details.remainingQty;
-                                        let val = parseFloat(e.target.value);
+                                        const val = parseFloat(e.target.value);
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
                                         } else {
@@ -966,15 +966,6 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
-                                      onChange={(e) => {
-                                        const maxLimit = details.remainingQty;
-                                        let val = parseFloat(e.target.value);
-                                        if (!isNaN(val) && val > maxLimit) {
-                                          field.onChange(maxLimit);
-                                        } else {
-                                          field.onChange(e);
-                                        }
-                                      }}
                                       value={field.value ?? ''}
                                       isNumber
                                       disabled={!canActualLoadSize}
@@ -1027,12 +1018,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1390,15 +1381,14 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.driverChecklist
+                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.driverChecklist
-                                        .checklistStatus === 'FAIL'
+                                    .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                              }`}
+                                }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1424,15 +1414,14 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.truckChecklist
+                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.truckChecklist
-                                        .checklistStatus === 'FAIL'
+                                    .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                              }`}
+                                }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}

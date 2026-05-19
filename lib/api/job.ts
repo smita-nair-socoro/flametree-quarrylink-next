@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { JobKeys } from './keys';
-import type { JobDTO, JobItem, CompleteJobResponse, SettleJobResponse } from '../types/job';
+import type { JobDTO, JobItem, SettleJobResponse } from '../types/job';
 import { useJobStore } from '@/app/stores/job-store';
 
 /**
@@ -137,7 +137,11 @@ export const useSettleJob = () => {
       const response = await APIClient.jobs.settle(id);
       if (!response.job) {
         const error = new Error('Settlement blocked') as Error & {
-          response: { status: number; statusText: string; data: SettleJobResponse };
+          response: {
+            status: number;
+            statusText: string;
+            data: SettleJobResponse;
+          };
         };
         error.response = { status: 200, statusText: 'OK', data: response };
         throw error;
