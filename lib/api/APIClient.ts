@@ -432,7 +432,6 @@ export async function HttpClient<T = unknown>(
   }
 }
 
-
 const appClient = {
   Get: <T>(endpoint: string, config: HttpConfig = {}) =>
     HttpClient<T>(endpoint, {
@@ -734,7 +733,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/quote`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           status: params?.status,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
@@ -871,7 +870,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -879,7 +878,7 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (jobId: number) => {
+    getByJobId: async (jobId: number, params?: { page?: number; pageSize?: number }) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -889,8 +888,8 @@ export const APIClient = {
           }
       >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
         queryString: {
-          page: '0',
-          size: '1000',
+          page: params?.page?.toString() || '0',
+          size: params?.pageSize?.toString() || '1000',
           sort: 'id',
         },
       });
@@ -1018,7 +1017,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/job`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,

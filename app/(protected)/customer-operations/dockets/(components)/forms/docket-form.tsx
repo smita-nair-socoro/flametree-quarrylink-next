@@ -932,6 +932,15 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      onChange={(e) => {
+                                        const maxLimit = details.remainingQty;
+                                        let val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val > maxLimit) {
+                                          field.onChange(maxLimit);
+                                        } else {
+                                          field.onChange(e);
+                                        }
+                                      }}
                                       value={field.value ?? ''}
                                       isNumber
                                       disabled={
@@ -957,6 +966,15 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      onChange={(e) => {
+                                        const maxLimit = details.remainingQty;
+                                        let val = parseFloat(e.target.value);
+                                        if (!isNaN(val) && val > maxLimit) {
+                                          field.onChange(maxLimit);
+                                        } else {
+                                          field.onChange(e);
+                                        }
+                                      }}
                                       value={field.value ?? ''}
                                       isNumber
                                       disabled={!canActualLoadSize}
