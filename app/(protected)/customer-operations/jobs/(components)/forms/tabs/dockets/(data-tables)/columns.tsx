@@ -12,6 +12,7 @@ import { TableBadges } from '@/components/table-badges';
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const docketsColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -75,28 +76,25 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'loadSize',
     accessorFn: (row) =>
-      row.plannedLoadSize ?? row.actualLoadSize ?? row.loadSize,
+      row.actualLoadSize ?? row.plannedLoadSize,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      let loadSize: number = 0;
-      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
-        loadSize = row.original.actualLoadSize || 0;
-      } else {
-        loadSize = row.original.plannedLoadSize || 0;
-      }
+      const loadSize =
+        row.original.actualLoadSize ?? row.original.plannedLoadSize ?? 0;
       const productSellUom = row.original.jobItem.productSellUom;
+      const formattedQty = formatNumberThousandSeparator(loadSize);
       const formattedLoadSize =
         productSellUom === 'TN'
-          ? `${loadSize} TN`
+          ? `${formattedQty} TN`
           : productSellUom === 'M3'
-            ? `${loadSize} m³`
+            ? `${formattedQty} m³`
             : productSellUom === 'KG_20'
-              ? `${loadSize} x 20kg`
+              ? `${formattedQty} x 20kg`
               : productSellUom === 'BULKA'
-                ? `${loadSize} Bulka`
-                : loadSize;
+                ? `${formattedQty} Bulka`
+                : formattedQty;
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>

@@ -37,7 +37,7 @@ export enum TRUCK_TYPE {
 
 export enum TRUCK_BUSINESS_TYPE {
   INTERNAL = 'INTERNAL',
-  EXTERNAL = 'EXTERNAL',
+  EXTERNAL = 'SUBCONTRACTOR',
 }
 
 export const TRUCK_TYPE_LABELS: Record<string, string> = {

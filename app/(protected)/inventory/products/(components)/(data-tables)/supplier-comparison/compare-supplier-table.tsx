@@ -255,7 +255,7 @@ export function CompareSupplierTable({
   ]);
 
   return (
-    <div className="flex flex-col gap-1 overflow-x-hidden">
+    <div className="flex flex-col gap-1 overflow-x-hidden pb-6">
       <div className="px-5">
         {productName && (
           <p className="text-sm font-medium text-[#101828]">{productName}</p>

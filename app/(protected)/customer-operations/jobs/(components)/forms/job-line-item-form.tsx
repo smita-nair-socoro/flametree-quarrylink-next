@@ -1013,8 +1013,7 @@ export default function JobLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {formatDollars(pricingBreakdown.grossProfit)}
+                          {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

@@ -10,6 +10,7 @@ import {
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { centsToDollars } from '@/lib/utils/currency';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -38,16 +39,18 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const productName = row.original.jobItem.product.productName;
-      return <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
-            {productName}
-          </div>
-        </TooltipTrigger>
-        <TooltipContent variant="white">
-          <p>{productName}</p>
-        </TooltipContent>
-      </Tooltip>;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block w-[30px] sm:w-[40px] md:w-[50px] lg:w-[60px] xl:w-[70px]">
+              {productName}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{productName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
     meta: 'Product',
   },
@@ -76,16 +79,17 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
+      const formattedQty = formatNumberThousandSeparator(productSellQty);
       const formattedLoadSize =
         productSellUom === 'TN'
-          ? `${productSellQty} TN`
+          ? `${formattedQty} TN`
           : productSellUom === 'M3'
-            ? `${productSellQty} m³`
+            ? `${formattedQty} m³`
             : productSellUom === 'KG_20'
-              ? `${productSellQty} x 20kg`
+              ? `${formattedQty} x 20kg`
               : productSellUom === 'BULKA'
-                ? `${productSellQty} Bulka`
-                : productSellQty || 'N/A';
+                ? `${formattedQty} Bulka`
+                : formattedQty || 'N/A';
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>
@@ -108,11 +112,14 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
     accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title="Total Invoice Price" />
+        <TableClientSortableHeader
+          column={column}
+          title="Total Invoice Price"
+        />
       );
     },
     cell: ({ row }) => {
-      const formatted = centsToDollars(row.original.totalInvoiceAmount + row.original.totalDeliveryAmount);
+      const formatted = centsToDollars(row.original.totalInvoiceAmount);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

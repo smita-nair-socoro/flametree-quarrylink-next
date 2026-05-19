@@ -16,11 +16,26 @@ function Input({
   suffix,
   onChange,
   onFocus,
+  onBlur,
   onMouseUp,
+  value,
   inputMode,
   pattern,
   ...props
 }: ExtendedInputProps) {
+  const [isFocused, setIsFocused] = React.useState(false);
+
+  const displayValue = React.useMemo(() => {
+    if (!isNumber || isFocused || value === '' || value === undefined || value === null) {
+      return value;
+    }
+    const num = Number(value);
+    if (isNaN(num)) return value;
+    return allowDecimal
+      ? num.toLocaleString('en-AU', { maximumFractionDigits: 10 })
+      : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
+  }, [isNumber, isFocused, value, allowDecimal]);
+
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (isNumber) {
@@ -77,12 +92,22 @@ function Input({
 
   const handleFocus = React.useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(true);
       if (isNumber) {
-        e.currentTarget.select();
+        const input = e.currentTarget;
+        setTimeout(() => input.select(), 0);
       }
       onFocus?.(e);
     },
     [isNumber, onFocus]
+  );
+
+  const handleBlur = React.useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      setIsFocused(false);
+      onBlur?.(e);
+    },
+    [onBlur]
   );
 
   const handleMouseUp = React.useCallback(
@@ -107,8 +132,10 @@ function Input({
         suffix && 'pr-12',
         className
       )}
+      value={displayValue}
       onChange={handleChange}
       onFocus={handleFocus}
+      onBlur={handleBlur}
       onMouseUp={handleMouseUp}
       // Provide helpful defaults for numeric entry without overriding explicit props
       inputMode={isNumber ? inputMode ?? 'decimal' : inputMode}

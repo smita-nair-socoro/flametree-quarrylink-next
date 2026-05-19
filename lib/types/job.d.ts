@@ -181,3 +181,17 @@ export interface Invoice {
   dueDate: string;
   status: INVOICE_STATUS;
 }
+
+export interface InvoiceDetails {
+  id: number;
+  invoiceNumber: string;
+  customerName: string;
+  totalAmount: number;
+  invoiceDate: string;
+  dueDate: string;
+  status: INVOICE_STATUS;
+  externalStatus: string;
+  externalInvoiceId: string;
+  failureReason: string;
+  dockets: DocketDTO[];
+}

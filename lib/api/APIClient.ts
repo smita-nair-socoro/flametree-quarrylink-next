@@ -59,7 +59,15 @@ import {
   ConflictCheckRequest,
   ConflictCheckResponse,
 } from '../types/docket';
-import { JobDTO, JobDetails, JobItem, Invoice, CompleteJobResponse, SettleJobResponse } from '../types/job';
+import {
+  JobDTO,
+  JobDetails,
+  JobItem,
+  Invoice,
+  CompleteJobResponse,
+  SettleJobResponse,
+  InvoiceDetails,
+} from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
@@ -1066,9 +1074,13 @@ export const APIClient = {
         body: { id },
       }),
     settle: (id: number) =>
-      appClient.Put<SettleJobResponse>(`/socoro/quarrylink/api/job/${id}/settle`),
+      appClient.Put<SettleJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/settle`,
+      ),
     complete: (id: number) =>
-      appClient.Put<CompleteJobResponse>(`/socoro/quarrylink/api/job/${id}/complete`),
+      appClient.Put<CompleteJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/complete`,
+      ),
   },
 
   drivers: {
@@ -1143,7 +1155,9 @@ export const APIClient = {
         },
       ),
     statistics: () =>
-      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
+      appClient.Get<DriverStatistics>(
+        `/socoro/quarrylink/api/driver/statistics`,
+      ),
   },
 
   trucks: {
@@ -1313,7 +1327,9 @@ export const APIClient = {
     getAll: (jobId: number) =>
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
-      appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
+      appClient.Get<InvoiceDetails>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}`,
+      ),
     create: (data: {
       mode: 'INDIVIDUAL' | 'BULK';
       docketIds: number[];
