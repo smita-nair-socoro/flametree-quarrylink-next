@@ -12,6 +12,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 import { InvoiceTableActions } from './invoice-table-actions';
+import { HelpCircle } from 'lucide-react';
 
 export const invoicesColumns: ColumnDef<Invoice>[] = [
   {
@@ -42,7 +43,17 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     id: 'amount',
     accessorFn: (row) => row.amount,
     header: () => {
-      return <div>Amount</div>;
+      return <div className="flex items-center gap-2">
+        Amount
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>(ex-GST)</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>;
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.amount.toString());
@@ -52,16 +63,11 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
         currency: 'AUD',
       }).format(dollars);
       return (
-        <Tooltip delayDuration={300}>
-          <TooltipTrigger asChild>
-            <div className="py-2 font-medium w-36 max-w-36 truncate">
-              {formatted}
-            </div>
-          </TooltipTrigger>
-          <TooltipContent variant="white">
-            <p>{formatted}</p>
-          </TooltipContent>
-        </Tooltip>
+        <div className="flex items-center gap-1">
+          <span className="py-2 font-medium w-[100px] truncate">
+            {formatted}
+          </span>
+        </div >
       );
     },
     meta: 'Amount',

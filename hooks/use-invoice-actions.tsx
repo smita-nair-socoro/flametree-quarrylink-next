@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { HelpCircle } from 'lucide-react';
 
 export function useInvoiceActions(invoiceId: number | undefined) {
   const [isViewDetailsOpen, setIsViewDetailsOpen] = React.useState(false);
@@ -71,7 +73,17 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Total Amount</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-500">Total Amount</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>(ex-GST)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <p className="font-semibold text-gray-900">
                       ${centsToDollars(invoice.totalAmount)}
                     </p>
@@ -95,12 +107,6 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                   <div className="space-y-1">
                     <p className="text-sm text-gray-500">Xero Status</p>
                     <TableBadges names={[invoice.status]} visibleCount={1} />
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-500">Xero Invoice ID</p>
-                    <p className="font-semibold text-gray-900">
-                      {invoice.externalInvoiceId || '-'}
-                    </p>
                   </div>
                 </div>
 
@@ -140,8 +146,8 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                             <td className="px-4 py-3 text-gray-600">
                               {formatNumberThousandSeparator(
                                 docket.actualLoadSize ||
-                                  docket.plannedLoadSize ||
-                                  0,
+                                docket.plannedLoadSize ||
+                                0,
                               )}{' '}
                               {docket.jobItem?.productSellUom === 'TN'
                                 ? 'TN'
@@ -156,9 +162,9 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                             <td className="px-4 py-3 text-gray-600">
                               {docket.deliveryCollectionDate
                                 ? formatDate(
-                                    docket.deliveryCollectionDate,
-                                    'MMM dd, yyyy',
-                                  )
+                                  docket.deliveryCollectionDate,
+                                  'MMM dd, yyyy',
+                                )
                                 : '-'}
                             </td>
                           </tr>

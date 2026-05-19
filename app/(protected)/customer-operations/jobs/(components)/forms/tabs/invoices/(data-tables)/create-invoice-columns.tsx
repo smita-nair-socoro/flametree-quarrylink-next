@@ -11,6 +11,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { centsToDollars } from '@/lib/utils/currency';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { HelpCircle } from 'lucide-react';
 
 export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -110,12 +111,19 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'totalInvoice',
     accessorFn: (row) => row.totalInvoiceAmount,
-    header: ({ column }) => {
+    header: () => {
       return (
-        <TableClientSortableHeader
-          column={column}
-          title="Total Invoice Price"
-        />
+        <div className="flex items-center gap-2">
+          Total Invoice Price
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>(ex-GST)</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
       );
     },
     cell: ({ row }) => {
