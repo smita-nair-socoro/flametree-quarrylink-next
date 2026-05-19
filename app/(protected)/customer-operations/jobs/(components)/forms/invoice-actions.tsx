@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { DocketDTO } from '@/lib/types/docket';
 import { Switch } from '@/components/ui/switch';
-import { FileText, ShoppingCart, ChevronDown } from 'lucide-react';
+import { FileText, ShoppingCart, ChevronDown, HelpCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useCreateInvoice } from '@/lib/api/invoices';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface InvoicesBulkActionsProps {
   selectedDockets: DocketDTO[];
@@ -93,7 +94,17 @@ export function InvoiceActions({
               {hasDeliveryCost && includeDeliveryPrices ? (
                 <>
                   <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-gray-700">Total Product Amount:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Total Product Amount</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>(ex-GST)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <span className="font-bold v text-lg">
                       $
                       {centsToDollars(
@@ -105,9 +116,18 @@ export function InvoiceActions({
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-gray-700">
-                      Total Delivery Amount:
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Total Delivery Amount</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>(ex-GST)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
                     <span className="font-bold text-[#101828] text-lg">
                       $
                       {centsToDollars(
@@ -121,7 +141,17 @@ export function InvoiceActions({
                 </>
               ) : (
                 <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-gray-700">Total Amount:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Total Amount</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>(ex-GST)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <span className="font-bold text-[#101828] text-lg">
                     $
                     {centsToDollars(

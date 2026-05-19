@@ -15,10 +15,10 @@ import {
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
 
-export const DocketsListQueryOptions = () =>
+export const DocketsListQueryOptions = (params?: { page?: number; pageSize?: number }) =>
   queryOptions({
-    queryKey: DocketKeys.list(),
-    queryFn: () => APIClient.dockets.getAll(),
+    queryKey: [...DocketKeys.list(), params],
+    queryFn: () => APIClient.dockets.getAll(params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -42,10 +42,10 @@ export const useCreateDocket = () => {
   });
 };
 
-export const DocketsByJobIdQueryOptions = (jobId: number) =>
+export const DocketsByJobIdQueryOptions = (jobId: number, params?: { page?: number; pageSize?: number }) =>
   queryOptions({
-    queryKey: DocketKeys.byJobId(jobId),
-    queryFn: () => APIClient.dockets.getByJobId(jobId),
+    queryKey: [...DocketKeys.byJobId(jobId), params],
+    queryFn: () => APIClient.dockets.getByJobId(jobId, params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
