@@ -45,6 +45,7 @@ const getCustomerDisplayName = (customerData?: CustomerDTO | null) =>
   [customerData?.contactPersonFirstName, customerData?.contactPersonLastName]
     .filter(Boolean)
     .join(' ') ||
+  customerData?.individualContactName ||
   'Unknown Customer';
 
 const getCustomerEmail = (customerData?: CustomerDTO | null) =>
@@ -481,9 +482,10 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
       notifySuccess('Customer archived successfully');
       const current = useCustomerStore.getState().selectedCustomer;
       if (current) {
-        useCustomerStore
-          .getState()
-          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ARCHIVED });
+        useCustomerStore.getState().setSelectedCustomer({
+          ...current,
+          customerStatus: CUSTOMER_STATUS.ARCHIVED,
+        });
       }
       setActiveDialog(null);
       setSelectedAction(null);
@@ -523,9 +525,10 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
       notifySuccess('Customer unarchived successfully');
       const current = useCustomerStore.getState().selectedCustomer;
       if (current) {
-        useCustomerStore
-          .getState()
-          .setSelectedCustomer({ ...current, customerStatus: CUSTOMER_STATUS.ACTIVE });
+        useCustomerStore.getState().setSelectedCustomer({
+          ...current,
+          customerStatus: CUSTOMER_STATUS.ACTIVE,
+        });
       }
       setActiveDialog(null);
       setSelectedAction(null);
