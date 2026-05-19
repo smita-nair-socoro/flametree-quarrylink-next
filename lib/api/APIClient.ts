@@ -432,6 +432,7 @@ export async function HttpClient<T = unknown>(
   }
 }
 
+
 const appClient = {
   Get: <T>(endpoint: string, config: HttpConfig = {}) =>
     HttpClient<T>(endpoint, {

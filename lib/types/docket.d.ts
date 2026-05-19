@@ -102,6 +102,7 @@ export interface DocketDTO {
   preStartRequired?: boolean;
 
   jobItemId: number;
+  invoiceId?: number;
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
   resumeReason?: string;

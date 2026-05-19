@@ -51,15 +51,18 @@ import {
   AssignDocketDescription,
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
+import { InvoiceDocketContent } from '@/hooks/docket/invoice-docket-content';
 import { useDocketStore } from '@/app/stores/docket-store';
 import {
   useUpdateDocketStatus,
   useAssignDocket,
   useUnassignDocket,
 } from '@/lib/api/docket';
+import { useCreateInvoice } from '@/lib/api/invoices';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { useInvoiceActions } from '@/hooks/use-invoice-actions';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -89,11 +92,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
@@ -121,11 +124,18 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
+  const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(false);
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
+  const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
+  const createInvoiceMutation = useCreateInvoice({
+    onSuccess: () => {
+      setActiveDialog(null);
+    },
+  });
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
@@ -439,6 +449,28 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleCreateInvoice = async () => {
+    if (!docketData?.id) return;
+    try {
+      await createInvoiceMutation.mutateAsync({
+        mode: 'INDIVIDUAL',
+        docketIds: [docketData.id],
+        inclDeliveryCost:
+          docketData.jobItem?.jobItemType !== 'COLLECTION'
+            ? includeDeliveryPrices
+            : false,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: DOCKET_STATUS.INVOICED,
+      });
+      notifySuccess('Invoice created successfully');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
     if (stopReason === 'other') return Boolean(stopNotes.trim());
@@ -606,6 +638,21 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isCancelFormValid,
         cancelText: 'Keep Docket',
       },
+      invoice: {
+        title: 'Create Individual Invoices',
+        description: 'Create a separate invoice for this docket?',
+        content: (
+          <InvoiceDocketContent
+            docket={docketData}
+            includeDeliveryPrices={includeDeliveryPrices}
+            setIncludeDeliveryPrices={setIncludeDeliveryPrices}
+          />
+        ),
+        confirmText: 'Create Invoice',
+        confirmCustomColor: '#8E51FF',
+        confirmDisabled: createInvoiceMutation.isPending,
+        cancelText: 'Cancel',
+      },
     }),
     [
       docketData,
@@ -629,6 +676,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       assignHauler,
       assignTruck,
       assignDriver,
+      includeDeliveryPrices,
+      createInvoiceMutation.isPending,
     ],
   );
 
@@ -663,14 +712,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
     },
-    invoice: () => {
-      console.log('Invoice confirmed:', docketData);
-    },
+    invoice: createDialogAction('invoice'),
     cashReceipts: () => {
       console.log('Cash receipts confirmed:', docketData);
     },
     viewInvoice: () => {
-      console.log('View invoice confirmed:', docketData);
+      invoiceActions.viewDetails();
     },
     assign: createDialogAction('assign'),
 
@@ -743,13 +790,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               console.log('Cash sale confirmed:', docketData);
               break;
             case 'invoice':
-              console.log('Invoice confirmed:', docketData);
+              await handleCreateInvoice();
               break;
             case 'cashReceipts':
               console.log('Cash receipts confirmed:', docketData);
-              break;
-            case 'viewInvoice':
-              console.log('View invoice confirmed:', docketData);
               break;
             case 'assign':
               console.log('Assign docket confirmed:', docketData);
@@ -802,7 +846,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
 
   return {
     actions,
-    confirmDialogs,
+    confirmDialogs: [...confirmDialogs, <InvoiceDetailsDialog key="invoiceDetails" />],
     viewDialog,
     isDialogOpen: activeDialog !== null,
   };
