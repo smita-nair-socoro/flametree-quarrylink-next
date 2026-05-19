@@ -64,6 +64,8 @@ import {
   JobDetails,
   JobItem,
   Invoice,
+  CompleteJobResponse,
+  SettleJobResponse,
   InvoiceDetails,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
@@ -1072,7 +1074,13 @@ export const APIClient = {
         body: { id },
       }),
     settle: (id: number) =>
-      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
+      appClient.Put<SettleJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/settle`,
+      ),
+    complete: (id: number) =>
+      appClient.Put<CompleteJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/complete`,
+      ),
   },
 
   drivers: {

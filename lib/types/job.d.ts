@@ -160,6 +160,19 @@ export interface JobDetails extends JobDTO {
   updatedAt?: string;
 }
 
+export interface SettleJobResponse {
+  job?: JobDTO;
+  unfinalisedDocketsCount: number;
+  unfinalisedDocketsAmount: number;
+}
+
+export interface CompleteJobResponse {
+  job: JobDTO;
+  unfinalisedDocketsCount: number;
+  unfinalisedDocketsAmount: number;
+  remainingQuantityPresent: boolean;
+}
+
 export interface Invoice {
   id: number;
   invoiceNumber: string;

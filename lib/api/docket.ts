@@ -5,14 +5,15 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { DocketKeys, SchedulerKeys } from './keys';
+import { DocketKeys, JobKeys, SchedulerKeys } from './keys';
 import {
   DocketAssignRequest,
   DocketDTO,
   DocketOperationalUpdateRequest,
   ConflictCheckRequest,
 } from '../types/docket';
-import type { DOCKET_STATUS } from '../types/docket-enums';
+import { DOCKET_STATUS } from '../types/docket-enums';
+import { useJobStore } from '@/app/stores/job-store';
 
 export const DocketsListQueryOptions = (params?: { page?: number; pageSize?: number }) =>
   queryOptions({
@@ -26,9 +27,17 @@ export const useCreateDocket = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: Partial<DocketDTO>) => APIClient.dockets.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      if (data.jobId) {
+        queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+        try {
+          const updatedJob = await APIClient.jobs.getJobItems(data.jobId);
+          useJobStore.getState().setSelectedJob(updatedJob);
+        } catch {
+          useJobStore.getState().setSelectedJob(null);
+        }
+      }
     },
   });
 };
@@ -144,10 +153,25 @@ export const useUpdateDocketStatus = () => {
       return APIClient.dockets.updateStatus(docketId, formData);
     },
 
-    onSuccess: (_data, { docketId }) => {
+    onSuccess: async (_data, { docketId, docketStatus }) => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.detail(docketId) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      if (
+        _data.jobId &&
+        (docketStatus === DOCKET_STATUS.DELIVERED ||
+          docketStatus === DOCKET_STATUS.COLLECTED ||
+          docketStatus === DOCKET_STATUS.VOIDED ||
+          docketStatus === DOCKET_STATUS.CANCELLED)
+      ) {
+        queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+        try {
+          const updatedJob = await APIClient.jobs.getJobItems(_data.jobId);
+          useJobStore.getState().setSelectedJob(updatedJob);
+        } catch {
+          useJobStore.getState().setSelectedJob(null);
+        }
+      }
     },
   });
 };

@@ -62,10 +62,16 @@ export const useDriverAppUpdateDocketStatus = () => {
       );
       return APIClient.driverApp.updateDocketStatus(id, formData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: DriverAppKeys.assignedDockets(),
-      });
+    onSuccess: (_data, variables) => {
+      if (variables.docketStatus === 'DELIVERED') {
+        queryClient.refetchQueries({
+          queryKey: DriverAppKeys.assignedDockets(),
+        });
+      } else {
+        queryClient.invalidateQueries({
+          queryKey: DriverAppKeys.assignedDockets(),
+        });
+      }
     },
   });
 };
