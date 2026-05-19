@@ -692,8 +692,7 @@ export function DocketDetailsPanel({
             Notes
           </h3>
           <p className="text-sm text-gray-600 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-            Call site supervisor 30 mins before arrival. Beware of tight turning
-            circle at gate 3.
+            {docket.notes || 'No notes'}
           </p>
         </div>
       </div>
