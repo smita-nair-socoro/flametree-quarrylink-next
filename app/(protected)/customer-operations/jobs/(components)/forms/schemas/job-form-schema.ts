@@ -34,8 +34,8 @@ export const getJobFormSchema = (isEditing: boolean) => {
     return JobFormSchema.extend({
       contactPersonName: z
         .string()
-        .min(2, { message: 'Product Name must be at least 2 characters.' })
-        .max(100, { message: "Product Name can't be more than 100 characters" }),
+        .min(2, { message: 'Contact person name must be at least 2 characters.' })
+        .max(100, { message: "Contact person name can't be more than 100 characters" }),
       phone: z
         .string()
         .trim()
