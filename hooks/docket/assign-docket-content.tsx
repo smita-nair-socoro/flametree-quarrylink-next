@@ -38,6 +38,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export interface AssignDocketFormState {
   haulerSelection: number | undefined;
@@ -174,8 +175,12 @@ export function AssignDocketDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
@@ -231,17 +236,17 @@ export function AssignDocketContent({
 
   const conflictDates =
     docket?.deliveryCollectionDate &&
-    docket.deliveryCollectionStartTime &&
-    docket.deliveryCollectionEndTime
+      docket.deliveryCollectionStartTime &&
+      docket.deliveryCollectionEndTime
       ? {
-          deliveryCollectionDate: appendUtcSuffix(
-            docket.deliveryCollectionDate,
-          ),
-          deliveryStartWindow: appendUtcSuffix(
-            docket.deliveryCollectionStartTime,
-          ),
-          deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
-        }
+        deliveryCollectionDate: appendUtcSuffix(
+          docket.deliveryCollectionDate,
+        ),
+        deliveryStartWindow: appendUtcSuffix(
+          docket.deliveryCollectionStartTime,
+        ),
+        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+      }
       : null;
 
   const truckConflictRequest =
@@ -291,7 +296,7 @@ export function AssignDocketContent({
     (o) => o.value === haulerSelection,
   )?.label;
 
-  const loadSize = docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
+  const loadSize = docket?.actualLoadSize || docket?.plannedLoadSize || 0;
   const loadSizeM3 = React.useMemo(() => {
     const density = docket?.jobItem?.product?.densityTonnagePerM3 || 1;
     const uom = docket?.jobItem?.productSellUom ?? 'M3';
@@ -343,8 +348,8 @@ export function AssignDocketContent({
       !truckSelection
         ? []
         : availableDrivers
-            .filter((d) => d.truckIds.includes(truckSelection))
-            .map((d) => ({ label: d.driverName, value: d.id })),
+          .filter((d) => d.truckIds.includes(truckSelection))
+          .map((d) => ({ label: d.driverName, value: d.id })),
     [availableDrivers, truckSelection],
   );
 

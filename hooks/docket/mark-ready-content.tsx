@@ -2,6 +2,7 @@
 
 import { Package, CircleCheckBig } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export function MarkReadyDescription({
   docket,
@@ -21,8 +22,12 @@ export function MarkReadyDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>

@@ -141,7 +141,10 @@ function Input({
       inputMode={isNumber ? inputMode ?? 'decimal' : inputMode}
       pattern={
         isNumber
-          ? pattern ?? (allowDecimal ? '[0-9]*[.]?[0-9]*' : '[0-9]*')
+          ? pattern ??
+            (allowDecimal
+              ? '[0-9,]*[.]?[0-9]*'
+              : '[0-9,]*')
           : pattern
       }
       {...props}

@@ -59,7 +59,15 @@ import {
   ConflictCheckRequest,
   ConflictCheckResponse,
 } from '../types/docket';
-import { JobDTO, JobDetails, JobItem, Invoice } from '../types/job';
+import {
+  JobDTO,
+  JobDetails,
+  JobItem,
+  Invoice,
+  CompleteJobResponse,
+  SettleJobResponse,
+  InvoiceDetails,
+} from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
@@ -727,7 +735,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/quote`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           status: params?.status,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
@@ -864,7 +872,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -872,7 +880,7 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (jobId: number) => {
+    getByJobId: async (jobId: number, params?: { page?: number; pageSize?: number }) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -882,8 +890,8 @@ export const APIClient = {
           }
       >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
         queryString: {
-          page: '0',
-          size: '1000',
+          page: params?.page?.toString() || '0',
+          size: params?.pageSize?.toString() || '1000',
           sort: 'id',
         },
       });
@@ -1011,7 +1019,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/job`, {
         queryString: {
           page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000', // Fetch large number for client-side pagination
+          size: params?.pageSize?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -1066,7 +1074,13 @@ export const APIClient = {
         body: { id },
       }),
     settle: (id: number) =>
-      appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/settle`),
+      appClient.Put<SettleJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/settle`,
+      ),
+    complete: (id: number) =>
+      appClient.Put<CompleteJobResponse>(
+        `/socoro/quarrylink/api/job/${id}/complete`,
+      ),
   },
 
   drivers: {
@@ -1141,7 +1155,9 @@ export const APIClient = {
         },
       ),
     statistics: () =>
-      appClient.Get<DriverStatistics>(`/socoro/quarrylink/api/driver/statistics`),
+      appClient.Get<DriverStatistics>(
+        `/socoro/quarrylink/api/driver/statistics`,
+      ),
   },
 
   trucks: {
@@ -1311,7 +1327,9 @@ export const APIClient = {
     getAll: (jobId: number) =>
       appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
     getById: (invoiceId: number) =>
-      appClient.Get<Invoice>(`/socoro/quarrylink/api/invoices/${invoiceId}`),
+      appClient.Get<InvoiceDetails>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}`,
+      ),
     create: (data: {
       mode: 'INDIVIDUAL' | 'BULK';
       docketIds: number[];

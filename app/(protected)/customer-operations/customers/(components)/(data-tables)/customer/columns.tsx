@@ -95,7 +95,13 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
   },
   {
     id: 'email',
-    accessorFn: (row) => row.contactPersonEmail,
+    accessorFn: (row) => {
+      if (row.customerType === CUSTOMER_TYPE.BUSINESS) {
+        return row.businessEmail ?? 'N/A';
+      } else {
+        return row.contactPersonEmail ?? 'N/A';
+      }
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Email" />;
     },

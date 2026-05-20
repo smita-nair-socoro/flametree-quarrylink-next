@@ -148,7 +148,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'loadSize',
     accessorFn: (row) =>
-      row.plannedLoadSize ?? row.actualLoadSize ?? row.loadSize,
+      row.actualLoadSize ?? row.plannedLoadSize,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },

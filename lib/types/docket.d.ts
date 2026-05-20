@@ -7,6 +7,7 @@ import { DriverDTO } from './driver';
 import { CustomerDTO } from './customer';
 import { TruckDTO } from './truck';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
+import { HaulierDTO } from './haulier';
 
 export interface Docket {
   id: number;
@@ -83,6 +84,7 @@ export interface DocketOperationalUpdateRequest {
   deliveryCollectionDate?: string;
   deliveryCollectionStartTime?: string;
   deliveryCollectionEndTime?: string;
+  deliveryDistanceQuantity?: number;
 }
 
 export interface DocketOperationalUpdateResponse {
@@ -100,6 +102,7 @@ export interface DocketDTO {
   preStartRequired?: boolean;
 
   jobItemId: number;
+  invoiceId?: number;
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
   resumeReason?: string;
@@ -134,9 +137,9 @@ export interface DocketDTO {
   deliveryDistance?: number;
   deliveryDistanceQuantity: number;
   deliveryDistanceUom: string;
-  grossTruckWeight: number;
-  tareTruckWeight: number;
-  actualMaterialWeight: number;
+  grossTruckWeight?: number;
+  tareTruckWeight?: number;
+  actualMaterialWeight?: number;
   deliveryStartedAt?: string;
   arrivedAt?: string;
   arrivalLatitude?: number;
@@ -155,6 +158,7 @@ export interface DocketDTO {
   productEstimatedVolume: number;
   purchaseOrder: string;
   totalInvoiceAmount: number;
+  totalProductAmount: number;
   totalDeliveryAmount: number;
   job: {
     id: number;
@@ -321,6 +325,7 @@ export interface DispatchTruckResource {
   truckBusinessType: TRUCK_BUSINESS_TYPE;
   drivers?: DriverDTO[];
   dockets?: DispatchAssignedDocket[];
+  haulier?: HaulierDTO;
 }
 
 /** Minimal truck refs nested under driver rows (scheduler/drivers payload). */
@@ -361,7 +366,6 @@ export interface DispatchAssignedDocket {
   productName: string;
   plannedLoadSize?: number;
   actualLoadSize?: number;
-  loadSize: number;
   customerName: string;
   pickUpSuburb: string;
   pickUpState: string;

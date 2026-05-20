@@ -35,7 +35,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
           columns={invoicesColumns}
           data={invoices ?? []}
           simpleTable={true}
-          defaultSorting={[{ id: 'invoiceNumber', desc: false }]}
+          defaultSorting={[{ id: 'invoice', desc: false }]}
         />
       </div>
     </div>

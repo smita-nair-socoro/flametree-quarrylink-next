@@ -6,7 +6,6 @@ interface JobStore {
   jobs: JobDTO[];
   selectedJob: JobDTO | null;
   isLoading: boolean;
-
   // Actions
   setJobs: (Jobs: JobDTO[]) => void;
   setSelectedJob: (customer: JobDTO | null) => void;
@@ -24,7 +23,6 @@ export const useJobStore = create<JobStore>()(
 
       // Actions
       setJobs: (jobs) => set({ jobs }),
-
       setSelectedJob: (job) => set({ selectedJob: job }),
       setLoading: (loading) => set({ isLoading: loading }),
 

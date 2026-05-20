@@ -17,15 +17,11 @@ import { DocketCardOverlay } from '../cards/unassigned-dockets';
 import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal';
 import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-driver-modal';
 import type {
-  DispatchBoardDocketRow,
   DispatchDocketDTO,
   DispatchDriverResource,
   DispatchTruckResource,
-  DocketDTO,
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import {
   DispatchDriversTrucksFilter,
@@ -43,201 +39,21 @@ import {
   SchedulerDriversQueryOptions,
 } from '@/lib/api/scheduler';
 
-function isDispatchTruckResource(
-  r: DispatchTruckResource | DispatchDriverResource,
-): r is DispatchTruckResource {
-  return 'licensePlate' in r;
-}
-
-function isDispatchDriverResource(
-  r: DispatchTruckResource | DispatchDriverResource,
-): r is DispatchDriverResource {
-  return 'driverName' in r;
-}
-
-function inferTruckBusinessType(r: DispatchTruckResource): TRUCK_BUSINESS_TYPE {
-  const dt = r.drivers?.[0]?.driverType;
-  if (dt === DRIVER_TYPE.SUBCONTRACTOR) {
-    return TRUCK_BUSINESS_TYPE.EXTERNAL;
-  }
-  return TRUCK_BUSINESS_TYPE.INTERNAL;
-}
-
-function truckMatchesFleetFilters(
-  r: DispatchTruckResource,
-  f: DispatchBoardFilterState,
-): boolean {
-  if (f.truckIds.length > 0 && !f.truckIds.includes(String(r.id))) return false;
-  if (f.haulierIds.length > 0) {
-    const hasHaulier = (r.drivers || []).some((d) => {
-      const hid = String(d.haulierId || d.haulier?.id);
-      return f.haulierIds.includes(hid);
-    });
-    if (!hasHaulier) return false;
-  }
-  if (f.truckBusinessTypes.length > 0) {
-    if (!f.truckBusinessTypes.includes(inferTruckBusinessType(r))) return false;
-  }
-  if (f.driverStatuses.length > 0) {
-    const want = new Set(f.driverStatuses);
-    const ok = (r.drivers || []).some(
-      (d) => d.driverStatus != null && want.has(d.driverStatus),
-    );
-    if (!ok) return false;
-  }
-  return true;
-}
-
-function driverRowMatchesFilters(
-  r: DispatchDriverResource,
-  f: DispatchBoardFilterState,
-): boolean {
-  if (f.driverIds.length > 0 && !f.driverIds.includes(String(r.id))) {
-    return false;
-  }
-  if (f.driverStatuses.length > 0) {
-    const want = new Set(f.driverStatuses);
-    if (r.driverStatus == null) {
-      // Keep rows visible until the scheduler payload includes `driverStatus`.
-      return true;
-    }
-    if (!want.has(r.driverStatus)) return false;
-  }
-  return true;
-}
-
-type DispatchDocketUiFields = {
-  uiAssignedTruckId?: string | null;
-  uiAssignedTime?: string | null;
-  uiAssignedDuration?: number;
-};
-
-/** Board row from `DispatchDocketDTO` plus UI state; optional nested fields after assign/detail merge. */
-export type DispatchDocket = DispatchBoardDocketRow &
-  DispatchDocketUiFields &
-  Partial<Omit<DocketDTO, 'pickUpAddress' | 'deliveryAddress'>>;
-
-function matchesBoardJobFilter(
-  d: DispatchDocket,
-  jobStatuses: string[],
-): boolean {
-  if (jobStatuses.length === 0) {
-    return d.docketStatus !== DOCKET_STATUS.UNASSIGNED;
-  }
-  return jobStatuses.includes(String(d.docketStatus));
-}
-
-function formatCargoLineForUnassign(d: DispatchDocket): string {
-  const uom =
-    d.productSellUom === 'M3'
-      ? 'm³'
-      : d.productSellUom === 'KG_20'
-        ? 'x 20kg'
-        : d.productSellUom || '';
-  const product = d.productName || 'Product';
-  const loadSize = d.actualLoadSize || d.plannedLoadSize || d.loadSize;
-  return `${product} • ${formatNumberThousandSeparator(loadSize)} ${uom}`.trim();
-}
-
-function assignmentDateDisplayForUnassign(
-  d: DispatchDocket,
-  fallbackDay: Date,
-): string {
-  const iso = d.deliveryCollectionDate;
-  if (iso) {
-    const local = iso.includes('T') ? iso.replace('Z', '') : iso;
-    return format(new Date(local), 'EEE d MMM yyyy');
-  }
-  return format(fallbackDay, 'EEE d MMM yyyy');
-}
-
-function resolveUnassignAssignmentLabels(
-  docket: DispatchDocket,
-  viewType: 'trucks' | 'drivers',
-  trucksData: DispatchDocketDTO | undefined,
-  driversData: DispatchDocketDTO | undefined,
-): { truck: string; driver: string } {
-  let truck = '—';
-  let driver = '—';
-  const uid = docket.uiAssignedTruckId;
-  if (!uid) return { truck, driver };
-
-  if (viewType === 'trucks' && trucksData?.resources) {
-    const t = trucksData.resources.find(
-      (r): r is DispatchTruckResource =>
-        isDispatchTruckResource(r) && String(r.id) === uid,
-    );
-    if (t) {
-      truck = t.licensePlate;
-      driver =
-        docket.driver?.driverName ?? t.drivers?.[0]?.driverName ?? driver;
-    }
-  }
-  if (viewType === 'drivers' && driversData?.resources) {
-    const row = driversData.resources.find(
-      (r): r is DispatchDriverResource =>
-        isDispatchDriverResource(r) && String(r.id) === uid,
-    );
-    if (row) {
-      driver = row.driverName;
-      truck = row.trucks?.[0]?.licensePlate ?? truck;
-    }
-  }
-  return { truck, driver };
-}
-
-export const formatTime = (timeStr?: string) => {
-  if (!timeStr) return '';
-  if (timeStr.includes('T')) {
-    return timeStr.split('T')[1].substring(0, 5);
-  }
-  if (timeStr.includes(' ')) {
-    return timeStr.split(' ')[1].substring(0, 5);
-  }
-  if (timeStr.includes(':')) {
-    return timeStr.split(':').slice(0, 2).join(':');
-  }
-  return timeStr;
-};
-
-export const formatTimeRange = (start?: string, end?: string) => {
-  const startTime = formatTime(start);
-  const endTime = formatTime(end);
-  return startTime && endTime
-    ? `${startTime} - ${endTime}`
-    : startTime || endTime || 'N/A';
-};
-
-export const formatDate = (timeStr?: string) => {
-  if (!timeStr) return '';
-  if (timeStr.includes('T')) {
-    // Remove Z to force parsing as local time and avoid timezone shifts
-    const localTimeStr = timeStr.replace('Z', '');
-    return format(new Date(localTimeStr), 'EEE dd MMM');
-  }
-  return timeStr;
-};
-
-/** Local wall-clock ISO string without `Z` — matches assign payload and avoids UTC day drift from `toISOString()`. */
-export const formatLocalISO = (d: Date) => {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-};
-
-/** Same local-day rule as the unassigned “This day” tab — `deliveryCollectionDate` vs `date`. */
-export function isDocketOnSelectedLocalDay(
-  d: Pick<DispatchDocket, 'deliveryCollectionDate'>,
-  day: Date,
-): boolean {
-  const iso = d.deliveryCollectionDate;
-  if (!iso) return false;
-  const docketDate = new Date(iso.includes('T') ? iso.replace('Z', '') : iso);
-  return (
-    docketDate.getFullYear() === day.getFullYear() &&
-    docketDate.getMonth() === day.getMonth() &&
-    docketDate.getDate() === day.getDate()
-  );
-}
+import {
+  DispatchDocket,
+  isDispatchTruckResource,
+  isDispatchDriverResource,
+  truckMatchesFleetFilters,
+  driverRowMatchesFilters,
+  matchesBoardJobFilter,
+  formatCargoLineForUnassign,
+  assignmentDateDisplayForUnassign,
+  resolveUnassignAssignmentLabels,
+  formatTime,
+  formatTimeRange,
+  formatLocalISO,
+  isDocketOnSelectedLocalDay,
+} from '@/lib/utils/dispatch-helper';
 
 function countTrucksWithAssignedBookingsOnSelectedDay(
   data: DispatchDocketDTO | undefined,
@@ -356,7 +172,8 @@ export function DispatchView({
         deliveryCollectionStartTime: d.deliveryCollectionStartTime,
         deliveryCollectionEndTime: d.deliveryCollectionEndTime,
         productName: d.jobItem?.product?.productName || '',
-        loadSize: d.actualLoadSize || d.plannedLoadSize || d.loadSize || 0,
+        actualLoadSize: d.actualLoadSize || 0,
+        plannedLoadSize: d.plannedLoadSize || 0,
         customerName:
           d.job?.customerDto?.businessName || d.job?.contactPersonName || '',
         pickUpSuburb: d.pickUpAddress?.city || '',
@@ -432,7 +249,6 @@ export function DispatchView({
     if (viewType === 'trucks' && trucksData) {
       return (trucksData.resources || []).map((r) => {
         if ('licensePlate' in r) {
-          const firstDriver = r.drivers?.[0];
           return {
             id: String(r.id),
             name: r.licensePlate,
@@ -442,7 +258,8 @@ export function DispatchView({
             businessType: r.truckBusinessType,
             drivers:
               r.drivers?.map((d) => d.driverName).join(', ') || 'Unassigned',
-            haulierName: firstDriver?.haulier?.haulierName,
+            driversCount: r.drivers?.length || 0,
+            haulierName: r.haulier?.haulierName || '',
           };
         }
         return {
@@ -452,6 +269,7 @@ export function DispatchView({
           status: TRUCK_STATUS.ACTIVE,
           trips: 0,
           drivers: 'Unassigned',
+          driversCount: 0,
           businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
         };
       });
@@ -529,6 +347,31 @@ export function DispatchView({
       .map(([id, label]) => ({ id: String(id), label }));
   }, [viewType, trucksData]);
 
+  const filterCustomerOptions = useMemo(() => {
+    const names = new Set<string>();
+
+    if (viewType === 'trucks' && trucksData?.resources) {
+      for (const r of trucksData.resources) {
+        if (isDispatchTruckResource(r)) {
+          for (const d of r.dockets || []) {
+            if (d.customerName) names.add(d.customerName);
+          }
+        }
+      }
+    } else if (viewType === 'drivers' && driversData?.resources) {
+      for (const r of driversData.resources) {
+        if (isDispatchDriverResource(r)) {
+          for (const d of r.dockets || []) {
+            if (d.customerName) names.add(d.customerName);
+          }
+        }
+      }
+    }
+
+    const uniqueNames = Array.from(names).sort();
+    return uniqueNames;
+  }, [viewType, trucksData, driversData]);
+
   const filteredMappedResources = useMemo(() => {
     let allowedTruckIds = new Set<string>();
     let allowedDriverIds = new Set<string>();
@@ -556,10 +399,26 @@ export function DispatchView({
     });
 
     // If jobStatus filter is active, hide rows that have NO matching dockets
-    if (boardFilter.jobStatuses.length > 0) {
+    if (
+      boardFilter.jobStatuses.length > 0 ||
+      boardFilter.customerNames.length > 0
+    ) {
       const rowsWithDockets = new Set(
         dockets
-          .filter((d) => matchesBoardJobFilter(d, boardFilter.jobStatuses))
+          .filter((d) => {
+            let match = true;
+            if (boardFilter.jobStatuses.length > 0) {
+              match =
+                match && matchesBoardJobFilter(d, boardFilter.jobStatuses);
+            }
+            if (boardFilter.customerNames.length > 0) {
+              match =
+                match &&
+                !!d.customerName &&
+                boardFilter.customerNames.includes(d.customerName);
+            }
+            return match;
+          })
           .map((d) => d.uiAssignedTruckId)
           .filter(Boolean),
       );
@@ -583,9 +442,21 @@ export function DispatchView({
       if (!d.uiAssignedTruckId || !visibleIds.has(d.uiAssignedTruckId)) {
         return false;
       }
-      return matchesBoardJobFilter(d, boardFilter.jobStatuses);
+      let match = matchesBoardJobFilter(d, boardFilter.jobStatuses);
+      if (boardFilter.customerNames.length > 0) {
+        match =
+          match &&
+          !!d.customerName &&
+          boardFilter.customerNames.includes(d.customerName);
+      }
+      return match;
     });
-  }, [dockets, filteredMappedResources, boardFilter.jobStatuses]);
+  }, [
+    dockets,
+    filteredMappedResources,
+    boardFilter.jobStatuses,
+    boardFilter.customerNames,
+  ]);
 
   const docketsForSelectedDay = useMemo(
     () => dockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
@@ -599,14 +470,14 @@ export function DispatchView({
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-            assignedOnSelectedDay
-              .map((d) => d.uiAssignedTruckId)
-              .filter((id): id is string => Boolean(id)),
-          ).size
+          assignedOnSelectedDay
+            .map((d) => d.uiAssignedTruckId)
+            .filter((id): id is string => Boolean(id)),
+        ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-            trucksDataForStats,
-            date,
-          );
+          trucksDataForStats,
+          date,
+        );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -747,7 +618,6 @@ export function DispatchView({
         plannedLoadSize:
           docket.actualLoadSize ||
           docket.plannedLoadSize ||
-          docket.loadSize ||
           0,
       },
       {
@@ -756,10 +626,10 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                    ...d,
-                    uiAssignedDuration: newDuration,
-                    deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  }
+                  ...d,
+                  uiAssignedDuration: newDuration,
+                  deliveryCollectionEndTime: formatLocalISO(endWindow),
+                }
                 : d,
             ),
           );
@@ -771,6 +641,12 @@ export function DispatchView({
   const activeDocket = activeId
     ? dockets.find((d) => String(d.id) === activeId)
     : null;
+
+  const focusDocket =
+    activeDocket ||
+    (selectedDocketId
+      ? dockets.find((d) => String(d.id) === selectedDocketId)
+      : null);
 
   const handleUnassign = () => {
     if (selectedDocketId) {
@@ -799,8 +675,8 @@ export function DispatchView({
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
       destination:
         pendingUnassignDocket.deliverySuburb +
-          ', ' +
-          pendingUnassignDocket.deliveryState || '',
+        ', ' +
+        pendingUnassignDocket.deliveryState || '',
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -826,11 +702,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                    ...d,
-                    uiAssignedTruckId: null,
-                    uiAssignedTime: null,
-                    docketStatus: DOCKET_STATUS.UNASSIGNED,
-                  }
+                  ...d,
+                  uiAssignedTruckId: null,
+                  uiAssignedTime: null,
+                  docketStatus: DOCKET_STATUS.UNASSIGNED,
+                }
                 : d,
             ),
           );
@@ -868,7 +744,7 @@ export function DispatchView({
         truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
-        plannedLoadSize: docket?.loadSize || 0,
+        plannedLoadSize: docket?.plannedLoadSize || 0,
       },
       {
         onSuccess: () => {
@@ -876,16 +752,16 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                    ...d,
-                    uiAssignedTruckId: targetId,
-                    uiAssignedTime: time,
-                    deliveryCollectionDate:
-                      formatLocalISO(startWindow).split('T')[0] +
-                      'T00:00:00.000',
-                    deliveryCollectionStartTime: formatLocalISO(startWindow),
-                    deliveryCollectionEndTime: formatLocalISO(endWindow),
-                    docketStatus: DOCKET_STATUS.ASSIGNED,
-                  }
+                  ...d,
+                  uiAssignedTruckId: targetId,
+                  uiAssignedTime: time,
+                  deliveryCollectionDate:
+                    formatLocalISO(startWindow).split('T')[0] +
+                    'T00:00:00.000',
+                  deliveryCollectionStartTime: formatLocalISO(startWindow),
+                  deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  docketStatus: DOCKET_STATUS.ASSIGNED,
+                }
                 : d,
             ),
           );
@@ -902,20 +778,24 @@ export function DispatchView({
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
       ? (trucksData.resources.find(
-          (r): r is DispatchTruckResource =>
-            isDispatchTruckResource(r) &&
-            String(r.id) === assignModalData.targetId,
-        ) ?? null)
+        (r): r is DispatchTruckResource =>
+          isDispatchTruckResource(r) &&
+          String(r.id) === assignModalData.targetId,
+      ) ?? null)
       : null;
 
   const assignModalDriver: DispatchDriverResource | null =
     assignModalData && viewType === 'drivers' && driversData
       ? (driversData.resources.find(
-          (r): r is DispatchDriverResource =>
-            isDispatchDriverResource(r) &&
-            String(r.id) === assignModalData.targetId,
-        ) ?? null)
+        (r): r is DispatchDriverResource =>
+          isDispatchDriverResource(r) &&
+          String(r.id) === assignModalData.targetId,
+      ) ?? null)
       : null;
+
+  const unassignedDocketsForBoard = useMemo(() => {
+    return dockets.filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED);
+  }, [dockets]);
 
   return (
     <DndContext
@@ -928,6 +808,7 @@ export function DispatchView({
         driverOptions={filterDriverOptions}
         truckOptions={filterTruckOptions}
         haulierOptions={filterHaulierOptions}
+        customerOptions={filterCustomerOptions}
         isLoadingResources={isLoading}
         filter={boardFilter}
         onFilterChange={setBoardFilter}
@@ -960,7 +841,7 @@ export function DispatchView({
         <div className="w-[390px] shrink-0">
           <UnassignedDockets
             date={date}
-            dockets={dockets}
+            dockets={unassignedDocketsForBoard}
             isLoading={isLoading}
             selectedDocketId={selectedDocketId}
             onSelectDocket={setSelectedDocketId}
@@ -978,6 +859,7 @@ export function DispatchView({
             onSelectDocket={setSelectedDocketId}
             // onUnassignDocket={handleUnassign}
             viewType={viewType}
+            focusDocket={focusDocket}
           />
         </div>
         {selectedDocketId && (
