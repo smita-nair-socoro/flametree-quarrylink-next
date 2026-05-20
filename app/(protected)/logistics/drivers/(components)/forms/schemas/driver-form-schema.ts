@@ -41,7 +41,7 @@ export const NewDriverFormSchema = z
     if (data.type === DRIVER_TYPE.SUBCONTRACTOR) {
       if (!data.haulierId) {
         ctx.addIssue({
-          path: ['haulier'],
+          path: ['haulierId'],
           code: z.ZodIssueCode.custom,
           message: 'Haulier is required for Subcontractor drivers',
         });
