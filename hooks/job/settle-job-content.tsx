@@ -18,25 +18,12 @@ export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
           <span className="text-sm text-[#6A7282] font-extrabold">·</span>
           <span className="text-sm text-[#6A7282]">
             {job?.customerDto?.customerType === 'BUSINESS'
-              ? (job.customerDto.businessName || job?.contactPersonName)
-              : (job?.customerDto?.individualContactName || job?.contactPersonName)}
+              ? job.customerDto.businessName || job?.contactPersonName
+              : job?.customerDto?.individualContactName ||
+                job?.contactPersonName}
           </span>
         </div>
       </div>
-    </div>
-  );
-}
-
-export function SettleJobInitialContent() {
-  return (
-    <div className="flex flex-col gap-3">
-      <span className="text-[14px] font-medium text-[#111827]">
-        Resolve outstanding invoices or payments:
-      </span>
-      <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
-        <li>All dockets must be in Paid, Cash Sale, or Voided status</li>
-        <li>Outstanding balance must be $0</li>
-      </ul>
     </div>
   );
 }
@@ -61,7 +48,8 @@ export function SettleJobContent({
               Settlement Blocked
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}, please invoice dockets or void to continue with job settlement.
+              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)},
+              please invoice dockets or void to continue with job settlement.
             </span>
           </div>
         </div>
@@ -92,8 +80,14 @@ export function SettleJobContent({
           Resolve outstanding dockets or payments:
         </span>
         <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
-          <li>All dockets must be in <span className="font-medium">Invoiced</span>, <span className="font-medium">Cash Sale</span>, or <span className="font-medium">Voided</span> status</li>
-          <li>Uninvoiced balance must be <span className="font-medium">$0</span></li>
+          <li>
+            All dockets must be in <span className="font-medium">Invoiced</span>
+            , <span className="font-medium">Cash Sale</span>, or{' '}
+            <span className="font-medium">Voided</span> status
+          </li>
+          <li>
+            Uninvoiced balance must be <span className="font-medium">$0</span>
+          </li>
         </ul>
       </div>
     </div>
