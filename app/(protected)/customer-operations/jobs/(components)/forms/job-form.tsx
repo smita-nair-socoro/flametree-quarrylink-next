@@ -16,6 +16,7 @@ import { DatePicker } from '@/components/date-picker';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
+import { useIsMutating } from '@tanstack/react-query';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -70,6 +71,8 @@ export default function JobForm({
     onSuccess: id ? undefined : onSuccess,
   });
 
+  const isSyncing = useIsMutating({ mutationKey: ['retrySync'] }) > 0;
+
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !jobDetails) return null;
 
@@ -99,7 +102,7 @@ export default function JobForm({
 
   return (
     <div className="w-full relative">
-      {isPending && (
+      {(isPending || isSyncing) && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -109,7 +112,7 @@ export default function JobForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isEditing ? 'Updating Job...' : 'Adding Job...'}
+              {isSyncing ? 'Syncing...' : isEditing ? 'Updating Job...' : 'Adding Job...'}
             </p>
           </div>
         </div>

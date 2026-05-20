@@ -195,3 +195,24 @@ export interface InvoiceDetails {
   failureReason: string;
   dockets: DocketDTO[];
 }
+
+interface RetrySyncResult {
+  internalInvoiceId: number;
+  externalInvoiceId: string;
+  idempotencyKey: string;
+  internalStatus: string;
+  externalStatus: string;
+  externalinvoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+  errorMessage: string;
+}
+
+export interface RetrySyncResponse {
+  totalAttempted: number;
+  successCount: number;
+  failureCount: number;
+  results: {
+    invoices: RetrySyncResult[];
+  };
+}

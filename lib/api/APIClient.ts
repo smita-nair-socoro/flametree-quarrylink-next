@@ -67,6 +67,7 @@ import {
   CompleteJobResponse,
   SettleJobResponse,
   InvoiceDetails,
+  RetrySyncResponse,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -880,7 +881,10 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (jobId: number, params?: { page?: number; pageSize?: number }) => {
+    getByJobId: async (
+      jobId: number,
+      params?: { page?: number; pageSize?: number },
+    ) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -1336,6 +1340,10 @@ export const APIClient = {
       inclDeliveryCost: boolean;
     }) =>
       appClient.Post<void>(`/socoro/quarrylink/api/invoices`, { body: data }),
+    retrySync: (jobId: number) =>
+      appClient.Put<RetrySyncResponse>(
+        `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,
+      ),
   },
 
   driverApp: {

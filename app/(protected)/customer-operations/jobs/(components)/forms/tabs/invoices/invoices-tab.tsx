@@ -9,9 +9,14 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { FormDialog } from '@/components/form-dialog';
 import InvoiceForm from '../../invoice-form';
+import { Button } from '@/components/ui/button';
+import { useRetrySync } from '@/lib/api/invoices';
+import { RefreshCw } from 'lucide-react';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  const retrySyncMutation = useRetrySync();
 
   const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
 
@@ -25,9 +30,17 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
         )}
       >
         <span className="text-lg font-semibold">Invoices</span>
-        <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
-          <InvoiceForm jobId={jobId} />
-        </FormDialog>
+        <div className="flex gap-3">
+          <Button variant="outline" type="button" onClick={() => {
+            retrySyncMutation.mutate(jobId);
+          }}>
+            <RefreshCw className="h-4 w-4" />
+            Sync All to Xero
+          </Button>
+          <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
+            <InvoiceForm jobId={jobId} />
+          </FormDialog>
+        </div>
       </div>
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
