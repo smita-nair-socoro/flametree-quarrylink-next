@@ -59,6 +59,7 @@ import {
   UnassignOperationResponse,
   ConflictCheckRequest,
   ConflictCheckResponse,
+  DocketStatistics,
 } from '../types/docket';
 import {
   JobDTO,
@@ -936,6 +937,10 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${id}/conflict-check`,
         { body: data },
       ),
+    statistics: (date: string) =>
+      appClient.Get<DocketStatistics>(`/socoro/quarrylink/api/dockets/statistics`, {
+        queryString: { date },
+      }),
   },
 
   checklists: {

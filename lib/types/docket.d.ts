@@ -444,3 +444,16 @@ export interface ConflictCheckResponse {
   hasConflicts: boolean;
   conflictingDocketIds: ConflictingDocket[];
 }
+
+export interface DocketStatistics {
+  scheduledDocketsToday: number;
+  scheduledDeliveryDocketsToday: number;
+  scheduledCollectionDocketsToday: number;
+  unassignedDocketsNext7Days: number;
+  uninvoicedDocketsValue: number;
+  uninvoicedDeliveryDockets: number;
+  uninvoicedCollectionDockets: number;
+  quantityScheduledToday: number;
+  quantityScheduledTodayUnit: string;
+  quantityScheduledTodayDockets: number;
+}

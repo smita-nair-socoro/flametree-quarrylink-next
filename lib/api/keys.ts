@@ -101,6 +101,7 @@ export const DocketKeys = {
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
   truckInspection: (docketId: number) => [...DocketKeys.all, 'truck-inspection', docketId] as const,
   preStartChecklist: (docketId: number) => [...DocketKeys.all, 'pre-start-checklist', docketId] as const,
+  statistics: () => [...DocketKeys.all, 'statistics'] as const,
 };
 
 export const ChecklistKeys = {

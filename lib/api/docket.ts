@@ -6,6 +6,17 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys, JobKeys, SchedulerKeys } from './keys';
+
+function getCurrentISOWithOffset(): string {
+  const d = new Date();
+  const tzOffset = -d.getTimezoneOffset();
+  const sign = tzOffset >= 0 ? '+' : '-';
+  const absOffset = Math.abs(tzOffset);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const hh = pad(Math.floor(absOffset / 60));
+  const mm = pad(absOffset % 60);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}${sign}${hh}:${mm}`;
+}
 import {
   DocketAssignRequest,
   DocketDTO,
@@ -14,6 +25,18 @@ import {
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
+
+export const DocketStatisticsQueryOptions = () => {
+  const today = new Date();
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dateKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+  return queryOptions({
+    queryKey: [...DocketKeys.statistics(), dateKey],
+    queryFn: () => APIClient.dockets.statistics(getCurrentISOWithOffset()),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+};
 
 export const DocketsListQueryOptions = (params?: { page?: number; pageSize?: number }) =>
   queryOptions({
