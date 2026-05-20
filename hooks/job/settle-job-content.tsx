@@ -1,14 +1,14 @@
 'use client';
-import { CircleAlert, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
 
 export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#EFF6FF] rounded-md">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF1F2] rounded-md">
         <span className="flex items-center justify-center">
-          <CircleAlert className="h-[20px] w-[20px] text-[#155DFC]" />
+          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
         </span>
       </div>
       <div className="flex flex-col gap-1">
