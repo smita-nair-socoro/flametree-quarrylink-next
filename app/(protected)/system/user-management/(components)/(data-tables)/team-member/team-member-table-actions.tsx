@@ -51,7 +51,7 @@ export function TeamMemberTableActions({
     <div>
       {deleteDialog}
       {viewDialog}
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen} modal={false}>
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />

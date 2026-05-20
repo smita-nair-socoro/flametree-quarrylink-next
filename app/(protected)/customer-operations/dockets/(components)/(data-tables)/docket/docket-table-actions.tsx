@@ -257,7 +257,6 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
-        modal={false}
       >
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
