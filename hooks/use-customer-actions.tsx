@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { FormDialog } from '@/components/form-dialog';
 import { ActionDialog } from '@/components/action-dialog';
 import {
@@ -13,6 +14,7 @@ import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useArchiveCustomer, useUnarchiveCustomer } from '@/lib/api/customer';
+import { CustomerKeys } from '@/lib/api/keys';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
@@ -451,6 +453,7 @@ const getDialogConfigs = (
 
 export function useCustomerActions(customerData?: CustomerDTO | null) {
   const customerId = customerData?.id;
+  const queryClient = useQueryClient();
   const selectedCustomer = useCustomerStore((s) => s.selectedCustomer);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -493,18 +496,37 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
       const err = error as Error & {
         response?: { status: number; data: unknown };
       };
-      if (err.response?.status === 409) {
-        const data = err.response.data as ArchiveCustomerResponseDTO;
+      // API returns { success, errorMessage } — read that field directly
+      const responseData = err.response?.data as
+        | { errorMessage?: string }
+        | ArchiveCustomerResponseDTO
+        | null;
+      const apiErrorMessage =
+        (responseData as { errorMessage?: string })?.errorMessage ??
+        err.message ??
+        '';
+
+      if (apiErrorMessage.includes('Local archive was successful. Reverting local archive.')) {
+        // Xero sync failed — local change was rolled back; show exact API reason and refetch
+        notifyError(apiErrorMessage);
+        if (customerId) {
+          queryClient.invalidateQueries({
+            queryKey: CustomerKeys.detail(customerId),
+          });
+        }
+      } else if (apiErrorMessage.includes('blocking quotes/dockets/jobs exist')) {
+        // Xero archived OK but QuarryLink blocked by active records
+        const data = responseData as ArchiveCustomerResponseDTO;
         const parts: string[] = [];
-        if (data.blockingQuotes?.length)
+        if (data?.blockingQuotes?.length)
           parts.push(
             `${data.blockingQuotes.length} active ${data.blockingQuotes.length === 1 ? 'quote' : 'quotes'}`,
           );
-        if (data.blockingDockets?.length)
+        if (data?.blockingDockets?.length)
           parts.push(
             `${data.blockingDockets.length} active ${data.blockingDockets.length === 1 ? 'docket' : 'dockets'}`,
           );
-        if (data.blockingJobs?.length)
+        if (data?.blockingJobs?.length)
           parts.push(
             `${data.blockingJobs.length} active ${data.blockingJobs.length === 1 ? 'job' : 'jobs'}`,
           );
@@ -513,7 +535,7 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         setSelectedAction({ key: 'cannotArchive' });
         setActiveDialog('cannotArchive');
       } else {
-        notifyError(extractErrorMessage(error));
+        notifyError(apiErrorMessage || extractErrorMessage(error));
       }
     }
   };
