@@ -46,7 +46,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
-import { UsersListQueryOptions } from '@/lib/api/user';
+import { AccountManagersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
@@ -155,14 +155,11 @@ export default function QuotationForm({
     [customers],
   );
 
-  const { data: users = [] } = useQuery(UsersListQueryOptions());
-  const userOptions: FormSelectOption[] = React.useMemo(() => {
-    if (!users) return [];
-    return users.map((user) => ({
-      label: user.name,
-      value: user.sub,
-    }));
-  }, [users]);
+  const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
+  const userOptions: FormSelectOption[] = React.useMemo(
+    () => users.map((user) => ({ label: user.name, value: user.sub })),
+    [users],
+  );
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {

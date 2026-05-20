@@ -30,6 +30,7 @@ import { normalizeObjectPhoneNumbers } from '../utils/phone-helper';
 import { Material } from '../types/material';
 import {
   User,
+  AccountManager,
   UserCreateDTO,
   UserDelete,
   UserUpdateDTO,
@@ -962,6 +963,10 @@ export const APIClient = {
 
   users: {
     getAll: () => appClient.Get<User[]>(`/socoro/quarrylink/api/users`),
+    getAccountManagers: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/account-managers`,
+      ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
