@@ -25,3 +25,15 @@ export const JobFormSchema = z.object({
   phone: z.string().optional(),
   contactPersonName: z.string().optional(),
 });
+
+export type JobFormValues = z.infer<typeof JobFormSchema>;
+
+export const getJobFormSchema = (isEditing: boolean) => {
+  if (isEditing) {
+    return JobFormSchema.extend({
+      contactPersonName: z.string().min(1, { message: 'Required' }),
+      phone: z.string().min(1, { message: 'Required' }),
+    });
+  }
+  return JobFormSchema;
+};
