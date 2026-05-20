@@ -5,6 +5,7 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { Quarry } from '@/lib/types/quarry';
 import { ColumnDef } from '@tanstack/react-table';
 import { QuarrySupplierTableActions } from './quarry-supplier-table-actions';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
   {
@@ -54,7 +55,9 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Phone" />;
     },
-    cell: (info) => <div className="py-2">{info.getValue() as string}</div>,
+    cell: (info) => (
+      <div className="py-2">{formatPhoneNumber(info.getValue() as string)}</div>
+    ),
     meta: 'Phone',
   },
   {

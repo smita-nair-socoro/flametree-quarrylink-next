@@ -98,22 +98,27 @@ export const DocketKeys = {
   list: () => [...DocketKeys.all, 'list'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
-  truckInspection: (docketId: number) => [...DocketKeys.all, 'truck-inspection', docketId] as const,
-  preStartChecklist: (docketId: number) => [...DocketKeys.all, 'pre-start-checklist', docketId] as const,
+  truckInspection: (docketId: number) =>
+    [...DocketKeys.all, 'truck-inspection', docketId] as const,
+  preStartChecklist: (docketId: number) =>
+    [...DocketKeys.all, 'pre-start-checklist', docketId] as const,
 };
 
 export const ChecklistKeys = {
   all: ['checklists'] as const,
   truckTemplate: () => [...ChecklistKeys.all, 'truck-template'] as const,
   driverTemplate: () => [...ChecklistKeys.all, 'driver-template'] as const,
-  truckSubmission: (submissionId: number) => [...ChecklistKeys.all, 'truck-submission', submissionId] as const,
-  driverSubmission: (submissionId: number) => [...ChecklistKeys.all, 'driver-submission', submissionId] as const,
+  truckSubmission: (submissionId: number) =>
+    [...ChecklistKeys.all, 'truck-submission', submissionId] as const,
+  driverSubmission: (submissionId: number) =>
+    [...ChecklistKeys.all, 'driver-submission', submissionId] as const,
 };
 
 export const InvoicesKeys = {
   all: ['invoices'] as const,
   list: (jobId: number) => [...InvoicesKeys.all, 'list', jobId] as const,
   detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
+  url: (id: number) => [...InvoicesKeys.all, 'url', id] as const,
 };
 
 export const HaulierKeys = {

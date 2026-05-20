@@ -216,3 +216,8 @@ export interface RetrySyncResponse {
     invoices: RetrySyncResult[];
   };
 }
+
+export interface InvoiceUrlResponse {
+  externalInvoiceId: string;
+  invoiceLink: string;
+}

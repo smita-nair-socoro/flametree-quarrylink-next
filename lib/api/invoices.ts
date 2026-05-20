@@ -71,3 +71,11 @@ export const useRetrySync = (options?: {
     },
   });
 };
+
+export const InvoiceUrlQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: InvoicesKeys.url(id),
+    queryFn: () => APIClient.invoices.getUrl(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
