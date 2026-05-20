@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn, addNewRecordId, addSyncErrorRecordId } from '@/lib/utils';
+import { cn, addNewRecordId, addSyncErrorRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -443,6 +443,7 @@ export default function CustomerForm({
         description: 'Check required fields',
       },
     );
+    scrollToFirstError();
   }
 
   // Show loading when editing and customer is still being fetched by id

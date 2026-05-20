@@ -44,7 +44,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useClientStore } from '@/app/stores/client-store';
-import { addNewRecordId } from '@/lib/utils';
+import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
@@ -199,6 +199,7 @@ export default function DriverForm({
       isEditing ? 'Failed to Update Driver' : 'Failed to Add Driver',
       { description: 'Check required fields' },
     );
+    scrollToFirstError();
   }
 
   const effectiveHaulierId = isInternal

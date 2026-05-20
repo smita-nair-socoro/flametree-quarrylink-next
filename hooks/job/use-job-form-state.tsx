@@ -4,10 +4,9 @@ import React from 'react';
 import { parseISO } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import z from 'zod';
 import { useQuery } from '@tanstack/react-query';
 
-import { JobFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-form-schema';
+import { getJobFormSchema, JobFormValues } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-form-schema';
 import { JobItemsQueryOptions, useCreateJob, useUpdateJob } from '@/lib/api/job';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
@@ -56,8 +55,6 @@ export const formatJobTimeString = (timeStr?: string | null) => {
   return timeStr.substring(0, 5);
 };
 
-type JobFormValues = z.infer<typeof JobFormSchema>;
-
 type UseJobFormStateProps = {
   id?: number;
   onDirtyChange?: (isDirty: boolean) => void;
@@ -79,7 +76,7 @@ export function useJobFormState({
   const selectedJob = useJobStore((state) => state.selectedJob);
 
   const jobForm = useForm<JobFormValues>({
-    resolver: zodResolver(JobFormSchema),
+    resolver: zodResolver(getJobFormSchema(isEditing)),
     mode: 'onChange',
     defaultValues: EMPTY_JOB_FORM_VALUES,
   });

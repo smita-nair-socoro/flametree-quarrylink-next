@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn, splitReasonNote } from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -395,7 +395,7 @@ export default function QuotationForm({
               duplicateQuotation.isPending) &&
               'pointer-events-none',
           )}
-          onSubmit={quotationForm.handleSubmit(onSubmit)}
+          onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
@@ -679,7 +679,7 @@ export default function QuotationForm({
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowStart"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
@@ -688,7 +688,7 @@ export default function QuotationForm({
                         onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 
@@ -712,7 +712,7 @@ export default function QuotationForm({
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowEnd"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
@@ -721,7 +721,7 @@ export default function QuotationForm({
                         onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 

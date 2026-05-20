@@ -28,6 +28,8 @@ export interface DatePickerProps {
   readOnly?: boolean;
   /** extra styling for the trigger button */
   className?: string;
+  /** forwarded from FormControl via Radix Slot */
+  'aria-invalid'?: boolean;
 }
 
 export function DatePicker({
@@ -38,6 +40,7 @@ export function DatePicker({
   required = false,
   readOnly = false,
   className,
+  'aria-invalid': ariaInvalid,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -53,6 +56,7 @@ export function DatePicker({
           type="button"
           variant="outline"
           disabled={readOnly}
+          aria-invalid={ariaInvalid}
           className={cn(
             'w-full  sm:w-auto pl-3 text-left font-normal',
             !value && 'text-muted-foreground',
