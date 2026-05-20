@@ -95,10 +95,9 @@ export default function CustomerForm({
   const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
   const accountManagerOptions = React.useMemo(
     () =>
-      users.map((user) => ({
-        label: user.name,
-        value: user.sub,
-      })),
+      users
+        .map((user) => ({ label: user.name, value: user.sub }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
     [users],
   );
 
