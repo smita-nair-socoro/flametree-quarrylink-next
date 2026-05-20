@@ -737,7 +737,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/quote`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
+          pageSize: params?.pageSize?.toString() || '1000',
           status: params?.status,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
