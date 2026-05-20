@@ -11,61 +11,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Separator } from 'react-aria-components';
-import { format, startOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import {
   DispatchDocket,
   formatTimeRange,
   formatDate,
-} from '../views/dispatch-view';
-
-function parseCollectionStartMs(iso: string | undefined): number {
-  if (!iso) return 0;
-  const local = iso.includes('T') ? iso.replace('Z', '') : iso;
-  const t = new Date(local).getTime();
-  return Number.isNaN(t) ? 0 : t;
-}
-
-function dayBucketMs(iso: string | undefined): number {
-  const ms = parseCollectionStartMs(iso);
-  if (!ms) return 0;
-  return startOfDay(new Date(ms)).getTime();
-}
-
-/**
- * Comparable “volume” in m³ when product density is available (same basis as job line item:
- * 1 TN → m³ via densityTonnagePerM3). Without density, falls back to raw loadSize.
- */
-function normalizedLoadM3ForSort(docket: DispatchDocket): number {
-  const density = docket.jobItem?.product?.densityTonnagePerM3;
-  const uom = docket.productSellUom;
-  const qty = Number(docket.loadSize);
-  if (!Number.isFinite(qty)) return 0;
-
-  if (density != null && density > 0) {
-    if (uom === 'TN') return qty / density;
-    if (uom === 'M3') return qty;
-    if (uom === 'KG_20' || uom === 'BULKA') {
-      return (qty * 0.02) / density;
-    }
-  }
-
-  return qty;
-}
+  parseCollectionStartMs,
+  dayBucketMs,
+  normalizedLoadM3ForSort,
+  matchesUnassignedSearch,
+} from '@/lib/utils/dispatch-helper';
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
-
-function matchesUnassignedSearch(
-  docket: DispatchDocket,
-  query: string,
-): boolean {
-  const q = query.trim().toLowerCase();
-  if (!q) return true;
-  const num = (docket.docketNumber || '').toLowerCase();
-  const customer = (docket.customerName || '').toLowerCase();
-  return num.includes(q) || customer.includes(q);
-}
 
 function DraggableDocketCard({
   docket,
@@ -86,11 +45,10 @@ function DraggableDocketCard({
     <div
       ref={setNodeRef}
       onClick={onSelect}
-      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${
-        isSelected
-          ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
-          : 'border-[#E2E8F0]'
-      } ${isDragging ? 'opacity-50' : ''}`}
+      className={`bg-white border rounded-xl flex overflow-hidden shadow-sm shrink-0 cursor-pointer transition-colors ${isSelected
+        ? 'border-[#8B5CF6] ring-1 ring-[#8B5CF6]'
+        : 'border-[#E2E8F0]'
+        } ${isDragging ? 'opacity-50' : ''}`}
     >
       {/* Drag Handle Area */}
       <div
@@ -108,7 +66,7 @@ function DraggableDocketCard({
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize)}{' '}
+            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -177,7 +135,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
             {docket.docketNumber}
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
-            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize || docket.loadSize)}{' '}
+            {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
             {docket.productSellUom === 'M3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
@@ -332,21 +290,19 @@ export default function UnassignedDockets({
         <div className="flex w-full rounded-lg border border-[#FDE68A] bg-[#FEFCE8]/30">
           <button
             onClick={() => setActiveTab('this_day')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'this_day'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'this_day'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              }`}
           >
             This day
           </button>
           <button
             onClick={() => setActiveTab('all_dates')}
-            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${
-              activeTab === 'all_dates'
-                ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
-                : 'text-[#B45309] hover:bg-[#FEFCE8]'
-            }`}
+            className={`flex-1 py-2 text-[14px] font-medium rounded-md cursor-pointer transition-colors ${activeTab === 'all_dates'
+              ? 'bg-white text-[#0F172A] shadow-sm border border-[#FDE68A]'
+              : 'text-[#B45309] hover:bg-[#FEFCE8]'
+              }`}
           >
             All dates
           </button>

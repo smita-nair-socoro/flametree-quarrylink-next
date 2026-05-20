@@ -111,6 +111,11 @@ interface DataTableProps<TData, TValue> {
     onViewDetails?: () => void,
   ) => React.ReactNode; // Render function for mobile cards
   mobileUseTablePagination?: boolean; // Use TanStack pagination instead of mobile load-more cards
+  totalElements?: number; // External pagination total records
+  totalPages?: number; // External pagination total pages
+  onPaginationChange?: (page: number, pageSize: number) => void; // Callback for server-side pagination
+  externalPageIndex?: number; // Controlled page index from parent
+  externalPageSize?: number; // Controlled page size from parent
 }
 
 export type FacetDefinition = {
@@ -168,6 +173,11 @@ export function DataTableClient<TData, TValue>({
   defaultSorting, // Default sorting configuration (optional)
   mobileCardRenderer, // Render function for mobile cards
   mobileUseTablePagination = false,
+  totalElements,
+  totalPages,
+  onPaginationChange,
+  externalPageIndex,
+  externalPageSize,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -458,9 +468,18 @@ export function DataTableClient<TData, TValue>({
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
     setPagination((old) => {
-      const newValue = typeof updater === 'function' ? updater(old) : updater;
+      const currentState = {
+        pageIndex: externalPageIndex ?? old.pageIndex,
+        pageSize: externalPageSize ?? old.pageSize,
+      };
+      const newValue = typeof updater === 'function' ? updater(currentState) : updater;
+      
       if (!isMobile) {
         saveToStorage('pagination', newValue);
+      }
+      if (onPaginationChange) {
+        // Schedule it so we don't cause React state updates during render phase
+        setTimeout(() => onPaginationChange(newValue.pageIndex, newValue.pageSize), 0);
       }
       return newValue;
     });
@@ -513,6 +532,9 @@ export function DataTableClient<TData, TValue>({
       saveToStorage('paginationSize', value);
     }
     table.setPageSize(Number(value));
+    if (onPaginationChange) {
+      onPaginationChange(externalPageIndex ?? pagination.pageIndex, Number(value));
+    }
   };
 
   const pageSizeTriggerContent = useMemo(() => {
@@ -602,6 +624,10 @@ export function DataTableClient<TData, TValue>({
     },
     enableRowPinning: true,
 
+    manualPagination: !!onPaginationChange,
+    pageCount: totalPages,
+    rowCount: totalElements,
+
     globalFilterFn: 'auto',
 
     filterFns: { arrIncludesSome },
@@ -624,7 +650,10 @@ export function DataTableClient<TData, TValue>({
 
     state: {
       sorting,
-      pagination,
+      pagination: {
+        pageIndex: externalPageIndex ?? pagination.pageIndex,
+        pageSize: externalPageSize ?? pagination.pageSize,
+      },
       columnFilters,
       globalFilter,
       columnVisibility,

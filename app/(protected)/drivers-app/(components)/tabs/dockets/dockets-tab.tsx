@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { useQuery } from '@tanstack/react-query';
 
 import { DocketDTO } from '@/lib/types/docket';
@@ -140,8 +141,12 @@ export default function DocketsTab({
     (selectedDocket != null && isTruckInspectionPassed(selectedDocket.id));
   const checklistsComplete = isPreStartPassed && truckChecklistPassed;
 
-  const activeDocket = dockets.find((d) => d.docketStatus === 'IN_TRANSIT');
-  const otherDockets = dockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
+  const ACTIVE_STATUSES = ['ASSIGNED', 'IN_TRANSIT', 'STOPPED', 'ARRIVED'];
+  const activeDockets = dockets.filter((d) =>
+    ACTIVE_STATUSES.includes(d.docketStatus),
+  );
+  const activeDocket = activeDockets.find((d) => d.docketStatus === 'IN_TRANSIT');
+  const otherDockets = activeDockets.filter((d) => d.docketStatus !== 'IN_TRANSIT');
 
   const formatTimeWindow = (start: string, end: string) => {
     try {
@@ -283,8 +288,28 @@ export default function DocketsTab({
 
   return (
     <div className="flex flex-col gap-4 p-4 pb-24">
-      {activeDocket && renderDocketCard(activeDocket, true)}
-      {otherDockets.map((docket) => renderDocketCard(docket, false))}
+      {activeDockets.length === 0 ? (
+        <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-xl">
+          <div className="flex justify-center mb-4">
+            <Image
+              src="/empty-table.svg"
+              alt="No active dockets"
+              width={128}
+              height={128}
+              className="w-32 h-auto"
+            />
+          </div>
+          <h3 className="text-gray-700 font-medium mb-1">No active dockets</h3>
+          <p className="text-sm text-gray-500">
+            You have no assigned deliveries at the moment.
+          </p>
+        </div>
+      ) : (
+        <>
+          {activeDocket && renderDocketCard(activeDocket, true)}
+          {otherDockets.map((docket) => renderDocketCard(docket, false))}
+        </>
+      )}
 
       {confirmDialogs}
 

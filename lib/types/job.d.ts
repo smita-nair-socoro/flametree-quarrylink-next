@@ -160,6 +160,19 @@ export interface JobDetails extends JobDTO {
   updatedAt?: string;
 }
 
+export interface SettleJobResponse {
+  job?: JobDTO;
+  unfinalisedDocketsCount: number;
+  unfinalisedDocketsAmount: number;
+}
+
+export interface CompleteJobResponse {
+  job: JobDTO;
+  unfinalisedDocketsCount: number;
+  unfinalisedDocketsAmount: number;
+  remainingQuantityPresent: boolean;
+}
+
 export interface Invoice {
   id: number;
   invoiceNumber: string;
@@ -167,4 +180,18 @@ export interface Invoice {
   amount: number;
   dueDate: string;
   status: INVOICE_STATUS;
+}
+
+export interface InvoiceDetails {
+  id: number;
+  invoiceNumber: string;
+  customerName: string;
+  totalAmount: number;
+  invoiceDate: string;
+  dueDate: string;
+  status: INVOICE_STATUS;
+  externalStatus: string;
+  externalInvoiceId: string;
+  failureReason: string;
+  dockets: DocketDTO[];
 }

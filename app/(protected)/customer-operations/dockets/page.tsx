@@ -33,13 +33,16 @@ export default function DocketsPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
 
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+
   const {
     data: allDockets,
     isLoading: isAllDocketsLoading,
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    ...DocketsListQueryOptions(),
+    ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
     enabled: !linkedJobId,
   });
 
@@ -49,7 +52,7 @@ export default function DocketsPage() {
     error: linkedDocketsError,
     isError: isLinkedDocketsError,
   } = useQuery({
-    ...DocketsByJobIdQueryOptions(linkedJobId ?? 0),
+    ...DocketsByJobIdQueryOptions(linkedJobId ?? 0, { page: pageIndex, pageSize }),
     enabled: !!linkedJobId,
   });
 
@@ -66,6 +69,10 @@ export default function DocketsPage() {
       ...docket,
     })) as DocketDTO[];
   }, [dockets]);
+
+  // If not using client-side pagination, grab pagination info from backend payload
+  const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
+  const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
 
   // Statistics cards data
   const statsCards: StatsCardData[] = [
@@ -222,6 +229,14 @@ export default function DocketsPage() {
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
                   defaultSorting={[{ id: 'docketNumber', desc: false }]}
+                  totalElements={totalElements}
+                  totalPages={totalPages}
+                  externalPageIndex={pageIndex}
+                  externalPageSize={pageSize}
+                  onPaginationChange={(newPage, newSize) => {
+                    setPageIndex(newPage);
+                    setPageSize(newSize);
+                  }}
                 />
               );
             })()}

@@ -7,10 +7,11 @@ import { useRouter } from 'next/navigation';
 import { JobDTO, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
+import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/invoice-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
-import { useSettleJob } from '@/lib/api/job';
+import { useSettleJob, JobItemsQueryOptions } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { DocketDTO } from '@/lib/types/docket';
@@ -22,7 +23,6 @@ import {
 import {
   SettleJobDescription,
   SettleJobContent,
-  SettleJobInitialContent,
 } from '@/hooks/job/settle-job-content';
 import {
   PauseJobDescription,
@@ -76,6 +76,7 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [addDocketOpen, setAddDocketOpen] = React.useState(false);
+  const [addInvoiceOpen, setAddInvoiceOpen] = React.useState(false);
   const [pauseDocketAction, setPauseDocketAction] = React.useState<
     'stop' | 'allow'
   >('stop');
@@ -153,14 +154,6 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmActionNeeded: false,
         cancelText: 'Close',
       },
-      settle: {
-        title: 'Settle Job',
-        description: <SettleJobDescription job={jobData} />,
-        content: <SettleJobInitialContent />,
-        confirmText: 'Settle Job',
-        confirmCustomColor: '#8E51FF',
-        cancelText: 'Cancel',
-      },
       settle_blocked: {
         title: 'Settlement Blocked',
         description: <SettleJobDescription job={jobData} />,
@@ -175,7 +168,6 @@ export function useJobActions(jobData?: JobDetails | null) {
         confirmText: 'Resolve Dockets',
         confirmCustomColor: '#8E51FF',
         cancelText: 'Cancel',
-        confirmActionNeeded: false,
       },
       pause: {
         title: 'Pause Job',
@@ -210,11 +202,10 @@ export function useJobActions(jobData?: JobDetails | null) {
     if (!jobId) return;
 
     try {
-      const updated = await settleJobMutation.mutateAsync(jobId);
+      await settleJobMutation.mutateAsync(jobId);
       notifySuccess('Job settled successfully.');
       setActiveDialog(null);
       setSettleBlockedData(null);
-      useJobStore.getState().setSelectedJob(updated);
     } catch (error: unknown) {
       const errorData = extractErrorData(error) as {
         unfinalisedDocketsCount?: number;
@@ -314,12 +305,10 @@ export function useJobActions(jobData?: JobDetails | null) {
   const actionHandlers: Record<string, () => Promise<void>> = {
     resume: () => handleResumeJob(),
     cancel: handleCancelJob,
-    settle: async () => {
-      handleSettleJob();
-    },
     settle_blocked: async () => {
       setActiveDialog(null);
       setSettleBlockedData(null);
+      setAddInvoiceOpen(true);
     },
     pause: () => handlePauseJob(),
   };
@@ -401,7 +390,7 @@ export function useJobActions(jobData?: JobDetails | null) {
       }
     },
 
-    settle: createDialogAction('settle'),
+    settle: () => { handleSettleJob(); },
   };
 
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
@@ -478,10 +467,29 @@ export function useJobActions(jobData?: JobDetails | null) {
     </FormDialog>
   ) : null;
 
+  const addInvoiceDialog = addInvoiceOpen && jobId ? (
+    <FormDialog
+      dialogTitle="Create Invoice"
+      open={addInvoiceOpen}
+      onOpenChangeAction={(open) => {
+        setAddInvoiceOpen(open);
+        if (!open) {
+          setTimeout(() => {
+            setAddInvoiceOpen(false);
+          }, 100);
+        }
+      }}
+      hideTrigger
+    >
+      <InvoiceForm jobId={jobId} />
+    </FormDialog>
+  ) : null;
+
   return {
     actions,
     confirmDialogs,
     viewDialog,
     addDocketDialog,
+    addInvoiceDialog,
   };
 }

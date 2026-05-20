@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { DocketDTO } from '@/lib/types/docket';
 import { Switch } from '@/components/ui/switch';
-import { FileText, ShoppingCart, ChevronDown } from 'lucide-react';
+import { FileText, ShoppingCart, ChevronDown, HelpCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -20,12 +20,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useCreateInvoice } from '@/lib/api/invoices';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface InvoicesBulkActionsProps {
   selectedDockets: DocketDTO[];
   onClearSelection: () => void;
 }
-
 
 export function InvoiceActions({
   selectedDockets,
@@ -39,7 +39,7 @@ export function InvoiceActions({
     React.useState(false);
 
   const hasDeliveryCost = selectedDockets.some(
-    (d) => d.jobItem?.jobItemType !== 'COLLECTION'
+    (d) => d.jobItem?.jobItemType !== 'COLLECTION',
   );
 
   const createInvoiceMutation = useCreateInvoice({
@@ -94,25 +94,72 @@ export function InvoiceActions({
               {hasDeliveryCost && includeDeliveryPrices ? (
                 <>
                   <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-gray-700">Total Product Amount:</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Total Product Amount</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>(ex-GST)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <span className="font-bold v text-lg">
-                      ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalInvoiceAmount, 0))}
+                      $
+                      {centsToDollars(
+                        selectedDockets.reduce(
+                          (acc, docket) => acc + docket.totalProductAmount,
+                          0,
+                        ),
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-4 text-sm">
-                    <span className="text-gray-700">
-                      Total Delivery Amount:
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-700">Total Delivery Amount</span>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>(ex-GST)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+
                     <span className="font-bold text-[#101828] text-lg">
-                      ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalDeliveryAmount, 0))}
+                      $
+                      {centsToDollars(
+                        selectedDockets.reduce(
+                          (acc, docket) => acc + docket.totalDeliveryAmount,
+                          0,
+                        ),
+                      )}
                     </span>
                   </div>
                 </>
               ) : (
                 <div className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-gray-700">Total Amount:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-gray-700">Total Amount</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>(ex-GST)</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <span className="font-bold text-[#101828] text-lg">
-                    ${centsToDollars(selectedDockets.reduce((acc, docket) => acc + docket.totalInvoiceAmount, 0))}
+                    $
+                    {centsToDollars(
+                      selectedDockets.reduce(
+                        (acc, docket) => acc + docket.totalInvoiceAmount,
+                        0,
+                      ),
+                    )}
                   </span>
                 </div>
               )}
@@ -125,18 +172,18 @@ export function InvoiceActions({
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0 flex-1 space-y-1.5">
                     <p className="text-md font-semibold text-[#101828]">
-                      Include Delivery Prices
+                      Separate Delivery Line Items
                     </p>
                     <p className="text-sm leading-relaxed text-[#6A7282]">
                       {includeDeliveryPrices ? (
                         <>
-                          Delivery prices will be shown as separate line items for
-                          each docket
+                          Delivery charges will appear as separate invoice for
+                          each docket.
                         </>
                       ) : (
                         <>
-                          Delivery prices will be included in the product line
-                          items for each docket
+                          Delivery charges will be included in the product line
+                          item totals for each docket.
                         </>
                       )}
                     </p>
@@ -168,7 +215,9 @@ export function InvoiceActions({
                 createInvoiceMutation.mutate({
                   mode: isIndividual ? 'INDIVIDUAL' : 'BULK',
                   docketIds: selectedDockets.map((d) => d.id),
-                  inclDeliveryCost: hasDeliveryCost ? includeDeliveryPrices : false,
+                  inclDeliveryCost: hasDeliveryCost
+                    ? includeDeliveryPrices
+                    : false,
                 });
               }}
             >

@@ -61,8 +61,7 @@ export function SettleJobContent({
               Settlement Blocked
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}{' '}
-              or dockets not in Invoiced / Cash Sale / Void status.
+              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}, please invoice dockets or void to continue with job settlement.
             </span>
           </div>
         </div>
