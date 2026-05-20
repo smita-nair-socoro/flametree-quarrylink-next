@@ -34,7 +34,7 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useQuery } from '@tanstack/react-query';
-import { UsersListQueryOptions } from '@/lib/api/user';
+import { AccountManagersListQueryOptions } from '@/lib/api/user';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -91,14 +91,13 @@ export default function CustomerForm({
     enabled: isEditing && customerId > 0,
   });
 
-  // Fetch users (account managers)
-  const { data: users = [] } = useQuery(UsersListQueryOptions());
+  // Fetch account managers
+  const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
   const accountManagerOptions = React.useMemo(
     () =>
-      users.map((user) => ({
-        label: user.name,
-        value: user.sub,
-      })),
+      users
+        .map((user) => ({ label: user.name, value: user.sub }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
     [users],
   );
 

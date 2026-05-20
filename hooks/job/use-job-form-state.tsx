@@ -10,7 +10,6 @@ import { useQuery } from '@tanstack/react-query';
 import { JobFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-form-schema';
 import { JobItemsQueryOptions, useCreateJob, useUpdateJob } from '@/lib/api/job';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
-import { UsersListQueryOptions } from '@/lib/api/user';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { JobDTO, JobItem } from '@/lib/types/job';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
