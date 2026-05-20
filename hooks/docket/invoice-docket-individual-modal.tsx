@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { ShoppingCart } from 'lucide-react';
 import { useCreateInvoice } from '@/lib/api/invoices';
+import { useDocketStore } from '@/app/stores/docket-store';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 interface InvoiceDocketIndividualModalProps {
   open: boolean;
@@ -21,10 +23,15 @@ export function InvoiceDocketIndividualModal({
   docket,
 }: InvoiceDocketIndividualModalProps) {
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = useState(false);
+  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
 
   const createInvoiceMutation = useCreateInvoice({
     onSuccess: () => {
       onOpenChange(false);
+      setSelectedDocket({
+        ...(docket as DocketDTO),
+        docketStatus: DOCKET_STATUS.INVOICED,
+      });
     },
   });
 
