@@ -70,8 +70,8 @@ export interface DriverAppStatusUpdateRequest {
   receiverName?: string;
   signatureImage?: Blob | File;
   deliveryNotes?: string;
-  unloadedPhotos?: File[] | String[];
-  receivedPhotos?: File[] | String[];
+  unloadedPhotos?: File[];
+  receivedPhotos?: File[];
 }
 
 export interface DocketOperationalUpdateRequest {
@@ -149,9 +149,9 @@ export interface DocketDTO {
   deliveryLongitude?: number;
   signatureImage: string;
   deliveryNotes: string;
-  deliveryPhotos: File[] | String[];
-  unloadedPhotos?: File[] | String[];
-  receivedPhotos?: File[] | String[];
+  deliveryPhotos: string[];
+  unloadedPhotos?: string[];
+  receivedPhotos?: string[];
   receiverName?: string;
   receiverOnSite?: boolean;
   gpsLocation: string;
