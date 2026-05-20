@@ -293,7 +293,11 @@ export function useJobActions(jobData?: JobDetails | null) {
               ? 'active_drivers'
               : 'unfinalised_dockets';
 
-        setCannotCancelBlocker({ type: blockerType, activeCount, unfinalisedCount });
+        setCannotCancelBlocker({
+          type: blockerType,
+          activeCount,
+          unfinalisedCount,
+        });
         setActiveDialog('cannot_cancel');
       } else {
         setActiveDialog(null);
@@ -390,10 +394,14 @@ export function useJobActions(jobData?: JobDetails | null) {
       }
     },
 
-    settle: () => { handleSettleJob(); },
+    settle: () => {
+      handleSettleJob();
+    },
   };
 
   const confirmDialogs = Object.entries(dialogConfigs).map(([key, config]) => {
+    if (activeDialog !== key) return null;
+
     return (
       <ActionDialog
         key={key}
@@ -467,23 +475,24 @@ export function useJobActions(jobData?: JobDetails | null) {
     </FormDialog>
   ) : null;
 
-  const addInvoiceDialog = addInvoiceOpen && jobId ? (
-    <FormDialog
-      dialogTitle="Create Invoice"
-      open={addInvoiceOpen}
-      onOpenChangeAction={(open) => {
-        setAddInvoiceOpen(open);
-        if (!open) {
-          setTimeout(() => {
-            setAddInvoiceOpen(false);
-          }, 100);
-        }
-      }}
-      hideTrigger
-    >
-      <InvoiceForm jobId={jobId} />
-    </FormDialog>
-  ) : null;
+  const addInvoiceDialog =
+    addInvoiceOpen && jobId ? (
+      <FormDialog
+        dialogTitle="Create Invoice"
+        open={addInvoiceOpen}
+        onOpenChangeAction={(open) => {
+          setAddInvoiceOpen(open);
+          if (!open) {
+            setTimeout(() => {
+              setAddInvoiceOpen(false);
+            }, 100);
+          }
+        }}
+        hideTrigger
+      >
+        <InvoiceForm jobId={jobId} />
+      </FormDialog>
+    ) : null;
 
   return {
     actions,
