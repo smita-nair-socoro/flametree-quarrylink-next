@@ -99,7 +99,7 @@ export default function DocketsPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${(statistics?.uninvoicedDocketsValue ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      value: statistics?.uninvoicedDocketsValue ?? 0,
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -108,8 +108,8 @@ export default function DocketsPage() {
     },
     {
       title: 'Quantity Scheduled Today',
-      value: `${statistics?.quantityScheduledToday ?? 0}${statistics?.quantityScheduledTodayUnit ? ` ${statistics.quantityScheduledTodayUnit}` : ''}`,
-      description: `Across ${statistics?.quantityScheduledTodayDockets ?? 0} dockets`,
+      value: statistics?.quantityScheduledToday ?? 0,
+      description: `${statistics?.quantityScheduledTodayUnit} | Across ${statistics?.quantityScheduledTodayDockets ?? 0} dockets`,
       icon: Package,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
