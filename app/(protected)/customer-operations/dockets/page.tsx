@@ -19,6 +19,7 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
+import { centsToDollars } from '@/lib/utils/currency';
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -99,7 +100,7 @@ export default function DocketsPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: (() => { const v = statistics?.uninvoicedDocketsValue ?? 0; const abs = Math.abs(v).toLocaleString('en-AU'); return v < 0 ? `-$${abs}` : `$${abs}`; })(),
+      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
