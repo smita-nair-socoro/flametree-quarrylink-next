@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   DocketsByJobIdQueryOptions,
   DocketsListQueryOptions,
+  DocketStatisticsQueryOptions,
 } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,8 @@ export default function DocketsPage() {
     const parsed = Number(linkedJobIdParam);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
+
+  const { data: statistics } = useQuery(DocketStatisticsQueryOptions());
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -74,12 +77,11 @@ export default function DocketsPage() {
   const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
   const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
 
-  // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
       title: 'Scheduled Dockets Today',
-      value: '15',
-      description: '12 Delivery | 3 Collection',
+      value: statistics?.scheduledDocketsToday ?? 0,
+      description: `${statistics?.scheduledDeliveryDocketsToday ?? 0} Delivery | ${statistics?.scheduledCollectionDocketsToday ?? 0} Collection`,
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -88,7 +90,7 @@ export default function DocketsPage() {
     {
       title: 'Unassigned Dockets',
       title2: '(Next 7 Days)',
-      value: '3',
+      value: statistics?.unassignedDocketsNext7Days ?? 0,
       description: 'Need attention',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
@@ -97,8 +99,8 @@ export default function DocketsPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: '$1,043,570',
-      description: '12 Delivery | 10 Collection',
+      value: `$${(statistics?.uninvoicedDocketsValue ?? 0).toLocaleString('en-AU', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`,
+      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -106,8 +108,8 @@ export default function DocketsPage() {
     },
     {
       title: 'Quantity Scheduled Today',
-      value: '342.5 TN',
-      description: 'Across 24 dockets',
+      value: `${statistics?.quantityScheduledToday ?? 0}${statistics?.quantityScheduledTodayUnit ? ` ${statistics.quantityScheduledTodayUnit}` : ''}`,
+      description: `Across ${statistics?.quantityScheduledTodayDockets ?? 0} dockets`,
       icon: Package,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
