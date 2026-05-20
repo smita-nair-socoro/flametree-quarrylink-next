@@ -59,6 +59,7 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
+import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import {
   ChecklistReportModal,
   CHECKLIST_TYPE,
@@ -116,6 +117,7 @@ export default function DocketForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [previewImage, setPreviewImage] = React.useState<{ src: string; title: string } | null>(null);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
   const [conflictingDocketIds, setConflictingDocketIds] = React.useState<
     number[]
@@ -640,6 +642,13 @@ export default function DocketForm({
 
   return (
     <>
+      <ImagePreviewDialog
+        open={previewImage !== null}
+        onOpenChange={(open) => { if (!open) setPreviewImage(null); }}
+        src={previewImage?.src ?? ''}
+        alt={previewImage?.title ?? 'Photo preview'}
+        title={previewImage?.title ?? 'Photo Preview'}
+      />
       <ChecklistReportModal
         open={
           checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER
@@ -1520,13 +1529,17 @@ export default function DocketForm({
                               alt="Unloaded photo"
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewImage({ src: selectedDocket.unloadedPhotos![0], title: 'Unloaded Photo' })}
+                              className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
+                            >
                               <Eye className="w-7 h-7 text-white" />
                               <div className="flex items-center gap-1 text-white text-xs font-medium">
                                 <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
                                 Photo Captured
                               </div>
-                            </div>
+                            </button>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
@@ -1550,13 +1563,17 @@ export default function DocketForm({
                               alt="Receipt photo"
                               className="w-full h-full object-cover"
                             />
-                            <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewImage({ src: selectedDocket.receivedPhotos![0], title: 'Receipt Photo' })}
+                              className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
+                            >
                               <Eye className="w-7 h-7 text-white" />
                               <div className="flex items-center gap-1 text-white text-xs font-medium">
                                 <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
                                 Photo Captured
                               </div>
-                            </div>
+                            </button>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
@@ -1573,14 +1590,18 @@ export default function DocketForm({
                           Receiver Signature
                         </span>
                         {selectedDocket?.signatureImage ? (
-                          <div className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center">
+                          <button
+                            type="button"
+                            onClick={() => setPreviewImage({ src: selectedDocket.signatureImage!, title: 'Receiver Signature' })}
+                            className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center w-full hover:opacity-80 transition-opacity"
+                          >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.signatureImage}
                               alt="Receiver signature"
                               className="max-h-full max-w-full object-contain p-2"
                             />
-                          </div>
+                          </button>
                         ) : (
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
                             <FileX className="w-5 h-5 text-[#99A1AF]" />

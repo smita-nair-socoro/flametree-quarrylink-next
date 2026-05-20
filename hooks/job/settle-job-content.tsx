@@ -1,14 +1,14 @@
 'use client';
-import { CircleAlert, TriangleAlert } from 'lucide-react';
+import { TriangleAlert } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
 
 export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
   return (
     <div className="flex justify-start items-center gap-2">
-      <div className="flex w-[42px] h-[42px] justify-center bg-[#EFF6FF] rounded-md">
+      <div className="flex w-[42px] h-[42px] justify-center bg-[#FFF1F2] rounded-md">
         <span className="flex items-center justify-center">
-          <CircleAlert className="h-[20px] w-[20px] text-[#155DFC]" />
+          <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B]" />
         </span>
       </div>
       <div className="flex flex-col gap-1">
@@ -18,25 +18,12 @@ export function SettleJobDescription({ job }: { job?: JobDTO | null }) {
           <span className="text-sm text-[#6A7282] font-extrabold">·</span>
           <span className="text-sm text-[#6A7282]">
             {job?.customerDto?.customerType === 'BUSINESS'
-              ? (job.customerDto.businessName || job?.contactPersonName)
-              : (job?.customerDto?.individualContactName || job?.contactPersonName)}
+              ? job.customerDto.businessName || job?.contactPersonName
+              : job?.customerDto?.individualContactName ||
+                job?.contactPersonName}
           </span>
         </div>
       </div>
-    </div>
-  );
-}
-
-export function SettleJobInitialContent() {
-  return (
-    <div className="flex flex-col gap-3">
-      <span className="text-[14px] font-medium text-[#111827]">
-        Resolve outstanding invoices or payments:
-      </span>
-      <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
-        <li>All dockets must be in Paid, Cash Sale, or Voided status</li>
-        <li>Outstanding balance must be $0</li>
-      </ul>
     </div>
   );
 }
@@ -61,7 +48,8 @@ export function SettleJobContent({
               Settlement Blocked
             </span>
             <span className="text-[14px] font-normal text-[#B91C1C]">
-              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)}, please invoice dockets or void to continue with job settlement.
+              Outstanding balance of {centsToDollars(unfinalisedDocketsAmount)},
+              please invoice dockets or void to continue with job settlement.
             </span>
           </div>
         </div>
@@ -92,8 +80,14 @@ export function SettleJobContent({
           Resolve outstanding dockets or payments:
         </span>
         <ul className="text-[14px] font-normal text-[#6B7280] space-y-1 list-disc list-outside pl-5">
-          <li>All dockets must be in <span className="font-medium">Invoiced</span>, <span className="font-medium">Cash Sale</span>, or <span className="font-medium">Voided</span> status</li>
-          <li>Uninvoiced balance must be <span className="font-medium">$0</span></li>
+          <li>
+            All dockets must be in <span className="font-medium">Invoiced</span>
+            , <span className="font-medium">Cash Sale</span>, or{' '}
+            <span className="font-medium">Voided</span> status
+          </li>
+          <li>
+            Uninvoiced balance must be <span className="font-medium">$0</span>
+          </li>
         </ul>
       </div>
     </div>
