@@ -137,9 +137,9 @@ export interface DocketDTO {
   deliveryDistance?: number;
   deliveryDistanceQuantity: number;
   deliveryDistanceUom: string;
-  grossTruckWeight: number;
-  tareTruckWeight: number;
-  actualMaterialWeight: number;
+  grossTruckWeight?: number;
+  tareTruckWeight?: number;
+  actualMaterialWeight?: number;
   deliveryStartedAt?: string;
   arrivedAt?: string;
   arrivalLatitude?: number;

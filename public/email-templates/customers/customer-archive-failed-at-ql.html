@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QuarryLink - Archive reverted (Xero update failed)</title>
+    <title>QuarryLink - Customer archive not completed</title>
     <style>
       body {
         margin: 0;
@@ -93,11 +93,14 @@
         margin: 0 0 8px 0;
       }
       .info-box {
-        background-color: #fef2f2;
-        border-left: 4px solid #ef4444;
+        background-color: #fefce8;
+        border-left: 4px solid #f59e0b;
         padding: 14px 16px;
         margin: 20px 0;
         border-radius: 0 6px 6px 0;
+      }
+      .info-box {
+        border-left-color: #f59e0b;
       }
       .steps-box {
         background-color: #f9fafb;
@@ -105,6 +108,9 @@
         padding: 14px 16px;
         margin: 20px 0;
         border-radius: 0 6px 6px 0;
+      }
+      .steps-box {
+        border-left-color: #7c3aed;
       }
       .box-list {
         margin: 6px 0 0 0;
@@ -203,33 +209,28 @@
 
         <div class="content">
           <p>
-            You archived <strong>{customerName}</strong> in QuarryLink. We tried
-            to apply the same change in Xero, but
-            <strong>Xero did not accept the archive request.</strong>
+            You archived <strong>{customerName}</strong> in Xero. QuarryLink
+            attempted to archive the same customer,
+            <strong>but we couldn't complete the archive in QuarryLink</strong>.
           </p>
           <p>
-            To keep both systems consistent,
-            <strong>we reverted the archive in QuarryLink</strong>, and
-            <strong>{customerName} is currently active in QuarryLink</strong>.
+            To avoid breaking existing work, <strong>{customerName}</strong>
+            remains active in QuarryLink, even though it is archived in Xero.
           </p>
         </div>
 
         <div class="info-box">
           <p class="section-title">Why this can happen</p>
           <p style="font-size: 15px; color: #374151; margin: 0 0 6px 0">
-            Xero may reject an archive request for reasons such as:
+            QuarryLink may block archiving a customer when there are still
+            active or required records linked to them, for example:
           </p>
           <ul class="box-list">
+            <li>Active or pending dockets</li>
+            <li>Open jobs or orders</li>
             <li>
-              The contact is locked or restricted by Xero settings or
-              permissions
-            </li>
-            <li>
-              The Xero contact is in an invalid state (e.g. missing required
-              fields)
-            </li>
-            <li>
-              A connection or configuration issue between QuarryLink and Xero
+              Other items that must remain accessible for operations, billing,
+              or reporting
             </li>
           </ul>
         </div>
@@ -237,24 +238,22 @@
         <div class="steps-box">
           <p class="section-title">What you can do next</p>
           <ol class="steps-list">
+            <li>In QuarryLink, open <strong>{customerName}</strong>.</li>
             <li>
-              In Xero, open the contact for <strong>{customerName}</strong> and
-              confirm it can be archived manually.
+              Review and close/complete any active dockets, jobs, or other
+              linked items.
             </li>
             <li>
-              Confirm that QuarryLink still has an active, authorised connection
-              to the Xero organisation.
-            </li>
-            <li>
-              Once resolved, try archiving <strong>{customerName}</strong>
-              again from QuarryLink.
+              Once there are no blocking items, archive the customer directly in
+              QuarryLink.
             </li>
           </ol>
         </div>
 
         <div class="content">
           <p>
-            If you'd like us to investigate, contact
+            If you need help identifying what's blocking the archive, contact us
+            at
             <a href="mailto:{supportEmail}">{supportEmail}</a>.
           </p>
           <p>Thanks,<br />The QuarryLink Team</p>
@@ -262,8 +261,8 @@
 
         <div class="card-footer">
           <p>
-            You're receiving this email because a QuarryLink archive action
-            could not be synced to Xero and has been reverted.
+            You're receiving this email because a Xero archive action could not
+            be applied in QuarryLink.
           </p>
         </div>
       </div>

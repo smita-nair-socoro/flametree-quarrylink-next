@@ -1,27 +1,27 @@
 Hi {firstName},
 
-You archived {customerName} in Xero. QuarryLink attempted to archive the same customer, but we couldn't complete the archive in QuarryLink.
+You archived {customerName} in QuarryLink. We tried to apply the same change in Xero, but Xero did not accept the archive request.
 
-To avoid breaking existing work, {customerName} remains active in QuarryLink, even though it is archived in Xero.
+To keep both systems consistent, we reverted the archive in QuarryLink, and {customerName} is currently active in QuarryLink.
 
 WHY THIS CAN HAPPEN
 
-QuarryLink may block archiving a customer when there are still active or required records linked to them, for example:
+Xero may reject an archive request for reasons such as:
 
-- Active or pending dockets
-- Open jobs or orders
-- Other items that must remain accessible for operations, billing, or reporting
+- The contact is locked or restricted by Xero settings or permissions
+- The Xero contact is in an invalid state (e.g. missing required fields)
+- A connection or configuration issue between QuarryLink and Xero
 
 WHAT YOU CAN DO NEXT
 
-1. In QuarryLink, open {customerName}.
-2. Review and close/complete any active dockets, jobs, or other linked items.
-3. Once there are no blocking items, archive the customer directly in QuarryLink.
+1. In Xero, open the contact for {customerName} and confirm it can be archived manually.
+2. Confirm that QuarryLink still has an active, authorised connection to the Xero organisation.
+3. Once resolved, try archiving {customerName} again from QuarryLink.
 
-If you need help identifying what's blocking the archive, contact us at {supportEmail}.
+If you'd like us to investigate, contact {supportEmail}.
 
 Thanks,
 The QuarryLink Team
 
 ---
-You're receiving this email because a Xero archive action could not be applied in QuarryLink.
+You're receiving this email because a QuarryLink archive action could not be synced to Xero and has been reverted.

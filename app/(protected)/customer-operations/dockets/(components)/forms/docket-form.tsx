@@ -117,7 +117,10 @@ export default function DocketForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [previewImage, setPreviewImage] = React.useState<{ src: string; title: string } | null>(null);
+  const [previewImage, setPreviewImage] = React.useState<{
+    src: string;
+    title: string;
+  } | null>(null);
   const [timeConflictOpen, setTimeConflictOpen] = React.useState(false);
   const [conflictingDocketIds, setConflictingDocketIds] = React.useState<
     number[]
@@ -189,24 +192,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-      currentStatus === DOCKET_STATUS.ASSIGNED ||
-      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.STOPPED ||
-      currentStatus === DOCKET_STATUS.ARRIVED
+        currentStatus === DOCKET_STATUS.ASSIGNED ||
+        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.STOPPED ||
+        currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-      currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY);
+        currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.ARRIVED ||
-      currentStatus === DOCKET_STATUS.DELIVERED ||
-      currentStatus === DOCKET_STATUS.STOPPED
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED ||
+        currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY ||
-      currentStatus === DOCKET_STATUS.COLLECTED);
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -398,11 +401,11 @@ export default function DocketForm({
             checkWindowTimeConflict: true,
             deliveryCollectionDate: values.deliveryCollectionDate
               ? appendUtcSuffix(
-                format(
-                  values.deliveryCollectionDate,
-                  "yyyy-MM-dd'T'00:00:00.000",
-                ),
-              )
+                  format(
+                    values.deliveryCollectionDate,
+                    "yyyy-MM-dd'T'00:00:00.000",
+                  ),
+                )
               : undefined,
             deliveryCollectionStartTime: startDateTime
               ? appendUtcSuffix(startDateTime)
@@ -451,9 +454,9 @@ export default function DocketForm({
       const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -537,7 +540,8 @@ export default function DocketForm({
       }
 
       // Round to 2 decimal places to avoid out of bounds errors on the backend
-      deliveryDistanceQuantity = Math.round(deliveryDistanceQuantity * 100) / 100;
+      deliveryDistanceQuantity =
+        Math.round(deliveryDistanceQuantity * 100) / 100;
 
       const payload = {
         jobId: values.jobId,
@@ -559,18 +563,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -589,13 +593,13 @@ export default function DocketForm({
         plannedLoadSize: values.plannedLoadSize,
         actualLoadSize:
           isEditing &&
-            (currentStatus === DOCKET_STATUS.UNASSIGNED ||
-              currentStatus === DOCKET_STATUS.ASSIGNED ||
-              currentStatus === DOCKET_STATUS.PENDING)
+          (currentStatus === DOCKET_STATUS.UNASSIGNED ||
+            currentStatus === DOCKET_STATUS.ASSIGNED ||
+            currentStatus === DOCKET_STATUS.PENDING)
             ? values.plannedLoadSize
             : values.actualLoadSize,
-        grossTruckWeight: 100,
-        tareTruckWeight: 0,
+        // grossTruckWeight: 100,
+        // tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
         deliveryDistanceUom: deliveryDistanceUom,
         ...(isEditing && selectedDocket
@@ -644,7 +648,9 @@ export default function DocketForm({
     <>
       <ImagePreviewDialog
         open={previewImage !== null}
-        onOpenChange={(open) => { if (!open) setPreviewImage(null); }}
+        onOpenChange={(open) => {
+          if (!open) setPreviewImage(null);
+        }}
         src={previewImage?.src ?? ''}
         alt={previewImage?.title ?? 'Photo preview'}
         title={previewImage?.title ?? 'Photo Preview'}
@@ -682,16 +688,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                    <>
-                      {' '}
-                      ·{' '}
-                      {formatNumberThousandSeparator(
-                        selectedDocket?.actualLoadSize ??
+                  <>
+                    {' '}
+                    ·{' '}
+                    {formatNumberThousandSeparator(
+                      selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                      )}{' '}
-                      {selectedDocket?.jobItem?.productSellUom}
-                    </>
-                  )}
+                    )}{' '}
+                    {selectedDocket?.jobItem?.productSellUom}
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -1027,12 +1033,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                            (isEditing &&
+                              (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                              ? docketForm.watch('actualLoadSize') || 0
-                              : docketForm.watch('plannedLoadSize') || 0),
+                                ? docketForm.watch('actualLoadSize') || 0
+                                : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1390,14 +1396,15 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
+                              className={`text-xs font-semibold ${
+                                selectedDocket.driverChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.driverChecklist
-                                    .checklistStatus === 'FAIL'
+                                        .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                                }`}
+                              }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1423,14 +1430,15 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
+                              className={`text-xs font-semibold ${
+                                selectedDocket.truckChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.truckChecklist
-                                    .checklistStatus === 'FAIL'
+                                        .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                                }`}
+                              }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}
@@ -1531,7 +1539,12 @@ export default function DocketForm({
                             />
                             <button
                               type="button"
-                              onClick={() => setPreviewImage({ src: selectedDocket.unloadedPhotos![0], title: 'Unloaded Photo' })}
+                              onClick={() =>
+                                setPreviewImage({
+                                  src: selectedDocket.unloadedPhotos![0],
+                                  title: 'Unloaded Photo',
+                                })
+                              }
                               className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
                             >
                               <Eye className="w-7 h-7 text-white" />
@@ -1565,7 +1578,12 @@ export default function DocketForm({
                             />
                             <button
                               type="button"
-                              onClick={() => setPreviewImage({ src: selectedDocket.receivedPhotos![0], title: 'Receipt Photo' })}
+                              onClick={() =>
+                                setPreviewImage({
+                                  src: selectedDocket.receivedPhotos![0],
+                                  title: 'Receipt Photo',
+                                })
+                              }
                               className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
                             >
                               <Eye className="w-7 h-7 text-white" />
@@ -1592,7 +1610,12 @@ export default function DocketForm({
                         {selectedDocket?.signatureImage ? (
                           <button
                             type="button"
-                            onClick={() => setPreviewImage({ src: selectedDocket.signatureImage!, title: 'Receiver Signature' })}
+                            onClick={() =>
+                              setPreviewImage({
+                                src: selectedDocket.signatureImage!,
+                                title: 'Receiver Signature',
+                              })
+                            }
                             className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center w-full hover:opacity-80 transition-opacity"
                           >
                             {/* eslint-disable-next-line @next/next/no-img-element */}
