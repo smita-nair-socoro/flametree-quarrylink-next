@@ -46,7 +46,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
-import { AccountManagersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
@@ -155,12 +154,6 @@ export default function QuotationForm({
     [customers],
   );
 
-  const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
-  const userOptions: FormSelectOption[] = React.useMemo(
-    () => users.map((user) => ({ label: user.name, value: user.sub })),
-    [users],
-  );
-
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
@@ -208,7 +201,7 @@ export default function QuotationForm({
         : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
-      users.find((user) => user.sub === values.accountManagerSub)?.name || '';
+      customers.find((c) => c.id === values.customerId)?.accountManagerName || '';
 
     if (isDuplicate) {
       try {
@@ -510,17 +503,33 @@ export default function QuotationForm({
               disabled={isEditing && !canEdit}
             />
 
-            <FormSelect
+            <FormField
               control={quotationForm.control}
               name="accountManagerSub"
-              label="Account Manager*"
-              searchLabel="Account Managers"
-              options={userOptions}
-              placeholder="Select Customer First"
-              formItemClassName={
-                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-              }
-              disabled={isEditing || !canEdit}
+              render={() => {
+                const accountManagerName =
+                  customers.find((c) => c.id === quotationForm.watch('customerId'))
+                    ?.accountManagerName || '';
+                return (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Account Manager*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        value={accountManagerName}
+                        placeholder="Select Customer First"
+                        disabled
+                        readOnly
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
