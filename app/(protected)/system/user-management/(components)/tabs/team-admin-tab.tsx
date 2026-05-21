@@ -19,19 +19,15 @@ import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useQuery } from '@tanstack/react-query';
-import { UsersListQueryOptions } from '@/lib/api/user';
+import {
+  UsersListQueryOptions,
+  useResendUserInvitation,
+  useDeleteUser,
+} from '@/lib/api/user';
+import { UserDelete } from '@/lib/types/user';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
-
-const handleResend = (invitation: PendingInvitation) => {
-  // TODO: Implement resend invitation functionality
-  console.log('Resend invitation to:', invitation.email);
-};
-
-const handleRevoke = (invitation: PendingInvitation) => {
-  // TODO: Implement revoke invitation functionality
-  console.log('Revoke invitation for:', invitation.email);
-};
 
 // Roles options for the form
 const rolesOptions: readonly FormSelectOption[] = [
@@ -122,7 +118,8 @@ export default function TeamAdminTab() {
     const pending = (users || [])
       .filter((user) => user.status === UserStatus.PENDING)
       .map((user) => ({
-        id: user.id || 0, // Fallback to 0 if no id (should use sub for unique identifier)
+        id: user.id || 0,
+        sub: user.sub,
         tenant_id: user.tenantId || '',
         email: user.email,
         role: getHighestRole(user.groups),
@@ -141,6 +138,28 @@ export default function TeamAdminTab() {
   const setSelectedTeamMember = useTeamMemberStore(
     (state) => state.setSelectedTeamMember,
   );
+
+  const resendInvitationMutation = useResendUserInvitation();
+  const deleteUserMutation = useDeleteUser();
+
+  const handleResend = async (invitation: PendingInvitation) => {
+    try {
+      await resendInvitationMutation.mutateAsync(invitation.sub);
+      notifySuccess('Invitation resent successfully.');
+    } catch {
+      notifyError('Failed to resend invitation.');
+    }
+  };
+
+  const handleRevoke = async (invitation: PendingInvitation) => {
+    const payload: UserDelete = { reassignments: { customers: [] } };
+    try {
+      await deleteUserMutation.mutateAsync({ id: invitation.sub, data: payload });
+      notifySuccess('User deleted successfully.');
+    } catch {
+      notifyError('Failed to delete user.');
+    }
+  };
 
   // Separate state for the actions hook (like customer implementation)
   const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
@@ -326,6 +345,7 @@ export default function TeamAdminTab() {
                       <Button
                         variant="outline"
                         className="rounded-none px-4 h-auto py-2.5 gap-2 bg-white border-0 border-r"
+                        disabled={resendInvitationMutation.isPending}
                         onClick={() => handleResend(invitation)}
                       >
                         <RotateCcwSquare className="h-4 w-4" />
@@ -335,6 +355,7 @@ export default function TeamAdminTab() {
                       <Button
                         variant="outline"
                         className="rounded-none px-4 h-auto py-2.5 gap-2 bg-[#FEF2F2] text-red-600 hover:text-red-600 border-0"
+                        disabled={deleteUserMutation.isPending}
                         onClick={() => handleRevoke(invitation)}
                       >
                         <Delete className="h-4 w-4" />
