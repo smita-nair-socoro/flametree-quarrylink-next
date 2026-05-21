@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { cn } from '@/lib/utils';
+import { cn, scrollToFirstError } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { useIsMutating } from '@tanstack/react-query';
@@ -122,7 +122,7 @@ export default function JobForm({
         <form
           id="add-new-job-form"
           className={cn('py-1 w-full flex flex-col', className)}
-          onSubmit={jobForm.handleSubmit(onSubmit)}
+          onSubmit={jobForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {statusBanner}
 
@@ -297,7 +297,7 @@ export default function JobForm({
               <FormField
                 control={jobForm.control}
                 name="deliveryWindowStart"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
@@ -306,7 +306,7 @@ export default function JobForm({
                         value={field.value || ''}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 
@@ -331,7 +331,7 @@ export default function JobForm({
               <FormField
                 control={jobForm.control}
                 name="deliveryWindowEnd"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
@@ -340,7 +340,7 @@ export default function JobForm({
                         value={field.value || ''}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 

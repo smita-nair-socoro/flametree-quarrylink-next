@@ -17,7 +17,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { addNewRecordId, cn, splitReasonNote } from '@/lib/utils';
+import { addNewRecordId, cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
@@ -761,7 +761,7 @@ export default function DocketForm({
           <form
             id="add-new-docket-form"
             className={cn('w-full flex flex-col gap-8', className)}
-            onSubmit={docketForm.handleSubmit(onSubmit)}
+            onSubmit={docketForm.handleSubmit(onSubmit, scrollToFirstError)}
           >
             {statusBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
@@ -1188,7 +1188,7 @@ export default function DocketForm({
                     <FormField
                       control={docketForm.control}
                       name="deliveryCollectionStartTime"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
@@ -1198,7 +1198,7 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
@@ -1222,7 +1222,7 @@ export default function DocketForm({
                     <FormField
                       control={docketForm.control}
                       name="deliveryCollectionEndTime"
-                      render={({ field }) => (
+                      render={({ field, fieldState }) => (
                         <FormItem>
                           <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
@@ -1232,7 +1232,7 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full">
+                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
@@ -1709,7 +1709,7 @@ export default function DocketForm({
                 <Button
                   className="cursor-pointer"
                   type="button"
-                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting
@@ -1725,7 +1725,7 @@ export default function DocketForm({
                 <Button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => docketForm.handleSubmit(onSubmit)()}
+                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting

@@ -117,6 +117,17 @@ export interface UserDependencies {
   canDelete: boolean;
 }
 
+export interface AccountManager {
+  sub: string;
+  username: string;
+  email: string;
+  enabled: boolean;
+  status: string;
+  tenantId: string;
+  name: string;
+  groups: string[];
+}
+
 export interface ChangePasswordRequest {
   oldPassword: string;
   newPassword: string;

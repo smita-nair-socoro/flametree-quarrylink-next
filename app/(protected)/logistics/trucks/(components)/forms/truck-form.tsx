@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { cn, addNewRecordId } from '@/lib/utils';
+import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -272,6 +272,7 @@ export default function TruckForm({
     notifyError(isEditing ? 'Failed to Update Truck' : 'Failed to Add Truck', {
       description: 'Check required fields',
     });
+    scrollToFirstError();
   }
 
   const inspectionSectionRef = React.useRef<HTMLDivElement>(null);

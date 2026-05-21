@@ -10,7 +10,9 @@ export const NewProductFormSchema = z.object({
     .number({ required_error: 'Material Type is required' })
     .min(1, { message: 'Material Type is required' }),
   product_description: z.string().optional(),
-  density_tonnage_per_m3: z.coerce.number().nonnegative(),
+  density_tonnage_per_m3: z.coerce
+    .number()
+    .positive({ message: 'Density must be greater than 0' }),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
   created_by: z.string().optional(),

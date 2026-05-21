@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn, splitReasonNote } from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -46,7 +46,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
-import { UsersListQueryOptions } from '@/lib/api/user';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
@@ -155,15 +154,6 @@ export default function QuotationForm({
     [customers],
   );
 
-  const { data: users = [] } = useQuery(UsersListQueryOptions());
-  const userOptions: FormSelectOption[] = React.useMemo(() => {
-    if (!users) return [];
-    return users.map((user) => ({
-      label: user.name,
-      value: user.sub,
-    }));
-  }, [users]);
-
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
     const subscription = quotationForm.watch((value, { name }) => {
@@ -211,7 +201,7 @@ export default function QuotationForm({
         : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
-      users.find((user) => user.sub === values.accountManagerSub)?.name || '';
+      customers.find((c) => c.id === values.customerId)?.accountManagerName || '';
 
     if (isDuplicate) {
       try {
@@ -405,7 +395,7 @@ export default function QuotationForm({
               duplicateQuotation.isPending) &&
               'pointer-events-none',
           )}
-          onSubmit={quotationForm.handleSubmit(onSubmit)}
+          onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
@@ -513,17 +503,33 @@ export default function QuotationForm({
               disabled={isEditing && !canEdit}
             />
 
-            <FormSelect
+            <FormField
               control={quotationForm.control}
               name="accountManagerSub"
-              label="Account Manager*"
-              searchLabel="Account Managers"
-              options={userOptions}
-              placeholder="Select Customer First"
-              formItemClassName={
-                isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
-              }
-              disabled={isEditing || !canEdit}
+              render={() => {
+                const accountManagerName =
+                  customers.find((c) => c.id === quotationForm.watch('customerId'))
+                    ?.accountManagerName || '';
+                return (
+                  <FormItem
+                    className={
+                      isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Account Manager*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        value={accountManagerName}
+                        placeholder="Select Customer First"
+                        disabled
+                        readOnly
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             <FormField
@@ -673,7 +679,7 @@ export default function QuotationForm({
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowStart"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
@@ -682,7 +688,7 @@ export default function QuotationForm({
                         onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 
@@ -706,7 +712,7 @@ export default function QuotationForm({
               <FormField
                 control={quotationForm.control}
                 name="deliveryWindowEnd"
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
@@ -715,7 +721,7 @@ export default function QuotationForm({
                         onValueChange={field.onChange}
                         disabled={isEditing && !canEdit}
                       >
-                        <SelectTrigger className="w-full">
+                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
                           <SelectValue placeholder="Select time" />
                         </SelectTrigger>
 

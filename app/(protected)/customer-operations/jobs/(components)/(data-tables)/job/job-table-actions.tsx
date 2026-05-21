@@ -75,7 +75,6 @@ export function JobTableActions({ job }: JobTableActionsProps) {
       <DropdownMenu
         open={dropdownOpen}
         onOpenChange={setDropdownOpen}
-        modal={false}
       >
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">

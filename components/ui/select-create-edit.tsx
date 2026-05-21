@@ -102,7 +102,7 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
       <FormField
         control={control}
         name={name}
-        render={({ field }) => {
+        render={({ field, fieldState }) => {
           const selected = items.find((i) => i.id === field.value);
 
           return (
@@ -114,6 +114,7 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
                     variant="outline"
                     role="combobox"
                     disabled={disabled}
+                    aria-invalid={!!fieldState.error}
                     className={cn(
                       'w-full flex items-center justify-between',
                       !selected && 'text-muted-foreground',

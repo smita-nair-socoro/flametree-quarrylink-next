@@ -11,12 +11,21 @@ import {
   UserDelete,
   UserUpdateDTO,
   ChangePasswordRequest,
+  AccountManager,
 } from '../types/user';
 
 export const UsersListQueryOptions = () =>
   queryOptions({
     queryKey: UserKeys.list(),
     queryFn: () => APIClient.users.getAll(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const AccountManagersListQueryOptions = () =>
+  queryOptions<AccountManager[]>({
+    queryKey: UserKeys.accountManagers(),
+    queryFn: () => APIClient.users.getAccountManagers(),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

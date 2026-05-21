@@ -12,7 +12,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { cn } from '@/lib/utils';
+import { cn, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -257,7 +257,7 @@ export default function QuarrySupplierForm({
             className,
             isSubmitting && 'pointer-events-none',
           )}
-          onSubmit={quarrySupplierForm.handleSubmit(onSubmit)}
+          onSubmit={quarrySupplierForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
           {/* Type Selection */}
           <FormField
