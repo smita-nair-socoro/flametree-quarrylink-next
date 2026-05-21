@@ -403,6 +403,8 @@ export default function QuoteLineItemForm({
                             {...field}
                             disabled={isReadOnly}
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
                           />
                         </FormControl>
                         <FormMessage />
@@ -509,6 +511,8 @@ export default function QuoteLineItemForm({
                             {...field}
                             disabled
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
                           />
                         </FormControl>
                         <FormMessage />
@@ -650,6 +654,8 @@ export default function QuoteLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
                               />
                             </FormControl>
                             <FormMessage />
@@ -759,6 +765,8 @@ export default function QuoteLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
                               />
                             </FormControl>
                             <FormMessage />
@@ -987,7 +995,9 @@ export default function QuoteLineItemForm({
                         </span>
                         <span className="text-lg font-medium ml-3">
                           {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {formatDollars(Math.abs(pricingBreakdown.grossProfit))}
+                          {formatDollars(
+                            Math.abs(pricingBreakdown.grossProfit),
+                          )}
                         </span>
                       </div>
                     </>
