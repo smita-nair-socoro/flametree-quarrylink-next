@@ -62,12 +62,14 @@ interface DocketDetailsPanelProps {
   docketId: number;
   onClose: () => void;
   onUnassign: () => void;
+  isDispatchView?: boolean;
 }
 
 export function DocketDetailsPanel({
   docketId,
   onClose,
   onUnassign,
+  isDispatchView = false,
 }: DocketDetailsPanelProps) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
@@ -82,20 +84,24 @@ export function DocketDetailsPanel({
   useEffect(() => {
     setPlannedLoadSizeValue(
       fullDocket?.plannedLoadSize?.toString() ||
-      fullDocket?.actualLoadSize?.toString() ||
-      '0',
+        fullDocket?.actualLoadSize?.toString() ||
+        '0',
     );
     setActualLoadSizeValue(
       fullDocket?.actualLoadSize?.toString() ||
-      fullDocket?.plannedLoadSize?.toString() ||
-      '0',
+        fullDocket?.plannedLoadSize?.toString() ||
+        '0',
     );
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
 
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
 
-    let payload: { plannedLoadSize?: number; actualLoadSize?: number; deliveryDistanceQuantity?: number } = {};
+    let payload: {
+      plannedLoadSize?: number;
+      actualLoadSize?: number;
+      deliveryDistanceQuantity?: number;
+    } = {};
     let val = 0;
 
     if (
@@ -130,7 +136,15 @@ export function DocketDetailsPanel({
 
       if (!needTruckQty) {
         let deliveryDistanceUom = fullDocket.jobItem?.truckSellUom || 'TN';
-        const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+        const validUoms = [
+          'KG_20',
+          'KM',
+          'LOAD',
+          'TN',
+          'BULKA',
+          'HOURLY',
+          'M3',
+        ];
         if (!validUoms.includes(deliveryDistanceUom)) {
           const uomMap: Record<string, string> = {
             '20kg': 'KG_20',
@@ -283,8 +297,8 @@ export function DocketDetailsPanel({
             )}
 
             {!isDocketFinalised ||
-              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+            (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+              docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1">
                   <div className="text-xs text-gray-500 mb-1">
@@ -317,9 +331,13 @@ export function DocketDetailsPanel({
                           setPlannedLoadSizeValue(inputVal);
                         }
                       }}
-                      disabled={isDocketFinalised || showActualLoadSize}
+                      disabled={!isDispatchView || isDocketFinalised || showActualLoadSize}
+                      isNumber
+                      allowDecimal
+                      maxDecimals={2}
+                      minDecimals={1}
                     />
-                    {!isDocketFinalised && !showActualLoadSize && (
+                    {isDispatchView && !isDocketFinalised && !showActualLoadSize && (
                       <Button
                         variant="default"
                         className="cursor-pointer"
@@ -351,9 +369,13 @@ export function DocketDetailsPanel({
                         }
                         value={actualLoadSizeValue}
                         onChange={(e) => setActualLoadSizeValue(e.target.value)}
-                        disabled={isDocketFinalised}
+                        disabled={!isDispatchView || isDocketFinalised}
+                        isNumber
+                        allowDecimal
+                        maxDecimals={2}
+                        minDecimals={1}
                       />
-                      {!isDocketFinalised && (
+                      {isDispatchView && !isDocketFinalised && (
                         <Button
                           variant="default"
                           className="cursor-pointer"
@@ -444,10 +466,10 @@ export function DocketDetailsPanel({
               <span className="text-[13px] font-bold text-[#0F172A]">
                 {docket.jobItem.totalQuantityRequired > 0
                   ? Math.round(
-                    (docket.jobItem.deliveredQuantity /
-                      docket.jobItem.totalQuantityRequired) *
-                    100,
-                  )
+                      (docket.jobItem.deliveredQuantity /
+                        docket.jobItem.totalQuantityRequired) *
+                        100,
+                    )
                   : 0}
                 %
               </span>
@@ -459,8 +481,8 @@ export function DocketDetailsPanel({
                   width: `${Math.min(
                     docket.jobItem.totalQuantityRequired > 0
                       ? (docket.jobItem.deliveredQuantity /
-                        docket.jobItem.totalQuantityRequired) *
-                      100
+                          docket.jobItem.totalQuantityRequired) *
+                          100
                       : 0,
                     100,
                   )}%`,
@@ -486,13 +508,13 @@ export function DocketDetailsPanel({
             </div>
             {(!docket.jobItem ||
               docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-                <div className="flex flex-col gap-0 text-sm font-medium">
-                  <div className=" text-gray-500">Delivery</div>
-                  <div className=" text-gray-900">
-                    {dispatchAddressLabel(docket.deliveryAddress)}
-                  </div>
+              <div className="flex flex-col gap-0 text-sm font-medium">
+                <div className=" text-gray-500">Delivery</div>
+                <div className=" text-gray-900">
+                  {dispatchAddressLabel(docket.deliveryAddress)}
                 </div>
-              )}
+              </div>
+            )}
           </div>
         </div>
 

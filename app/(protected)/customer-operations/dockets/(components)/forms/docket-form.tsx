@@ -374,15 +374,16 @@ export default function DocketForm({
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
 
-      const { quantity: deliveryDistanceQuantity } = getDeliveryDistanceQuantity({
-        isCollection,
-        needTruckQty: lineItemDetails.needTruckQty,
-        truckQty: values.truckQty,
-        loadSize: values.plannedLoadSize || 0,
-        productUom: lineItemDetails.productUom,
-        truckUom: lineItemDetails.truckUom,
-        density: productDetails?.densityTonnagePerM3 || 1,
-      });
+      const { quantity: deliveryDistanceQuantity } =
+        getDeliveryDistanceQuantity({
+          isCollection,
+          needTruckQty: lineItemDetails.needTruckQty,
+          truckQty: values.truckQty,
+          loadSize: values.plannedLoadSize || 0,
+          productUom: lineItemDetails.productUom,
+          truckUom: lineItemDetails.truckUom,
+          density: productDetails?.densityTonnagePerM3 || 1,
+        });
 
       try {
         setIsSubmitting(true);
@@ -442,7 +443,7 @@ export default function DocketForm({
       setIsSubmitting(true);
 
       const density = productDetails?.densityTonnagePerM3 || 1;
-      
+
       const effectiveLoadSize =
         isEditing &&
         currentStatus !== DOCKET_STATUS.UNASSIGNED &&
@@ -475,7 +476,10 @@ export default function DocketForm({
         estimatedVolumeM3 = effectiveLoadSize;
       } else if (lineItemDetails.productUom === 'TN') {
         estimatedVolumeM3 = effectiveLoadSize / density;
-      } else if (lineItemDetails.productUom === 'KG_20' || lineItemDetails.productUom === '20kg') {
+      } else if (
+        lineItemDetails.productUom === 'KG_20' ||
+        lineItemDetails.productUom === '20kg'
+      ) {
         estimatedVolumeM3 = effectiveLoadSize / 50 / density;
       }
 
@@ -508,15 +512,16 @@ export default function DocketForm({
         }
       }
 
-      const { quantity: deliveryDistanceQuantity, uom: deliveryDistanceUom } = getDeliveryDistanceQuantity({
-        isCollection,
-        needTruckQty: lineItemDetails.needTruckQty,
-        truckQty: values.truckQty,
-        loadSize: effectiveLoadSize,
-        productUom: lineItemDetails.productUom,
-        truckUom: lineItemDetails.truckUom,
-        density,
-      });
+      const { quantity: deliveryDistanceQuantity, uom: deliveryDistanceUom } =
+        getDeliveryDistanceQuantity({
+          isCollection,
+          needTruckQty: lineItemDetails.needTruckQty,
+          truckQty: values.truckQty,
+          loadSize: effectiveLoadSize,
+          productUom: lineItemDetails.productUom,
+          truckUom: lineItemDetails.truckUom,
+          density,
+        });
 
       const payload = {
         jobId: values.jobId,
@@ -966,6 +971,20 @@ export default function DocketForm({
                       </>
                     );
                   })()}
+
+                  {!!docketForm.watch('jobLineItemId') &&
+                    selectedJobLineItemDetails().remainingQty <= 0 && (
+                      <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
+                        <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
+                          <Info className="h-4 w-4 text-[#DC2626]" />
+                          <span>No product quantity available</span>
+                        </div>
+                        <div className="text-sm text-[#991B1B] pl-6">
+                          The planned load size has been set to 0 because there
+                          is no remaining product available in this job.
+                        </div>
+                      </div>
+                    )}
 
                   <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
