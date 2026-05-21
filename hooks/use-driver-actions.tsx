@@ -60,7 +60,6 @@ const getDialogConfigs = (
   activeDocketIds: number[] = [],
   selectedTruck?: (UnassignTruckInfo & { id: number }) | null,
   blockedTruckDocketIds: number[] = [],
-  onNavigate?: () => void,
 ): Record<string, DialogConfig> => {
   const driverName = driverData?.driverName;
   const docketCount = activeDocketIds.length;
@@ -188,14 +187,6 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
-                    onClick={
-                      onNavigate
-                        ? (e) => {
-                            e.preventDefault();
-                            onNavigate();
-                          }
-                        : undefined
-                    }
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -294,14 +285,6 @@ const getDialogConfigs = (
                   <a
                     href={docketLink}
                     className="text-[14px] text-[#155DFC] font-medium underline"
-                    onClick={
-                      onNavigate
-                        ? (e) => {
-                            e.preventDefault();
-                            onNavigate();
-                          }
-                        : undefined
-                    }
                   >
                     {docketCount} active{' '}
                     {docketCount === 1 ? 'docket' : 'dockets'}
@@ -416,7 +399,6 @@ const getDialogConfigs = (
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedTruckDocketIds}
-            onNavigate={onNavigate}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -490,10 +472,6 @@ export function useDriverActions(
         activeDocketIds,
         selectedTruck,
         blockedTruckDocketIds,
-        () =>
-          handleNavigate(
-            `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`,
-          ),
       ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
