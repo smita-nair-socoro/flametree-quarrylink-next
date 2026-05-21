@@ -1,5 +1,5 @@
 'use client';
-import { TriangleAlert, Pause, CirclePlay, CircleStop } from 'lucide-react';
+import { TriangleAlert, Pause, CircleCheck, CircleX } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
 import { DocketDTO } from '@/lib/types/docket';
 import { cn } from '@/lib/utils';
@@ -66,7 +66,7 @@ function DocketActionSelector({
       <div
         className={cn(
           'border rounded-md p-3 cursor-pointer transition-colors',
-          action === 'stop' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:bg-gray-50',
+          action === 'stop' ? 'border-red-400' : 'border-gray-200',
         )}
         onClick={() => onActionChange('stop')}
       >
@@ -83,8 +83,10 @@ function DocketActionSelector({
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <CircleStop className="h-[18px] w-[18px] text-[#E7000B] flex-shrink-0" />
-              <span className="text-[14px] font-medium text-gray-900">{stopLabel}</span>
+              <div className="flex items-center justify-center w-[24px] h-[24px] rounded-full bg-[#FEF2F2] flex-shrink-0">
+                <CircleX className="h-[15px] w-[15px] text-[#E7000B]" />
+              </div>
+              <span className="text-[14px] font-semibold text-gray-900">{stopLabel}</span>
             </div>
             <span className="text-[13px] font-normal text-gray-500">{stopDescription}</span>
           </div>
@@ -94,7 +96,7 @@ function DocketActionSelector({
       <div
         className={cn(
           'border rounded-md p-3 cursor-pointer transition-colors',
-          action === 'allow' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:bg-gray-50',
+          action === 'allow' ? 'border-green-400' : 'border-gray-200',
         )}
         onClick={() => onActionChange('allow')}
       >
@@ -111,8 +113,10 @@ function DocketActionSelector({
           </div>
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <CirclePlay className="h-[18px] w-[18px] text-[#008236] flex-shrink-0" />
-              <span className="text-[14px] font-medium text-gray-900">{allowLabel}</span>
+              <div className="flex items-center justify-center w-[24px] h-[24px] rounded-full bg-[#ECFDF5] flex-shrink-0">
+                <CircleCheck className="h-[15px] w-[15px] text-[#009966]" />
+              </div>
+              <span className="text-[14px] font-semibold text-gray-900">{allowLabel}</span>
             </div>
             <span className="text-[13px] font-normal text-gray-500">{allowDescription}</span>
           </div>
@@ -229,7 +233,7 @@ export function PauseJobContent({
       )}
 
       <div className="flex flex-col gap-2 bg-[#F9FAFB] px-3 py-3 rounded-md">
-        <span className="text-[13px] font-medium text-gray-900">When job is paused:</span>
+        <span className="text-[13px] font-bold text-gray-900">When job is paused:</span>
         <ul className="text-[13px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
           {summaryItems.map((item) => (
             <li key={item}>{item}</li>
