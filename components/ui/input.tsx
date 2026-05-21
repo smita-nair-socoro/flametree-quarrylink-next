@@ -102,6 +102,7 @@ function Input({
       }
       onChange?.(e);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [isNumber, allowDecimal, onChange],
   );
 
