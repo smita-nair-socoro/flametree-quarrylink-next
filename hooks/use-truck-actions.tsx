@@ -236,7 +236,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
         content: (
           <CannotDeactivateTruckContent
             activeDocketIds={cannotDeactivateDocketIds}
-            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeactivateDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -266,7 +265,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <CannotDeleteTruckContent
             truck={truckData}
             activeDocketIds={cannotDeleteDocketIds}
-            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${cannotDeleteDocketIds.join(',')}`)}
           />
         ),
         confirmActionNeeded: false,
@@ -313,7 +311,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <UnassignDriverBlockedContent
             driverName={selectedDriver.driverName}
             activeDocketIds={blockedDocketIds}
-            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
           />
         ) : null,
         confirmText: 'Transfer Dockets',
