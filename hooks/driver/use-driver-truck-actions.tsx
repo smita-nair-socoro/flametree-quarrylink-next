@@ -103,11 +103,14 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
     }
   };
 
-  const handleNavigate = (url: string) => {
-    setIsNavigating(true);
-    setActiveDialog(null);
-    router.push(url);
-  };
+  const handleNavigate = React.useCallback(
+    (url: string) => {
+      setIsNavigating(true);
+      setActiveDialog(null);
+      router.push(url);
+    },
+    [router],
+  );
 
   const handleTransferDockets = () => {
     const docketLink = `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`;
@@ -159,11 +162,6 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedDocketIds}
-            onNavigate={() =>
-              handleNavigate(
-                `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`,
-              )
-            }
           />
         ) : null,
         confirmText: 'Transfer Dockets',
