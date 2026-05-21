@@ -38,7 +38,10 @@ export const DocketStatisticsQueryOptions = () => {
   });
 };
 
-export const DocketsListQueryOptions = (params?: { page?: number; pageSize?: number }) =>
+export const DocketsListQueryOptions = (params?: {
+  page?: number;
+  pageSize?: number;
+}) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
     queryFn: () => APIClient.dockets.getAll(params),
@@ -65,10 +68,10 @@ export const useCreateDocket = () => {
   });
 };
 
-export const DocketsByJobIdQueryOptions = (jobId: number, params?: { page?: number; pageSize?: number }) =>
+export const DocketsByJobIdQueryOptions = (jobId: number) =>
   queryOptions({
-    queryKey: [...DocketKeys.byJobId(jobId), params],
-    queryFn: () => APIClient.dockets.getByJobId(jobId, params),
+    queryKey: [...DocketKeys.byJobId(jobId)],
+    queryFn: () => APIClient.dockets.getByJobId(jobId),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

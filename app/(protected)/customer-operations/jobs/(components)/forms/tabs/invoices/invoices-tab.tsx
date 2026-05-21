@@ -31,9 +31,13 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
       >
         <span className="text-lg font-semibold">Invoices</span>
         <div className="flex gap-3">
-          <Button variant="outline" type="button" onClick={() => {
-            retrySyncMutation.mutate(jobId);
-          }}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              retrySyncMutation.mutate(jobId);
+            }}
+          >
             <RefreshCw className="h-4 w-4" />
             Sync All to Xero
           </Button>
