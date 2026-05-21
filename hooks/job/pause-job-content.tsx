@@ -1,15 +1,8 @@
 'use client';
-import {
-  TriangleAlert,
-  Pause,
-  Truck,
-  CirclePlay,
-  CircleStop,
-} from 'lucide-react';
+import { TriangleAlert, Pause, CirclePlay, CircleStop } from 'lucide-react';
 import { JobDTO } from '@/lib/types/job';
 import { DocketDTO } from '@/lib/types/docket';
 import { cn } from '@/lib/utils';
-import { TableBadges } from '@/components/table-badges';
 
 export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
   return (
@@ -39,22 +32,136 @@ export function PauseJobDescription({ job }: { job?: JobDTO | null }) {
   );
 }
 
-export function PauseJobContent({
-  activeDockets,
-  docketAction,
-  onDocketActionChange,
+function DocketActionSelector({
+  sectionLabel,
+  docketCount,
+  action,
+  onActionChange,
+  stopLabel,
+  stopDescription,
+  allowLabel,
+  allowDescription,
 }: {
-  activeDockets: DocketDTO[];
-  docketAction: 'stop' | 'allow';
-  onDocketActionChange: (action: 'stop' | 'allow') => void;
+  sectionLabel: string;
+  docketCount: number;
+  action: 'stop' | 'allow';
+  onActionChange: (action: 'stop' | 'allow') => void;
+  stopLabel: string;
+  stopDescription: string;
+  allowLabel: string;
+  allowDescription: string;
 }) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold tracking-wider text-gray-500 uppercase">
+          {sectionLabel} ({docketCount})
+        </span>
+      </div>
+
+      <span className="text-[13px] text-gray-500">
+        Select an action for {sectionLabel.toLowerCase()} dockets:
+      </span>
+
+      <div
+        className={cn(
+          'border rounded-md p-3 cursor-pointer transition-colors',
+          action === 'stop' ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:bg-gray-50',
+        )}
+        onClick={() => onActionChange('stop')}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5',
+              action === 'stop' ? 'border-red-500' : 'border-gray-300',
+            )}
+          >
+            {action === 'stop' && (
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <CircleStop className="h-[18px] w-[18px] text-[#E7000B] flex-shrink-0" />
+              <span className="text-[14px] font-medium text-gray-900">{stopLabel}</span>
+            </div>
+            <span className="text-[13px] font-normal text-gray-500">{stopDescription}</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          'border rounded-md p-3 cursor-pointer transition-colors',
+          action === 'allow' ? 'border-green-400 bg-green-50' : 'border-gray-200 hover:bg-gray-50',
+        )}
+        onClick={() => onActionChange('allow')}
+      >
+        <div className="flex items-start gap-3">
+          <div
+            className={cn(
+              'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center mt-0.5',
+              action === 'allow' ? 'border-green-500' : 'border-gray-300',
+            )}
+          >
+            {action === 'allow' && (
+              <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-2">
+              <CirclePlay className="h-[18px] w-[18px] text-[#008236] flex-shrink-0" />
+              <span className="text-[14px] font-medium text-gray-900">{allowLabel}</span>
+            </div>
+            <span className="text-[13px] font-normal text-gray-500">{allowDescription}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function PauseJobContent({
+  deliveryDockets,
+  collectionDockets,
+  deliveryDocketAction,
+  collectionDocketAction,
+  onDeliveryDocketActionChange,
+  onCollectionDocketActionChange,
+}: {
+  deliveryDockets: DocketDTO[];
+  collectionDockets: DocketDTO[];
+  deliveryDocketAction: 'stop' | 'allow';
+  collectionDocketAction: 'stop' | 'allow';
+  onDeliveryDocketActionChange: (action: 'stop' | 'allow') => void;
+  onCollectionDocketActionChange: (action: 'stop' | 'allow') => void;
+}) {
+  const totalDockets = deliveryDockets.length + collectionDockets.length;
+  const hasAnyDockets = totalDockets > 0;
+
+  const summaryItems: string[] = [
+    'Job status changes to "Paused"',
+    ...(deliveryDockets.length > 0 && deliveryDocketAction === 'stop'
+      ? [
+          'All Assigned delivery dockets will be Unassigned',
+          'All In Transit delivery dockets will be Stopped',
+        ]
+      : []),
+    ...(collectionDockets.length > 0 && collectionDocketAction === 'stop'
+      ? ['Pending collection dockets will be Cancelled']
+      : []),
+    'New docket creation is blocked (delivery and collection)',
+    'Can be resumed at any time',
+  ];
+
+  return (
+    <div className="flex flex-col gap-4">
       <span className="text-[14px] font-normal text-gray-700">
         Are you sure you want to pause this job?
       </span>
 
-      {activeDockets.length === 0 && (
+      {!hasAnyDockets && (
         <div className="border border-[#FFD6A7] rounded-md p-4 bg-[#FFF3E6]">
           <div className="flex justify-start gap-2 self-stretch">
             <TriangleAlert className="h-[20px] w-[20px] text-[#E7000B] flex-shrink-0 mt-0.5" />
@@ -71,140 +178,60 @@ export function PauseJobContent({
         </div>
       )}
 
-      {activeDockets.length > 0 && (
+      {hasAnyDockets && (
         <>
           <div className="border border-[#FEF08A] rounded-md p-4 bg-[#FFFBEB]">
             <div className="flex justify-start gap-2 self-stretch">
               <TriangleAlert className="h-[20px] w-[20px] text-[#CA8A04] flex-shrink-0 mt-0.5" />
               <div className="flex flex-col gap-1">
-                <span className="text-[16px] text-[#854D0E] font-medium">
+                <span className="text-[14px] text-[#854D0E] font-medium">
                   Active Dockets Found
                 </span>
-                <span className="text-[14px] font-normal text-[#A16207]">
-                  This job has {activeDockets.length} assigned docket
-                  {activeDockets.length !== 1 ? 's' : ''} with drivers. Choose
-                  how to handle them:
+                <span className="text-[13px] font-normal text-[#A16207]">
+                  This job has {totalDockets} active docket{totalDockets !== 1 ? 's' : ''}
+                  {deliveryDockets.length > 0 && collectionDockets.length > 0
+                    ? ` — ${deliveryDockets.length} delivery and ${collectionDockets.length} collection`
+                    : deliveryDockets.length > 0
+                      ? ` — ${deliveryDockets.length} delivery`
+                      : ` — ${collectionDockets.length} collection`}
+                  . Choose how to handle them:
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="rounded-md bg-[#F9FAFB] py-2 px-4 border border-[#E5E5E5]">
-            {activeDockets.map((docket) => {
-              return (
-                <div
-                  key={docket.id}
-                  className="flex items-center justify-between py-2"
-                >
-                  <div className="flex items-center gap-2 text-[14px]">
-                    <Truck className="h-[20px] w-[20px] text-[#6A7282]" />
-                    <span className="font-medium">{docket.docketNumber}</span>
-                    <span className="text-[#6A7282]">
-                      - {docket.driver?.driverName ?? 'John Smith'}
-                    </span>
-                  </div>
-                  <TableBadges names={docket.docketStatus} />
-                </div>
-              );
-            })}
-          </div>
+          {deliveryDockets.length > 0 && (
+            <DocketActionSelector
+              sectionLabel="Delivery Dockets"
+              docketCount={deliveryDockets.length}
+              action={deliveryDocketAction}
+              onActionChange={onDeliveryDocketActionChange}
+              stopLabel="Stop All Delivery Dockets"
+              stopDescription="Immediately stop all assigned delivery dockets. Drivers will be notified that they have been unassigned."
+              allowLabel="Allow Drivers to Complete"
+              allowDescription="Let assigned drivers finish their current assigned deliveries."
+            />
+          )}
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[14px] font-medium text-gray-900">
-              Select an action for assigned dockets:
-            </span>
-
-            <div
-              className={cn(
-                'border rounded-md p-3 cursor-pointer transition-colors',
-                docketAction === 'stop'
-                  ? 'border-red-400 bg-red-50'
-                  : 'border-gray-200 hover:bg-gray-50',
-              )}
-              onClick={() => onDocketActionChange('stop')}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={cn(
-                    'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
-                    docketAction === 'stop'
-                      ? 'border-red-500'
-                      : 'border-gray-300',
-                  )}
-                >
-                  {docketAction === 'stop' && (
-                    <div className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <CircleStop className="h-[20px] w-[20px] text-[#E7000B]" />
-                    <span className="text-[14px] font-medium text-gray-900">
-                      Stop All Dockets
-                    </span>
-                  </div>
-                  <span className="text-[14px] font-normal text-gray-500">
-                    Immediately stop all assigned dockets. Drivers will be
-                    notified that they have been unassigned.
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className={cn(
-                'border rounded-md p-3 cursor-pointer transition-colors',
-                docketAction === 'allow'
-                  ? 'border-green-400 bg-green-50'
-                  : 'border-gray-200 hover:bg-gray-50',
-              )}
-              onClick={() => onDocketActionChange('allow')}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={cn(
-                    'h-5 w-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center',
-                    docketAction === 'allow'
-                      ? 'border-green-500'
-                      : 'border-gray-300',
-                  )}
-                >
-                  {docketAction === 'allow' && (
-                    <div className="h-2.5 w-2.5 rounded-full bg-green-500" />
-                  )}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <CirclePlay className="h-[20px] w-[20px] text-[#008236]" />
-                    <span className="text-[14px] font-medium text-gray-900">
-                      Allow Drivers to Complete
-                    </span>
-                  </div>
-                  <span className="text-[14px] font-normal text-gray-500">
-                    Let assigned drivers finish their current assigned
-                    deliveries.
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+          {collectionDockets.length > 0 && (
+            <DocketActionSelector
+              sectionLabel="Collection Dockets"
+              docketCount={collectionDockets.length}
+              action={collectionDocketAction}
+              onActionChange={onCollectionDocketActionChange}
+              stopLabel="Stop Active Collection Dockets"
+              stopDescription="Move preparing and ready dockets into pending."
+              allowLabel="Allow Active Collections to Complete"
+              allowDescription="Let Preparing and Ready dockets continue to completion. Block new collection dockets only."
+            />
+          )}
         </>
       )}
 
-      <div className="flex flex-col gap-2 bg-[#F9FAFB] px-2 py-3 rounded-md">
-        <span className="text-[14px] font-medium">When job is paused:</span>
-        <ul className="text-[14px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
-          {[
-            'Job status changes to "Paused"',
-            ...(activeDockets.length > 0 && docketAction === 'stop'
-              ? [
-                  'All Assigned dockets will be Unassigned',
-                  'All In Transit dockets will be Stopped',
-                ]
-              : []),
-            'New docket creation is blocked',
-            'Can be resumed at any time',
-          ].map((item) => (
+      <div className="flex flex-col gap-2 bg-[#F9FAFB] px-3 py-3 rounded-md">
+        <span className="text-[13px] font-medium text-gray-900">When job is paused:</span>
+        <ul className="text-[13px] font-normal text-[#6A7282] space-y-1 list-disc list-outside pl-4">
+          {summaryItems.map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>

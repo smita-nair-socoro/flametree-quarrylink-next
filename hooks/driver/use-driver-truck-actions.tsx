@@ -159,7 +159,11 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           <UnassignTruckBlockedContent
             licensePlate={selectedTruck.licensePlate}
             activeDocketIds={blockedDocketIds}
-            onNavigate={() => handleNavigate(`/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`)}
+            onNavigate={() =>
+              handleNavigate(
+                `/customer-operations/dockets/?docketId=${blockedDocketIds.join(',')}`,
+              )
+            }
           />
         ) : null,
         confirmText: 'Transfer Dockets',
@@ -174,7 +178,6 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
       selectedTruckIds,
       availableTrucks,
       blockedDocketIds,
-      isNavigating,
       handleNavigate,
     ],
   );
