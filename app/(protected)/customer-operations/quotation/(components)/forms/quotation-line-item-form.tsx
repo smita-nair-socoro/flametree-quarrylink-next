@@ -405,6 +405,7 @@ export default function QuoteLineItemForm({
                             isNumber
                             allowDecimal
                             maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -513,6 +514,7 @@ export default function QuoteLineItemForm({
                             isNumber
                             allowDecimal
                             maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -656,6 +658,7 @@ export default function QuoteLineItemForm({
                                 isNumber
                                 allowDecimal
                                 maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -767,6 +770,7 @@ export default function QuoteLineItemForm({
                                 isNumber
                                 allowDecimal
                                 maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />

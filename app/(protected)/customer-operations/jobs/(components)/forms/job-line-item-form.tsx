@@ -438,6 +438,7 @@ export default function JobLineItemForm({
                             isNumber
                             allowDecimal
                             maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -543,6 +544,7 @@ export default function JobLineItemForm({
                             isNumber
                             allowDecimal
                             maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -683,6 +685,7 @@ export default function JobLineItemForm({
                                 isNumber
                                 allowDecimal
                                 maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -797,6 +800,7 @@ export default function JobLineItemForm({
                                 isNumber
                                 allowDecimal
                                 maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />

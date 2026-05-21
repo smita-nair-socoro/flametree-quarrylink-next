@@ -6,6 +6,7 @@ interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
   allowDecimal?: boolean;
   maxDecimals?: number;
+  minDecimals?: number;
   suffix?: React.ReactNode;
 }
 
@@ -15,6 +16,7 @@ function Input({
   isNumber,
   allowDecimal,
   maxDecimals,
+  minDecimals,
   suffix,
   onChange,
   onFocus,
@@ -41,10 +43,11 @@ function Input({
     if (isNaN(num)) return value;
     return allowDecimal
       ? num.toLocaleString('en-AU', {
+          minimumFractionDigits: minDecimals ?? 0,
           maximumFractionDigits: maxDecimals ?? 10,
         })
       : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
-  }, [isNumber, isFocused, value, allowDecimal, maxDecimals]);
+  }, [isNumber, isFocused, value, allowDecimal, maxDecimals, minDecimals]);
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
