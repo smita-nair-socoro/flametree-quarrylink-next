@@ -3,7 +3,6 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { CircleAlert, CircleCheckBig } from 'lucide-react';
-import { Spinner } from '@/components/ui/spinner';
 import { EligibilityBlockingDependencies } from '@/lib/types/eligibility-check';
 
 interface CannotDeleteEligibilityCheckContentProps {
@@ -22,7 +21,6 @@ function renderLinkedCount(
   singularLabel: string,
   pluralLabel: string,
   href?: string,
-  onNavigate?: () => void,
 ) {
   if (count === 0) return null;
 
@@ -34,7 +32,6 @@ function renderLinkedCount(
         <Link
           href={href}
           className="text-[#155DFC] font-medium underline"
-          onClick={onNavigate}
         >
           {count} active {label}
         </Link>
@@ -51,7 +48,6 @@ export function CannotDeleteEligibilityCheckContent({
   blockingDependencies,
   entityLabel,
 }: CannotDeleteEligibilityCheckContentProps) {
-  const [isNavigating, setIsNavigating] = React.useState(false);
   const blockingQuotations = blockingDependencies?.blockingQuotations ?? [];
   const blockingJobs = blockingDependencies?.blockingJobs ?? [];
   const blockingDockets = blockingDependencies?.blockingDockets ?? [];
@@ -79,15 +75,6 @@ export function CannotDeleteEligibilityCheckContent({
         )}`
       : undefined;
 
-  if (isNavigating) {
-    return (
-      <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center space-y-4 bg-background/80 backdrop-blur-sm">
-        <Spinner size="medium" />
-        <p className="text-lg text-muted-foreground font-bold">Loading...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-5">
       <div className="text-[15px] text-[#364153] font-normal">
@@ -105,21 +92,18 @@ export function CannotDeleteEligibilityCheckContent({
             'quote',
             'quotes',
             quotationsHref,
-            () => setIsNavigating(true),
           )}
           {renderLinkedCount(
             blockingJobs.length,
             'job',
             'jobs',
             jobsHref,
-            () => setIsNavigating(true),
           )}
           {renderLinkedCount(
             blockingDockets.length,
             'docket',
             'dockets',
             docketsHref,
-            () => setIsNavigating(true),
           )}
         </div>
 
