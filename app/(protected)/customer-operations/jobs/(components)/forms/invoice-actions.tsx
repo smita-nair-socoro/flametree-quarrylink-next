@@ -98,7 +98,7 @@ export function InvoiceActions({
                       <span className="text-gray-700">Total Product Amount</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>(ex-GST)</p>
@@ -120,7 +120,7 @@ export function InvoiceActions({
                       <span className="text-gray-700">Total Delivery Amount</span>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                          <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5 -ml-0.5" />
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>(ex-GST)</p>
@@ -145,7 +145,7 @@ export function InvoiceActions({
                     <span className="text-gray-700">Total Amount</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
+                        <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p>(ex-GST)</p>
@@ -198,7 +198,7 @@ export function InvoiceActions({
             </div>
           )}
 
-          <div className="flex w-full flex-row gap-3 border-t border-gray-100 px-6 pb-6">
+          <div className="flex w-full flex-row gap-3 border-gray-100 px-6 pb-6">
             <Button
               type="button"
               variant="outline"

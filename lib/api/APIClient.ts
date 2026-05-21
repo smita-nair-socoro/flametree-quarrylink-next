@@ -69,6 +69,8 @@ import {
   CompleteJobResponse,
   SettleJobResponse,
   InvoiceDetails,
+  RetrySyncResponse,
+  InvoiceUrlResponse,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -737,7 +739,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/quote`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
+          pageSize: params?.pageSize?.toString() || '1000',
           status: params?.status,
           customerId: params?.customerId?.toString(),
           accountManagerId: params?.accountManagerId?.toString(),
@@ -882,7 +884,10 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (jobId: number, params?: { page?: number; pageSize?: number }) => {
+    getByJobId: async (
+      jobId: number,
+      params?: { page?: number; pageSize?: number },
+    ) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -1346,6 +1351,14 @@ export const APIClient = {
       inclDeliveryCost: boolean;
     }) =>
       appClient.Post<void>(`/socoro/quarrylink/api/invoices`, { body: data }),
+    retrySync: (jobId: number) =>
+      appClient.Put<RetrySyncResponse>(
+        `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,
+      ),
+    getUrl: (invoiceId: number) =>
+      appClient.Get<InvoiceUrlResponse>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}/url`,
+      ),
   },
 
   driverApp: {

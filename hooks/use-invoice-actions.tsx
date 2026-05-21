@@ -18,9 +18,15 @@ import { TableBadges } from '@/components/table-badges';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
+import { InvoiceUrlQueryOptions } from '@/lib/api/invoices';
 
 export function useInvoiceActions(invoiceId: number | undefined) {
   const [isViewDetailsOpen, setIsViewDetailsOpen] = React.useState(false);
+  const { data: invoiceUrl, isLoading: isInvoiceUrlLoading } = useQuery({
+    ...InvoiceUrlQueryOptions(invoiceId as number),
+    enabled: isViewDetailsOpen && invoiceId !== undefined,
+  });
+  console.log(invoiceUrl);
 
   const actions = {
     viewDetails: () => {

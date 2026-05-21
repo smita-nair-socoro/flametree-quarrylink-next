@@ -49,3 +49,33 @@ export const useCreateInvoice = (options?: {
     },
   });
 };
+
+export const useRetrySync = (options?: {
+  onSuccess?: () => void;
+  onError?: (error: Error) => void;
+}) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['retrySync'],
+    mutationFn: (jobId: number) => APIClient.invoices.retrySync(jobId),
+    onSuccess: () => {
+      toast.success('Retry sync successful');
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
+      options?.onSuccess?.();
+    },
+    onError: (error) => {
+      toast.error('Failed to retry sync');
+      console.error('Failed to retry sync:', error);
+      options?.onError?.(error);
+    },
+  });
+};
+
+export const InvoiceUrlQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: InvoicesKeys.url(id),
+    queryFn: () => APIClient.invoices.getUrl(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
