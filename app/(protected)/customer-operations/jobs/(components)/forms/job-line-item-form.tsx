@@ -436,6 +436,8 @@ export default function JobLineItemForm({
                             {...field}
                             disabled={isReadOnly}
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
                           />
                         </FormControl>
                         <FormMessage />
@@ -539,6 +541,8 @@ export default function JobLineItemForm({
                             {...field}
                             disabled
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
                           />
                         </FormControl>
                         <FormMessage />
@@ -677,6 +681,8 @@ export default function JobLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
                               />
                             </FormControl>
                             <FormMessage />
@@ -789,6 +795,8 @@ export default function JobLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
                               />
                             </FormControl>
                             <FormMessage />
@@ -1013,7 +1021,10 @@ export default function JobLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(pricingBreakdown.grossProfit)}
+                          {new Intl.NumberFormat('en-AU', {
+                            style: 'currency',
+                            currency: 'AUD',
+                          }).format(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

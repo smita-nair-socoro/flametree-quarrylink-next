@@ -17,7 +17,12 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import { addNewRecordId, cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import {
+  addNewRecordId,
+  cn,
+  splitReasonNote,
+  scrollToFirstError,
+} from '@/lib/utils';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
@@ -56,7 +61,7 @@ import {
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
+import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
@@ -297,46 +302,18 @@ export default function DocketForm({
           const lineItemDetails = selectedJobLineItemDetails();
           const isCollection = lineItemDetails.type === 'COLLECTION';
 
-          if (!isCollection) {
-            if (lineItemDetails.needTruckQty) {
-              payload.deliveryDistanceQuantity = values.truckQty || 0;
-            } else {
-              const density = productDetails?.densityTonnagePerM3 || 1;
-              let deliveryDistanceUom = lineItemDetails.truckUom || 'TN';
-              const validUoms = [
-                'KG_20',
-                'KM',
-                'LOAD',
-                'TN',
-                'BULKA',
-                'HOURLY',
-                'M3',
-              ];
-              if (!validUoms.includes(deliveryDistanceUom)) {
-                const uomMap: Record<string, string> = {
-                  '20kg': 'KG_20',
-                  km: 'KM',
-                  Load: 'LOAD',
-                  TN: 'TN',
-                  Bulka: 'BULKA',
-                  Hourly: 'HOURLY',
-                  m3: 'M3',
-                };
-                deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
-              }
+          const { quantity } = getDeliveryDistanceQuantity({
+            isCollection,
+            needTruckQty: lineItemDetails.needTruckQty,
+            truckQty: values.truckQty,
+            loadSize: actualLoadSize,
+            productUom: lineItemDetails.productUom,
+            truckUom: lineItemDetails.truckUom,
+            density: productDetails?.densityTonnagePerM3 || 1,
+          });
 
-              const manualInputUoms = ['HOURLY', 'LOAD', 'KM'];
-              if (manualInputUoms.includes(deliveryDistanceUom)) {
-                payload.deliveryDistanceQuantity = values.truckQty || 0;
-              } else {
-                payload.deliveryDistanceQuantity = calculateConvertedQty(
-                  actualLoadSize,
-                  lineItemDetails.productUom,
-                  deliveryDistanceUom,
-                  density,
-                );
-              }
-            }
+          if (!isCollection) {
+            payload.deliveryDistanceQuantity = quantity;
           }
         }
         try {
@@ -393,6 +370,20 @@ export default function DocketForm({
           [selectedJob.customerEmail, ...additionalEmails].filter(Boolean),
         ),
       );
+
+      const lineItemDetails = selectedJobLineItemDetails();
+      const isCollection = lineItemDetails.type === 'COLLECTION';
+
+      const { quantity: deliveryDistanceQuantity } = getDeliveryDistanceQuantity({
+        isCollection,
+        needTruckQty: lineItemDetails.needTruckQty,
+        truckQty: values.truckQty,
+        loadSize: values.plannedLoadSize || 0,
+        productUom: lineItemDetails.productUom,
+        truckUom: lineItemDetails.truckUom,
+        density: productDetails?.densityTonnagePerM3 || 1,
+      });
+
       try {
         setIsSubmitting(true);
         const result = await operationalUpdateDocket.mutateAsync({
@@ -418,6 +409,7 @@ export default function DocketForm({
             docketEmailRecipients,
             truckId: selectedDocket.truckId,
             driverId: selectedDocket.driverId,
+            deliveryDistanceQuantity,
           },
         });
         if (
@@ -450,8 +442,16 @@ export default function DocketForm({
       setIsSubmitting(true);
 
       const density = productDetails?.densityTonnagePerM3 || 1;
+      
+      const effectiveLoadSize =
+        isEditing &&
+        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+        currentStatus !== DOCKET_STATUS.ASSIGNED &&
+        currentStatus !== DOCKET_STATUS.PENDING
+          ? values.actualLoadSize || values.plannedLoadSize || 0
+          : values.plannedLoadSize || 0;
+
       let estimatedVolumeM3 = 0;
-      const loadSize = values.plannedLoadSize || 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
             .split(',')
@@ -468,15 +468,15 @@ export default function DocketForm({
 
       if (
         lineItemDetails.productUom === 'M3' ||
-        'm3' ||
+        lineItemDetails.productUom === 'm3' ||
         lineItemDetails.productUom === 'BULKA' ||
-        'Bulka'
+        lineItemDetails.productUom === 'Bulka'
       ) {
-        estimatedVolumeM3 = loadSize;
+        estimatedVolumeM3 = effectiveLoadSize;
       } else if (lineItemDetails.productUom === 'TN') {
-        estimatedVolumeM3 = loadSize / density;
-      } else if (lineItemDetails.productUom === 'KG_20' || '20kg') {
-        estimatedVolumeM3 = loadSize / 50 / density;
+        estimatedVolumeM3 = effectiveLoadSize / density;
+      } else if (lineItemDetails.productUom === 'KG_20' || lineItemDetails.productUom === '20kg') {
+        estimatedVolumeM3 = effectiveLoadSize / 50 / density;
       }
 
       // Round to 2 decimal places to avoid out of bounds errors on the backend
@@ -508,40 +508,15 @@ export default function DocketForm({
         }
       }
 
-      let deliveryDistanceQuantity = 0;
-      let deliveryDistanceUom = lineItemDetails.truckUom || 'TN';
-
-      // Ensure deliveryDistanceUom matches the backend enum
-      const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
-      if (!validUoms.includes(deliveryDistanceUom)) {
-        const uomMap: Record<string, string> = {
-          '20kg': 'KG_20',
-          km: 'KM',
-          Load: 'LOAD',
-          TN: 'TN',
-          Bulka: 'BULKA',
-          Hourly: 'HOURLY',
-          m3: 'M3',
-        };
-        deliveryDistanceUom = uomMap[deliveryDistanceUom] || 'TN';
-      }
-
-      if (!isCollection) {
-        if (lineItemDetails.needTruckQty) {
-          deliveryDistanceQuantity = values.truckQty || 0;
-        } else {
-          deliveryDistanceQuantity = calculateConvertedQty(
-            loadSize,
-            lineItemDetails.productUom,
-            deliveryDistanceUom,
-            density,
-          );
-        }
-      }
-
-      // Round to 2 decimal places to avoid out of bounds errors on the backend
-      deliveryDistanceQuantity =
-        Math.round(deliveryDistanceQuantity * 100) / 100;
+      const { quantity: deliveryDistanceQuantity, uom: deliveryDistanceUom } = getDeliveryDistanceQuantity({
+        isCollection,
+        needTruckQty: lineItemDetails.needTruckQty,
+        truckQty: values.truckQty,
+        loadSize: effectiveLoadSize,
+        productUom: lineItemDetails.productUom,
+        truckUom: lineItemDetails.truckUom,
+        density,
+      });
 
       const payload = {
         jobId: values.jobId,
@@ -591,13 +566,7 @@ export default function DocketForm({
           ? undefined
           : values.truckType || lineItemDetails.truckType || undefined,
         plannedLoadSize: values.plannedLoadSize,
-        actualLoadSize:
-          isEditing &&
-          (currentStatus === DOCKET_STATUS.UNASSIGNED ||
-            currentStatus === DOCKET_STATUS.ASSIGNED ||
-            currentStatus === DOCKET_STATUS.PENDING)
-            ? values.plannedLoadSize
-            : values.actualLoadSize,
+        actualLoadSize: effectiveLoadSize,
         // grossTruckWeight: 100,
         // tareTruckWeight: 0,
         deliveryDistanceQuantity: deliveryDistanceQuantity,
@@ -1198,7 +1167,10 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
+                              <SelectTrigger
+                                className="w-full"
+                                aria-invalid={!!fieldState.error}
+                              >
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
@@ -1232,7 +1204,10 @@ export default function DocketForm({
                               onValueChange={field.onChange}
                               disabled={isReadOnly}
                             >
-                              <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
+                              <SelectTrigger
+                                className="w-full"
+                                aria-invalid={!!fieldState.error}
+                              >
                                 <SelectValue placeholder="Select time" />
                               </SelectTrigger>
 
@@ -1709,7 +1684,9 @@ export default function DocketForm({
                 <Button
                   className="cursor-pointer"
                   type="button"
-                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
+                  onClick={() =>
+                    docketForm.handleSubmit(onSubmit, scrollToFirstError)()
+                  }
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting
@@ -1725,7 +1702,9 @@ export default function DocketForm({
                 <Button
                   type="button"
                   className="cursor-pointer"
-                  onClick={() => docketForm.handleSubmit(onSubmit, scrollToFirstError)()}
+                  onClick={() =>
+                    docketForm.handleSubmit(onSubmit, scrollToFirstError)()
+                  }
                   disabled={
                     (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
                     isSubmitting

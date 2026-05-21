@@ -884,10 +884,7 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (
-      jobId: number,
-      params?: { page?: number; pageSize?: number },
-    ) => {
+    getByJobId: async (jobId: number) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -895,13 +892,7 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
-        queryString: {
-          page: params?.page?.toString() || '0',
-          size: params?.pageSize?.toString() || '1000',
-          sort: 'id',
-        },
-      });
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
       return response;
     },
     getById: (id: number) => {
@@ -943,9 +934,12 @@ export const APIClient = {
         { body: data },
       ),
     statistics: (date: string) =>
-      appClient.Get<DocketStatistics>(`/socoro/quarrylink/api/dockets/statistics`, {
-        queryString: { date },
-      }),
+      appClient.Get<DocketStatistics>(
+        `/socoro/quarrylink/api/dockets/statistics`,
+        {
+          queryString: { date },
+        },
+      ),
   },
 
   checklists: {

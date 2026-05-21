@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
   allowDecimal?: boolean;
+  maxDecimals?: number;
   suffix?: React.ReactNode;
 }
 
@@ -13,6 +14,7 @@ function Input({
   type,
   isNumber,
   allowDecimal,
+  maxDecimals,
   suffix,
   onChange,
   onFocus,
@@ -26,15 +28,23 @@ function Input({
   const [isFocused, setIsFocused] = React.useState(false);
 
   const displayValue = React.useMemo(() => {
-    if (!isNumber || isFocused || value === '' || value === undefined || value === null) {
+    if (
+      !isNumber ||
+      isFocused ||
+      value === '' ||
+      value === undefined ||
+      value === null
+    ) {
       return value;
     }
     const num = Number(value);
     if (isNaN(num)) return value;
     return allowDecimal
-      ? num.toLocaleString('en-AU', { maximumFractionDigits: 10 })
+      ? num.toLocaleString('en-AU', {
+          maximumFractionDigits: maxDecimals ?? 10,
+        })
       : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
-  }, [isNumber, isFocused, value, allowDecimal]);
+  }, [isNumber, isFocused, value, allowDecimal, maxDecimals]);
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,6 +69,11 @@ function Input({
           }
           if (sanitized === '.') {
             sanitized = '0.';
+          }
+
+          if (maxDecimals !== undefined && sanitized.includes('.')) {
+            const [intPart, fracPart] = sanitized.split('.');
+            sanitized = `${intPart}.${fracPart.slice(0, maxDecimals)}`;
           }
 
           // Strip leading zeros when more than one digit before dot (e.g. 00012.3 -> 12.3)
@@ -87,7 +102,7 @@ function Input({
       }
       onChange?.(e);
     },
-    [isNumber, allowDecimal, onChange]
+    [isNumber, allowDecimal, onChange],
   );
 
   const handleFocus = React.useCallback(
@@ -99,7 +114,7 @@ function Input({
       }
       onFocus?.(e);
     },
-    [isNumber, onFocus]
+    [isNumber, onFocus],
   );
 
   const handleBlur = React.useCallback(
@@ -107,7 +122,7 @@ function Input({
       setIsFocused(false);
       onBlur?.(e);
     },
-    [onBlur]
+    [onBlur],
   );
 
   const handleMouseUp = React.useCallback(
@@ -118,7 +133,7 @@ function Input({
       }
       onMouseUp?.(e);
     },
-    [isNumber, onMouseUp]
+    [isNumber, onMouseUp],
   );
 
   const inputElement = (
@@ -130,7 +145,7 @@ function Input({
         'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
         'aria-invalid:ring-destructive/20  aria-invalid:border-destructive',
         suffix && 'pr-12',
-        className
+        className,
       )}
       value={displayValue}
       onChange={handleChange}
@@ -138,13 +153,10 @@ function Input({
       onBlur={handleBlur}
       onMouseUp={handleMouseUp}
       // Provide helpful defaults for numeric entry without overriding explicit props
-      inputMode={isNumber ? inputMode ?? 'decimal' : inputMode}
+      inputMode={isNumber ? (inputMode ?? 'decimal') : inputMode}
       pattern={
         isNumber
-          ? pattern ??
-            (allowDecimal
-              ? '[0-9,]*[.]?[0-9]*'
-              : '[0-9,]*')
+          ? (pattern ?? (allowDecimal ? '[0-9,]*[.]?[0-9]*' : '[0-9,]*'))
           : pattern
       }
       {...props}

@@ -18,7 +18,7 @@ import {
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
 import { ConflictingDocket } from '@/lib/types/docket';
-import { calculateConvertedQty } from '@/hooks/docket/use-docket-form-state';
+import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 import { appendUtcSuffix } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
@@ -175,7 +175,9 @@ export function AssignDocketDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}
+            {formatNumberThousandSeparator(
+              docket?.actualLoadSize || docket?.plannedLoadSize,
+            )}
             {docket?.jobItem?.productSellUom === 'M3'
               ? 'm³'
               : docket?.jobItem?.productSellUom === 'KG_20'
@@ -236,17 +238,17 @@ export function AssignDocketContent({
 
   const conflictDates =
     docket?.deliveryCollectionDate &&
-      docket.deliveryCollectionStartTime &&
-      docket.deliveryCollectionEndTime
+    docket.deliveryCollectionStartTime &&
+    docket.deliveryCollectionEndTime
       ? {
-        deliveryCollectionDate: appendUtcSuffix(
-          docket.deliveryCollectionDate,
-        ),
-        deliveryStartWindow: appendUtcSuffix(
-          docket.deliveryCollectionStartTime,
-        ),
-        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
-      }
+          deliveryCollectionDate: appendUtcSuffix(
+            docket.deliveryCollectionDate,
+          ),
+          deliveryStartWindow: appendUtcSuffix(
+            docket.deliveryCollectionStartTime,
+          ),
+          deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+        }
       : null;
 
   const truckConflictRequest =
@@ -348,8 +350,8 @@ export function AssignDocketContent({
       !truckSelection
         ? []
         : availableDrivers
-          .filter((d) => d.truckIds.includes(truckSelection))
-          .map((d) => ({ label: d.driverName, value: d.id })),
+            .filter((d) => d.truckIds.includes(truckSelection))
+            .map((d) => ({ label: d.driverName, value: d.id })),
     [availableDrivers, truckSelection],
   );
 
