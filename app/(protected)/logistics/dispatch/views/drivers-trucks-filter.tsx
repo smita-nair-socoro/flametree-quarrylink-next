@@ -210,7 +210,7 @@ export function DispatchDriversTrucksFilter({
                         >
                           <Checkbox
                             checked={isChecked}
-                            className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                           />
                           <span>{opt.label}</span>
                         </CommandItem>
@@ -247,7 +247,7 @@ export function DispatchDriversTrucksFilter({
               <Command>
                 <CommandInput
                   placeholder="Search customers..."
-                  className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                  className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
                 />
                 <CommandList>
                   <CommandEmpty>No customer found.</CommandEmpty>
@@ -260,7 +260,7 @@ export function DispatchDriversTrucksFilter({
                       >
                         <Checkbox
                           checked={filter.customerNames.includes(customer)}
-                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                         />
                         <span>{customer}</span>
                       </CommandItem>
@@ -317,7 +317,7 @@ export function DispatchDriversTrucksFilter({
                                 checked={filter.driverStatuses.includes(
                                   opt.value,
                                 )}
-                                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                               />
                               <span>{opt.label}</span>
                             </CommandItem>
@@ -355,7 +355,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -374,7 +374,7 @@ export function DispatchDriversTrucksFilter({
                               <div className="flex items-center gap-2">
                                 <Checkbox
                                   checked={filter.driverIds.includes(driver.id)}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                                 />
                                 <span>{driver.label}</span>
                               </div>
@@ -432,7 +432,7 @@ export function DispatchDriversTrucksFilter({
                                 checked={filter.truckBusinessTypes.includes(
                                   opt.value,
                                 )}
-                                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                               />
                               <span>{opt.label}</span>
                             </CommandItem>
@@ -470,7 +470,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search hauliers..."
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -493,7 +493,7 @@ export function DispatchDriversTrucksFilter({
                                   checked={filter.haulierIds.includes(
                                     haulier.id,
                                   )}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                                 />
                                 <span>{haulier.label}</span>
                               </div>
@@ -532,7 +532,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search trucks…"
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -551,7 +551,7 @@ export function DispatchDriversTrucksFilter({
                               <div className="flex items-center gap-2">
                                 <Checkbox
                                   checked={filter.truckIds.includes(truck.id)}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
+                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
                                 />
                                 <span>{truck.label}</span>
                               </div>
