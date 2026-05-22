@@ -111,12 +111,6 @@ function formValuesFromCustomer(customer: CustomerDTO) {
  * Manages initial form state and sync: when customer detail loads (editing) or when
  * switching to create mode, resets form and local state (type, address, searchInput).
  */
-type CreditFieldStash = {
-  credit_limit: number;
-  payment_terms: PAYMENT_TERM_TYPE;
-  payment_terms_day: number;
-};
-
 export function useCustomerFormState(
   selectedCustomer: CustomerDTO | null,
   isEditing: boolean,
@@ -132,12 +126,9 @@ export function useCustomerFormState(
   const [searchInput, setSearchInput] = React.useState('');
   const didInitRef = React.useRef<number | null>(null);
 
-  const creditStash = React.useRef<CreditFieldStash | null>(null);
-
   React.useEffect(() => {
     if (!isEditing) {
       didInitRef.current = null;
-      creditStash.current = null;
       setSelectedCustomerType('BUSINESS');
       setSelectedPaymentType('CREDIT');
       setSearchInput('');

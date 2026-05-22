@@ -132,7 +132,6 @@ export default function CustomerForm({
     setAddress,
     searchInput,
     setSearchInput,
-    creditStash,
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -151,23 +150,6 @@ export default function CustomerForm({
       setSelectedCustomerType(value);
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
-      if (value === 'PREPAID') {
-        // Stash credit values before zeroing
-        creditStash.current = {
-          credit_limit: customerForm.getValues('credit_limit') ?? 0,
-          payment_terms: customerForm.getValues('payment_terms') ?? PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
-          payment_terms_day: customerForm.getValues('payment_terms_day') ?? 0,
-        };
-        customerForm.setValue('credit_limit', 0);
-        customerForm.setValue('payment_terms_day', 0);
-      } else if (value === 'CREDIT') {
-        // Restore credit stash
-        if (creditStash.current) {
-          customerForm.setValue('credit_limit', creditStash.current.credit_limit);
-          customerForm.setValue('payment_terms', creditStash.current.payment_terms);
-          customerForm.setValue('payment_terms_day', creditStash.current.payment_terms_day);
-        }
-      }
     }
   };
 
