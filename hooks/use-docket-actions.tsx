@@ -304,6 +304,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.PENDING,
       });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: DOCKET_STATUS.PENDING,
+      });
       notifySuccess('Docket status updated to Pending');
       setActiveDialog(null);
     } catch (error) {
