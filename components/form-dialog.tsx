@@ -201,7 +201,6 @@ export function FormDialog({
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
-  headerCustomer: headerCustomerProp,
   headerSeparator,
   contentClass,
   headerClassName,
@@ -280,17 +279,10 @@ export function FormDialog({
     finalPrimaryBadges = [selectedQuotation.quoteStatus];
   }
 
-  const customerForHeader = headerCustomerProp ?? selectedCustomer;
-  if (headerInfo?.useSelectedCustomer && customerForHeader) {
-    const c = customerForHeader as {
-      businessName?: string;
-      contactName?: string;
-      customerStatus?: string;
-      customerType?: string;
-    };
-    finalCustomId = c.businessName?.trim() || c.contactName || '';
-    finalPrimaryBadges = c.customerStatus ? [c.customerStatus] : [];
-    finalSecondaryBadges = c.customerType ? [c.customerType] : [];
+  if (headerInfo?.useSelectedCustomer && selectedCustomer) {
+    finalCustomId = selectedCustomer.businessName?.trim() || selectedCustomer.individualContactName || '';
+    finalPrimaryBadges = selectedCustomer.customerStatus ? [selectedCustomer.customerStatus] : [];
+    finalSecondaryBadges = selectedCustomer.customerType ? [selectedCustomer.customerType] : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
