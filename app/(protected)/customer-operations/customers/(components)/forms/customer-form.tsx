@@ -161,18 +161,12 @@ export default function CustomerForm({
           customerForm.setValue('contact_person_name', combined);
         }
       } else if (value === 'BUSINESS') {
-        const fullName = customerForm.getValues('contact_person_name') ?? '';
-        if (nameStash.current && fullName === nameStash.current.combined) {
-          // Name unchanged in INDIVIDUAL mode — restore original split
+        if (nameStash.current) {
+          // Restore original first/last split
           customerForm.setValue('contact_person_first_name', nameStash.current.first);
           customerForm.setValue('contact_person_last_name', nameStash.current.last);
-        } else {
-          // Name was edited — split on first space
-          const spaceIndex = fullName.indexOf(' ');
-          customerForm.setValue('contact_person_first_name', spaceIndex >= 0 ? fullName.slice(0, spaceIndex) : fullName);
-          customerForm.setValue('contact_person_last_name', spaceIndex >= 0 ? fullName.slice(spaceIndex + 1) : '');
+          nameStash.current = null;
         }
-        nameStash.current = null;
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
