@@ -132,6 +132,9 @@ export default function CustomerForm({
     setAddress,
     searchInput,
     setSearchInput,
+    businessStash,
+    individualStash,
+    creditStash,
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -149,26 +152,62 @@ export default function CustomerForm({
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
       if (value === 'INDIVIDUAL') {
-        // Clear business-specific fields
+        // Stash current business values before clearing
+        businessStash.current = {
+          business_name: customerForm.getValues('business_name') ?? '',
+          business_email: customerForm.getValues('business_email') ?? '',
+          business_phone: customerForm.getValues('business_phone') ?? '',
+          abn: customerForm.getValues('abn') ?? '',
+          contact_person_first_name: customerForm.getValues('contact_person_first_name') ?? '',
+          contact_person_last_name: customerForm.getValues('contact_person_last_name') ?? '',
+        };
         customerForm.setValue('business_name', '');
         customerForm.setValue('business_email', '');
         customerForm.setValue('business_phone', '');
         customerForm.setValue('abn', '');
         customerForm.setValue('contact_person_first_name', '');
         customerForm.setValue('contact_person_last_name', '');
-        // Clear contact person name for fresh start
-        customerForm.setValue('contact_person_name', '');
+        // Restore individual stash, or derive from business first+last names on first visit
+        const derivedContactName = individualStash.current !== null
+          ? individualStash.current.contact_person_name
+          : [businessStash.current?.contact_person_first_name, businessStash.current?.contact_person_last_name]
+              .filter(Boolean)
+              .join(' ');
+        customerForm.setValue('contact_person_name', derivedContactName);
       } else if (value === 'BUSINESS') {
-        // Clear individual-specific fields
+        // Stash current individual value before clearing
+        individualStash.current = {
+          contact_person_name: customerForm.getValues('contact_person_name') ?? '',
+        };
         customerForm.setValue('contact_person_name', '');
-        customerForm.setValue('contact_person_first_name', '');
-        customerForm.setValue('contact_person_last_name', '');
+        // Restore business stash
+        if (businessStash.current) {
+          customerForm.setValue('business_name', businessStash.current.business_name);
+          customerForm.setValue('business_email', businessStash.current.business_email);
+          customerForm.setValue('business_phone', businessStash.current.business_phone);
+          customerForm.setValue('abn', businessStash.current.abn);
+          customerForm.setValue('contact_person_first_name', businessStash.current.contact_person_first_name);
+          customerForm.setValue('contact_person_last_name', businessStash.current.contact_person_last_name);
+        }
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
       if (value === 'PREPAID') {
+        // Stash credit values before zeroing
+        creditStash.current = {
+          credit_limit: customerForm.getValues('credit_limit') ?? 0,
+          payment_terms: customerForm.getValues('payment_terms') ?? PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
+          payment_terms_day: customerForm.getValues('payment_terms_day') ?? 0,
+        };
         customerForm.setValue('credit_limit', 0);
         customerForm.setValue('payment_terms_day', 0);
+      } else if (value === 'CREDIT') {
+        // Restore credit stash
+        if (creditStash.current) {
+          customerForm.setValue('credit_limit', creditStash.current.credit_limit);
+          customerForm.setValue('payment_terms', creditStash.current.payment_terms as any);
+          customerForm.setValue('payment_terms_day', creditStash.current.payment_terms_day);
+        }
       }
     }
   };
