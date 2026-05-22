@@ -309,7 +309,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketStatus: DOCKET_STATUS.PENDING,
       });
       notifySuccess('Docket status updated to Pending');
-      setActiveDialog(null);
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
