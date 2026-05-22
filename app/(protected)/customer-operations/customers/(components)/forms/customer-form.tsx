@@ -132,8 +132,6 @@ export default function CustomerForm({
     setAddress,
     searchInput,
     setSearchInput,
-    businessStash,
-    individualStash,
     creditStash,
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
@@ -152,43 +150,16 @@ export default function CustomerForm({
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
       if (value === 'INDIVIDUAL') {
-        // Stash current business values before clearing
-        businessStash.current = {
-          business_name: customerForm.getValues('business_name') ?? '',
-          business_email: customerForm.getValues('business_email') ?? '',
-          business_phone: customerForm.getValues('business_phone') ?? '',
-          abn: customerForm.getValues('abn') ?? '',
-          contact_person_first_name: customerForm.getValues('contact_person_first_name') ?? '',
-          contact_person_last_name: customerForm.getValues('contact_person_last_name') ?? '',
-        };
-        customerForm.setValue('business_name', '');
-        customerForm.setValue('business_email', '');
-        customerForm.setValue('business_phone', '');
-        customerForm.setValue('abn', '');
-        customerForm.setValue('contact_person_first_name', '');
-        customerForm.setValue('contact_person_last_name', '');
-        // Restore individual stash, or derive from business first+last names on first visit
-        const derivedContactName = individualStash.current !== null
-          ? individualStash.current.contact_person_name
-          : [businessStash.current?.contact_person_first_name, businessStash.current?.contact_person_last_name]
-              .filter(Boolean)
-              .join(' ');
-        customerForm.setValue('contact_person_name', derivedContactName);
+        // Sync: combine first+last into contact_person_name
+        const first = customerForm.getValues('contact_person_first_name') ?? '';
+        const last = customerForm.getValues('contact_person_last_name') ?? '';
+        customerForm.setValue('contact_person_name', [first, last].filter(Boolean).join(' '));
       } else if (value === 'BUSINESS') {
-        // Stash current individual value before clearing
-        individualStash.current = {
-          contact_person_name: customerForm.getValues('contact_person_name') ?? '',
-        };
-        customerForm.setValue('contact_person_name', '');
-        // Restore business stash
-        if (businessStash.current) {
-          customerForm.setValue('business_name', businessStash.current.business_name);
-          customerForm.setValue('business_email', businessStash.current.business_email);
-          customerForm.setValue('business_phone', businessStash.current.business_phone);
-          customerForm.setValue('abn', businessStash.current.abn);
-          customerForm.setValue('contact_person_first_name', businessStash.current.contact_person_first_name);
-          customerForm.setValue('contact_person_last_name', businessStash.current.contact_person_last_name);
-        }
+        // Sync: split contact_person_name into first+last
+        const fullName = customerForm.getValues('contact_person_name') ?? '';
+        const spaceIndex = fullName.indexOf(' ');
+        customerForm.setValue('contact_person_first_name', spaceIndex >= 0 ? fullName.slice(0, spaceIndex) : fullName);
+        customerForm.setValue('contact_person_last_name', spaceIndex >= 0 ? fullName.slice(spaceIndex + 1) : '');
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
