@@ -297,6 +297,20 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleBackToPending = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.PENDING,
+      });
+      notifySuccess('Docket status updated to Pending');
+      setActiveDialog(null);
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleStartPreparing = async () => {
     if (!docketData?.id) return;
     try {
@@ -676,9 +690,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     },
     assign: createDialogAction('assign'),
 
-    backToPending: () => {
-      console.log('Back to pending confirmed:', docketData);
-    },
+    backToPending: handleBackToPending,
     backToPreparing: () => {
       console.log('Back to preparing confirmed:', docketData);
     },
@@ -754,7 +766,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               await handleUnassignDocket();
               break;
             case 'backToPending':
-              console.log('Back to pending confirmed:', docketData);
+              await handleBackToPending();
               break;
             case 'backToPreparing':
               console.log('Back to preparing confirmed:', docketData);
