@@ -154,7 +154,7 @@ export default function CustomerForm({
         // Stash first+last, then combine into contact_person_name
         const first = customerForm.getValues('contact_person_first_name') ?? '';
         const last = customerForm.getValues('contact_person_last_name') ?? '';
-        const combined = [first.trim(), last.trim()].filter(Boolean).join(' ');
+        const combined = [first, last].filter(Boolean).join(' ').trim();
         nameStash.current = { first, last, combined };
         // Only overwrite if there's something to combine — preserve existing individual name otherwise
         if (combined) {
