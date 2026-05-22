@@ -861,7 +861,7 @@ export const APIClient = {
       }),
     getAll: async (params?: {
       page?: number;
-      pageSize?: number;
+      size?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
@@ -876,7 +876,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
+          size: params?.size?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,

@@ -47,7 +47,7 @@ export default function DocketsPage() {
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
+    ...DocketsListQueryOptions({ page: pageIndex, size: pageSize }),
     enabled: !linkedJobId,
   });
 
