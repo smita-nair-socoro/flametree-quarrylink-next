@@ -592,8 +592,14 @@ export default function AssignedDockets({
       const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
       const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
 
-      const isValidA = pctA > 0 && pctA <= 100;
-      const isValidB = pctB > 0 && pctB <= 100;
+      const isGenericA = pctA === 0 || a.name?.toLowerCase().includes('generic');
+      const isGenericB = pctB === 0 || b.name?.toLowerCase().includes('generic');
+
+      const isValidA = !isGenericA && pctA > 0 && pctA <= 100;
+      const isValidB = !isGenericB && pctB > 0 && pctB <= 100;
+
+      const isExceedA = !isGenericA && pctA > 100;
+      const isExceedB = !isGenericB && pctB > 100;
 
       // 1. Valid fits (<= 100%) come first
       if (isValidA && !isValidB) return -1;
@@ -604,17 +610,15 @@ export default function AssignedDockets({
         return pctB - pctA;
       }
 
-      // 3. 0% capacity trucks go next (before exceeded fits)
-      if (pctA === 0 && pctB !== 0) return 1;
-      if (pctA !== 0 && pctB === 0) return -1;
-      if (pctA === 0 && pctB === 0) return 0;
+      // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
+      if (isGenericA && !isGenericB) return -1;
+      if (!isGenericA && isGenericB) return 1;
+      
+      if (isGenericA && isGenericB) return 0;
 
       // 4. Exceeded fits (> 100%) come last
-      const isExceedA = pctA > 100;
-      const isExceedB = pctB > 100;
-
-      if (isExceedA && !isExceedB) return 1;
-      if (!isExceedA && isExceedB) return -1;
+      if (isExceedA && !isExceedB) return -1;
+      if (!isExceedA && isExceedB) return 1;
 
       // 5. If both exceed, sort ascending (least exceeded first)
       if (isExceedA && isExceedB) {
