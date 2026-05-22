@@ -4,6 +4,7 @@ import { XCircle, AlertTriangle } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const CANCEL_REASON_LABELS: Record<string, string> = {
   customer_requested: 'Customer requested',
@@ -35,12 +36,19 @@ export function CancelDocketDescription({
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          <span className="font-bold">•</span>
-          <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+          <span className="text-sm text-[#6A7282]">{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="text-sm text-[#6A7282] font-bold">•</span>
+          <span className="text-sm text-[#6A7282]">
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>

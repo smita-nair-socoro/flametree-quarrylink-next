@@ -2,6 +2,7 @@
 import { MapPin, Shield, User, Clock } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export function MarkArrivedDescription({
   docket,
@@ -19,13 +20,20 @@ export function MarkArrivedDescription({
         <span className="font-medium">{docket?.docketNumber ?? '—'}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">
-            {docket?.jobItem?.product?.productName}
+            {docket?.jobItem?.product?.productName ?? '—'}
           </span>
-          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          <span className="font-bold">•</span>
-          <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+          <span className="text-sm text-[#6A7282] font-bold">•</span>
+          <span className="text-sm text-[#6A7282]">
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
