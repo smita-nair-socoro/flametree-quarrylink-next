@@ -183,7 +183,7 @@ export default function CustomerForm({
         // Restore credit stash
         if (creditStash.current) {
           customerForm.setValue('credit_limit', creditStash.current.credit_limit);
-          customerForm.setValue('payment_terms', creditStash.current.payment_terms as any);
+          customerForm.setValue('payment_terms', creditStash.current.payment_terms);
           customerForm.setValue('payment_terms_day', creditStash.current.payment_terms_day);
         }
       }

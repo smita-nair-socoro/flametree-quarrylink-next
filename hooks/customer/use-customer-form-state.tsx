@@ -113,7 +113,7 @@ function formValuesFromCustomer(customer: CustomerDTO) {
  */
 type CreditFieldStash = {
   credit_limit: number;
-  payment_terms: string;
+  payment_terms: PAYMENT_TERM_TYPE;
   payment_terms_day: number;
 };
 
