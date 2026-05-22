@@ -136,6 +136,7 @@ export default function CustomerForm({
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const nameStash = React.useRef<{ first: string; last: string; combined: string } | null>(null);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -150,15 +151,25 @@ export default function CustomerForm({
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
       if (value === 'INDIVIDUAL') {
-        // Sync: combine first+last into contact_person_name
+        // Stash first+last, then combine into contact_person_name
         const first = customerForm.getValues('contact_person_first_name') ?? '';
         const last = customerForm.getValues('contact_person_last_name') ?? '';
-        customerForm.setValue('contact_person_name', [first, last].filter(Boolean).join(' '));
+        const combined = [first, last].filter(Boolean).join(' ');
+        nameStash.current = { first, last, combined };
+        customerForm.setValue('contact_person_name', combined);
       } else if (value === 'BUSINESS') {
-        // Sync: move contact_person_name into first name so switching back restores it
         const fullName = customerForm.getValues('contact_person_name') ?? '';
-        customerForm.setValue('contact_person_first_name', fullName);
-        customerForm.setValue('contact_person_last_name', '');
+        if (nameStash.current && fullName === nameStash.current.combined) {
+          // Name unchanged in INDIVIDUAL mode — restore original split
+          customerForm.setValue('contact_person_first_name', nameStash.current.first);
+          customerForm.setValue('contact_person_last_name', nameStash.current.last);
+        } else {
+          // Name was edited — split on first space
+          const spaceIndex = fullName.indexOf(' ');
+          customerForm.setValue('contact_person_first_name', spaceIndex >= 0 ? fullName.slice(0, spaceIndex) : fullName);
+          customerForm.setValue('contact_person_last_name', spaceIndex >= 0 ? fullName.slice(spaceIndex + 1) : '');
+        }
+        nameStash.current = null;
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
