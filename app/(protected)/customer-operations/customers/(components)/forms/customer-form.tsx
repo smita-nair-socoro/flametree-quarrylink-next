@@ -136,8 +136,6 @@ export default function CustomerForm({
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const businessNameStash = React.useRef<{ first: string; last: string } | null>(null);
-  const individualNameStash = React.useRef<{ name: string } | null>(null);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -151,25 +149,6 @@ export default function CustomerForm({
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
-      if (value === 'INDIVIDUAL') {
-        // Stash business names, restore individual name if previously stashed
-        businessNameStash.current = {
-          first: customerForm.getValues('contact_person_first_name') ?? '',
-          last: customerForm.getValues('contact_person_last_name') ?? '',
-        };
-        if (individualNameStash.current !== null) {
-          customerForm.setValue('contact_person_name', individualNameStash.current.name);
-        }
-      } else if (value === 'BUSINESS') {
-        // Stash individual name, restore business names if previously stashed
-        individualNameStash.current = {
-          name: customerForm.getValues('contact_person_name') ?? '',
-        };
-        if (businessNameStash.current !== null) {
-          customerForm.setValue('contact_person_first_name', businessNameStash.current.first);
-          customerForm.setValue('contact_person_last_name', businessNameStash.current.last);
-        }
-      }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
       if (value === 'PREPAID') {
