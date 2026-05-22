@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { format } from 'date-fns';
 import {
   DndContext,
   DragEndEvent,
@@ -125,8 +125,10 @@ export function DispatchView({
     setSelectedDocketId(null);
   }, [date]);
 
-  const start = useMemo(() => startOfDay(date).toISOString(), [date]);
-  const end = useMemo(() => endOfDay(date).toISOString(), [date]);
+  const start = useMemo(() => format(date, "yyyy-MM-dd'T'00:00:00.000'Z'"), [date]);
+  const end = useMemo(() => format(date, "yyyy-MM-dd'T'23:59:59.999'Z'"), [date]);
+  console.log('start', start);
+  console.log('end', end);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(start, end),
