@@ -160,6 +160,5 @@ export function useCustomerFormState(
     setAddress,
     searchInput,
     setSearchInput,
-    creditStash,
   };
 }
