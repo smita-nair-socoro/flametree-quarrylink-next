@@ -38,8 +38,8 @@ export default function DocketsPage() {
     DocketStatisticsQueryOptions(),
   );
 
-  const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(10);
+  // const [pageIndex, setPageIndex] = React.useState(0);
+  // const [pageSize, setPageSize] = React.useState(10);
 
   const {
     data: allDockets,
@@ -47,19 +47,10 @@ export default function DocketsPage() {
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    ...DocketsListQueryOptions({ page: pageIndex, size: pageSize }),
+    // ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
+    ...DocketsListQueryOptions(),
     enabled: !linkedJobId,
   });
-
-  // const {
-  //   data: linkedDockets,
-  //   isLoading: isLinkedDocketsLoading,
-  //   error: linkedDocketsError,
-  //   isError: isLinkedDocketsError,
-  // } = useQuery({
-  //   ...DocketsByJobIdQueryOptions(linkedJobId ?? 0, { page: pageIndex, pageSize }),
-  //   enabled: !!linkedJobId,
-  // });
 
   const dockets = allDockets;
   const isLoading = isAllDocketsLoading;
@@ -76,12 +67,8 @@ export default function DocketsPage() {
   }, [dockets]);
 
   // If not using client-side pagination, grab pagination info from backend payload
-  const totalElements =
-    !Array.isArray(dockets) && dockets?.totalElements
-      ? dockets.totalElements
-      : items.length;
-  const totalPages =
-    !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
+  // const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
+  // const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
 
   const statsCards: StatsCardData[] = [
     {
@@ -251,14 +238,14 @@ export default function DocketsPage() {
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
                   defaultSorting={[{ id: 'docketNumber', desc: false }]}
-                  totalElements={totalElements}
-                  totalPages={totalPages}
-                  externalPageIndex={pageIndex}
-                  externalPageSize={pageSize}
-                  onPaginationChange={(newPage, newSize) => {
-                    setPageIndex(newPage);
-                    setPageSize(newSize);
-                  }}
+                // totalElements={totalElements}
+                // totalPages={totalPages}
+                // externalPageIndex={pageIndex}
+                // externalPageSize={pageSize}
+                // onPaginationChange={(newPage, newSize) => {
+                //   setPageIndex(newPage);
+                //   setPageSize(newSize);
+                // }}
                 />
               );
             })()}
