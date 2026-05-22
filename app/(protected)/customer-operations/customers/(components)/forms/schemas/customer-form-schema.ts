@@ -315,8 +315,6 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // ABN is sanitized on submit for INDIVIDUAL — no validation needed here
-
     // Optional validation: if business email is provided, it should be valid
     // if (
     //   data.business_email &&
@@ -329,8 +327,6 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     //     message: 'Invalid business email format',
     //   });
     // }
-
-    // business_phone is sanitized on submit for INDIVIDUAL — no validation needed here
 
     // Optional validation: if credit limit is provided, it should be valid (only if not already validated by payment type)
     if (data.payment_type !== PAYMENT_TYPE.CREDIT) {
