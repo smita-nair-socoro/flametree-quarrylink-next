@@ -156,7 +156,10 @@ export default function CustomerForm({
         const last = customerForm.getValues('contact_person_last_name') ?? '';
         const combined = [first, last].filter(Boolean).join(' ');
         nameStash.current = { first, last, combined };
-        customerForm.setValue('contact_person_name', combined);
+        // Only overwrite if there's something to combine — preserve existing individual name otherwise
+        if (combined) {
+          customerForm.setValue('contact_person_name', combined);
+        }
       } else if (value === 'BUSINESS') {
         const fullName = customerForm.getValues('contact_person_name') ?? '';
         if (nameStash.current && fullName === nameStash.current.combined) {
