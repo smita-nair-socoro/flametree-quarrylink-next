@@ -766,7 +766,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               await handleUnassignDocket();
               break;
             case 'backToPending':
-              await handleBackToPending();
+              console.log('Back to pending confirmed:', docketData);
               break;
             case 'backToPreparing':
               console.log('Back to preparing confirmed:', docketData);
