@@ -315,14 +315,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
       });
     }
 
-    // For Individual customers, ABN should be "N/A" or empty
-    if (data.abn && data.abn !== 'N/A' && data.abn.trim() !== '') {
-      ctx.addIssue({
-        path: ['abn'],
-        code: z.ZodIssueCode.custom,
-        message: 'ABN must be "N/A" for Individual customers',
-      });
-    }
+    // ABN is sanitized on submit for INDIVIDUAL — no validation needed here
 
     // Optional validation: if business email is provided, it should be valid
     // if (
@@ -337,18 +330,7 @@ export const NewCustomerFormSchema = Base.superRefine((data, ctx) => {
     //   });
     // }
 
-    // Optional validation: if business phone is provided, it should be valid
-    if (
-      data.business_phone &&
-      data.business_phone.trim() !== '' &&
-      !isValidPhoneNumber(data.business_phone)
-    ) {
-      ctx.addIssue({
-        path: ['business_phone'],
-        code: z.ZodIssueCode.custom,
-        message: 'Invalid business phone format',
-      });
-    }
+    // business_phone is sanitized on submit for INDIVIDUAL — no validation needed here
 
     // Optional validation: if credit limit is provided, it should be valid (only if not already validated by payment type)
     if (data.payment_type !== PAYMENT_TYPE.CREDIT) {
