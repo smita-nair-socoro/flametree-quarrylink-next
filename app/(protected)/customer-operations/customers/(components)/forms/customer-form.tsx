@@ -154,12 +154,6 @@ export default function CustomerForm({
         const first = customerForm.getValues('contact_person_first_name') ?? '';
         const last = customerForm.getValues('contact_person_last_name') ?? '';
         customerForm.setValue('contact_person_name', [first, last].filter(Boolean).join(' '));
-      } else if (value === 'BUSINESS') {
-        // Sync: split contact_person_name into first+last
-        const fullName = customerForm.getValues('contact_person_name') ?? '';
-        const spaceIndex = fullName.indexOf(' ');
-        customerForm.setValue('contact_person_first_name', spaceIndex >= 0 ? fullName.slice(0, spaceIndex) : fullName);
-        customerForm.setValue('contact_person_last_name', spaceIndex >= 0 ? fullName.slice(spaceIndex + 1) : '');
       }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
