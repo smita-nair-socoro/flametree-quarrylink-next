@@ -71,7 +71,7 @@ export default function TruckInspectionChecklist({
           answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
           failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
           comment: a.notes?.trim() || null,
-          photos: [],
+          photos: a.image ? [{ photoKey: a.image, displayOrder: 0 }] : [],
         };
       }),
     });
