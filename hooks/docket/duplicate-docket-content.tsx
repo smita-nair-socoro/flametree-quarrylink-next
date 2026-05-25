@@ -95,19 +95,19 @@ export function DuplicateDocketContent({
           />
           <div className="flex w-full flex-col gap-1 text-sm">
             <div className="flex justify-between">
-              <span className="text-[#6B7280]">Remaining Quantity Available:</span>
+              <span className="text-[#6A7282]">Remaining Quantity Available:</span>
               <span className="font-medium text-[#364153]">
                 {remaining} {uom}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B7280]">Each Copy Quantity:</span>
+              <span className="text-[#6A7282]">Each Copy Quantity:</span>
               <span className="font-medium text-[#364153]">
                 {loadSize} {uom}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6B7280]">Total Requested:</span>
+              <span className="text-[#6A7282]">Total Requested:</span>
               <span className="font-medium text-[#364153]">
                 {totalRequested} {uom}
               </span>
