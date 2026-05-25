@@ -1073,10 +1073,11 @@ export const APIClient = {
     },
     pause: (
       id: number,
-      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
     ) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
-        body: { pauseStrategy },
+        body: { deliveryPauseStrategy, collectionPauseStrategy },
       }),
     resume: (id: number) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
