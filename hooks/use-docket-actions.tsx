@@ -106,6 +106,7 @@ interface DialogConfig {
   cancelText?: string;
   preventOutsideClose?: boolean;
   customWidth?: string;
+  titleClassName?: string;
 }
 
 interface SelectedAction {
@@ -689,6 +690,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
         customWidth: "!max-w-[95vw] 2xl:!max-w-[672px]",
+        titleClassName: 'text-2xl',
       },
     }),
     [
@@ -790,6 +792,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         cancelText={config.cancelText}
         preventOutsideClose={config.preventOutsideClose}
         customWidth={config.customWidth}
+        titleClassName={config.titleClassName}
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':

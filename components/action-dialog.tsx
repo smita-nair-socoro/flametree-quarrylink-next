@@ -38,6 +38,7 @@ interface ActionDialogProps {
   preventOutsideClose?: boolean;
   padding?: string;
   titlePadding?: string;
+  titleClassName?: string;
 }
 
 export function ActionDialog({
@@ -64,6 +65,7 @@ export function ActionDialog({
   preventOutsideClose = false,
   padding = '',
   titlePadding = '',
+  titleClassName,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -104,7 +106,7 @@ export function ActionDialog({
             titlePadding && `${titlePadding}`,
           )}
         >
-          <DialogTitle>
+          <DialogTitle className={titleClassName}>
             <div className="flex items-center gap-2">
               {titleIcon && titleIcon}
               {title}
