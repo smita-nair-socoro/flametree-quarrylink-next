@@ -242,6 +242,7 @@ export const usePauseJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      queryClient.refetchQueries({ queryKey: DocketKeys.byJobId(data.id) });
       useJobStore.getState().setSelectedJob(data);
     },
   });
