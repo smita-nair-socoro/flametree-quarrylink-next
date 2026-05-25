@@ -107,6 +107,7 @@ interface DialogConfig {
   preventOutsideClose?: boolean;
   customWidth?: string;
   titleClassName?: string;
+  subtitle?: string;
 }
 
 interface SelectedAction {
@@ -673,6 +674,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       duplicate: {
         title: 'Duplicate Docket',
+        subtitle: 'Create a copy of docket DOC-001',
         description: <DuplicateDocketDescription docket={docketData} />,
         content: (
           <DuplicateDocketContent
@@ -793,6 +795,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         preventOutsideClose={config.preventOutsideClose}
         customWidth={config.customWidth}
         titleClassName={config.titleClassName}
+        subtitle={config.subtitle}
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':

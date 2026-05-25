@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -39,6 +40,7 @@ interface ActionDialogProps {
   padding?: string;
   titlePadding?: string;
   titleClassName?: string;
+  subtitle?: string;
 }
 
 export function ActionDialog({
@@ -66,6 +68,7 @@ export function ActionDialog({
   padding = '',
   titlePadding = '',
   titleClassName,
+  subtitle,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -112,6 +115,11 @@ export function ActionDialog({
               {title}
             </div>
           </DialogTitle>
+          {subtitle && (
+            <DialogDescription className="text-[#6A7282]">
+              {subtitle}
+            </DialogDescription>
+          )}
         </DialogHeader>
 
         {description && <>{description}</>}
