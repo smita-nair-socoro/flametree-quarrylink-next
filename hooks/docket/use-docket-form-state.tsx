@@ -16,33 +16,7 @@ import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
-
-export const calculateConvertedQty = (
-  quantity: number,
-  fromUom: string,
-  toUom: string,
-  density: number = 1,
-) => {
-  if (fromUom === toUom) return quantity;
-
-  let quantityInTn = quantity;
-  const normalizedFrom = fromUom.toLowerCase();
-  const normalizedTo = toUom.toLowerCase();
-
-  if (normalizedFrom === 'm3' || normalizedFrom === 'bulka') {
-    quantityInTn = quantity * density;
-  } else if (normalizedFrom === '20kg' || normalizedFrom === 'kg_20') {
-    quantityInTn = quantity / 50;
-  }
-
-  if (normalizedTo === 'm3' || normalizedTo === 'bulka') {
-    return quantityInTn / density;
-  } else if (normalizedTo === '20kg' || normalizedTo === 'kg_20') {
-    return quantityInTn * 50;
-  }
-
-  return quantityInTn;
-};
+import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 
 const formatTimeString = (dateString?: string | null) => {
   if (!dateString) return '';

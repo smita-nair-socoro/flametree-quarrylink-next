@@ -652,7 +652,9 @@ export function DataTableClient<TData, TValue>({
       sorting,
       pagination: {
         pageIndex: externalPageIndex ?? pagination.pageIndex,
-        pageSize: externalPageSize ?? pagination.pageSize,
+        pageSize: simpleTable 
+          ? (data.length > 0 ? data.length : 10) 
+          : (externalPageSize ?? pagination.pageSize),
       },
       columnFilters,
       globalFilter,

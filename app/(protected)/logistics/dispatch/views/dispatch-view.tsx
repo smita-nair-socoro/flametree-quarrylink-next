@@ -470,14 +470,14 @@ export function DispatchView({
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-          assignedOnSelectedDay
-            .map((d) => d.uiAssignedTruckId)
-            .filter((id): id is string => Boolean(id)),
-        ).size
+            assignedOnSelectedDay
+              .map((d) => d.uiAssignedTruckId)
+              .filter((id): id is string => Boolean(id)),
+          ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-          trucksDataForStats,
-          date,
-        );
+            trucksDataForStats,
+            date,
+          );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -615,10 +615,7 @@ export function DispatchView({
         truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
-        plannedLoadSize:
-          docket.actualLoadSize ||
-          docket.plannedLoadSize ||
-          0,
+        plannedLoadSize: docket.actualLoadSize || docket.plannedLoadSize || 0,
       },
       {
         onSuccess: () => {
@@ -626,10 +623,10 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedDuration: newDuration,
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                }
+                    ...d,
+                    uiAssignedDuration: newDuration,
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  }
                 : d,
             ),
           );
@@ -675,8 +672,8 @@ export function DispatchView({
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
       destination:
         pendingUnassignDocket.deliverySuburb +
-        ', ' +
-        pendingUnassignDocket.deliveryState || '',
+          ', ' +
+          pendingUnassignDocket.deliveryState || '',
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -702,11 +699,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                  ...d,
-                  uiAssignedTruckId: null,
-                  uiAssignedTime: null,
-                  docketStatus: DOCKET_STATUS.UNASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: null,
+                    uiAssignedTime: null,
+                    docketStatus: DOCKET_STATUS.UNASSIGNED,
+                  }
                 : d,
             ),
           );
@@ -752,16 +749,16 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedTruckId: targetId,
-                  uiAssignedTime: time,
-                  deliveryCollectionDate:
-                    formatLocalISO(startWindow).split('T')[0] +
-                    'T00:00:00.000',
-                  deliveryCollectionStartTime: formatLocalISO(startWindow),
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: DOCKET_STATUS.ASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: targetId,
+                    uiAssignedTime: time,
+                    deliveryCollectionDate:
+                      formatLocalISO(startWindow).split('T')[0] +
+                      'T00:00:00.000',
+                    deliveryCollectionStartTime: formatLocalISO(startWindow),
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                    docketStatus: DOCKET_STATUS.ASSIGNED,
+                  }
                 : d,
             ),
           );
@@ -778,19 +775,19 @@ export function DispatchView({
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
       ? (trucksData.resources.find(
-        (r): r is DispatchTruckResource =>
-          isDispatchTruckResource(r) &&
-          String(r.id) === assignModalData.targetId,
-      ) ?? null)
+          (r): r is DispatchTruckResource =>
+            isDispatchTruckResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   const assignModalDriver: DispatchDriverResource | null =
     assignModalData && viewType === 'drivers' && driversData
       ? (driversData.resources.find(
-        (r): r is DispatchDriverResource =>
-          isDispatchDriverResource(r) &&
-          String(r.id) === assignModalData.targetId,
-      ) ?? null)
+          (r): r is DispatchDriverResource =>
+            isDispatchDriverResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   const unassignedDocketsForBoard = useMemo(() => {
@@ -868,6 +865,7 @@ export function DispatchView({
               docketId={Number(selectedDocketId)}
               onClose={() => setSelectedDocketId(null)}
               onUnassign={handleUnassign}
+              isDispatchView={true}
             />
           </div>
         )}

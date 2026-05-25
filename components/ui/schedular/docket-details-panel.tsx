@@ -62,12 +62,14 @@ interface DocketDetailsPanelProps {
   docketId: number;
   onClose: () => void;
   onUnassign: () => void;
+  isDispatchView?: boolean;
 }
 
 export function DocketDetailsPanel({
   docketId,
   onClose,
   onUnassign,
+  isDispatchView = false,
 }: DocketDetailsPanelProps) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
@@ -95,7 +97,11 @@ export function DocketDetailsPanel({
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
 
-    let payload: { plannedLoadSize?: number; actualLoadSize?: number; deliveryDistanceQuantity?: number } = {};
+    let payload: {
+      plannedLoadSize?: number;
+      actualLoadSize?: number;
+      deliveryDistanceQuantity?: number;
+    } = {};
     let val = 0;
 
     if (
@@ -130,7 +136,15 @@ export function DocketDetailsPanel({
 
       if (!needTruckQty) {
         let deliveryDistanceUom = fullDocket.jobItem?.truckSellUom || 'TN';
-        const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+        const validUoms = [
+          'KG_20',
+          'KM',
+          'LOAD',
+          'TN',
+          'BULKA',
+          'HOURLY',
+          'M3',
+        ];
         if (!validUoms.includes(deliveryDistanceUom)) {
           const uomMap: Record<string, string> = {
             '20kg': 'KG_20',
@@ -317,9 +331,13 @@ export function DocketDetailsPanel({
                           setPlannedLoadSizeValue(inputVal);
                         }
                       }}
-                      disabled={isDocketFinalised || showActualLoadSize}
+                      disabled={!isDispatchView || isDocketFinalised || showActualLoadSize}
+                      isNumber
+                      allowDecimal
+                      maxDecimals={2}
+                      minDecimals={1}
                     />
-                    {!isDocketFinalised && !showActualLoadSize && (
+                    {isDispatchView && !isDocketFinalised && !showActualLoadSize && (
                       <Button
                         variant="default"
                         className="cursor-pointer"
@@ -351,9 +369,13 @@ export function DocketDetailsPanel({
                         }
                         value={actualLoadSizeValue}
                         onChange={(e) => setActualLoadSizeValue(e.target.value)}
-                        disabled={isDocketFinalised}
+                        disabled={!isDispatchView || isDocketFinalised}
+                        isNumber
+                        allowDecimal
+                        maxDecimals={2}
+                        minDecimals={1}
                       />
-                      {!isDocketFinalised && (
+                      {isDispatchView && !isDocketFinalised && (
                         <Button
                           variant="default"
                           className="cursor-pointer"
@@ -698,8 +720,8 @@ export function DocketDetailsPanel({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
-        {isAssigned && (
+      <div className="p-4 border border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
+        {isDispatchView && isAssigned && (
           <button
             onClick={onUnassign}
             className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center gap-2"
