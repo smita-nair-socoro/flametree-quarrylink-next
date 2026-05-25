@@ -11,6 +11,7 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { TruckResource } from '@/lib/types/truck';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { Spinner } from '@/components/ui/spinner';
 
 const TIME_SLOTS = [
   '06:00',
@@ -826,8 +827,9 @@ export default function AssignedDockets({
         {/* Scrollable Time Slots */}
         <div className="flex-1 overflow-auto relative bg-white">
           {isLoading && (
-            <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20">
-              <div className="text-sm text-gray-500">
+            <div className="absolute inset-0 bg-white/50 flex flex-col items-center justify-center gap-2 z-20">
+              <Spinner size="medium" />
+              <div className="text-sm text-gray-500 font-medium">
                 Loading assignments...
               </div>
             </div>
