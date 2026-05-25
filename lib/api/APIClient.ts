@@ -1230,6 +1230,8 @@ export const APIClient = {
           },
         },
       ),
+    getDockets: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/docket`),
     statistics: () =>
       appClient.Get<TruckStatistics>(`/socoro/quarrylink/api/truck/statistics`),
   },
