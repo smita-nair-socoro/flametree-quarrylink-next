@@ -6,38 +6,24 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-// Counts how many DropdownMenus are currently open.
+// Returns true if any DropdownMenuContent is currently open in the DOM.
 // Dialogs read this in onInteractOutside to avoid closing while a nested
-// dropdown is still open. The decrement is deferred one rAF so the dialog's
-// handler (which fires before onOpenChange) still sees the count as > 0.
-let _openDropdownCount = 0;
+// dropdown is still open. Uses a direct DOM query so there are no timing
+// issues with counters or rAF-deferred decrements.
 export function isAnyDropdownOpen(): boolean {
-  return _openDropdownCount > 0;
+  if (typeof document === 'undefined') return false;
+  return (
+    document.querySelector(
+      '[data-slot="dropdown-menu-content"][data-state="open"]',
+    ) !== null
+  );
 }
 
 function DropdownMenu({
-  onOpenChange,
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  const handleOpenChange = React.useCallback(
-    (open: boolean) => {
-      if (open) {
-        _openDropdownCount++;
-      } else {
-        requestAnimationFrame(() => {
-          _openDropdownCount = Math.max(0, _openDropdownCount - 1);
-        });
-      }
-      onOpenChange?.(open);
-    },
-    [onOpenChange],
-  );
   return (
-    <DropdownMenuPrimitive.Root
-      data-slot="dropdown-menu"
-      onOpenChange={handleOpenChange}
-      {...props}
-    />
+    <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
   );
 }
 
