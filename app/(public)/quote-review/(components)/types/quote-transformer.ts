@@ -99,9 +99,6 @@ export function transformQuoteData(
     // Default: use top-level customerName
     customerDisplayName = customerName || 'N/A';
   }
-  console.log(formatTimeRange(deliveryWindowStart, deliveryWindowEnd));
-  console.log(formatDateWithOrdinal(deliveryStartDate));
-  console.log(deliveryStartDate, deliveryWindowStart, deliveryWindowEnd);
   return {
     inclDeliveryCost: inclDeliveryCost ?? false,
     navbar: {
