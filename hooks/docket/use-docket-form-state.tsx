@@ -62,6 +62,7 @@ export const EMPTY_DOCKET_FORM_VALUES = {
   customerContactPhone: '',
   docketEmail: '',
   notes: '',
+  jobLineItemType: '',
 };
 
 export const EMPTY_ADDRESS: AddressType = {
@@ -175,6 +176,7 @@ const mapDocketToFormValues = (
       .join(', ') ?? '',
   notes: docket.notes ?? '',
   truckType: docket.truckType ?? '',
+  jobLineItemType: docket.jobItem?.jobItemType ?? '',
 });
 
 const mapSelectedJobToFormValues = (
@@ -597,6 +599,12 @@ export function useDocketFormState({
     selectedJobLineItemDetails,
     docketForm,
   ]);
+
+  React.useEffect(() => {
+    const currentJobLineItemId = docketForm.getValues('jobLineItemId');
+    const lineItem = jobLineItems.find((item) => item.id === currentJobLineItemId);
+    docketForm.setValue('jobLineItemType', lineItem?.jobItemType ?? '');
+  }, [docketForm.watch('jobLineItemId'), jobLineItems, docketForm]);
 
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
