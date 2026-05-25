@@ -177,10 +177,16 @@ export function useJobActions(jobData?: JobDetails | null) {
         content: (
           <PauseJobContent
             deliveryDockets={activeDockets.filter(
-              (d) => d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY,
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY &&
+                (d.docketStatus === DOCKET_STATUS.ASSIGNED ||
+                  d.docketStatus === DOCKET_STATUS.IN_TRANSIT),
             )}
             collectionDockets={activeDockets.filter(
-              (d) => d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION,
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                (d.docketStatus === DOCKET_STATUS.PREPARING ||
+                  d.docketStatus === DOCKET_STATUS.READY),
             )}
             deliveryDocketAction={pauseDeliveryDocketAction}
             collectionDocketAction={pauseCollectionDocketAction}

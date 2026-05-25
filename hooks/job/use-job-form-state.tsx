@@ -287,10 +287,7 @@ export function useJobFormState({
           customerId: values.customerId,
           projectName: values.projectName,
           poNumber: values.poNumber,
-          contactPersonName:
-            selectedCustomer?.customerType === 'BUSINESS'
-              ? selectedCustomer?.businessName
-              : selectedCustomer?.individualContactName,
+          contactPersonName: values.contactPersonName,
           contactPersonPhone: values.phone,
           emailRecipients,
           jobStatus:
