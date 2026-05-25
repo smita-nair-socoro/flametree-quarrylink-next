@@ -105,6 +105,7 @@ interface DialogConfig {
   confirmDisabled?: boolean;
   cancelText?: string;
   preventOutsideClose?: boolean;
+  customWidth?: string;
 }
 
 interface SelectedAction {
@@ -687,6 +688,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmCustomColor: '#3B82F6',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
+        customWidth: "!max-w-[95vw] 2xl:!max-w-[672px]",
       },
     }),
     [
@@ -787,6 +789,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled={config.confirmDisabled}
         cancelText={config.cancelText}
         preventOutsideClose={config.preventOutsideClose}
+        customWidth={config.customWidth}
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':
