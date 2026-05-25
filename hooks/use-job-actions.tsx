@@ -260,13 +260,16 @@ export function useJobActions(jobData?: JobDetails | null) {
   const handlePauseJob = async () => {
     if (jobId == null) return;
     try {
-      const deliveryPauseStrategy =
-        pauseDeliveryDocketAction === 'stop'
-          ? 'STOP_ALL_DOCKETS'
-          : 'ALLOW_DRIVERS_TO_COMPLETE';
       const updated = await pauseJobMutation.mutateAsync({
         id: jobId,
-        pauseStrategy: deliveryPauseStrategy,
+        deliveryPauseStrategy:
+          pauseDeliveryDocketAction === 'stop'
+            ? 'STOP_ALL_DELIVERY_DOCKETS'
+            : 'ALLOW_DRIVERS_TO_COMPLETE',
+        collectionPauseStrategy:
+          pauseCollectionDocketAction === 'stop'
+            ? 'STOP_ACTIVE_COLLECTION_DOCKETS'
+            : 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
       });
       notifySuccess('Job paused successfully.');
       setActiveDialog(null);
