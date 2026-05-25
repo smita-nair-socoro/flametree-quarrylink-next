@@ -176,6 +176,7 @@ const mapDocketToFormValues = (
       .join(', ') ?? '',
   notes: docket.notes ?? '',
   truckType: docket.truckType ?? '',
+  jobLineItemType: docket.jobItem?.jobItemType ?? '',
 });
 
 const mapSelectedJobToFormValues = (
