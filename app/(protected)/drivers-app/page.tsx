@@ -133,7 +133,7 @@ export default function DriversAppPage() {
                   <FileText className="h-[16px] w-[16px] text-gray-600" />
                   <div className="flex items-baseline gap-1.5">
                     <span className="text-[14px] font-bold text-[#0F172A] leading-none">
-                      {dockets.length}
+                      {dockets.filter((d) => ['ASSIGNED', 'IN_TRANSIT', 'ARRIVED'].includes(d.docketStatus)).length}
                     </span>
                     <span className="text-[12px] text-[#64748B] font-medium leading-none">
                       Assigned
