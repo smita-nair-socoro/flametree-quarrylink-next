@@ -22,6 +22,7 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  Copy,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
@@ -65,6 +66,7 @@ interface ActionItem {
 const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PENDING]: [
     { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -110,6 +112,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',

@@ -15,6 +15,7 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  Copy,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -72,6 +73,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'startPreparing',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -147,6 +149,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',

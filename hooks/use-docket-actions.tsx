@@ -51,6 +51,10 @@ import {
   AssignDocketDescription,
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
+import {
+  DuplicateDocketDescription,
+  DuplicateDocketContent,
+} from '@/hooks/docket/duplicate-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
 import { useDocketStore } from '@/app/stores/docket-store';
 import {
@@ -83,7 +87,8 @@ export type DocketActionKey =
   | 'markCollected'
   | 'backToPreparing'
   | 'cashSale'
-  | 'cashReceipts';
+  | 'cashReceipts'
+  | 'duplicate';
 
 interface DialogConfig {
   title: string;
@@ -125,6 +130,19 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
+
+  // Duplicate state
+  const [duplicateCopies, setDuplicateCopies] = React.useState(1);
+  const [duplicateRetainPo, setDuplicateRetainPo] = React.useState(true);
+  const [duplicateDeliveryDate, setDuplicateDeliveryDate] = React.useState<
+    Date | undefined
+  >(undefined);
+
+  const resetDuplicateState = React.useCallback(() => {
+    setDuplicateCopies(1);
+    setDuplicateRetainPo(true);
+    setDuplicateDeliveryDate(undefined);
+  }, []);
   const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
 
   const updateDocketStatusMutation = useUpdateDocketStatus();
@@ -460,6 +478,30 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleDuplicateDocket = async () => {
+    // TODO: replace with real API call once backend is ready
+    console.log('Duplicate docket:', {
+      id: docketData?.id,
+      copies: duplicateCopies,
+      retainPoNumber: duplicateRetainPo,
+      deliveryDate: duplicateDeliveryDate,
+    });
+    notifySuccess(
+      `${duplicateCopies} docket${duplicateCopies > 1 ? 's' : ''} duplicated successfully`,
+    );
+    setActiveDialog(null);
+    resetDuplicateState();
+  };
+
+  const isDuplicateFormValid = React.useMemo(() => {
+    const loadSize =
+      (docketData?.plannedLoadSize || docketData?.actualLoadSize) ?? 0;
+    const remaining = docketData?.jobItem?.remainingQuantity ?? 0;
+    const totalRequested = duplicateCopies * loadSize;
+    const exceedsQty = loadSize > 0 && totalRequested > remaining;
+    return duplicateCopies >= 1 && !exceedsQty && !!duplicateDeliveryDate;
+  }, [duplicateCopies, duplicateDeliveryDate, docketData]);
+
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
     if (stopReason === 'other') return Boolean(stopNotes.trim());
@@ -627,6 +669,25 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isCancelFormValid,
         cancelText: 'Keep Docket',
       },
+      duplicate: {
+        title: 'Duplicate Docket',
+        description: <DuplicateDocketDescription docket={docketData} />,
+        content: (
+          <DuplicateDocketContent
+            docket={docketData}
+            copies={duplicateCopies}
+            onCopiesChange={setDuplicateCopies}
+            retainPoNumber={duplicateRetainPo}
+            onRetainPoNumberChange={setDuplicateRetainPo}
+            newDeliveryDate={duplicateDeliveryDate}
+            onNewDeliveryDateChange={setDuplicateDeliveryDate}
+          />
+        ),
+        confirmText: 'Create Copy',
+        confirmCustomColor: '#3B82F6',
+        confirmDisabled: !isDuplicateFormValid,
+        cancelText: 'Cancel',
+      },
     }),
     [
       docketData,
@@ -636,6 +697,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       isVoidFormValid,
       isCancelFormValid,
       isAssignFormValid,
+      isDuplicateFormValid,
+      duplicateCopies,
+      duplicateRetainPo,
+      duplicateDeliveryDate,
       receiptPhoto,
       receiverName,
       receiverOnSite,
@@ -709,6 +774,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         onOpenChangeAction={(open) => {
           if (!open) {
             if (key === 'assign') resetAssignState();
+            if (key === 'duplicate') resetDuplicateState();
             setActiveDialog(null);
           }
         }}
@@ -755,6 +821,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               break;
             case 'startPreparing':
               await handleStartPreparing();
+              break;
+            case 'duplicate':
+              await handleDuplicateDocket();
               break;
             case 'cashSale':
               console.log('Cash sale confirmed:', docketData);
