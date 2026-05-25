@@ -85,6 +85,7 @@ export default function QuotationForm({
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [isEditing] = React.useState(Boolean(id));
+  const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
 
   const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
@@ -386,7 +387,7 @@ export default function QuotationForm({
 
       <Form {...quotationForm}>
         <form
-          id="add-new-quote-form"
+          id={formId}
           className={cn(
             'w-full flex flex-col',
             className,
@@ -397,7 +398,7 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
-          {isEditing && currentQuotation?.quoteStatus === 'PENDING' && (
+          {isEditing && !isDuplicate && currentQuotation?.quoteStatus === 'PENDING' && (
             <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
               <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
                 <Info className="h-4 w-4" />
@@ -409,7 +410,7 @@ export default function QuotationForm({
             </div>
           )}
 
-          {isEditing &&
+          {isEditing && !isDuplicate &&
             currentQuotation?.quoteStatus === 'DECLINED' &&
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
@@ -441,7 +442,7 @@ export default function QuotationForm({
               );
             })()}
 
-          {isEditing &&
+          {isEditing && !isDuplicate &&
             currentQuotation?.quoteStatus === 'APPROVED' &&
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
@@ -985,7 +986,7 @@ export default function QuotationForm({
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
                 <Button
-                  form="add-new-quote-form"
+                  form={formId}
                   className="cursor-pointer"
                   type="submit"
                   disabled={
@@ -1007,7 +1008,7 @@ export default function QuotationForm({
             {!isDesktop && (
               <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
-                  form="add-new-quote-form"
+                  form={formId}
                   type="submit"
                   className="cursor-pointer"
                   disabled={
