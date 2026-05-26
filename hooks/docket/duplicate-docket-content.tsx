@@ -4,36 +4,9 @@ import * as React from 'react';
 import { Copy, AlertTriangle, Info } from 'lucide-react';
 import { format, isPast, parseISO } from 'date-fns';
 import { DocketDTO } from '@/lib/types/docket';
-import { InputWithPlusMinusButtons } from '@/components/ui/input-with-plus-minus-buttons';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 
-export function DuplicateDocketDescription({
-  docket,
-}: {
-  docket?: DocketDTO | null;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
-        <Copy className="h-6 w-6 text-[#3B82F6]" />
-      </div>
-      <div className="flex flex-col gap-1">
-        <span className="font-medium text-[#101828]">
-          {docket?.docketNumber ?? '—'}
-        </span>
-        <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          <span className="font-bold">•</span>
-          <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export interface DuplicateDocketContentProps {
   docket?: DocketDTO | null;
@@ -58,8 +31,6 @@ export function DuplicateDocketContent({
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? 'TN';
   const totalRequested = copies * loadSize;
-  const exceeds = loadSize > 0 && totalRequested > remaining;
-  const exceedBy = totalRequested - remaining;
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
@@ -81,42 +52,31 @@ export function DuplicateDocketContent({
 
       {/* Quantity summary */}
       <div
-        className={`rounded-md border px-4 py-3 ${
-          exceeds
-            ? 'border-red-300 bg-red-50'
-            : 'border-amber-300 bg-amber-50'
-        }`}
+        className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4"
       >
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-3">
           <AlertTriangle
-            className={`mt-0.5 h-4 w-4 flex-shrink-0 ${
-              exceeds ? 'text-red-500' : 'text-amber-500'
-            }`}
+            className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]"
           />
-          <div className="flex w-full flex-col gap-1 text-sm">
+          <div className="flex w-full flex-col gap-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-[#6A7282]">Remaining Quantity Available:</span>
-              <span className="font-medium text-[#364153]">
+              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Remaining Quantity Available:</span>
+              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
                 {remaining} {uom}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6A7282]">Each Copy Quantity:</span>
-              <span className="font-medium text-[#364153]">
+              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Each Copy Quantity:</span>
+              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
                 {loadSize} {uom}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-[#6A7282]">Total Requested:</span>
-              <span className="font-medium text-[#364153]">
+              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Total Requested:</span>
+              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
                 {totalRequested} {uom}
               </span>
             </div>
-            {exceeds && (
-              <p className="mt-1 font-medium text-red-600">
-                This would exceed the remaining quantity by {exceedBy} {uom}
-              </p>
-            )}
           </div>
         </div>
       </div>
@@ -126,19 +86,14 @@ export function DuplicateDocketContent({
         <label className="text-sm font-medium text-[#364153]">
           Number of Copies <span className="text-[#111827]">*</span>
         </label>
-        <InputWithPlusMinusButtons
+        <input
+          type="number"
+          min={1}
+          max={maxCopies > 0 ? maxCopies : 1}
           value={copies}
-          minValue={1}
-          maxValue={maxCopies > 0 ? maxCopies : 1}
-          onChange={onCopiesChange}
+          onChange={(e) => onCopiesChange(Number(e.target.value))}
+          className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
         />
-        {exceeds && (
-          <p className="text-sm text-red-600">
-            Cannot create {copies} {copies === 1 ? 'copy' : 'copies'}. This
-            would exceed the remaining quantity of {remaining} {uom}. Maximum
-            copies allowed: {maxCopies}.
-          </p>
-        )}
       </div>
 
       {/* Retain PO number */}
@@ -158,10 +113,13 @@ export function DuplicateDocketContent({
             Retain existing PO number
           </label>
         </div>
-        {retainPoNumber && docket?.purchaseOrder && (
-          <div className="rounded-md border border-input bg-muted px-3 py-2 text-sm text-[#6B7280]">
-            {docket.purchaseOrder}
-          </div>
+        {retainPoNumber && (
+          <input
+            type="text"
+            defaultValue={docket?.purchaseOrder ?? ''}
+            placeholder="PO number"
+            className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+          />
         )}
       </div>
 

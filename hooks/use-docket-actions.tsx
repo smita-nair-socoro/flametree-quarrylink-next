@@ -52,7 +52,6 @@ import {
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
 import {
-  DuplicateDocketDescription,
   DuplicateDocketContent,
 } from '@/hooks/docket/duplicate-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
@@ -675,7 +674,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       duplicate: {
         title: 'Duplicate Docket',
         subtitle: 'Create a copy of docket DOC-001',
-        description: <DuplicateDocketDescription docket={docketData} />,
         content: (
           <DuplicateDocketContent
             docket={docketData}
