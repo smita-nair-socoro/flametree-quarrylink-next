@@ -689,7 +689,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmCustomColor: '#3B82F6',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
-        customWidth: "!max-w-[95vw] 2xl:!max-w-[672px]",
+        customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
       },
     }),
