@@ -37,6 +37,8 @@ export function DuplicateDocketDescription({
   copies,
 }: DuplicateDocketDescriptionProps) {
   const totalRequested = copies * MOCK.loadSize;
+  const exceedsBy = totalRequested - MOCK.remaining;
+  const isExceeding = exceedsBy > 0;
 
   return (
     <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4 pb-4">
@@ -51,10 +53,17 @@ export function DuplicateDocketDescription({
             <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
             <span className="font-normal text-[#101828]">{MOCK.loadSize} {MOCK.uom}</span>
           </p>
-          <p className="tracking-[-0.1504px]">
-            <span className="font-semibold text-[#6A7282]">Total Requested: </span>
-            <span className="font-normal text-[#101828]">{totalRequested} {MOCK.uom}</span>
-          </p>
+          <div className="flex flex-col gap-[10px]">
+            <p className="tracking-[-0.1504px]">
+              <span className="font-semibold text-[#6A7282]">Total Requested: </span>
+              <span className="font-normal text-[#101828]">{totalRequested} {MOCK.uom}</span>
+            </p>
+            {isExceeding && (
+              <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
+                ⚠️ This would exceed the remaining quantity by {exceedsBy} {MOCK.uom}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
