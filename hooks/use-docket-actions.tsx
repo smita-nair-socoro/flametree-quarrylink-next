@@ -497,13 +497,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   };
 
   const isDuplicateFormValid = React.useMemo(() => {
-    const loadSize =
-      (docketData?.plannedLoadSize || docketData?.actualLoadSize) ?? 0;
-    const remaining = docketData?.jobItem?.remainingQuantity ?? 0;
-    const totalRequested = duplicateCopies * loadSize;
-    const exceedsQty = loadSize > 0 && totalRequested > remaining;
-    return duplicateCopies >= 1 && !exceedsQty && !!duplicateDeliveryDate;
-  }, [duplicateCopies, duplicateDeliveryDate, docketData]);
+    return duplicateCopies >= 1;
+  }, [duplicateCopies]);
 
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
@@ -677,13 +672,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         subtitle: 'Create a copy of docket DOC-001',
         description: (
           <DuplicateDocketDescription
-            docket={docketData}
             copies={duplicateCopies}
           />
         ),
         content: (
           <DuplicateDocketContent
-            docket={docketData}
             copies={duplicateCopies}
             onCopiesChange={setDuplicateCopies}
             retainPoNumber={duplicateRetainPo}

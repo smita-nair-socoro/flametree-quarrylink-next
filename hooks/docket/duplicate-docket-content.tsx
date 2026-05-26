@@ -3,26 +3,40 @@
 import * as React from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { format, isPast, parseISO } from 'date-fns';
-import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
+
+
+// ─── Mock fallback data ────────────────────────────────────────────────────
+
+const MOCK = {
+  loadSize: 25,
+  remaining: 100,
+  uom: 'TN',
+  deliveryCollectionDate: '2024-01-15',
+  notes: 'Please deliver to the north entrance of the construction site. Contact site supervisor upon arrival.',
+  address: '123 Construction Site Rd, Melbourne VIC 3000',
+  startTime: '08:00',
+  endTime: '17:00',
+  jobRef: 'JOB-2024-001 - Melbourne CBD Construction',
+  product: 'concrete-mix-20mpa',
+  contactName: 'Donovan',
+  contactPhone: '+61 450 067 602',
+  truckType: 'Semi Trailer',
+  purchaseOrder: 'PO-500203',
+};
 
 
 // ─── Description: quantity summary card only ───────────────────────────────
 
 export interface DuplicateDocketDescriptionProps {
-  docket?: DocketDTO | null;
   copies: number;
 }
 
 export function DuplicateDocketDescription({
-  docket,
   copies,
 }: DuplicateDocketDescriptionProps) {
-  const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
-  const remaining = docket?.jobItem?.remainingQuantity ?? 0;
-  const uom = docket?.jobItem?.productSellUom ?? 'TN';
-  const totalRequested = copies * loadSize;
+  const totalRequested = copies * MOCK.loadSize;
 
   return (
     <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4 pb-4">
@@ -31,15 +45,15 @@ export function DuplicateDocketDescription({
         <div className="flex w-full flex-col gap-3 text-sm">
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
-            <span className="font-normal text-[#101828]">{remaining} {uom}</span>
+            <span className="font-normal text-[#101828]">{MOCK.remaining} {MOCK.uom}</span>
           </p>
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
-            <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
+            <span className="font-normal text-[#101828]">{MOCK.loadSize} {MOCK.uom}</span>
           </p>
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Total Requested: </span>
-            <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
+            <span className="font-normal text-[#101828]">{totalRequested} {MOCK.uom}</span>
           </p>
         </div>
       </div>
@@ -51,7 +65,6 @@ export function DuplicateDocketDescription({
 // ─── Content: copies + PO + docket info + note ─────────────────────────────
 
 export interface DuplicateDocketContentProps {
-  docket?: DocketDTO | null;
   copies: number;
   onCopiesChange: (value: number) => void;
   retainPoNumber: boolean;
@@ -61,7 +74,6 @@ export interface DuplicateDocketContentProps {
 }
 
 export function DuplicateDocketContent({
-  docket,
   copies,
   onCopiesChange,
   retainPoNumber,
@@ -69,24 +81,14 @@ export function DuplicateDocketContent({
   newDeliveryDate,
   onNewDeliveryDateChange,
 }: DuplicateDocketContentProps) {
-  const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
-  const remaining = docket?.jobItem?.remainingQuantity ?? 0;
-  const uom = docket?.jobItem?.productSellUom ?? 'TN';
-  const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
+  const maxCopies = MOCK.loadSize > 0 ? Math.floor(MOCK.remaining / MOCK.loadSize) : 99;
 
-  const originalDateString = docket?.deliveryCollectionDate;
-  const originalDate = originalDateString ? parseISO(originalDateString) : null;
-  const isDateInPast = originalDate ? isPast(originalDate) : false;
-  const originalDateFormatted = originalDate
-    ? format(originalDate, 'MMMM do, yyyy')
-    : null;
+  const originalDate = parseISO(MOCK.deliveryCollectionDate);
+  const isDateInPast = isPast(originalDate);
+  const originalDateFormatted = format(originalDate, 'MMMM do, yyyy');
 
-  const address = docket?.deliveryAddress?.formattedAddress ?? '—';
-  const startTime = docket?.deliveryCollectionStartTime?.substring(0, 5) ?? '—';
-  const endTime = docket?.deliveryCollectionEndTime?.substring(0, 5) ?? '—';
-  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName]
-    .filter(Boolean)
-    .join(' - ');
+  const startTime = MOCK.startTime.substring(0, 5);
+  const endTime = MOCK.endTime.substring(0, 5);
 
   return (
     <div className="flex flex-col gap-6">
@@ -129,7 +131,7 @@ export function DuplicateDocketContent({
           {retainPoNumber && (
             <input
               type="text"
-              defaultValue={docket?.purchaseOrder ?? ''}
+              defaultValue={MOCK.purchaseOrder}
               placeholder="PO number"
               className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
             />
@@ -156,11 +158,8 @@ export function DuplicateDocketContent({
           {/* Docket info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
 
-            <InfoCell label="Job Reference:" value={jobRef || '—'} />
-            <InfoCell
-              label="Product:"
-              value={docket?.jobItem?.product?.productName ?? '—'}
-            />
+            <InfoCell label="Job Reference:" value={MOCK.jobRef} />
+            <InfoCell label="Product:" value={MOCK.product} />
 
             {/* Delivery date — editable */}
             <div className="flex flex-col gap-1.5">
@@ -178,22 +177,34 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
+            <InfoCell label="Load Size:" value={`${MOCK.loadSize} ${MOCK.uom}`} />
 
             <div className="col-span-2">
-              <InfoCell label="Delivery Address:" value={address} />
+              <InfoCell label="Delivery Address:" value={MOCK.address} />
             </div>
 
-            <InfoCell label="Contact Name:" value={docket?.customerContactName ?? '—'} />
-            <InfoCell label="Contact Phone:" value={docket?.customerContactPhone ?? '—'} />
+            <InfoCell label="Contact Name:" value={MOCK.contactName} />
+            <InfoCell label="Contact Phone:" value={MOCK.contactPhone} />
             <InfoCell label="Time Window:" value={`${startTime} – ${endTime}`} />
-            <InfoCell label="Truck Type:" value={docket?.truckType ?? '—'} />
+            <InfoCell label="Truck Type:" value={MOCK.truckType} />
 
-            {docket?.notes && (
-              <div className="col-span-2">
-                <InfoCell label="Special Instructions:" value={docket.notes} />
+            <div className="col-span-2 flex flex-col gap-1.5">
+              <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
+                Special Instructions
+              </span>
+              <div
+                className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
+                style={{
+                  paddingTop: '12.24px',
+                  paddingRight: '20.77px',
+                  paddingBottom: '11.74px',
+                  paddingLeft: '11.99px',
+                  minHeight: '63.98px',
+                }}
+              >
+                {MOCK.notes}
               </div>
-            )}
+            </div>
           </div>
 
           {/* Bottom note */}
