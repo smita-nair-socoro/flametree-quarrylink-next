@@ -20,7 +20,6 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
 
 export type Answer = 'yes' | 'no' | null;
 
@@ -60,9 +59,9 @@ export function QuestionCard({
   needPhotoAndDetails = true,
 }: QuestionCardProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [fileName, setFileName] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Auto-expand if answer is No
   React.useEffect(() => {
     if (answer === 'no') {
       setIsOpen(true);
@@ -72,6 +71,7 @@ export function QuestionCard({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setFileName(file.name);
       const reader = new FileReader();
       reader.onloadend = () => {
         onImageChange(reader.result as string);
@@ -121,83 +121,88 @@ export function QuestionCard({
           <span className="font-medium">No</span>
         </Button>
       </div>
-      {needPhotoAndDetails && (
 
-        <div className="flex items-start justify-between">
-          <Collapsible
-            open={isOpen}
-            onOpenChange={setIsOpen}
-            className="flex-1 mr-4"
-          >
-            <div className="flex items-center justify-between -mb-3">
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="p-0 h-auto hover:bg-transparent text-gray-500 hover:text-gray-700"
-                >
-                  {isOpen ? (
-                    <ChevronUp className="h-4 w-4 mr-1" />
-                  ) : (
-                    <ChevronDown className="h-4 w-4 mr-1" />
-                  )}
-                  <span className="text-xs font-medium">
-                    {isOpen ? 'Hide Details' : 'Add Details'}
-                  </span>
-                </Button>
-              </CollapsibleTrigger>
-              <div className="flex items-center shrink-0">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  className="hidden"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                />
-                {image ? (
-                  <div className="relative group">
-                    <Image
-                      src={image}
-                      alt="Evidence"
-                      className="h-10 w-10 rounded-lg object-cover border border-gray-200 cursor-pointer hover:opacity-90"
-                      onClick={() => fileInputRef.current?.click()}
-                      width={40}
-                      height={40}
-                    />
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onImageChange(null);
-                      }}
-                      className="absolute -top-1.5 -right-1.5 bg-white rounded-full p-0.5 shadow-sm border border-gray-200 hover:bg-gray-50 h-5 w-5"
-                    >
-                      <X className="h-3 w-3 text-gray-500" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="p-0 h-auto hover:bg-transparent text-gray-400 hover:text-gray-600 gap-1"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Camera className="h-4 w-4" />
-                    <span className="text-xs">Photo</span>
-                  </Button>
-                )}
+      {needPhotoAndDetails && (
+        <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-0 h-auto hover:bg-transparent text-gray-500 hover:text-gray-700"
+            >
+              {isOpen ? (
+                <ChevronUp className="h-4 w-4 mr-1" />
+              ) : (
+                <ChevronDown className="h-4 w-4 mr-1" />
+              )}
+              <span className="text-xs font-medium">Add Details</span>
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="flex flex-col gap-3 mt-3">
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+            />
+
+            {/* Photo upload row */}
+            <div
+              className={cn(
+                'flex items-center gap-3 p-3 rounded-xl border cursor-pointer',
+                image
+                  ? 'bg-purple-50 border-purple-200'
+                  : 'bg-white border border-dashed border-gray-200',
+              )}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              <div className="h-10 w-10 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                <Camera className="h-5 w-5 text-purple-600" />
               </div>
+
+              {image ? (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-purple-700 font-semibold text-sm truncate">{fileName}</p>
+                    <p className="text-gray-500 text-xs flex items-center gap-1">
+                      Photo attached
+                      <span className="inline-block w-1 h-1 rounded-full bg-gray-400 self-center" />
+                      tap to change
+                    </p>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onImageChange(null);
+                      setFileName(null);
+                    }}
+                    className="shrink-0 text-gray-400 hover:text-gray-600 p-1"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="flex-1">
+                    <p className="text-gray-900 font-semibold text-sm">Take or add a photo</p>
+                    <p className="text-gray-400 text-xs">Optional — tap to open camera</p>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-400 shrink-0 -rotate-90" />
+                </>
+              )}
             </div>
-            <CollapsibleContent className="space-y-3">
-              <Textarea
-                placeholder="Notes"
-                className="resize-none min-h-[80px] bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
-                value={notes}
-                onChange={(e) => onNotesChange(e.target.value)}
-              />
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
+
+            <Textarea
+              placeholder="Enter notes here..."
+              className="resize-none min-h-[80px] bg-gray-50 border-gray-200 focus:border-purple-500 focus:ring-purple-500"
+              value={notes}
+              onChange={(e) => onNotesChange(e.target.value)}
+            />
+          </CollapsibleContent>
+        </Collapsible>
       )}
     </div>
   );

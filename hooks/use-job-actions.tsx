@@ -177,10 +177,16 @@ export function useJobActions(jobData?: JobDetails | null) {
         content: (
           <PauseJobContent
             deliveryDockets={activeDockets.filter(
-              (d) => d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY,
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY &&
+                (d.docketStatus === DOCKET_STATUS.ASSIGNED ||
+                  d.docketStatus === DOCKET_STATUS.IN_TRANSIT),
             )}
             collectionDockets={activeDockets.filter(
-              (d) => d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION,
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                (d.docketStatus === DOCKET_STATUS.PREPARING ||
+                  d.docketStatus === DOCKET_STATUS.READY),
             )}
             deliveryDocketAction={pauseDeliveryDocketAction}
             collectionDocketAction={pauseCollectionDocketAction}
@@ -254,13 +260,16 @@ export function useJobActions(jobData?: JobDetails | null) {
   const handlePauseJob = async () => {
     if (jobId == null) return;
     try {
-      const deliveryPauseStrategy =
-        pauseDeliveryDocketAction === 'stop'
-          ? 'STOP_ALL_DOCKETS'
-          : 'ALLOW_DRIVERS_TO_COMPLETE';
       const updated = await pauseJobMutation.mutateAsync({
         id: jobId,
-        pauseStrategy: deliveryPauseStrategy,
+        deliveryPauseStrategy:
+          pauseDeliveryDocketAction === 'stop'
+            ? 'STOP_ALL_DELIVERY_DOCKETS'
+            : 'ALLOW_DRIVERS_TO_COMPLETE',
+        collectionPauseStrategy:
+          pauseCollectionDocketAction === 'stop'
+            ? 'STOP_ACTIVE_COLLECTION_DOCKETS'
+            : 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
       });
       notifySuccess('Job paused successfully.');
       setActiveDialog(null);

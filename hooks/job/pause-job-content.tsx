@@ -152,9 +152,7 @@ export function PauseJobContent({
           'All In Transit delivery dockets will be Stopped',
         ]
       : []),
-    ...(collectionDockets.length > 0 && collectionDocketAction === 'stop'
-      ? ['Pending collection dockets will be Cancelled']
-      : []),
+    'Pending collection dockets will be Cancelled',
     'New docket creation is blocked (delivery and collection)',
     'Can be resumed at any time',
   ];

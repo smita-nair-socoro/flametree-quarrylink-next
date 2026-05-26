@@ -23,6 +23,7 @@ import {
   normalizedLoadM3ForSort,
   matchesUnassignedSearch,
 } from '@/lib/utils/dispatch-helper';
+import { Spinner } from '@/components/ui/spinner';
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
 
@@ -362,7 +363,8 @@ export default function UnassignedDockets({
 
       <div className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3">
         {isLoading ? (
-          <div className="flex items-center justify-center h-full text-sm text-gray-500">
+          <div className="flex flex-col items-center justify-center gap-2 h-full text-sm text-gray-500 font-medium">
+            <Spinner size="medium" />
             Loading dockets...
           </div>
         ) : unassignedDockets.length === 0 ? (

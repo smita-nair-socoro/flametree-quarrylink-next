@@ -32,6 +32,7 @@ import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { useSelectedClient } from '@/app/stores/client-store';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
+import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 import { ActionDialog } from './action-dialog';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
@@ -559,6 +560,12 @@ export function FormDialog({
           onOpenAutoFocus={
             preventAutoFocus ? (e) => e.preventDefault() : undefined
           }
+          onPointerDownOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
         >
           {dialogInner}
         </DialogContent>

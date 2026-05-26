@@ -34,7 +34,9 @@ export default function DocketsPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
 
-  const { data: statistics, isLoading: isStatisticsLoading } = useQuery(DocketStatisticsQueryOptions());
+  const { data: statistics, isLoading: isStatisticsLoading } = useQuery(
+    DocketStatisticsQueryOptions(),
+  );
 
   // const [pageIndex, setPageIndex] = React.useState(0);
   // const [pageSize, setPageSize] = React.useState(10);
@@ -82,11 +84,17 @@ export default function DocketsPage() {
       title: 'Unassigned Dockets',
       title2: '(Next 7 Days)',
       value: statistics?.unassignedDocketsNext7Days ?? 0,
-      description: (statistics?.unassignedDocketsNext7Days ?? 0) > 0 ? 'Need attention' : '',
+      description:
+        (statistics?.unassignedDocketsNext7Days ?? 0) > 0
+          ? 'Need attention'
+          : '',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#0A0A0AB2]',
-      descriptionColor: (statistics?.unassignedDocketsNext7Days ?? 0) > 0 ? 'text-[#E7000B]' : 'text-[#737373]',
+      descriptionColor:
+        (statistics?.unassignedDocketsNext7Days ?? 0) > 0
+          ? 'text-[#E7000B]'
+          : 'text-[#737373]',
     },
     {
       title: 'Value of Uninvoiced Dockets',
@@ -162,7 +170,12 @@ export default function DocketsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} isLoading={isStatisticsLoading} />
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+        isLoading={isStatisticsLoading}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
@@ -183,7 +196,10 @@ export default function DocketsPage() {
                 <div className="mt-1 text-sm text-muted-foreground">
                   {docketIdsSet ? (
                     <span>
-                      Showing {docketIdsSet.size === 1 ? 'a selected docket' : `${docketIdsSet.size} selected dockets`}
+                      Showing{' '}
+                      {docketIdsSet.size === 1
+                        ? 'a selected docket'
+                        : `${docketIdsSet.size} selected dockets`}
                     </span>
                   ) : linkedJobNumberParam ? (
                     <>

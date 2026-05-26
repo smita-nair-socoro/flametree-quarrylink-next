@@ -169,7 +169,7 @@ export default function Step2Subscription({
                 ? `$${formatCurrency(Number(currentUnitPrice) * numberOfUsers)}`
                 : 'Custom'}
             </span>{' '}
-            <span className="text-gray-500">(EX GST)</span>
+            <span className="text-gray-500">(ex GST)</span>
           </div>
         </div>
       )}

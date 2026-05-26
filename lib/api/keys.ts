@@ -137,6 +137,7 @@ export const TruckKeys = {
   detail: (id: number) => [...TruckKeys.all, 'detail', id] as const,
   drivers: (id: number) => [...TruckKeys.all, 'drivers', id] as const,
   inspections: (id: number) => [...TruckKeys.all, 'inspections', id] as const,
+  dockets: (id: number) => [...TruckKeys.all, 'dockets', id] as const,
   statistics: () => [...TruckKeys.all, 'statistics'] as const,
 };
 

@@ -57,9 +57,36 @@ export function DeliveriesDateNav({
     setOpen(false);
   }, [onDateChange]);
 
-  const bump = (delta: number) => {
-    onDateChange(startOfDay(addDays(date, delta)));
-  };
+  const bump = React.useCallback(
+    (delta: number) => {
+      onDateChange(startOfDay(addDays(date, delta)));
+    },
+    [date, onDateChange],
+  );
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if the user is typing in an input, textarea, or contenteditable
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        bump(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        bump(1);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [bump]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

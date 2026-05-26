@@ -27,12 +27,13 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   });
 
   const items: DocketDTO[] = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : dockets?.content ?? [];
+    const list: DocketDTO[] = Array.isArray(dockets)
+      ? dockets
+      : (dockets?.content ?? []);
     return list.map((docket) => ({
       ...docket,
     })) as DocketDTO[];
   }, [dockets]);
-
 
   return (
     <div className="flex flex-col gap-4 mt-6">
