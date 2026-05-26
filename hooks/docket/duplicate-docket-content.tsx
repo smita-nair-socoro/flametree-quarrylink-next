@@ -7,8 +7,7 @@ import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
-// ─── Mock data ─────────────────────────────────────────────────────────────
-// Swap this out for real docket data later — nothing below needs to change.
+// ─── Mock fallback data ────────────────────────────────────────────────────
 
 const MOCK = {
   loadSize: 25,
@@ -27,54 +26,31 @@ const MOCK = {
   purchaseOrder: 'PO-500203',
 };
 
-// ─── Field structure ────────────────────────────────────────────────────────
-// Defines what shows in the summary card and the info grid.
-// "date" and "notes" are special slots — everything else renders as InfoCell.
 
-type InfoField =
-  | { kind: 'cell'; label: string; value: string; colSpan?: true }
-  | { kind: 'date' }
-  | { kind: 'notes' };
-
-const summaryItems = [
-  { label: 'Remaining Quantity Available', value: `${MOCK.remaining} ${MOCK.uom}` },
-  { label: 'Each Copy Quantity',           value: `${MOCK.loadSize} ${MOCK.uom}` },
-] as const;
-
-const infoFields: InfoField[] = [
-  { kind: 'cell',  label: 'Job Reference:',    value: MOCK.jobRef },
-  { kind: 'cell',  label: 'Product:',          value: MOCK.product },
-  { kind: 'date' },
-  { kind: 'cell',  label: 'Load Size:',        value: `${MOCK.loadSize} ${MOCK.uom}` },
-  { kind: 'cell',  label: 'Delivery Address:', value: MOCK.address, colSpan: true },
-  { kind: 'cell',  label: 'Contact Name:',     value: MOCK.contactName },
-  { kind: 'cell',  label: 'Contact Phone:',    value: MOCK.contactPhone },
-  { kind: 'cell',  label: 'Time Window:',      value: `${MOCK.startTime.slice(0, 5)} – ${MOCK.endTime.slice(0, 5)}` },
-  { kind: 'cell',  label: 'Truck Type:',       value: MOCK.truckType },
-  { kind: 'notes' },
-];
-
-
-// ─── Description: quantity summary card ────────────────────────────────────
+// ─── Description: quantity summary card only ───────────────────────────────
 
 export interface DuplicateDocketDescriptionProps {
   copies: number;
 }
 
-export function DuplicateDocketDescription({ copies }: DuplicateDocketDescriptionProps) {
+export function DuplicateDocketDescription({
+  copies,
+}: DuplicateDocketDescriptionProps) {
   const totalRequested = copies * MOCK.loadSize;
 
   return (
-    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4">
+    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4 pb-4">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
         <div className="flex w-full flex-col gap-3 text-sm">
-          {summaryItems.map(({ label, value }) => (
-            <p key={label} className="tracking-[-0.1504px]">
-              <span className="font-semibold text-[#6A7282]">{label} </span>
-              <span className="font-normal text-[#101828]">{value}</span>
-            </p>
-          ))}
+          <p className="tracking-[-0.1504px]">
+            <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
+            <span className="font-normal text-[#101828]">{MOCK.remaining} {MOCK.uom}</span>
+          </p>
+          <p className="tracking-[-0.1504px]">
+            <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
+            <span className="font-normal text-[#101828]">{MOCK.loadSize} {MOCK.uom}</span>
+          </p>
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Total Requested: </span>
             <span className="font-normal text-[#101828]">{totalRequested} {MOCK.uom}</span>
@@ -111,6 +87,9 @@ export function DuplicateDocketContent({
   const isDateInPast = isPast(originalDate);
   const originalDateFormatted = format(originalDate, 'MMMM do, yyyy');
 
+  const startTime = MOCK.startTime.substring(0, 5);
+  const endTime = MOCK.endTime.substring(0, 5);
+
   return (
     <div className="flex flex-col gap-6">
 
@@ -138,7 +117,9 @@ export function DuplicateDocketContent({
             <Checkbox
               id="retain-po"
               checked={retainPoNumber}
-              onCheckedChange={(checked) => onRetainPoNumberChange(Boolean(checked))}
+              onCheckedChange={(checked) =>
+                onRetainPoNumberChange(Boolean(checked))
+              }
             />
             <label
               htmlFor="retain-po"
@@ -173,55 +154,57 @@ export function DuplicateDocketContent({
 
         {/* Docket grid + note */}
         <div className="flex flex-col gap-6 px-4 pt-6">
+
+          {/* Docket info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-            {infoFields.map((field, i) => {
-              if (field.kind === 'date') {
-                return (
-                  <div key="date" className="flex flex-col gap-1.5">
-                    <span className="text-xs text-[#6B7280]">Delivery Date:</span>
-                    <DatePicker
-                      value={newDeliveryDate}
-                      onChangeAction={onNewDeliveryDateChange}
-                      placeholder="Pick a date"
-                      disabled={{ before: new Date() }}
-                    />
-                    {isDateInPast && !newDeliveryDate && (
-                      <p className="text-xs text-red-500">
-                        Original date was {originalDateFormatted}. Please update.
-                      </p>
-                    )}
-                  </div>
-                );
-              }
 
-              if (field.kind === 'notes') {
-                return (
-                  <div key="notes" className="col-span-2 flex flex-col gap-1.5">
-                    <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
-                      Special Instructions
-                    </span>
-                    <div
-                      className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
-                      style={{
-                        paddingTop: '12.24px',
-                        paddingRight: '20.77px',
-                        paddingBottom: '11.74px',
-                        paddingLeft: '11.99px',
-                        minHeight: '63.98px',
-                      }}
-                    >
-                      {MOCK.notes}
-                    </div>
-                  </div>
-                );
-              }
+            <InfoCell label="Job Reference:" value={MOCK.jobRef} />
+            <InfoCell label="Product:" value={MOCK.product} />
 
-              return (
-                <div key={field.label} className={field.colSpan ? 'col-span-2' : ''}>
-                  <InfoCell label={field.label} value={field.value} />
-                </div>
-              );
-            })}
+            {/* Delivery date — editable */}
+            <div className="flex flex-col gap-1.5">
+              <span className="text-xs text-[#6B7280]">Delivery Date:</span>
+              <DatePicker
+                value={newDeliveryDate}
+                onChangeAction={onNewDeliveryDateChange}
+                placeholder="Pick a date"
+                disabled={{ before: new Date() }}
+              />
+              {isDateInPast && !newDeliveryDate && (
+                <p className="text-xs text-red-500">
+                  Original date was {originalDateFormatted}. Please update.
+                </p>
+              )}
+            </div>
+
+            <InfoCell label="Load Size:" value={`${MOCK.loadSize} ${MOCK.uom}`} />
+
+            <div className="col-span-2">
+              <InfoCell label="Delivery Address:" value={MOCK.address} />
+            </div>
+
+            <InfoCell label="Contact Name:" value={MOCK.contactName} />
+            <InfoCell label="Contact Phone:" value={MOCK.contactPhone} />
+            <InfoCell label="Time Window:" value={`${startTime} – ${endTime}`} />
+            <InfoCell label="Truck Type:" value={MOCK.truckType} />
+
+            <div className="col-span-2 flex flex-col gap-1.5">
+              <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
+                Special Instructions
+              </span>
+              <div
+                className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
+                style={{
+                  paddingTop: '12.24px',
+                  paddingRight: '20.77px',
+                  paddingBottom: '11.74px',
+                  paddingLeft: '11.99px',
+                  minHeight: '63.98px',
+                }}
+              >
+                {MOCK.notes}
+              </div>
+            </div>
           </div>
 
           {/* Bottom note */}
@@ -233,6 +216,7 @@ export function DuplicateDocketContent({
               can be cleared and can be added individually later.
             </p>
           </div>
+
         </div>
       </div>
     </div>
