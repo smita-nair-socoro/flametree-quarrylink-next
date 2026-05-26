@@ -90,6 +90,26 @@ export function DuplicateDocketContent({
   const startTime = MOCK.startTime.substring(0, 5);
   const endTime = MOCK.endTime.substring(0, 5);
 
+  // Local string state so the input can be cleared and won't show leading zeros
+  const [rawCopies, setRawCopies] = React.useState(String(copies));
+
+  const handleCopiesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value;
+    setRawCopies(raw);
+    const num = parseInt(raw, 10);
+    if (!isNaN(num) && num >= 1) onCopiesChange(num);
+  };
+
+  const handleCopiesBlur = () => {
+    const num = parseInt(rawCopies, 10);
+    if (isNaN(num) || num < 1) {
+      setRawCopies('1');
+      onCopiesChange(1);
+    } else {
+      setRawCopies(String(num)); // strip leading zeros e.g. "05" → "5"
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
 
@@ -102,13 +122,19 @@ export function DuplicateDocketContent({
             Number of Copies <span className="text-[#111827]">*</span>
           </label>
           <input
-            type="number"
-            min={1}
-            max={maxCopies > 0 ? maxCopies : 1}
-            value={copies}
-            onChange={(e) => onCopiesChange(Number(e.target.value))}
+            type="text"
+            inputMode="numeric"
+            value={rawCopies}
+            onChange={handleCopiesChange}
+            onBlur={handleCopiesBlur}
             className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
           />
+          {copies > maxCopies && (
+            <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
+              Cannot create {copies} copies. This would exceed the remaining quantity of {MOCK.remaining} {MOCK.uom}.<br />
+              Maximum copies allowed: {maxCopies}
+            </p>
+          )}
         </div>
 
         {/* Retain PO number */}
