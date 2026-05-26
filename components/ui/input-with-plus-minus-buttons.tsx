@@ -47,18 +47,18 @@ export const InputWithPlusMinusButtons = ({
         isDisabled={disabled}
         className={cn('w-full', className)}
       >
-        <Group className="border-[#E5E7EB] data-focus-within:border-[#0A0A0A] data-focus-within:ring-ring/50 data-focus-within:has-aria-invalid:ring-destructive/20 data-focus-within:has-aria-invalid:border-destructive relative inline-flex h-10 w-full min-w-0 items-center overflow-hidden rounded-[10px] border-[0.625px] bg-transparent text-base whitespace-nowrap transition-[color,box-shadow] outline-none data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-focus-within:ring-[3px] md:text-sm">
+        <Group className="border-input data-focus-within:border-ring data-focus-within:ring-ring/50 data-focus-within:has-aria-invalid:ring-destructive/20 data-focus-within:has-aria-invalid:border-destructive relative inline-flex h-11 md:h-9 w-full min-w-0 items-center overflow-hidden rounded-md border bg-transparent text-base whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none data-disabled:pointer-events-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-focus-within:ring-[3px] md:text-sm">
           <Button
             slot="decrement"
-            className="border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground ml-3 flex aspect-square h-5 items-center justify-center rounded-sm border text-sm transition-[color,box-shadow] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground ml-2 flex aspect-square h-5 items-center justify-center rounded-sm border text-sm transition-[color,box-shadow] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <MinusIcon className="size-3" />
             <span className="sr-only">Decrement</span>
           </Button>
-          <Input className="selection:bg-[#0A0A0A] selection:text-white w-full grow px-3 py-2 text-center tabular-nums outline-none" />
+          <Input className="selection:bg-primary selection:text-primary-foreground w-full grow px-3 py-2 text-center tabular-nums outline-none" />
           <Button
             slot="increment"
-            className="border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground mr-3 flex aspect-square h-5 items-center justify-center rounded-sm border text-sm transition-[color,box-shadow] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+            className="border-input bg-background text-muted-foreground hover:bg-accent hover:text-foreground mr-2 flex aspect-square h-5 items-center justify-center rounded-sm border text-sm transition-[color,box-shadow] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
           >
             <PlusIcon className="size-3" />
             <span className="sr-only">Increment</span>
