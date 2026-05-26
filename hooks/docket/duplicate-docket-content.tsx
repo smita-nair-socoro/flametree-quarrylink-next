@@ -1,82 +1,54 @@
 'use client';
 
 import * as React from 'react';
-import { Copy, AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle, Info } from 'lucide-react';
 import { format, isPast, parseISO } from 'date-fns';
 import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
-export interface DuplicateDocketContentProps {
+export interface DuplicateDocketDescriptionProps {
   docket?: DocketDTO | null;
   copies: number;
   onCopiesChange: (value: number) => void;
   retainPoNumber: boolean;
   onRetainPoNumberChange: (checked: boolean) => void;
-  newDeliveryDate: Date | undefined;
-  onNewDeliveryDateChange: (date: Date | undefined) => void;
 }
 
-export function DuplicateDocketContent({
+export function DuplicateDocketDescription({
   docket,
   copies,
   onCopiesChange,
   retainPoNumber,
   onRetainPoNumberChange,
-  newDeliveryDate,
-  onNewDeliveryDateChange,
-}: DuplicateDocketContentProps) {
+}: DuplicateDocketDescriptionProps) {
   const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? 'TN';
   const totalRequested = copies * loadSize;
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
-  const originalDateString = docket?.deliveryCollectionDate;
-  const originalDate = originalDateString ? parseISO(originalDateString) : null;
-  const isDateInPast = originalDate ? isPast(originalDate) : false;
-  const originalDateFormatted = originalDate
-    ? format(originalDate, 'MMMM do, yyyy')
-    : null;
-
-  const address = docket?.deliveryAddress?.formattedAddress ?? '—';
-  const startTime = docket?.deliveryCollectionStartTime?.substring(0, 5) ?? '—';
-  const endTime = docket?.deliveryCollectionEndTime?.substring(0, 5) ?? '—';
-  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName]
-    .filter(Boolean)
-    .join(' - ');
-
   return (
     <div className="flex flex-col gap-6">
 
       {/* Quantity summary */}
-      <div
-        className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4"
-      >
+      <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4">
         <div className="flex items-start gap-3">
-          <AlertTriangle
-            className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]"
-          />
+          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
           <div className="flex w-full flex-col gap-3 text-sm">
-            <div className="flex justify-between">
-              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Remaining Quantity Available:</span>
-              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
-                {remaining} {uom}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Each Copy Quantity:</span>
-              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
-                {loadSize} {uom}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold tracking-[-0.1504px] text-[#6A7282]">Total Requested:</span>
-              <span className="font-normal tracking-[-0.1504px] text-[#101828]">
-                {totalRequested} {uom}
-              </span>
-            </div>
+            <p className="tracking-[-0.1504px]">
+              <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
+              <span className="font-normal text-[#101828]">{remaining} {uom}</span>
+            </p>
+            <p className="tracking-[-0.1504px]">
+              <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
+              <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
+            </p>
+            <p className="tracking-[-0.1504px]">
+              <span className="font-semibold text-[#6A7282]">Total Requested: </span>
+              <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
+            </p>
           </div>
         </div>
       </div>
@@ -122,6 +94,41 @@ export function DuplicateDocketContent({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+
+export interface DuplicateDocketContentProps {
+  docket?: DocketDTO | null;
+  newDeliveryDate: Date | undefined;
+  onNewDeliveryDateChange: (date: Date | undefined) => void;
+}
+
+export function DuplicateDocketContent({
+  docket,
+  newDeliveryDate,
+  onNewDeliveryDateChange,
+}: DuplicateDocketContentProps) {
+  const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
+  const uom = docket?.jobItem?.productSellUom ?? 'TN';
+
+  const originalDateString = docket?.deliveryCollectionDate;
+  const originalDate = originalDateString ? parseISO(originalDateString) : null;
+  const isDateInPast = originalDate ? isPast(originalDate) : false;
+  const originalDateFormatted = originalDate
+    ? format(originalDate, 'MMMM do, yyyy')
+    : null;
+
+  const address = docket?.deliveryAddress?.formattedAddress ?? '—';
+  const startTime = docket?.deliveryCollectionStartTime?.substring(0, 5) ?? '—';
+  const endTime = docket?.deliveryCollectionEndTime?.substring(0, 5) ?? '—';
+  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName]
+    .filter(Boolean)
+    .join(' - ');
+
+  return (
+    <div className="flex flex-col gap-6">
 
       {/* Original docket info */}
       <div className="flex flex-col gap-3">

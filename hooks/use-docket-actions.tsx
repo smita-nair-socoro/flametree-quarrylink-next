@@ -52,6 +52,7 @@ import {
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
 import {
+  DuplicateDocketDescription,
   DuplicateDocketContent,
 } from '@/hooks/docket/duplicate-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
@@ -674,13 +675,18 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       duplicate: {
         title: 'Duplicate Docket',
         subtitle: 'Create a copy of docket DOC-001',
-        content: (
-          <DuplicateDocketContent
+        description: (
+          <DuplicateDocketDescription
             docket={docketData}
             copies={duplicateCopies}
             onCopiesChange={setDuplicateCopies}
             retainPoNumber={duplicateRetainPo}
             onRetainPoNumberChange={setDuplicateRetainPo}
+          />
+        ),
+        content: (
+          <DuplicateDocketContent
+            docket={docketData}
             newDeliveryDate={duplicateDeliveryDate}
             onNewDeliveryDateChange={setDuplicateDeliveryDate}
           />
