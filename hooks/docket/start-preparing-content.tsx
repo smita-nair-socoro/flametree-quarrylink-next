@@ -21,8 +21,16 @@ export function StartPreparingDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+            {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
