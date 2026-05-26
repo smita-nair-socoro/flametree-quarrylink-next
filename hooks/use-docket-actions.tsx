@@ -679,14 +679,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           <DuplicateDocketDescription
             docket={docketData}
             copies={duplicateCopies}
-            onCopiesChange={setDuplicateCopies}
-            retainPoNumber={duplicateRetainPo}
-            onRetainPoNumberChange={setDuplicateRetainPo}
           />
         ),
         content: (
           <DuplicateDocketContent
             docket={docketData}
+            copies={duplicateCopies}
+            onCopiesChange={setDuplicateCopies}
+            retainPoNumber={duplicateRetainPo}
+            onRetainPoNumberChange={setDuplicateRetainPo}
             newDeliveryDate={duplicateDeliveryDate}
             onNewDeliveryDateChange={setDuplicateDeliveryDate}
           />

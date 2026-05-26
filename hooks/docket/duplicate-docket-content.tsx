@@ -8,110 +8,71 @@ import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 
 
+// ─── Description: quantity summary card only ───────────────────────────────
+
 export interface DuplicateDocketDescriptionProps {
   docket?: DocketDTO | null;
   copies: number;
-  onCopiesChange: (value: number) => void;
-  retainPoNumber: boolean;
-  onRetainPoNumberChange: (checked: boolean) => void;
 }
 
 export function DuplicateDocketDescription({
   docket,
   copies,
-  onCopiesChange,
-  retainPoNumber,
-  onRetainPoNumberChange,
 }: DuplicateDocketDescriptionProps) {
   const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? 'TN';
   const totalRequested = copies * loadSize;
-  const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   return (
-    <div className="flex flex-col gap-6">
-
-      {/* Quantity summary */}
-      <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4">
-        <div className="flex items-start gap-3">
-          <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
-          <div className="flex w-full flex-col gap-3 text-sm">
-            <p className="tracking-[-0.1504px]">
-              <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
-              <span className="font-normal text-[#101828]">{remaining} {uom}</span>
-            </p>
-            <p className="tracking-[-0.1504px]">
-              <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
-              <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
-            </p>
-            <p className="tracking-[-0.1504px]">
-              <span className="font-semibold text-[#6A7282]">Total Requested: </span>
-              <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
-            </p>
-          </div>
+    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4 pb-4">
+      <div className="flex items-start gap-3">
+        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
+        <div className="flex w-full flex-col gap-3 text-sm">
+          <p className="tracking-[-0.1504px]">
+            <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
+            <span className="font-normal text-[#101828]">{remaining} {uom}</span>
+          </p>
+          <p className="tracking-[-0.1504px]">
+            <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
+            <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
+          </p>
+          <p className="tracking-[-0.1504px]">
+            <span className="font-semibold text-[#6A7282]">Total Requested: </span>
+            <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
+          </p>
         </div>
-      </div>
-
-      {/* Number of copies */}
-      <div className="flex flex-col gap-2">
-        <label className="text-sm font-medium text-[#364153]">
-          Number of Copies <span className="text-[#111827]">*</span>
-        </label>
-        <input
-          type="number"
-          min={1}
-          max={maxCopies > 0 ? maxCopies : 1}
-          value={copies}
-          onChange={(e) => onCopiesChange(Number(e.target.value))}
-          className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
-        />
-      </div>
-
-      {/* Retain PO number */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="retain-po"
-            checked={retainPoNumber}
-            onCheckedChange={(checked) =>
-              onRetainPoNumberChange(Boolean(checked))
-            }
-          />
-          <label
-            htmlFor="retain-po"
-            className="cursor-pointer select-none text-sm font-medium text-[#364153]"
-          >
-            Retain existing PO number
-          </label>
-        </div>
-        {retainPoNumber && (
-          <input
-            type="text"
-            defaultValue={docket?.purchaseOrder ?? ''}
-            placeholder="PO number"
-            className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
-          />
-        )}
       </div>
     </div>
   );
 }
 
 
+// ─── Content: copies + PO + docket info + note ─────────────────────────────
+
 export interface DuplicateDocketContentProps {
   docket?: DocketDTO | null;
+  copies: number;
+  onCopiesChange: (value: number) => void;
+  retainPoNumber: boolean;
+  onRetainPoNumberChange: (checked: boolean) => void;
   newDeliveryDate: Date | undefined;
   onNewDeliveryDateChange: (date: Date | undefined) => void;
 }
 
 export function DuplicateDocketContent({
   docket,
+  copies,
+  onCopiesChange,
+  retainPoNumber,
+  onRetainPoNumberChange,
   newDeliveryDate,
   onNewDeliveryDateChange,
 }: DuplicateDocketContentProps) {
   const loadSize = (docket?.plannedLoadSize || docket?.actualLoadSize) ?? 0;
+  const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? 'TN';
+  const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
   const originalDate = originalDateString ? parseISO(originalDateString) : null;
@@ -130,18 +91,69 @@ export function DuplicateDocketContent({
   return (
     <div className="flex flex-col gap-6">
 
-      {/* Original docket info */}
-      <div className="flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-semibold text-[#111827]">
+      {/* Group 1: copies + PO */}
+      <div className="flex flex-col gap-6">
+
+        {/* Number of copies */}
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium text-[#364153]">
+            Number of Copies <span className="text-[#111827]">*</span>
+          </label>
+          <input
+            type="number"
+            min={1}
+            max={maxCopies > 0 ? maxCopies : 1}
+            value={copies}
+            onChange={(e) => onCopiesChange(Number(e.target.value))}
+            className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+          />
+        </div>
+
+        {/* Retain PO number */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="retain-po"
+              checked={retainPoNumber}
+              onCheckedChange={(checked) =>
+                onRetainPoNumberChange(Boolean(checked))
+              }
+            />
+            <label
+              htmlFor="retain-po"
+              className="cursor-pointer select-none text-sm font-medium text-[#364153]"
+            >
+              Retain existing PO number
+            </label>
+          </div>
+          {retainPoNumber && (
+            <input
+              type="text"
+              defaultValue={docket?.purchaseOrder ?? ''}
+              placeholder="PO number"
+              className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Group 2: bordered container — banner + grid + note */}
+      <div className="overflow-hidden rounded-[14px] border-[0.625px] border-[#E5E7EB] pt-[0.625px] pr-[0.625px] pl-[0.625px] pb-[24.62px]">
+
+        {/* Banner */}
+        <div className="flex h-[82px] flex-col gap-0.5 border-b-[0.625px] border-[#F3F4F6] bg-[#F9FAFB]/50 px-4 pt-4">
+          <h3 className="text-[18px] font-semibold text-[#101828]">
             Original Docket Information
           </h3>
-          <p className="text-xs text-[#6B7280]">
+          <p className="text-sm text-[#6A7282]">
             The following information will be copied to the new docket
           </p>
         </div>
 
-        <div className="rounded-md border border-gray-200 bg-[#F9FAFB] p-4">
+        {/* Docket grid + note */}
+        <div className="flex flex-col gap-6 px-4 pt-6">
+
+          {/* Docket info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
 
             <InfoCell label="Job Reference:" value={jobRef || '—'} />
@@ -166,52 +178,35 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell
-              label="Load Size:"
-              value={`${loadSize} ${uom}`}
-            />
+            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
 
             <div className="col-span-2">
               <InfoCell label="Delivery Address:" value={address} />
             </div>
 
-            <InfoCell
-              label="Contact Name:"
-              value={docket?.customerContactName ?? '—'}
-            />
-            <InfoCell
-              label="Contact Phone:"
-              value={docket?.customerContactPhone ?? '—'}
-            />
-            <InfoCell
-              label="Time Window:"
-              value={`${startTime} – ${endTime}`}
-            />
-            <InfoCell
-              label="Truck Type:"
-              value={docket?.truckType ?? '—'}
-            />
+            <InfoCell label="Contact Name:" value={docket?.customerContactName ?? '—'} />
+            <InfoCell label="Contact Phone:" value={docket?.customerContactPhone ?? '—'} />
+            <InfoCell label="Time Window:" value={`${startTime} – ${endTime}`} />
+            <InfoCell label="Truck Type:" value={docket?.truckType ?? '—'} />
 
             {docket?.notes && (
               <div className="col-span-2">
-                <InfoCell
-                  label="Special Instructions:"
-                  value={docket.notes}
-                />
+                <InfoCell label="Special Instructions:" value={docket.notes} />
               </div>
             )}
           </div>
-        </div>
-      </div>
 
-      {/* Bottom note */}
-      <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 py-3">
-        <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-        <p className="text-sm text-blue-700">
-          <span className="font-semibold">Note:</span> All duplicates will be
-          created with &ldquo;Pending / Unassigned&rdquo; status. PO numbers
-          can be cleared and can be added individually later.
-        </p>
+          {/* Bottom note */}
+          <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 py-3">
+            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
+            <p className="text-sm text-blue-700">
+              <span className="font-semibold">Note:</span> All duplicates will be
+              created with &ldquo;Pending / Unassigned&rdquo; status. PO numbers
+              can be cleared and can be added individually later.
+            </p>
+          </div>
+
+        </div>
       </div>
     </div>
   );
