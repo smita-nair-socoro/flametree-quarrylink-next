@@ -51,6 +51,14 @@ export const JobItemByIdQueryOptions = (jobItemId: number) =>
     staleTime: 5_000,
   });
 
+export const JobStatisticsQueryOptions = () =>
+  queryOptions({
+    queryKey: JobKeys.statistics(),
+    queryFn: () => APIClient.jobs.statistics(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const useCancelJob = () => {
   const queryClient = useQueryClient();
 
