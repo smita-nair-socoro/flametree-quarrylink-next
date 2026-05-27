@@ -175,14 +175,16 @@ export function AssignDocketDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {formatNumberThousandSeparator(
-              docket?.actualLoadSize || docket?.plannedLoadSize,
-            )}
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
             {docket?.jobItem?.productSellUom === 'M3'
               ? 'm³'
               : docket?.jobItem?.productSellUom === 'KG_20'
                 ? 'x 20kg'
-                : docket?.jobItem?.productSellUom}
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
@@ -238,17 +240,17 @@ export function AssignDocketContent({
 
   const conflictDates =
     docket?.deliveryCollectionDate &&
-    docket.deliveryCollectionStartTime &&
-    docket.deliveryCollectionEndTime
+      docket.deliveryCollectionStartTime &&
+      docket.deliveryCollectionEndTime
       ? {
-          deliveryCollectionDate: appendUtcSuffix(
-            docket.deliveryCollectionDate,
-          ),
-          deliveryStartWindow: appendUtcSuffix(
-            docket.deliveryCollectionStartTime,
-          ),
-          deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
-        }
+        deliveryCollectionDate: appendUtcSuffix(
+          docket.deliveryCollectionDate,
+        ),
+        deliveryStartWindow: appendUtcSuffix(
+          docket.deliveryCollectionStartTime,
+        ),
+        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+      }
       : null;
 
   const truckConflictRequest =
@@ -350,8 +352,8 @@ export function AssignDocketContent({
       !truckSelection
         ? []
         : availableDrivers
-            .filter((d) => d.truckIds.includes(truckSelection))
-            .map((d) => ({ label: d.driverName, value: d.id })),
+          .filter((d) => d.truckIds.includes(truckSelection))
+          .map((d) => ({ label: d.driverName, value: d.id })),
     [availableDrivers, truckSelection],
   );
 
