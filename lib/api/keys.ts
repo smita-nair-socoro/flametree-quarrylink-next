@@ -75,6 +75,7 @@ export const JobKeys = {
   detail: (id: number) => [...JobKeys.all, 'detail', id] as const,
   items: (jobId: number) => [...JobKeys.all, 'items', jobId] as const,
   item: (jobItemId: number) => [...JobKeys.all, 'item', jobItemId] as const,
+  statistics: () => [...JobKeys.all, 'statistics'] as const,
 };
 
 export const UserKeys = {
