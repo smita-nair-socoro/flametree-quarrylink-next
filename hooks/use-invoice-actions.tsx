@@ -16,7 +16,11 @@ import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { InvoiceUrlQueryOptions } from '@/lib/api/invoices';
 
@@ -26,7 +30,6 @@ export function useInvoiceActions(invoiceId: number | undefined) {
     ...InvoiceUrlQueryOptions(invoiceId as number),
     enabled: isViewDetailsOpen && invoiceId !== undefined,
   });
-  console.log(invoiceUrl);
 
   const actions = {
     viewDetails: () => {
@@ -34,7 +37,9 @@ export function useInvoiceActions(invoiceId: number | undefined) {
     },
 
     download: () => {
-      console.log('Download invoice:', invoiceId);
+      if (invoiceUrl) {
+        window.open(invoiceUrl.invoiceLink, '_blank');
+      }
     },
   };
 
@@ -152,8 +157,8 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                             <td className="px-4 py-3 text-gray-600">
                               {formatNumberThousandSeparator(
                                 docket.actualLoadSize ||
-                                docket.plannedLoadSize ||
-                                0,
+                                  docket.plannedLoadSize ||
+                                  0,
                               )}{' '}
                               {docket.jobItem?.productSellUom === 'TN'
                                 ? 'TN'
@@ -168,9 +173,9 @@ export function useInvoiceActions(invoiceId: number | undefined) {
                             <td className="px-4 py-3 text-gray-600">
                               {docket.deliveryCollectionDate
                                 ? formatDate(
-                                  docket.deliveryCollectionDate,
-                                  'MMM dd, yyyy',
-                                )
+                                    docket.deliveryCollectionDate,
+                                    'MMM dd, yyyy',
+                                  )
                                 : '-'}
                             </td>
                           </tr>

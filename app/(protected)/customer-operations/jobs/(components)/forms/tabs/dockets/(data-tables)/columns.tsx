@@ -13,6 +13,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { TriangleAlert } from 'lucide-react';
 
 export const docketsColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -55,9 +56,13 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <div>Status</div>;
     },
     cell: ({ row }) => {
-      return (
-        <TableBadges names={[row.original.docketStatus]} visibleCount={1} />
-      );
+      const docketStatus = row.original.docketStatus === 'READY_FOR_COLLECTION' ? 'READY' : row.original.docketStatus;
+      if (docketStatus === 'INVOICED') {
+        if (row.original.invoiceStatus === 'FAILED') {
+          return <TableBadges names={[docketStatus]} visibleCount={1} icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />} />;
+        }
+      }
+      return <TableBadges names={[docketStatus]} visibleCount={1} />;
     },
     meta: 'Status',
   },
