@@ -112,7 +112,6 @@ interface DialogConfig {
   subtitle?: string;
   hideSeparator?: boolean;
   buttonContainerClass?: string;
-  gap?: string;
 }
 
 interface SelectedAction {
@@ -697,7 +696,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
         cancelButtonClass: 'h-[37.25px] w-[78.59px] rounded-[10px] border-[0.625px] border-[#E5E7EB] pt-[8.873px] pr-[15.97px] pb-[8.373px] pl-[16.62px] text-[#364153]',
-        gap: 'gap-4',
         customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
 
@@ -810,7 +808,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         subtitle={config.subtitle}
         hideSeparator={config.hideSeparator}
         buttonContainerClass={config.buttonContainerClass}
-        gap={config.gap}
 
         onConfirmAction={async () => {
           switch (key) {
