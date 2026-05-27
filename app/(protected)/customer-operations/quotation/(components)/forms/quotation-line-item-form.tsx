@@ -10,7 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
+import { cn, scrollToFirstError } from '@/lib/utils';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -403,6 +403,9 @@ export default function QuoteLineItemForm({
                             {...field}
                             disabled={isReadOnly}
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -509,6 +512,9 @@ export default function QuoteLineItemForm({
                             {...field}
                             disabled
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -650,6 +656,9 @@ export default function QuoteLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -759,6 +768,9 @@ export default function QuoteLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -987,7 +999,9 @@ export default function QuoteLineItemForm({
                         </span>
                         <span className="text-lg font-medium ml-3">
                           {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {formatDollars(Math.abs(pricingBreakdown.grossProfit))}
+                          {formatDollars(
+                            Math.abs(pricingBreakdown.grossProfit),
+                          )}
                         </span>
                       </div>
                     </>
@@ -1048,7 +1062,7 @@ export default function QuoteLineItemForm({
                   className="cursor-pointer"
                   type="button"
                   disabled={isPending || !canEdit}
-                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
+                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit, scrollToFirstError)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -1061,7 +1075,7 @@ export default function QuoteLineItemForm({
                   type="button"
                   className="cursor-pointer"
                   disabled={isPending || !canEdit}
-                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit)()}
+                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit, scrollToFirstError)()}
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>

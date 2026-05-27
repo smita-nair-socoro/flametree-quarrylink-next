@@ -57,6 +57,7 @@ export interface TeamMember {
 
 export interface PendingInvitation {
   id: number;
+  sub: string;
   tenant_id: string;
   email: string;
   role: Role;

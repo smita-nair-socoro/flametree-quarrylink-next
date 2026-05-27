@@ -861,7 +861,7 @@ export const APIClient = {
       }),
     getAll: async (params?: {
       page?: number;
-      pageSize?: number;
+      size?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
@@ -876,7 +876,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
+          size: params?.size?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -1073,10 +1073,11 @@ export const APIClient = {
     },
     pause: (
       id: number,
-      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
     ) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
-        body: { pauseStrategy },
+        body: { deliveryPauseStrategy, collectionPauseStrategy },
       }),
     resume: (id: number) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
@@ -1229,6 +1230,8 @@ export const APIClient = {
           },
         },
       ),
+    getDockets: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/docket`),
     statistics: () =>
       appClient.Get<TruckStatistics>(`/socoro/quarrylink/api/truck/statistics`),
   },

@@ -36,6 +36,7 @@ import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions
 import { useDriverAppOperationalUpdate, DriverAppAssignedDocketDetailQueryOptions } from '@/lib/api/driver-app';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
+import { useDocketActualLoadSizeStore } from '@/app/stores/docket-actual-load-size-store';
 import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
@@ -95,6 +96,8 @@ export default function DocketsTab({
   const { actions, confirmDialogs, isDialogOpen } =
     useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
+  const docketSizes = useDocketActualLoadSizeStore((s) => s.sizes);
+  const setActualLoadSize = useDocketActualLoadSizeStore((s) => s.setActualLoadSize);
   const isTruckInspectionPassed = useTruckInspectionStatusStore(
     (s) => s.isTruckInspectionPassed,
   );
@@ -229,7 +232,7 @@ export default function DocketsTab({
               </p>
             </div>
             <span className="text-[14px] font-medium text-gray-400 mt-1">
-              {docket.actualLoadSize || docket.plannedLoadSize}{' '}
+              {docketSizes[docket.id] ?? docket.actualLoadSize ?? docket.plannedLoadSize}{' '}
               {docket.jobItem?.productSellUom === 'TN'
                 ? 'TN'
                 : docket.jobItem?.productSellUom === 'M3'
@@ -408,7 +411,7 @@ export default function DocketsTab({
                         <span className="text-[14px] font-bold text-gray-900">
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
-                            : (selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
+                            : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
@@ -721,6 +724,7 @@ export default function DocketsTab({
                   id: selectedDocket.id,
                   actualLoadSize: numericValue,
                 });
+                setActualLoadSize(selectedDocket.id, numericValue);
                 setIsUpdateDrawerOpen(false);
               }}
             >

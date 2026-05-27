@@ -1,0 +1,15 @@
+Hi {accountManagerName},
+
+This is a confirmation that you declined quote #{quoteNumber} on behalf of the customer in QuarryLink.
+
+Quote Number: {quoteNumber}
+Customer: {customerName}
+Project: {projectName}
+Total Value: ${totalValue} ex GST
+Declined On: {declineDate}
+Reason: {declineReason}
+Note: {declineNote}
+
+View Quote Details: {quoteUrl}
+
+You're receiving this because you declined a quote on behalf of a customer in QuarryLink.

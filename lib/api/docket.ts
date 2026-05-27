@@ -40,7 +40,7 @@ export const DocketStatisticsQueryOptions = () => {
 
 export const DocketsListQueryOptions = (params?: {
   page?: number;
-  pageSize?: number;
+  size?: number;
 }) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],

@@ -59,8 +59,8 @@ export const useInvoiceStore = create<InvoiceStore>()(
         };
       },
     }),
-    { name: 'invoice-store' }
-  )
+    { name: 'invoice-store' },
+  ),
 );
 
 export const useSelectedInvoice = () =>
@@ -77,7 +77,7 @@ export const useInvoiceById = (id: number) => {
 
 export const useInvoicesByStatus = (status: string) => {
   return useInvoiceStore((state) =>
-    state.invoices.filter((i) => i.invoice_status === status)
+    state.invoices.filter((i) => i.invoice_status === status),
   );
 };
 

@@ -11,8 +11,9 @@ import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
-import { useSettleJob, JobItemsQueryOptions } from '@/lib/api/job';
+import { useSettleJob } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { DocketDTO } from '@/lib/types/docket';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -77,9 +78,10 @@ export function useJobActions(jobData?: JobDetails | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const [addDocketOpen, setAddDocketOpen] = React.useState(false);
   const [addInvoiceOpen, setAddInvoiceOpen] = React.useState(false);
-  const [pauseDocketAction, setPauseDocketAction] = React.useState<
-    'stop' | 'allow'
-  >('stop');
+  const [pauseDeliveryDocketAction, setPauseDeliveryDocketAction] =
+    React.useState<'stop' | 'allow'>('stop');
+  const [pauseCollectionDocketAction, setPauseCollectionDocketAction] =
+    React.useState<'stop' | 'allow'>('stop');
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [settleBlockedData, setSettleBlockedData] = React.useState<{
@@ -174,9 +176,22 @@ export function useJobActions(jobData?: JobDetails | null) {
         description: <PauseJobDescription job={jobData} />,
         content: (
           <PauseJobContent
-            activeDockets={activeDockets}
-            docketAction={pauseDocketAction}
-            onDocketActionChange={setPauseDocketAction}
+            deliveryDockets={activeDockets.filter(
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY &&
+                (d.docketStatus === DOCKET_STATUS.ASSIGNED ||
+                  d.docketStatus === DOCKET_STATUS.IN_TRANSIT),
+            )}
+            collectionDockets={activeDockets.filter(
+              (d) =>
+                d.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                (d.docketStatus === DOCKET_STATUS.PREPARING ||
+                  d.docketStatus === DOCKET_STATUS.READY),
+            )}
+            deliveryDocketAction={pauseDeliveryDocketAction}
+            collectionDocketAction={pauseCollectionDocketAction}
+            onDeliveryDocketActionChange={setPauseDeliveryDocketAction}
+            onCollectionDocketActionChange={setPauseCollectionDocketAction}
           />
         ),
         confirmText: 'Pause Job',
@@ -186,7 +201,8 @@ export function useJobActions(jobData?: JobDetails | null) {
     [
       jobData,
       activeDockets,
-      pauseDocketAction,
+      pauseDeliveryDocketAction,
+      pauseCollectionDocketAction,
       cancelReason,
       cancelNotes,
       isCancelFormValid,
@@ -244,13 +260,16 @@ export function useJobActions(jobData?: JobDetails | null) {
   const handlePauseJob = async () => {
     if (jobId == null) return;
     try {
-      const pauseStrategy =
-        pauseDocketAction === 'stop'
-          ? 'STOP_ALL_DOCKETS'
-          : 'ALLOW_DRIVERS_TO_COMPLETE';
       const updated = await pauseJobMutation.mutateAsync({
         id: jobId,
-        pauseStrategy,
+        deliveryPauseStrategy:
+          pauseDeliveryDocketAction === 'stop'
+            ? 'STOP_ALL_DELIVERY_DOCKETS'
+            : 'ALLOW_DRIVERS_TO_COMPLETE',
+        collectionPauseStrategy:
+          pauseCollectionDocketAction === 'stop'
+            ? 'STOP_ACTIVE_COLLECTION_DOCKETS'
+            : 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
       });
       notifySuccess('Job paused successfully.');
       setActiveDialog(null);
@@ -331,7 +350,8 @@ export function useJobActions(jobData?: JobDetails | null) {
 
     pause: async () => {
       if (!jobId) return;
-      setPauseDocketAction('stop');
+      setPauseDeliveryDocketAction('stop');
+      setPauseCollectionDocketAction('stop');
       try {
         const result = await queryClient.fetchQuery(
           DocketsByJobIdQueryOptions(jobId),

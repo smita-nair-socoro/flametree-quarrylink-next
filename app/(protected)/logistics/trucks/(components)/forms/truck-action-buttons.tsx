@@ -1,5 +1,8 @@
 'use client';
 
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -18,17 +21,31 @@ import {
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { TruckDTO } from '@/lib/types/truck';
 import { TRUCK_STATUS, normalizeTruckStatus } from '@/lib/types/truck-enums';
+import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
+import { notifyError } from '@/lib/toast';
 
 interface TruckActionButtonsProps {
   truck: TruckDTO | null | undefined;
-  onAssignedDockets?: () => void;
 }
 
-export function TruckActionButtons({
-  truck,
-  onAssignedDockets,
-}: TruckActionButtonsProps) {
+export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
   const { actions, confirmDialogs } = useTruckActions(truck);
+  const router = useRouter();
+
+  const { data: truckWithDockets } = useQuery({
+    ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
+    enabled: !!truck?.id,
+  });
+
+  const handleAssignedDockets = () => {
+    const dockets = truckWithDockets?.dockets ?? [];
+    if (dockets.length === 0) {
+      notifyError('No dockets assigned to this truck.');
+      return;
+    }
+    const docketIds = dockets.map((d) => d.id).join(',');
+    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+  };
 
   if (!truck || !truck.id) {
     return null;
@@ -43,7 +60,7 @@ export function TruckActionButtons({
         <Button
           variant="ghost"
           size="sm"
-          onClick={onAssignedDockets}
+          onClick={handleAssignedDockets}
           className="rounded-none bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800 border-r border-gray-200"
         >
           <FileText className="h-4 w-4 mr-2" />
