@@ -75,7 +75,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'startPreparing',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -93,7 +92,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'backToPending',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -116,7 +114,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'backToPreparing',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -134,7 +131,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       separator: true,
     },
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     {
@@ -143,7 +139,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'cashReceipts',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.INVOICED]: [
     {
@@ -152,11 +147,9 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'viewInvoice',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -174,7 +167,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       separator: true,
     },
     { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -198,7 +190,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.STOPPED]: [
     {
@@ -208,7 +199,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       separator: true,
     },
     { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -225,7 +215,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'markDelivered',
       separator: true,
     },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -237,7 +226,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.DELIVERED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -305,6 +293,12 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
               </DropdownMenuItem>
             </React.Fragment>
           ))}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleAction('duplicate')}>
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
