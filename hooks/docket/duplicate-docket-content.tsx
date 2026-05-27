@@ -3,41 +3,27 @@
 import * as React from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
 import { format, isPast, parseISO } from 'date-fns';
+import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
-
-
-// ─── Mock fallback data ────────────────────────────────────────────────────
-
-const MOCK = {
-  loadSize: 25,
-  remaining: 100,
-  uom: 'TN',
-  deliveryCollectionDate: '2024-01-15',
-  notes: 'Please deliver to the north entrance of the construction site. Contact site supervisor upon arrival.',
-  address: '123 Construction Site Rd, Melbourne VIC 3000',
-  startTime: '08:00',
-  endTime: '17:00',
-  jobRef: 'JOB-2024-001 - Melbourne CBD Construction',
-  product: 'concrete-mix-20mpa',
-  contactName: 'Donovan',
-  contactPhone: '+61 450 067 602',
-  truckType: 'Semi Trailer',
-  purchaseOrder: 'PO-500203',
-};
 
 
 // ─── Description: quantity summary card only ───────────────────────────────
 
 export interface DuplicateDocketDescriptionProps {
+  docket?: DocketDTO | null;
   copies: number;
 }
 
 export function DuplicateDocketDescription({
+  docket,
   copies,
 }: DuplicateDocketDescriptionProps) {
-  const totalRequested = copies * MOCK.loadSize;
-  const exceedsBy = totalRequested - MOCK.remaining;
+  const loadSize = docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+  const remaining = docket?.jobItem?.remainingQuantity ?? 0;
+  const uom = docket?.jobItem?.productSellUom ?? '';
+  const totalRequested = copies * loadSize;
+  const exceedsBy = totalRequested - remaining;
   const isExceeding = exceedsBy > 0;
 
   return (
@@ -47,20 +33,20 @@ export function DuplicateDocketDescription({
         <div className="flex w-full flex-col gap-3 text-sm">
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
-            <span className="font-normal text-[#101828]">{MOCK.remaining} {MOCK.uom}</span>
+            <span className="font-normal text-[#101828]">{remaining} {uom}</span>
           </p>
           <p className="tracking-[-0.1504px]">
             <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
-            <span className="font-normal text-[#101828]">{MOCK.loadSize} {MOCK.uom}</span>
+            <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
           </p>
           <div className="flex flex-col gap-[10px]">
             <p className="tracking-[-0.1504px]">
               <span className="font-semibold text-[#6A7282]">Total Requested: </span>
-              <span className="font-normal text-[#101828]">{totalRequested} {MOCK.uom}</span>
+              <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
             </p>
             {isExceeding && (
               <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
-                ⚠️ This would exceed the remaining quantity by {exceedsBy} {MOCK.uom}
+                ⚠️ This would exceed the remaining quantity by {exceedsBy} {uom}
               </p>
             )}
           </div>
@@ -74,6 +60,7 @@ export function DuplicateDocketDescription({
 // ─── Content: copies + PO + docket info + note ─────────────────────────────
 
 export interface DuplicateDocketContentProps {
+  docket?: DocketDTO | null;
   copies: number;
   onCopiesChange: (value: number) => void;
   retainPoNumber: boolean;
@@ -83,6 +70,7 @@ export interface DuplicateDocketContentProps {
 }
 
 export function DuplicateDocketContent({
+  docket,
   copies,
   onCopiesChange,
   retainPoNumber,
@@ -90,14 +78,24 @@ export function DuplicateDocketContent({
   newDeliveryDate,
   onNewDeliveryDateChange,
 }: DuplicateDocketContentProps) {
-  const maxCopies = MOCK.loadSize > 0 ? Math.floor(MOCK.remaining / MOCK.loadSize) : 99;
+  const loadSize = docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+  const remaining = docket?.jobItem?.remainingQuantity ?? 0;
+  const uom = docket?.jobItem?.productSellUom ?? '';
+  const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
-  const originalDate = parseISO(MOCK.deliveryCollectionDate);
-  const isDateInPast = isPast(originalDate);
-  const originalDateFormatted = format(originalDate, 'MMMM do, yyyy');
+  const originalDateString = docket?.deliveryCollectionDate;
+  const originalDate = originalDateString ? parseISO(originalDateString) : null;
+  const isDateInPast = originalDate ? isPast(originalDate) : false;
+  const originalDateFormatted = originalDate ? format(originalDate, 'MMMM do, yyyy') : null;
 
-  const startTime = MOCK.startTime.substring(0, 5);
-  const endTime = MOCK.endTime.substring(0, 5);
+  const startTime = docket?.deliveryCollectionStartTime?.slice(0, 5) ?? '';
+  const endTime = docket?.deliveryCollectionEndTime?.slice(0, 5) ?? '';
+  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName].filter(Boolean).join(' - ');
+
+  const deliveryFormattedAddress = docket?.deliveryAddress?.formattedAddress;
+  const pickUpFormattedAddress = docket?.pickUpAddress?.formattedAddress;
+  const addressLabel = deliveryFormattedAddress ? 'Delivery Address:' : 'Pick Up Address:';
+  const addressValue = deliveryFormattedAddress ?? pickUpFormattedAddress ?? '';
 
   // Local string state so the input can be cleared and won't show leading zeros
   const [rawCopies, setRawCopies] = React.useState(String(copies));
@@ -115,7 +113,7 @@ export function DuplicateDocketContent({
       setRawCopies('1');
       onCopiesChange(1);
     } else {
-      setRawCopies(String(num)); // strip leading zeros e.g. "05" → "5"
+      setRawCopies(String(num));
     }
   };
 
@@ -136,11 +134,12 @@ export function DuplicateDocketContent({
             value={rawCopies}
             onChange={handleCopiesChange}
             onBlur={handleCopiesBlur}
+            onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
             className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
           />
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
-              Cannot create {copies} copies. This would exceed the remaining quantity of {MOCK.remaining} {MOCK.uom}.<br />
+              Cannot create {copies} copies. This would exceed the remaining quantity of {remaining} {uom}.<br />
               Maximum copies allowed: {maxCopies}
             </p>
           )}
@@ -152,9 +151,7 @@ export function DuplicateDocketContent({
             <Checkbox
               id="retain-po"
               checked={retainPoNumber}
-              onCheckedChange={(checked) =>
-                onRetainPoNumberChange(Boolean(checked))
-              }
+              onCheckedChange={(checked) => onRetainPoNumberChange(Boolean(checked))}
             />
             <label
               htmlFor="retain-po"
@@ -166,7 +163,7 @@ export function DuplicateDocketContent({
           {retainPoNumber && (
             <input
               type="text"
-              defaultValue={MOCK.purchaseOrder}
+              defaultValue={docket?.purchaseOrder ?? ''}
               placeholder="PO number"
               className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
             />
@@ -193,8 +190,8 @@ export function DuplicateDocketContent({
           {/* Docket info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-6 text-sm">
 
-            <InfoCell label="Job Reference:" value={MOCK.jobRef} />
-            <InfoCell label="Product:" value={MOCK.product} />
+            <InfoCell label="Job Reference:" value={jobRef} />
+            <InfoCell label="Product:" value={docket?.jobItem?.product?.productName ?? ''} />
 
             {/* Delivery date — editable */}
             <div className="flex flex-col gap-1.5">
@@ -212,34 +209,36 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${MOCK.loadSize} ${MOCK.uom}`} />
+            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
 
             <div className="col-span-2">
-              <InfoCell label="Delivery Address:" value={MOCK.address} />
+              <InfoCell label={addressLabel} value={addressValue} />
             </div>
 
-            <InfoCell label="Contact Name:" value={MOCK.contactName} />
-            <InfoCell label="Contact Phone:" value={MOCK.contactPhone} />
-            <InfoCell label="Time Window:" value={`${startTime} – ${endTime}`} />
-            <InfoCell label="Truck Type:" value={MOCK.truckType} />
+            <InfoCell label="Contact Name:" value={docket?.customerContactName ?? ''} />
+            <InfoCell label="Contact Phone:" value={docket?.customerContactPhone ?? ''} />
+            <InfoCell label="Time Window:" value={startTime && endTime ? `${startTime} – ${endTime}` : ''} />
+            <InfoCell label="Truck Type:" value={docket?.truckType ?? ''} />
 
-            <div className="col-span-2 flex flex-col gap-1.5">
-              <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
-                Special Instructions
-              </span>
-              <div
-                className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
-                style={{
-                  paddingTop: '12.24px',
-                  paddingRight: '20.77px',
-                  paddingBottom: '11.74px',
-                  paddingLeft: '11.99px',
-                  minHeight: '63.98px',
-                }}
-              >
-                {MOCK.notes}
+            {docket?.notes && (
+              <div className="col-span-2 flex flex-col gap-1.5">
+                <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
+                  Special Instructions
+                </span>
+                <div
+                  className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
+                  style={{
+                    paddingTop: '12.24px',
+                    paddingRight: '20.77px',
+                    paddingBottom: '11.74px',
+                    paddingLeft: '11.99px',
+                    minHeight: '63.98px',
+                  }}
+                >
+                  {docket.notes}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Bottom note */}

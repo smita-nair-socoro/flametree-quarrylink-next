@@ -675,11 +675,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         description: (
           <div className="-mt-[18px] flex flex-col gap-6">
             <div className="-mx-[24.62px] border-t border-[#F3F4F6]" />
-            <DuplicateDocketDescription copies={duplicateCopies} />
+            <DuplicateDocketDescription docket={docketData} copies={duplicateCopies} />
           </div>
         ),
         content: (
           <DuplicateDocketContent
+            docket={docketData}
             copies={duplicateCopies}
             onCopiesChange={setDuplicateCopies}
             retainPoNumber={duplicateRetainPo}
