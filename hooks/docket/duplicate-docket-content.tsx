@@ -89,8 +89,8 @@ export function DuplicateDocketContent({
   const isDateInPast = originalDate ? isPast(originalDate) : false;
   const originalDateFormatted = originalDate ? format(originalDate, 'MMMM do, yyyy') : null;
 
-  const startTime = docket?.deliveryCollectionStartTime?.slice(0, 5) ?? '';
-  const endTime = docket?.deliveryCollectionEndTime?.slice(0, 5) ?? '';
+  const startTime = docket?.deliveryCollectionStartTime?.split('T')[1]?.slice(0, 5) ?? '';
+  const endTime = docket?.deliveryCollectionEndTime?.split('T')[1]?.slice(0, 5) ?? '';
   const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName].filter(Boolean).join(' - ');
 
   const deliveryFormattedAddress = docket?.deliveryAddress?.formattedAddress;
