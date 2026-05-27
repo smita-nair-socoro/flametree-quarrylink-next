@@ -42,7 +42,6 @@ interface ActionDialogProps {
   titlePadding?: string;
   titleClassName?: string;
   subtitle?: string;
-  showHeaderSeparator?: boolean;
 }
 
 export function ActionDialog({
@@ -72,7 +71,6 @@ export function ActionDialog({
   titlePadding = '',
   titleClassName,
   subtitle,
-  showHeaderSeparator = false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -125,8 +123,6 @@ export function ActionDialog({
             </DialogDescription>
           )}
         </DialogHeader>
-
-        {showHeaderSeparator && <div className="border-t border-[#F3F4F6]" />}
 
         {description && <>{description}</>}
 

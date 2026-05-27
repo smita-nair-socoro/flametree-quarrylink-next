@@ -41,7 +41,7 @@ export function DuplicateDocketDescription({
   const isExceeding = exceedsBy > 0;
 
   return (
-    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4 pb-4">
+    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
         <div className="flex w-full flex-col gap-3 text-sm">

@@ -500,9 +500,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     resetDuplicateState();
   };
 
-  const isDuplicateFormValid = React.useMemo(() => {
-    return duplicateCopies >= 1;
-  }, [duplicateCopies]);
+  const isDuplicateFormValid = duplicateCopies >= 1;
 
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
@@ -698,7 +696,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         cancelButtonClass: 'h-[37.25px] w-[78.59px] rounded-[10px] border-[0.625px] border-[#E5E7EB] pt-[8.873px] pr-[15.97px] pb-[8.373px] pl-[16.62px] text-[#364153]',
         customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
-
         hideSeparator: true,
         buttonContainerClass: '-mt-[19px] -mx-[24.62px] px-[24.62px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
