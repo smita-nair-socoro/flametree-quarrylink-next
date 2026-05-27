@@ -11,6 +11,10 @@ import { useSelectedJob } from '@/app/stores/job-store';
 import { useDeleteJobItem } from '@/lib/api/job';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useJobLineItemStore } from '@/app/stores/job-line-item-store';
+import {
+  CannotDeleteJobLineItemDescription,
+  CannotDeleteJobLineItemContent,
+} from '@/hooks/job/cannot-delete-job-lineitem-content';
 
 interface DialogConfig {
   title?: string;
@@ -145,6 +149,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
+  const [cannotDeleteOpen, setCannotDeleteOpen] = React.useState(false);
 
   const deleteJobItem = useDeleteJobItem();
 
@@ -223,6 +228,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
               } catch (error) {
                 console.error('Failed to delete job line item:', error);
                 notifyError('Failed to remove line item');
+                setCannotDeleteOpen(true);
               }
               break;
             case 'duplicate':
@@ -233,6 +239,19 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
       />
     );
   });
+
+  const cannotDeleteDialog = (
+    <ActionDialog
+      key="cannot-delete"
+      open={cannotDeleteOpen}
+      onOpenChangeAction={setCannotDeleteOpen}
+      title="Cannot Remove Line Item"
+      description={<CannotDeleteJobLineItemDescription jobItem={lineItemData} />}
+      content={<CannotDeleteJobLineItemContent />}
+      cancelText="Close"
+      confirmActionNeeded={false}
+    />
+  );
 
   const viewDialog = viewOpen ? (
     <FormDialog
@@ -262,7 +281,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
 
   return {
     actions,
-    confirmDialogs,
+    confirmDialogs: [...confirmDialogs, cannotDeleteDialog],
     viewDialog,
   };
 }
