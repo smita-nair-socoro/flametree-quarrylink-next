@@ -8,6 +8,7 @@ import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
+import { formatUom } from '@/lib/utils/docket-helper';
 import { Input } from '@/components/ui/input';
 
 // ─── Description: quantity summary card only ───────────────────────────────
@@ -25,7 +26,7 @@ export function DuplicateDocketDescription({
     docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
-  const uom = rawUom === 'M3' ? 'm³' : rawUom;
+  const uom = formatUom(rawUom);
   const totalRequested = copies * loadSize;
   const exceedsBy = totalRequested - remaining;
   const isExceeding = exceedsBy > 0;
@@ -103,7 +104,7 @@ export function DuplicateDocketContent({
     docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
-  const uom = rawUom === 'M3' ? 'm³' : rawUom;
+  const uom = formatUom(rawUom);
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
