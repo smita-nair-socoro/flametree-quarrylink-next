@@ -33,7 +33,7 @@ export function DuplicateDocketDescription({
   copies,
 }: DuplicateDocketDescriptionProps) {
   const loadSize =
-    docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+    docket?.actualLoadSize || docket?.plannedLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
   const uom = formatUom(rawUom);
@@ -111,7 +111,7 @@ export function DuplicateDocketContent({
   }, [retainPoNumber, docket?.purchaseOrder]);
 
   const loadSize =
-    docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+    docket?.actualLoadSize || docket?.plannedLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
   const uom = formatUom(rawUom);
