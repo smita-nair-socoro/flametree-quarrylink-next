@@ -62,11 +62,11 @@ import {
   useAssignDocket,
   useUnassignDocket,
 } from '@/lib/api/docket';
-import { useCreateInvoice } from '@/lib/api/invoices';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
+import { useRetrySync } from '@/lib/api/invoices';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -151,7 +151,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     setDuplicateDeliveryDate(undefined);
   }, []);
   const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
-
+  const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
@@ -380,6 +380,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
+  };
+
+  const handleRetrySync = async () => {
+    if (!docketData?.id) return;
+    try {
+      await retrySyncMutation.mutateAsync(docketData.jobId);
+      notifySuccess('Retry sync successful');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    };
   };
 
   const isVoidFormValid = React.useMemo(() => {
@@ -768,6 +778,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     viewInvoice: () => {
       invoiceActions.viewDetails();
     },
+
+    retrySync: handleRetrySync,
+
     assign: createDialogAction('assign'),
 
     backToPending: handleBackToPending,
@@ -903,9 +916,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   return {
     actions,
     confirmDialogs: [
-      ...confirmDialogs, 
+      ...confirmDialogs,
       <InvoiceDetailsDialog key="invoiceDetails" />,
-      <InvoiceDocketIndividualModal 
+      <InvoiceDocketIndividualModal
         key="invoiceDocketIndividual"
         open={activeDialog === 'invoice'}
         onOpenChange={(open) => {

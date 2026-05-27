@@ -20,7 +20,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Plus } from 'lucide-react';
+import { Plus, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
@@ -32,6 +32,7 @@ import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { useSelectedClient } from '@/app/stores/client-store';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
+import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 import { ActionDialog } from './action-dialog';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
@@ -453,17 +454,22 @@ export function FormDialog({
     return (
       <div className="flex flex-wrap gap-2 mt-2">
         {/* Render primary badges */}
-        {finalPrimaryBadges?.map((badge, index) => (
-          <Badge
-            key={`primary-${index}`}
-            variant="outline"
-            className={
-              BADGE_COLORS[badge] || 'bg-blue-100 text-blue-800 border-blue-300'
-            }
-          >
-            {formatBadgeText(badge)}
-          </Badge>
-        ))}
+        {finalPrimaryBadges?.map((badge, index) => {
+          const isFailedInvoice = headerInfo?.useSelectedDocket && badge === 'INVOICED' && selectedDocket?.invoiceStatus === 'FAILED';
+          return (
+            <Badge
+              key={`primary-${index}`}
+              variant="outline"
+              className={
+                BADGE_COLORS[badge] || 'bg-blue-100 text-blue-800 border-blue-300'
+              }
+            >
+              {formatBadgeText(badge)}
+              {isFailedInvoice && <TriangleAlert className="mb-0.5 text-red-500" />}
+
+            </Badge>
+          );
+        })}
 
         {/* Render secondary badges */}
         {finalSecondaryBadges?.map((badge, index) => (
@@ -559,6 +565,12 @@ export function FormDialog({
           onOpenAutoFocus={
             preventAutoFocus ? (e) => e.preventDefault() : undefined
           }
+          onPointerDownOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
         >
           {dialogInner}
         </DialogContent>

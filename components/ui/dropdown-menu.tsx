@@ -6,10 +6,25 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+// Returns true if any DropdownMenuContent is currently open in the DOM.
+// Dialogs read this in onInteractOutside to avoid closing while a nested
+// dropdown is still open. Uses a direct DOM query so there are no timing
+// issues with counters or rAF-deferred decrements.
+export function isAnyDropdownOpen(): boolean {
+  if (typeof document === 'undefined') return false;
+  return (
+    document.querySelector(
+      '[data-slot="dropdown-menu-content"][data-state="open"]',
+    ) !== null
+  );
+}
+
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
-  return <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />;
+  return (
+    <DropdownMenuPrimitive.Root data-slot="dropdown-menu" {...props} />
+  );
 }
 
 function DropdownMenuPortal({

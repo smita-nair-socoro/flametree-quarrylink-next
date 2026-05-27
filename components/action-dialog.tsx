@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 
 interface ActionDialogProps {
   open: boolean;
@@ -95,12 +96,12 @@ export function ActionDialog({
         )}
         style={{ scrollbarGutter: 'auto' }}
         onInteractOutside={(event) => {
-          if (preventOutsideClose) {
+          if (preventOutsideClose || isAnyDropdownOpen()) {
             event.preventDefault();
           }
         }}
         onPointerDownOutside={(event) => {
-          if (preventOutsideClose) {
+          if (preventOutsideClose || isAnyDropdownOpen()) {
             event.preventDefault();
           }
         }}

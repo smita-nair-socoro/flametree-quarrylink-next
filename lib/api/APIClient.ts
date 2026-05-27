@@ -71,6 +71,7 @@ import {
   InvoiceDetails,
   RetrySyncResponse,
   InvoiceUrlResponse,
+  JobStatistics,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -1091,6 +1092,8 @@ export const APIClient = {
       appClient.Put<CompleteJobResponse>(
         `/socoro/quarrylink/api/job/${id}/complete`,
       ),
+    statistics: () =>
+      appClient.Get<JobStatistics>(`/socoro/quarrylink/api/job/statistics`),
   },
 
   drivers: {
@@ -1230,6 +1233,8 @@ export const APIClient = {
           },
         },
       ),
+    getDockets: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/docket`),
     statistics: () =>
       appClient.Get<TruckStatistics>(`/socoro/quarrylink/api/truck/statistics`),
   },

@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Palette } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Check, Plus, Palette } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -15,7 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Checkbox } from '@/components/ui/checkbox';
 
 const STATUS_OPTIONS = [
   'All (Except Unassigned)',
@@ -155,10 +155,16 @@ export function ScheduleFilter({
                         onSelect={() => toggleStatus(status)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <Checkbox
-                          checked={selectedStatuses.includes(status)}
-                          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                        />
+                        <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedStatuses.includes(status)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedStatuses.includes(status) && 'text-white')} />
+                              </div>
                         <span>{status}</span>
                       </CommandItem>
                     ))}
@@ -192,7 +198,7 @@ export function ScheduleFilter({
               <Command>
                 <CommandInput
                   placeholder="Search customers..."
-                  className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                  className="focus-visible:ring-primary focus-within:ring-primary"
                 />
                 <CommandList>
                   <CommandEmpty>No customer found.</CommandEmpty>
@@ -203,10 +209,16 @@ export function ScheduleFilter({
                         onSelect={() => toggleCustomer(customer)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <Checkbox
-                          checked={selectedCustomers.includes(customer)}
-                          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                        />
+                        <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedCustomers.includes(customer)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedCustomers.includes(customer) && 'text-white')} />
+                              </div>
                         <span>{customer}</span>
                       </CommandItem>
                     ))}
@@ -255,12 +267,20 @@ export function ScheduleFilter({
                               onSelect={() => toggleDriverStatus(status)}
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={selectedDriverStatuses.includes(
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedDriverStatuses.includes(
                                   status,
+                                )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
                                 )}
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                              />
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedDriverStatuses.includes(
+                                  status,
+                                ) && 'text-white')} />
+                              </div>
                               <span>{status}</span>
                             </CommandItem>
                           ))}
@@ -294,7 +314,7 @@ export function ScheduleFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -306,12 +326,20 @@ export function ScheduleFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedDrivers.includes(
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedDrivers.includes(
                                     driver.name,
-                                  )}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                  )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedDrivers.includes(
+                                    driver.name,
+                                  ) && 'text-white')} />
+                              </div>
                                 <span>{driver.name}</span>
                               </div>
                               <span className="text-xs text-gray-500">
@@ -362,10 +390,16 @@ export function ScheduleFilter({
                               onSelect={() => toggleTruckType(status)}
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={selectedTruckType.includes(status)}
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                              />
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedTruckType.includes(status)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedTruckType.includes(status) && 'text-white')} />
+                              </div>
                               <span>{status}</span>
                             </CommandItem>
                           ))}
@@ -399,7 +433,7 @@ export function ScheduleFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -411,12 +445,20 @@ export function ScheduleFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedHaulier.includes(
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedHaulier.includes(
                                     haulier.name,
-                                  )}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                  )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedHaulier.includes(
+                                    haulier.name,
+                                  ) && 'text-white')} />
+                              </div>
                                 <span>{haulier.name}</span>
                               </div>
                               <span className="text-xs text-gray-500">
@@ -454,7 +496,7 @@ export function ScheduleFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -466,10 +508,16 @@ export function ScheduleFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedTrucks.includes(truck.name)}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedTrucks.includes(truck.name)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedTrucks.includes(truck.name) && 'text-white')} />
+                              </div>
                                 <span>{truck.name}</span>
                               </div>
                               <span className="text-xs text-gray-500">

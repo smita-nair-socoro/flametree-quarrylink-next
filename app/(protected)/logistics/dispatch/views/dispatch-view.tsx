@@ -10,6 +10,7 @@ import {
   DragEndEvent,
   DragStartEvent,
   DragOverlay,
+  pointerWithin,
 } from '@dnd-kit/core';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
@@ -607,8 +608,17 @@ export function DispatchView({
     const startWindow = new Date(date);
     startWindow.setHours(hours, minutes, 0, 0);
 
-    const endWindow = new Date(startWindow);
+    let endWindow = new Date(startWindow);
     endWindow.setHours(startWindow.getHours() + newDuration);
+
+    if (
+      endWindow.getDate() !== startWindow.getDate() ||
+      endWindow.getMonth() !== startWindow.getMonth() ||
+      endWindow.getFullYear() !== startWindow.getFullYear()
+    ) {
+      endWindow = new Date(startWindow);
+      endWindow.setHours(23, 59, 59, 999);
+    }
 
     assignMutation.mutate(
       {
@@ -730,8 +740,17 @@ export function DispatchView({
 
     // Assuming 2 hours duration for now, or use docket.uiAssignedDuration
     const duration = docket?.uiAssignedDuration || 2;
-    const endWindow = new Date(startWindow);
+    let endWindow = new Date(startWindow);
     endWindow.setHours(startWindow.getHours() + duration);
+
+    if (
+      endWindow.getDate() !== startWindow.getDate() ||
+      endWindow.getMonth() !== startWindow.getMonth() ||
+      endWindow.getFullYear() !== startWindow.getFullYear()
+    ) {
+      endWindow = new Date(startWindow);
+      endWindow.setHours(23, 59, 59, 999);
+    }
 
     const truckId = viewType === 'trucks' ? Number(targetId) : selectedId;
     const driverId = viewType === 'trucks' ? selectedId : Number(targetId);
@@ -798,6 +817,7 @@ export function DispatchView({
 
   return (
     <DndContext
+      collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
