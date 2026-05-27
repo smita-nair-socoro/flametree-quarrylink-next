@@ -103,11 +103,16 @@ interface DialogConfig {
   | 'secondary'
   | 'ghost';
   confirmDisabled?: boolean;
+  confirmCustomClass?: string;
   cancelText?: string;
+  cancelButtonClass?: string;
   preventOutsideClose?: boolean;
   customWidth?: string;
   titleClassName?: string;
   subtitle?: string;
+  hideSeparator?: boolean;
+  buttonContainerClass?: string;
+  showHeaderSeparator?: boolean;
 }
 
 interface SelectedAction {
@@ -686,11 +691,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           />
         ),
         confirmText: 'Create Copy',
-        confirmCustomColor: '#3B82F6',
+        confirmCustomColor: '#99A1AF',
+        confirmCustomClass: 'h-[37.25px] w-[113.94px] rounded-[10px] pt-[8.873px] pr-[14.94px] pb-[8.373px] pl-[15.99px]',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
+        cancelButtonClass: 'h-[37.25px] w-[78.59px] rounded-[10px] border-[0.625px] border-[#E5E7EB] pt-[8.873px] pr-[15.97px] pb-[8.373px] pl-[16.62px] text-[#364153]',
         customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
+        showHeaderSeparator: true,
+        hideSeparator: true,
+        buttonContainerClass: '-mt-[19px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
     }),
     [
@@ -789,11 +799,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmCustomColor={config.confirmCustomColor}
         confirmVariant={config.confirmVariant}
         confirmDisabled={config.confirmDisabled}
+        confirmCustomClass={config.confirmCustomClass}
         cancelText={config.cancelText}
+        cancelButtonClass={config.cancelButtonClass}
         preventOutsideClose={config.preventOutsideClose}
         customWidth={config.customWidth}
         titleClassName={config.titleClassName}
         subtitle={config.subtitle}
+        hideSeparator={config.hideSeparator}
+        buttonContainerClass={config.buttonContainerClass}
+        showHeaderSeparator={config.showHeaderSeparator}
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':

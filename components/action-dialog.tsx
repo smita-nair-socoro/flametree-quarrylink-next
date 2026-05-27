@@ -36,11 +36,13 @@ interface ActionDialogProps {
   confirmDisabled?: boolean;
   textbelowbutton?: React.ReactNode;
   hideSeparator?: boolean;
+  buttonContainerClass?: string;
   preventOutsideClose?: boolean;
   padding?: string;
   titlePadding?: string;
   titleClassName?: string;
   subtitle?: string;
+  showHeaderSeparator?: boolean;
 }
 
 export function ActionDialog({
@@ -64,11 +66,13 @@ export function ActionDialog({
   confirmDisabled = false,
   textbelowbutton,
   hideSeparator = false,
+  buttonContainerClass,
   preventOutsideClose = false,
   padding = '',
   titlePadding = '',
   titleClassName,
   subtitle,
+  showHeaderSeparator = false,
 }: ActionDialogProps) {
   // Create custom styles if color is provided
   const customButtonStyle = React.useMemo(
@@ -122,6 +126,8 @@ export function ActionDialog({
           )}
         </DialogHeader>
 
+        {showHeaderSeparator && <div className="border-t border-[#F3F4F6]" />}
+
         {description && <>{description}</>}
 
         {content && <>{content}</>}
@@ -129,8 +135,9 @@ export function ActionDialog({
         {!hideSeparator && <div className="border-t border-gray-200"></div>}
         <div
           className={cn(
-            'flex flex-col-reverse gap-3 md:grid md:gap-2',
-            cancelActionNeeded ? 'md:grid-cols-2' : 'md:grid-cols-1',
+            !buttonContainerClass && 'flex flex-col-reverse gap-3 md:grid md:gap-2',
+            !buttonContainerClass && (cancelActionNeeded ? 'md:grid-cols-2' : 'md:grid-cols-1'),
+            buttonContainerClass,
           )}
         >
           {cancelActionNeeded && (
@@ -138,11 +145,8 @@ export function ActionDialog({
               variant="outline"
               onClick={() => onOpenChangeAction(false)}
               className={cn(
-                confirmActionNeeded
-                  ? ''
-                  : cancelButtonClass
-                    ? cancelButtonClass
-                    : 'md:col-span-2',
+                !confirmActionNeeded && !cancelButtonClass && 'md:col-span-2',
+                cancelButtonClass,
               )}
             >
               {cancelText}

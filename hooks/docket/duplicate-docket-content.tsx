@@ -175,7 +175,7 @@ export function DuplicateDocketContent({
       </div>
 
       {/* Group 2: bordered container — banner + grid + note */}
-      <div className="overflow-hidden rounded-[14px] border-[0.625px] border-[#E5E7EB] pt-[0.625px] pr-[0.625px] pl-[0.625px] pb-[24.62px]">
+      <div className="overflow-hidden rounded-[14px] border-[0.625px] border-[#F3F4F6] pt-[0.625px] pr-[0.625px] pl-[0.625px] pb-[24.62px]">
 
         {/* Banner */}
         <div className="flex h-[82px] flex-col gap-0.5 border-b-[0.625px] border-[#F3F4F6] bg-[#F9FAFB]/50 px-4 pt-4">
