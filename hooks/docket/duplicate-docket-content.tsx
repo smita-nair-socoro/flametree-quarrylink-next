@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 import { formatUom } from '@/lib/utils/docket-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
 
 // ─── Description: quantity summary card only ───────────────────────────────
@@ -41,7 +42,7 @@ export function DuplicateDocketDescription({
               Remaining Quantity Available:{' '}
             </span>
             <span className="font-normal text-[#101828]">
-              {remaining} {uom}
+              {formatNumberThousandSeparator(remaining)} {uom}
             </span>
           </p>
           <p className="tracking-[-0.1504px]">
@@ -49,7 +50,7 @@ export function DuplicateDocketDescription({
               Each Copy Quantity:{' '}
             </span>
             <span className="font-normal text-[#101828]">
-              {loadSize} {uom}
+              {formatNumberThousandSeparator(loadSize)} {uom}
             </span>
           </p>
           <div className="flex flex-col gap-[10px]">
@@ -58,12 +59,12 @@ export function DuplicateDocketDescription({
                 Total Requested:{' '}
               </span>
               <span className="font-normal text-[#101828]">
-                {totalRequested} {uom}
+                {formatNumberThousandSeparator(totalRequested)} {uom}
               </span>
             </p>
             {isExceeding && (
               <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
-                ⚠️ This would exceed the remaining quantity by {exceedsBy} {uom}
+                ⚠️ This would exceed the remaining quantity by {formatNumberThousandSeparator(exceedsBy)} {uom}
               </p>
             )}
           </div>
@@ -152,7 +153,7 @@ export function DuplicateDocketContent({
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
               Cannot create {copies} copies. This would exceed the remaining
-              quantity of {remaining} {uom}.<br />
+              quantity of {formatNumberThousandSeparator(remaining)} {uom}.<br />
               Maximum copies allowed: {maxCopies}
             </p>
           )}
@@ -225,7 +226,7 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
+            <InfoCell label="Load Size:" value={`${formatNumberThousandSeparator(loadSize)} ${uom}`} />
 
             <div className="col-span-2">
               <InfoCell label={addressLabel} value={addressValue} />
