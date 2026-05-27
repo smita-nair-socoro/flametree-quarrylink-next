@@ -139,14 +139,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
   // Duplicate state
-  const [duplicateCopies, setDuplicateCopies] = React.useState(1);
+  const [duplicateCopies, setDuplicateCopies] = React.useState(0);
   const [duplicateRetainPo, setDuplicateRetainPo] = React.useState(true);
   const [duplicateDeliveryDate, setDuplicateDeliveryDate] = React.useState<
     Date | undefined
   >(undefined);
 
   const resetDuplicateState = React.useCallback(() => {
-    setDuplicateCopies(1);
+    setDuplicateCopies(0);
     setDuplicateRetainPo(true);
     setDuplicateDeliveryDate(undefined);
   }, []);

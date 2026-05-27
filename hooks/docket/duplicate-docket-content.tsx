@@ -104,14 +104,14 @@ export function DuplicateDocketContent({
     const raw = e.target.value;
     setRawCopies(raw);
     const num = parseInt(raw, 10);
-    if (!isNaN(num) && num >= 1) onCopiesChange(num);
+    if (!isNaN(num) && num >= 0) onCopiesChange(num);
   };
 
   const handleCopiesBlur = () => {
     const num = parseInt(rawCopies, 10);
-    if (isNaN(num) || num < 1) {
-      setRawCopies('1');
-      onCopiesChange(1);
+    if (isNaN(num) || num < 0) {
+      setRawCopies('0');
+      onCopiesChange(0);
     } else {
       setRawCopies(String(num));
     }
