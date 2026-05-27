@@ -21,6 +21,7 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
+import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DocketsPage() {
@@ -154,6 +155,7 @@ export default function DocketsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
+      <InvoiceDetailsDialog />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Dockets</h1>

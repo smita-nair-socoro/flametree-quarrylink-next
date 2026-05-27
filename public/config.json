@@ -1,13 +1,13 @@
 {
-  "COGNITO_DOMAIN": "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_DxliDLvi2",
-  "COGNITO_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
-  "COGNITO_REDIRECT_URI": "https://app.dev.quarrylink.com.au/callback",
+  "COGNITO_DOMAIN": "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-2_Xx8pYBFQ5",
+  "COGNITO_CLIENT_ID": "73v5lirbl8hp3ku3ml3ssa5clv",
+  "COGNITO_REDIRECT_URI": "https://app.qa.quarrylink.com.au/callback",
   "COGNITO_HOSTED_UI_DOMAIN": "",
   "AMPLIFY_AUTH_REGION": "ap-southeast-2",
-  "AMPLIFY_AUTH_USER_POOL_ID": "ap-southeast-2_DxliDLvi2",
-  "AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID": "6emlq6b36lcon72f9a6nbl1fn5",
-  "GOOGLE_MAPS_API_KEY": "AIzaSyA8f37TitR0sIDvFNJC7sezDFumiZqZZOE",
-  "API_URL": "https://api.dev.quarrylink.com.au",
+  "AMPLIFY_AUTH_USER_POOL_ID": "ap-southeast-2_Xx8pYBFQ5",
+  "AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID": "73v5lirbl8hp3ku3ml3ssa5clv",
+  "GOOGLE_MAPS_API_KEY": "AIzaSyCDdaZCVOoaOPNST61an9dthZwKKHsz8rE",
+  "API_URL": "https://api.qa.quarrylink.com.au",
   "SENTRY_DSN": "",
   "CLARITY_PROJECT_ID": "v88amv038n"
 }

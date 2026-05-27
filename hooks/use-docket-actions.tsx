@@ -150,7 +150,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     setDuplicateRetainPo(true);
     setDuplicateDeliveryDate(undefined);
   }, []);
-  const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
+  const { actions: invoiceActions } = useInvoiceActions(docketData?.invoiceId);
   const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
@@ -917,7 +917,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     actions,
     confirmDialogs: [
       ...confirmDialogs,
-      <InvoiceDetailsDialog key="invoiceDetails" />,
       <InvoiceDocketIndividualModal
         key="invoiceDocketIndividual"
         open={activeDialog === 'invoice'}

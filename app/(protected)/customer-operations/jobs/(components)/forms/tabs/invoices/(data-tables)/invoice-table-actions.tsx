@@ -17,7 +17,7 @@ interface InvoiceTableActionsProps {
 
 export function InvoiceTableActions({ invoiceId }: InvoiceTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, InvoiceDetailsDialog } = useInvoiceActions(invoiceId);
+  const { actions } = useInvoiceActions(invoiceId);
 
   const handleView = () => {
     actions.viewDetails();
@@ -38,7 +38,6 @@ export function InvoiceTableActions({ invoiceId }: InvoiceTableActionsProps) {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <InvoiceDetailsDialog />
     </div>
   );
 }
