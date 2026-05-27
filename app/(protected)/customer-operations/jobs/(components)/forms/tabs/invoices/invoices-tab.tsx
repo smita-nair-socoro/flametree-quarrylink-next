@@ -8,7 +8,7 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { FormDialog } from '@/components/form-dialog';
-import InvoiceForm from '../../invoice-form';
+import InvoiceForm from './forms/invoice-form';
 import { Button } from '@/components/ui/button';
 import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';

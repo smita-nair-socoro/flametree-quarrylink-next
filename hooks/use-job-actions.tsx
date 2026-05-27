@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { JobDTO, JobDetails } from '@/lib/types/job';
 import JobForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-form';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
-import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/invoice-form';
+import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/invoices/forms/invoice-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
@@ -50,11 +50,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
