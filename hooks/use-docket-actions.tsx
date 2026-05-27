@@ -510,7 +510,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     resetDuplicateState();
   };
 
-  const isDuplicateFormValid = duplicateCopies >= 1;
+  const duplicateLoadSize =
+    docketData?.plannedLoadSize || docketData?.actualLoadSize || docketData?.loadSize || 0;
+  const duplicateRemaining = docketData?.jobItem?.remainingQuantity ?? 0;
+  const duplicateMaxCopies = duplicateLoadSize > 0 ? Math.floor(duplicateRemaining / duplicateLoadSize) : 99;
+  const isDuplicateFormValid = duplicateCopies >= 1 && duplicateCopies <= duplicateMaxCopies;
 
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
