@@ -148,28 +148,8 @@ export default function CustomerForm({
   ) => {
     if (field === 'customer_type') {
       setSelectedCustomerType(value);
-      if (value === 'INDIVIDUAL') {
-        // Clear business-specific fields
-        customerForm.setValue('business_name', '');
-        customerForm.setValue('business_email', '');
-        customerForm.setValue('business_phone', '');
-        customerForm.setValue('abn', '');
-        customerForm.setValue('contact_person_first_name', '');
-        customerForm.setValue('contact_person_last_name', '');
-        // Clear contact person name for fresh start
-        customerForm.setValue('contact_person_name', '');
-      } else if (value === 'BUSINESS') {
-        // Clear individual-specific fields
-        customerForm.setValue('contact_person_name', '');
-        customerForm.setValue('contact_person_first_name', '');
-        customerForm.setValue('contact_person_last_name', '');
-      }
     } else if (field === 'payment_type') {
       setSelectedPaymentType(value);
-      if (value === 'PREPAID') {
-        customerForm.setValue('credit_limit', 0);
-        customerForm.setValue('payment_terms_day', 0);
-      }
     }
   };
 
@@ -253,7 +233,27 @@ export default function CustomerForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCustomer?.id, isEditing]);
 
-  async function onSubmit(values: z.infer<typeof NewCustomerFormSchema>) {
+  async function onSubmit(rawValues: z.infer<typeof NewCustomerFormSchema>) {
+    // Zero out fields that don't belong to the current customer/payment type
+    const values: typeof rawValues = {
+      ...rawValues,
+      ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
+        ? {
+            business_name: '',
+            business_email: '',
+            business_phone: '',
+            abn: '',
+            contact_person_first_name: '',
+            contact_person_last_name: '',
+          }
+        : {
+            contact_person_name: '',
+          }),
+      ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
+        ? { credit_limit: 0, payment_terms_day: 0 }
+        : {}),
+    };
+
     console.log('onSubmit function called!');
     console.log('Customer Form Values:', values);
 

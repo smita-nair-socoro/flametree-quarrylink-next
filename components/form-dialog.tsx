@@ -32,6 +32,7 @@ import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
 import { useSelectedClient } from '@/app/stores/client-store';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
+import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 import { ActionDialog } from './action-dialog';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { useSelectedJobLineItem } from '@/app/stores/job-line-item-store';
@@ -201,7 +202,6 @@ export function FormDialog({
   headerButtons,
   headerButtonsAlign = 'center',
   headerInfo,
-  headerCustomer: headerCustomerProp,
   headerSeparator,
   contentClass,
   headerClassName,
@@ -280,17 +280,10 @@ export function FormDialog({
     finalPrimaryBadges = [selectedQuotation.quoteStatus];
   }
 
-  const customerForHeader = headerCustomerProp ?? selectedCustomer;
-  if (headerInfo?.useSelectedCustomer && customerForHeader) {
-    const c = customerForHeader as {
-      businessName?: string;
-      contactName?: string;
-      customerStatus?: string;
-      customerType?: string;
-    };
-    finalCustomId = c.businessName?.trim() || c.contactName || '';
-    finalPrimaryBadges = c.customerStatus ? [c.customerStatus] : [];
-    finalSecondaryBadges = c.customerType ? [c.customerType] : [];
+  if (headerInfo?.useSelectedCustomer && selectedCustomer) {
+    finalCustomId = selectedCustomer.businessName?.trim() || selectedCustomer.individualContactName || '';
+    finalPrimaryBadges = selectedCustomer.customerStatus ? [selectedCustomer.customerStatus] : [];
+    finalSecondaryBadges = selectedCustomer.customerType ? [selectedCustomer.customerType] : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -567,6 +560,12 @@ export function FormDialog({
           onOpenAutoFocus={
             preventAutoFocus ? (e) => e.preventDefault() : undefined
           }
+          onPointerDownOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
+          onInteractOutside={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
         >
           {dialogInner}
         </DialogContent>

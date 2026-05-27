@@ -1,0 +1,16 @@
+Hi {customerContactFirstName},
+
+Your account manager has declined quote #{quoteNumber} on your behalf, as discussed.
+
+Quote Number: {quoteNumber}
+Project: {projectName}
+Total Value: ${totalValue} ex GST
+
+If you did not ask for this or have questions, please contact your account manager straight away:
+
+{accountManagerName}
+{accountManagerEmail}
+
+If you'd like a revised quote or to explore other options, they can help with next steps.
+
+You're receiving this because your account manager declined a quote on your behalf via QuarryLink.

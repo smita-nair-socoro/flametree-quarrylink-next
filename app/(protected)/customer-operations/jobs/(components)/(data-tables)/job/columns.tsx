@@ -95,7 +95,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>(incl. GST)</p>
+                  <p>ex GST</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -105,7 +105,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.uninvoicedDocketsAmount ?? 0;
-      return <div>${centsToDollars(amount * 1.1)}</div>;
+      return <div>${centsToDollars(amount)}</div>;
     },
     meta: 'Uninvoiced Dockets',
   },
