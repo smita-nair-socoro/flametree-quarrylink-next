@@ -186,9 +186,9 @@ export function DuplicateDocketContent({
       </div>
 
       {/* Group 2: bordered container — banner + grid + note */}
-      <div className="overflow-hidden rounded-[14px] border border-[#F3F4F6] pt-[0.625px] px-[0.625px] pb-[24.62px]">
+      <div className="overflow-hidden rounded-[14px] border border-[#F3F4F6] pb-6">
         {/* Banner */}
-        <div className="flex h-[82px] flex-col gap-0.5 border-b-[0.625px] border-[#F3F4F6] bg-[#F9FAFB]/50 px-4 pt-4">
+        <div className="flex h-[82px] flex-col gap-0.5 border-b border-[#F3F4F6] bg-[#F9FAFB]/50 px-4 pt-4">
           <h3 className="text-[18px] font-semibold text-[#101828]">
             Original Docket Information
           </h3>
