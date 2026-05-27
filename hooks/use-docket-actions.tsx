@@ -112,7 +112,7 @@ interface DialogConfig {
   subtitle?: string;
   hideSeparator?: boolean;
   buttonContainerClass?: string;
-  showHeaderSeparator?: boolean;
+  gap?: string;
 }
 
 interface SelectedAction {
@@ -676,9 +676,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         title: 'Duplicate Docket',
         subtitle: 'Create a copy of docket DOC-001',
         description: (
-          <DuplicateDocketDescription
-            copies={duplicateCopies}
-          />
+          <div className="-mt-[18px] flex flex-col gap-6">
+            <div className="-mx-[24.62px] border-t border-[#F3F4F6]" />
+            <DuplicateDocketDescription copies={duplicateCopies} />
+          </div>
         ),
         content: (
           <DuplicateDocketContent
@@ -696,11 +697,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
         cancelButtonClass: 'h-[37.25px] w-[78.59px] rounded-[10px] border-[0.625px] border-[#E5E7EB] pt-[8.873px] pr-[15.97px] pb-[8.373px] pl-[16.62px] text-[#364153]',
+        gap: 'gap-4',
         customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
-        showHeaderSeparator: true,
+
         hideSeparator: true,
-        buttonContainerClass: '-mt-[19px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
+        buttonContainerClass: '-mt-[19px] -mx-[24.62px] px-[24.62px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
     }),
     [
@@ -808,7 +810,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         subtitle={config.subtitle}
         hideSeparator={config.hideSeparator}
         buttonContainerClass={config.buttonContainerClass}
-        showHeaderSeparator={config.showHeaderSeparator}
+        gap={config.gap}
+
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':

@@ -136,7 +136,7 @@ export function DuplicateDocketContent({
             value={rawCopies}
             onChange={handleCopiesChange}
             onBlur={handleCopiesBlur}
-            className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+            className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
           />
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
@@ -168,7 +168,7 @@ export function DuplicateDocketContent({
               type="text"
               defaultValue={MOCK.purchaseOrder}
               placeholder="PO number"
-              className="h-10 w-[184px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+              className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
             />
           )}
         </div>
@@ -188,10 +188,10 @@ export function DuplicateDocketContent({
         </div>
 
         {/* Docket grid + note */}
-        <div className="flex flex-col gap-6 px-4 pt-6">
+        <div className="flex flex-col gap-6 px-6 pt-6">
 
           {/* Docket info grid */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-6 text-sm">
 
             <InfoCell label="Job Reference:" value={MOCK.jobRef} />
             <InfoCell label="Product:" value={MOCK.product} />
@@ -207,7 +207,7 @@ export function DuplicateDocketContent({
               />
               {isDateInPast && !newDeliveryDate && (
                 <p className="text-xs text-red-500">
-                  Original date was {originalDateFormatted}. Please update.
+                  Original date was {originalDateFormatted}.<br />Please update.
                 </p>
               )}
             </div>
@@ -247,7 +247,7 @@ export function DuplicateDocketContent({
             <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
             <p className="text-sm text-blue-700">
               <span className="font-semibold">Note:</span> All duplicates will be
-              created with &ldquo;Pending / Unassigned&rdquo; status. PO numbers
+              created with &ldquo;Pending / Unassigned&rdquo; status.<br />PO numbers
               can be cleared and can be added individually later.
             </p>
           </div>
