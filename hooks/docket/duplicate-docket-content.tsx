@@ -93,6 +93,12 @@ export function DuplicateDocketContent({
   newDeliveryDate,
   onNewDeliveryDateChange,
 }: DuplicateDocketContentProps) {
+  const [poValue, setPoValue] = React.useState(docket?.purchaseOrder ?? '');
+
+  React.useEffect(() => {
+    if (retainPoNumber) setPoValue(docket?.purchaseOrder ?? '');
+  }, [retainPoNumber, docket?.purchaseOrder]);
+
   const loadSize =
     docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
@@ -168,14 +174,14 @@ export function DuplicateDocketContent({
               Retain existing PO number
             </label>
           </div>
-          {retainPoNumber && (
-            <Input
-              type="text"
-              defaultValue={docket?.purchaseOrder ?? ''}
-              placeholder="PO number"
-              className="w-[208px]"
-            />
-          )}
+          <Input
+            type="text"
+            value={poValue}
+            onChange={(e) => setPoValue(e.target.value)}
+            placeholder="PO number"
+            disabled={retainPoNumber}
+            className="w-[208px]"
+          />
         </div>
       </div>
 
