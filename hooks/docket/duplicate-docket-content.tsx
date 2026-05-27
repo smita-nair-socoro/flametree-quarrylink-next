@@ -6,6 +6,7 @@ import { format, isPast, parseISO } from 'date-fns';
 import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
+import { formatTruckType } from '@/lib/types/truck-enums';
 
 
 // ─── Description: quantity summary card only ───────────────────────────────
@@ -96,6 +97,8 @@ export function DuplicateDocketContent({
   const pickUpFormattedAddress = docket?.pickUpAddress?.formattedAddress;
   const addressLabel = deliveryFormattedAddress ? 'Delivery Address:' : 'Pick Up Address:';
   const addressValue = deliveryFormattedAddress ?? pickUpFormattedAddress ?? '';
+
+const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType);
 
   // Local string state so the input can be cleared and won't show leading zeros
   const [rawCopies, setRawCopies] = React.useState(String(copies));
@@ -218,7 +221,7 @@ export function DuplicateDocketContent({
             <InfoCell label="Contact Name:" value={docket?.customerContactName ?? ''} />
             <InfoCell label="Contact Phone:" value={docket?.customerContactPhone ?? ''} />
             <InfoCell label="Time Window:" value={startTime && endTime ? `${startTime} – ${endTime}` : ''} />
-            <InfoCell label="Truck Type:" value={docket?.truckType ?? ''} />
+            {truckTypeLabel && <InfoCell label="Truck Type:" value={truckTypeLabel} />}
 
             {docket?.notes && (
               <div className="col-span-2 flex flex-col gap-1.5">
