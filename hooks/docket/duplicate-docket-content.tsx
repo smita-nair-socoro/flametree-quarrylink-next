@@ -8,6 +8,7 @@ import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
+import { Input } from '@/components/ui/input';
 
 // ─── Description: quantity summary card only ───────────────────────────────
 
@@ -23,13 +24,14 @@ export function DuplicateDocketDescription({
   const loadSize =
     docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
-  const uom = docket?.jobItem?.productSellUom ?? '';
+  const rawUom = docket?.jobItem?.productSellUom ?? '';
+  const uom = rawUom === 'M3' ? 'm³' : rawUom;
   const totalRequested = copies * loadSize;
   const exceedsBy = totalRequested - remaining;
   const isExceeding = exceedsBy > 0;
 
   return (
-    <div className="rounded-[10px] border-[0.625px] border-[#E5E7EB] p-4">
+    <div className="rounded-[10px] border border-[#E5E7EB] p-4">
       <div className="flex items-start gap-3">
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
         <div className="flex w-full flex-col gap-3 text-sm">
@@ -38,7 +40,7 @@ export function DuplicateDocketDescription({
               Remaining Quantity Available:{' '}
             </span>
             <span className="font-normal text-[#101828]">
-              {remaining} {formatUom(uom)}
+              {remaining} {uom}
             </span>
           </p>
           <p className="tracking-[-0.1504px]">
@@ -46,7 +48,7 @@ export function DuplicateDocketDescription({
               Each Copy Quantity:{' '}
             </span>
             <span className="font-normal text-[#101828]">
-              {loadSize} {formatUom(uom)}
+              {loadSize} {uom}
             </span>
           </p>
           <div className="flex flex-col gap-[10px]">
@@ -55,12 +57,12 @@ export function DuplicateDocketDescription({
                 Total Requested:{' '}
               </span>
               <span className="font-normal text-[#101828]">
-                {totalRequested} {formatUom(uom)}
+                {totalRequested} {uom}
               </span>
             </p>
             {isExceeding && (
               <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
-                ⚠️ This would exceed the remaining quantity by {exceedsBy} {formatUom(uom)}
+                ⚠️ This would exceed the remaining quantity by {exceedsBy} {uom}
               </p>
             )}
           </div>
@@ -94,7 +96,8 @@ export function DuplicateDocketContent({
   const loadSize =
     docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
-  const uom = docket?.jobItem?.productSellUom ?? '';
+  const rawUom = docket?.jobItem?.productSellUom ?? '';
+  const uom = rawUom === 'M3' ? 'm³' : rawUom;
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
@@ -132,17 +135,17 @@ export function DuplicateDocketContent({
           <label className="text-sm font-medium text-[#364153]">
             Number of Copies <span className="text-[#111827]">*</span>
           </label>
-          <input
+          <Input
             type="number"
             min={0}
             defaultValue=""
             onChange={(e) => onCopiesChange(e.target.valueAsNumber)}
-            className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+            className="w-[208px]"
           />
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
               Cannot create {copies} copies. This would exceed the remaining
-              quantity of {remaining} {formatUom(uom)}.<br />
+              quantity of {remaining} {uom}.<br />
               Maximum copies allowed: {maxCopies}
             </p>
           )}
@@ -166,11 +169,11 @@ export function DuplicateDocketContent({
             </label>
           </div>
           {retainPoNumber && (
-            <input
+            <Input
               type="text"
               defaultValue={docket?.purchaseOrder ?? ''}
               placeholder="PO number"
-              className="h-10 w-[208px] rounded-[10px] border border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+              className="w-[208px]"
             />
           )}
         </div>
@@ -215,7 +218,7 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${loadSize} ${formatUom(uom)}`} />
+            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
 
             <div className="col-span-2">
               <InfoCell label={addressLabel} value={addressValue} />
@@ -266,10 +269,6 @@ export function DuplicateDocketContent({
       </div>
     </div>
   );
-}
-
-function formatUom(uom: string) {
-  return uom === 'M3' ? 'm³' : uom;
 }
 
 function InfoCell({ label, value }: { label: string; value: string }) {
