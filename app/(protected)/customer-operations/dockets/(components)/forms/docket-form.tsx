@@ -133,6 +133,7 @@ export default function DocketForm({
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
+  const [adjustedAlert, setAdjustedAlert] = React.useState<{ amount: number; uom: string } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
@@ -197,24 +198,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -393,11 +394,11 @@ export default function DocketForm({
             checkWindowTimeConflict: true,
             deliveryCollectionDate: values.deliveryCollectionDate
               ? appendUtcSuffix(
-                  format(
-                    values.deliveryCollectionDate,
-                    "yyyy-MM-dd'T'00:00:00.000",
-                  ),
-                )
+                format(
+                  values.deliveryCollectionDate,
+                  "yyyy-MM-dd'T'00:00:00.000",
+                ),
+              )
               : undefined,
             deliveryCollectionStartTime: startDateTime
               ? appendUtcSuffix(startDateTime)
@@ -446,18 +447,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -543,18 +544,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -662,16 +663,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -924,10 +925,14 @@ export default function DocketForm({
                                       onChange={(e) => {
                                         const maxLimit = details.remainingQty;
                                         const val = parseFloat(e.target.value);
+                                        const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
+                                        
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
+                                          setAdjustedAlert({ amount: maxLimit, uom: uomText });
                                         } else {
                                           field.onChange(e);
+                                          setAdjustedAlert(null);
                                         }
                                       }}
                                       value={field.value ?? ''}
@@ -935,7 +940,10 @@ export default function DocketForm({
                                       disabled={
                                         isReadOnly ||
                                         !jobLineItemId ||
-                                        !canEditPlannedLoadSize
+                                        !canEditPlannedLoadSize ||
+                                        (!isEditing &&
+                                          !!docketForm.watch('jobLineItemId') &&
+                                          selectedJobLineItemDetails().remainingQty <= 0)
                                       }
                                     />
                                   </FormControl>
@@ -955,6 +963,19 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      onChange={(e) => {
+                                        const maxLimit = details.remainingQty;
+                                        const val = parseFloat(e.target.value);
+                                        const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
+                                        
+                                        if (!isNaN(val) && val > maxLimit) {
+                                          field.onChange(maxLimit);
+                                          setAdjustedAlert({ amount: maxLimit, uom: uomText });
+                                        } else {
+                                          field.onChange(e);
+                                          setAdjustedAlert(null);
+                                        }
+                                      }}
                                       value={field.value ?? ''}
                                       isNumber
                                       disabled={!canActualLoadSize}
@@ -972,7 +993,8 @@ export default function DocketForm({
                     );
                   })()}
 
-                  {!!docketForm.watch('jobLineItemId') &&
+                  {!isEditing &&
+                    !!docketForm.watch('jobLineItemId') &&
                     selectedJobLineItemDetails().remainingQty <= 0 && (
                       <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
                         <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
@@ -985,6 +1007,18 @@ export default function DocketForm({
                         </div>
                       </div>
                     )}
+
+                  {adjustedAlert && (
+                    <div className="border border-[#FDE68A] bg-[#FEFCE8] p-3 rounded-md flex flex-col gap-1">
+                      <div className="flex items-center gap-2 font-medium text-sm text-[#92400E]">
+                        <Info className="h-4 w-4 text-[#D97706]" />
+                        <span>Quantity Adjusted</span>
+                      </div>
+                      <div className="text-sm text-[#92400E] pl-6">
+                        Only {adjustedAlert.amount} {adjustedAlert.uom} available. Quantity has been adjusted to {adjustedAlert.amount} {adjustedAlert.uom}.
+                      </div>
+                    </div>
+                  )}
 
                   <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
@@ -1021,12 +1055,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1390,15 +1424,14 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.driverChecklist
+                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.driverChecklist
-                                        .checklistStatus === 'FAIL'
+                                    .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                              }`}
+                                }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1424,15 +1457,14 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.truckChecklist
+                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
                                   .checklistStatus === 'PASS'
                                   ? 'text-green-600'
                                   : selectedDocket.truckChecklist
-                                        .checklistStatus === 'FAIL'
+                                    .checklistStatus === 'FAIL'
                                     ? 'text-red-600'
                                     : 'text-muted-foreground'
-                              }`}
+                                }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}
