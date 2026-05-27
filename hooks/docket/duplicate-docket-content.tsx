@@ -100,26 +100,6 @@ export function DuplicateDocketContent({
 
 const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType);
 
-  // Local string state so the input can be cleared and won't show leading zeros
-  const [rawCopies, setRawCopies] = React.useState(String(copies));
-
-  const handleCopiesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value;
-    setRawCopies(raw);
-    const num = parseInt(raw, 10);
-    if (!isNaN(num) && num >= 0) onCopiesChange(num);
-  };
-
-  const handleCopiesBlur = () => {
-    const num = parseInt(rawCopies, 10);
-    if (isNaN(num) || num < 0) {
-      setRawCopies('0');
-      onCopiesChange(0);
-    } else {
-      setRawCopies(String(num));
-    }
-  };
-
   return (
     <div className="flex flex-col gap-6">
 
@@ -132,12 +112,10 @@ const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.tru
             Number of Copies <span className="text-[#111827]">*</span>
           </label>
           <input
-            type="text"
-            inputMode="numeric"
-            value={rawCopies}
-            onChange={handleCopiesChange}
-            onBlur={handleCopiesBlur}
-            onFocus={(e) => e.target.setSelectionRange(e.target.value.length, e.target.value.length)}
+            type="number"
+            min={0}
+            defaultValue=""
+            onChange={(e) => onCopiesChange(e.target.valueAsNumber)}
             className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
           />
           {copies > maxCopies && (
