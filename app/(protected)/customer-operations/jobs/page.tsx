@@ -31,8 +31,6 @@ export default function CustomersPage() {
     })) as JobDTO[];
   }, [jobs]);
 
-  const uninvoicedValue = `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`;
-
   const statsCards: StatsCardData[] = [
     {
       title: 'Jobs In Progress',
@@ -45,7 +43,7 @@ export default function CustomersPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: uninvoicedValue,
+      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
