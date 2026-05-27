@@ -1,15 +1,5 @@
 // Docket Helpers
 
-export function formatUom(uom: string): string {
-  switch (uom) {
-    case 'TN': return 'TN';
-    case 'M3': return 'm³';
-    case 'KG_20': return 'x 20kg';
-    case 'BULKA': return 'Bulka';
-    default: return uom;
-  }
-}
-
 export const calculateConvertedQty = (
   quantity: number,
   fromUom: string,

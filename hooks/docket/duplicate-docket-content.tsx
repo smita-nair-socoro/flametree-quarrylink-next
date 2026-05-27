@@ -8,8 +8,17 @@ import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
-import { formatUom } from '@/lib/utils/docket-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+
+function formatUom(uom: string): string {
+  switch (uom) {
+    case 'TN': return 'TN';
+    case 'M3': return 'm³';
+    case 'KG_20': return 'x 20kg';
+    case 'BULKA': return 'Bulka';
+    default: return uom;
+  }
+}
 import { Input } from '@/components/ui/input';
 
 // ─── Description: quantity summary card only ───────────────────────────────
