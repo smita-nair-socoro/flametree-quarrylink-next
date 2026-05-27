@@ -81,6 +81,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PREPARING]: [
     { label: 'Mark Ready', icon: Check, action: 'markReady' },
     { label: 'Back to Pending', icon: Undo2, action: 'backToPending' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -93,6 +94,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.READY]: [
     { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected' },
     { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -105,12 +107,15 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.COLLECTED]: [
     { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale' },
     { label: 'Invoice', icon: Receipt, action: 'invoice' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.INVOICED]: [
     { label: 'View Invoice', icon: Receipt, action: 'viewInvoice' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
     { label: 'Assign', icon: UserRoundPlus, action: 'assign' },
@@ -127,6 +132,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.ASSIGNED]: [
     { label: 'Start Transit', icon: CirclePlay, action: 'startTransit' },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -139,10 +145,12 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.IN_TRANSIT]: [
     { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived' },
     { label: 'Stop', icon: Square, action: 'stop', className: 'text-red-600' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.STOPPED]: [
     { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit' },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -154,6 +162,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.ARRIVED]: [
     { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -165,6 +174,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.DELIVERED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',

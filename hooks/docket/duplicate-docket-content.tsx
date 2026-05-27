@@ -138,7 +138,7 @@ export function DuplicateDocketContent({
       <div className="flex flex-col gap-6">
         {/* Number of copies */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium leading-5 tracking-[-0.1504px] text-[#101828]">
+          <label className="text-sm font-medium leading-5 text-[#101828]">
             Number of Copies *
           </label>
           <Input
