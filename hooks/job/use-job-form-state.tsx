@@ -6,8 +6,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 
-import { getJobFormSchema, JobFormValues } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-form-schema';
-import { JobItemsQueryOptions, useCreateJob, useUpdateJob } from '@/lib/api/job';
+import {
+  getJobFormSchema,
+  JobFormValues,
+} from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-form-schema';
+import {
+  JobItemsQueryOptions,
+  useCreateJob,
+  useUpdateJob,
+} from '@/lib/api/job';
 import { CustomersListQueryOptions } from '@/lib/api/customer';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { JobDTO, JobItem } from '@/lib/types/job';
@@ -271,9 +278,9 @@ export function useJobFormState({
 
         const receiptEmails = values.receiptEmail
           ? values.receiptEmail
-            .split(',')
-            .map((email) => email.trim())
-            .filter(Boolean)
+              .split(',')
+              .map((email) => email.trim())
+              .filter(Boolean)
           : [];
 
         const customerEmail = selectedCustomer?.contactPersonEmail;
@@ -283,11 +290,22 @@ export function useJobFormState({
           ...receiptEmails.filter((email) => email !== customerEmail),
         ];
 
+        let newContactPersonName: string | undefined;
+
+        if (isEditing) {
+          newContactPersonName = values.contactPersonName;
+        } else if (selectedCustomer?.customerType === 'BUSINESS') {
+          newContactPersonName =
+            `${selectedCustomer.contactPersonFirstName ?? ''} ${selectedCustomer.contactPersonLastName ?? ''}`.trim();
+        } else if (selectedCustomer?.customerType === 'INDIVIDUAL') {
+          newContactPersonName = selectedCustomer.individualContactName ?? '';
+        }
+
         const payload = {
           customerId: values.customerId,
           projectName: values.projectName,
           poNumber: values.poNumber,
-          contactPersonName: values.contactPersonName,
+          contactPersonName: newContactPersonName,
           contactPersonPhone: values.phone,
           emailRecipients,
           jobStatus:
@@ -326,7 +344,7 @@ export function useJobFormState({
       } catch (error) {
         notifyError(
           extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+            `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
         );
       }
     },
