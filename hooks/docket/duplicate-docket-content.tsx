@@ -7,7 +7,7 @@ import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
-
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 // ─── Description: quantity summary card only ───────────────────────────────
 
@@ -20,7 +20,8 @@ export function DuplicateDocketDescription({
   docket,
   copies,
 }: DuplicateDocketDescriptionProps) {
-  const loadSize = docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+  const loadSize =
+    docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? '';
   const totalRequested = copies * loadSize;
@@ -33,21 +34,33 @@ export function DuplicateDocketDescription({
         <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#101828]" />
         <div className="flex w-full flex-col gap-3 text-sm">
           <p className="tracking-[-0.1504px]">
-            <span className="font-semibold text-[#6A7282]">Remaining Quantity Available: </span>
-            <span className="font-normal text-[#101828]">{remaining} {uom}</span>
+            <span className="font-semibold text-[#6A7282]">
+              Remaining Quantity Available:{' '}
+            </span>
+            <span className="font-normal text-[#101828]">
+              {remaining} {formatUom(uom)}
+            </span>
           </p>
           <p className="tracking-[-0.1504px]">
-            <span className="font-semibold text-[#6A7282]">Each Copy Quantity: </span>
-            <span className="font-normal text-[#101828]">{loadSize} {uom}</span>
+            <span className="font-semibold text-[#6A7282]">
+              Each Copy Quantity:{' '}
+            </span>
+            <span className="font-normal text-[#101828]">
+              {loadSize} {formatUom(uom)}
+            </span>
           </p>
           <div className="flex flex-col gap-[10px]">
             <p className="tracking-[-0.1504px]">
-              <span className="font-semibold text-[#6A7282]">Total Requested: </span>
-              <span className="font-normal text-[#101828]">{totalRequested} {uom}</span>
+              <span className="font-semibold text-[#6A7282]">
+                Total Requested:{' '}
+              </span>
+              <span className="font-normal text-[#101828]">
+                {totalRequested} {formatUom(uom)}
+              </span>
             </p>
             {isExceeding && (
               <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
-                ⚠️ This would exceed the remaining quantity by {exceedsBy} {uom}
+                ⚠️ This would exceed the remaining quantity by {exceedsBy} {formatUom(uom)}
               </p>
             )}
           </div>
@@ -56,7 +69,6 @@ export function DuplicateDocketDescription({
     </div>
   );
 }
-
 
 // ─── Content: copies + PO + docket info + note ─────────────────────────────
 
@@ -79,7 +91,8 @@ export function DuplicateDocketContent({
   newDeliveryDate,
   onNewDeliveryDateChange,
 }: DuplicateDocketContentProps) {
-  const loadSize = docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
+  const loadSize =
+    docket?.plannedLoadSize || docket?.actualLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const uom = docket?.jobItem?.productSellUom ?? '';
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
@@ -87,25 +100,33 @@ export function DuplicateDocketContent({
   const originalDateString = docket?.deliveryCollectionDate;
   const originalDate = originalDateString ? parseISO(originalDateString) : null;
   const isDateInPast = originalDate ? isPast(originalDate) : false;
-  const originalDateFormatted = originalDate ? format(originalDate, 'MMMM do, yyyy') : null;
+  const originalDateFormatted = originalDate
+    ? format(originalDate, 'MMMM do, yyyy')
+    : null;
 
-  const startTime = docket?.deliveryCollectionStartTime?.split('T')[1]?.slice(0, 5) ?? '';
-  const endTime = docket?.deliveryCollectionEndTime?.split('T')[1]?.slice(0, 5) ?? '';
-  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName].filter(Boolean).join(' - ');
+  const startTime =
+    docket?.deliveryCollectionStartTime?.split('T')[1]?.slice(0, 5) ?? '';
+  const endTime =
+    docket?.deliveryCollectionEndTime?.split('T')[1]?.slice(0, 5) ?? '';
+  const jobRef = [docket?.job?.jobNumber, docket?.job?.projectName]
+    .filter(Boolean)
+    .join(' - ');
 
   const deliveryFormattedAddress = docket?.deliveryAddress?.formattedAddress;
   const pickUpFormattedAddress = docket?.pickUpAddress?.formattedAddress;
-  const addressLabel = deliveryFormattedAddress ? 'Delivery Address:' : 'Pick Up Address:';
+  const addressLabel = deliveryFormattedAddress
+    ? 'Delivery Address:'
+    : 'Pick Up Address:';
   const addressValue = deliveryFormattedAddress ?? pickUpFormattedAddress ?? '';
 
-  const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType);
+  const truckTypeLabel = formatTruckType(
+    docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType,
+  );
 
   return (
     <div className="flex flex-col gap-6">
-
       {/* Group 1: copies + PO */}
       <div className="flex flex-col gap-6">
-
         {/* Number of copies */}
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-[#364153]">
@@ -120,7 +141,8 @@ export function DuplicateDocketContent({
           />
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
-              Cannot create {copies} copies. This would exceed the remaining quantity of {remaining} {uom}.<br />
+              Cannot create {copies} copies. This would exceed the remaining
+              quantity of {remaining} {formatUom(uom)}.<br />
               Maximum copies allowed: {maxCopies}
             </p>
           )}
@@ -132,7 +154,9 @@ export function DuplicateDocketContent({
             <Checkbox
               id="retain-po"
               checked={retainPoNumber}
-              onCheckedChange={(checked) => onRetainPoNumberChange(Boolean(checked))}
+              onCheckedChange={(checked) =>
+                onRetainPoNumberChange(Boolean(checked))
+              }
             />
             <label
               htmlFor="retain-po"
@@ -146,15 +170,14 @@ export function DuplicateDocketContent({
               type="text"
               defaultValue={docket?.purchaseOrder ?? ''}
               placeholder="PO number"
-              className="h-10 w-[208px] rounded-[10px] border-[0.625px] border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
+              className="h-10 w-[208px] rounded-[10px] border border-[#E5E7EB] px-3 text-sm text-[#0A0A0A] outline-none focus:border-[#0A0A0A]"
             />
           )}
         </div>
       </div>
 
       {/* Group 2: bordered container — banner + grid + note */}
-      <div className="overflow-hidden rounded-[14px] border-[0.625px] border-[#F3F4F6] pt-[0.625px] pr-[0.625px] pl-[0.625px] pb-[24.62px]">
-
+      <div className="overflow-hidden rounded-[14px] border border-[#F3F4F6] pt-[0.625px] px-[0.625px] pb-[24.62px]">
         {/* Banner */}
         <div className="flex h-[82px] flex-col gap-0.5 border-b-[0.625px] border-[#F3F4F6] bg-[#F9FAFB]/50 px-4 pt-4">
           <h3 className="text-[18px] font-semibold text-[#101828]">
@@ -167,12 +190,13 @@ export function DuplicateDocketContent({
 
         {/* Docket grid + note */}
         <div className="flex flex-col gap-6 px-6 pt-6">
-
           {/* Docket info grid */}
           <div className="grid grid-cols-2 gap-x-6 gap-y-6 text-sm">
-
             <InfoCell label="Job Reference:" value={jobRef} />
-            <InfoCell label="Product:" value={docket?.jobItem?.product?.productName ?? ''} />
+            <InfoCell
+              label="Product:"
+              value={docket?.jobItem?.product?.productName ?? ''}
+            />
 
             {/* Delivery date — editable */}
             <div className="flex flex-col gap-1.5">
@@ -185,37 +209,44 @@ export function DuplicateDocketContent({
               />
               {isDateInPast && !newDeliveryDate && (
                 <p className="text-xs text-red-500">
-                  Original date was {originalDateFormatted}.<br />Please update.
+                  Original date was {originalDateFormatted}.<br />
+                  Please update.
                 </p>
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${loadSize} ${uom}`} />
+            <InfoCell label="Load Size:" value={`${loadSize} ${formatUom(uom)}`} />
 
             <div className="col-span-2">
               <InfoCell label={addressLabel} value={addressValue} />
             </div>
 
-            <InfoCell label="Contact Name:" value={docket?.customerContactName ?? ''} />
-            <InfoCell label="Contact Phone:" value={docket?.customerContactPhone ?? ''} />
-            <InfoCell label="Time Window:" value={startTime && endTime ? `${startTime} – ${endTime}` : ''} />
-            {truckTypeLabel && <InfoCell label="Truck Type:" value={truckTypeLabel} />}
+            <InfoCell
+              label="Contact Name:"
+              value={docket?.customerContactName ?? ''}
+            />
+            <InfoCell
+              label="Contact Phone:"
+              value={
+                docket?.customerContactPhone
+                  ? formatPhoneNumber(docket?.customerContactPhone)
+                  : ''
+              }
+            />
+            <InfoCell
+              label="Time Window:"
+              value={startTime && endTime ? `${startTime} – ${endTime}` : ''}
+            />
+            {truckTypeLabel && (
+              <InfoCell label="Truck Type:" value={truckTypeLabel} />
+            )}
 
             {docket?.notes && (
               <div className="col-span-2 flex flex-col gap-1.5">
                 <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
                   Special Instructions
                 </span>
-                <div
-                  className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828]"
-                  style={{
-                    paddingTop: '12.24px',
-                    paddingRight: '20.77px',
-                    paddingBottom: '11.74px',
-                    paddingLeft: '11.99px',
-                    minHeight: '63.98px',
-                  }}
-                >
+                <div className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828] py-[12px] px-[20px] min-h-[64px]">
                   {docket.notes}
                 </div>
               </div>
@@ -223,19 +254,22 @@ export function DuplicateDocketContent({
           </div>
 
           {/* Bottom note */}
-          <div className="flex items-start gap-2 rounded-md border border-blue-200 bg-blue-50 px-4 py-3">
-            <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
-            <p className="text-sm text-blue-700">
-              <span className="font-semibold">Note:</span> All duplicates will be
-              created with &ldquo;Pending / Unassigned&rdquo; status.<br />PO numbers
-              can be cleared and can be added individually later.
+          <div className="flex items-start gap-2 rounded-md border border-[#DBEAFE] bg-[#EFF6FF] px-4 py-3">
+            <p className="text-sm text-[#1C398E]">
+              <span className="font-semibold">Note:</span> All duplicates will
+              be created with &ldquo;Pending / Unassigned&rdquo; status.
+              <br />
+              PO numbers can be cleared and can be added individually later.
             </p>
           </div>
-
         </div>
       </div>
     </div>
   );
+}
+
+function formatUom(uom: string) {
+  return uom === 'M3' ? 'm³' : uom;
 }
 
 function InfoCell({ label, value }: { label: string; value: string }) {
