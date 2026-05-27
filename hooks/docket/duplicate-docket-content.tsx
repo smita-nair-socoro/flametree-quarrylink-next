@@ -98,7 +98,7 @@ export function DuplicateDocketContent({
   const addressLabel = deliveryFormattedAddress ? 'Delivery Address:' : 'Pick Up Address:';
   const addressValue = deliveryFormattedAddress ?? pickUpFormattedAddress ?? '';
 
-const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType);
+  const truckTypeLabel = formatTruckType(docket?.jobItem?.truckType || docket?.truckType || docket?.truck?.truckType);
 
   return (
     <div className="flex flex-col gap-6">

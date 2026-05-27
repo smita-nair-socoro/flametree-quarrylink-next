@@ -671,7 +671,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       duplicate: {
         title: 'Duplicate Docket',
-        subtitle: 'Create a copy of docket DOC-001',
+        subtitle: `Create a copy of docket ${docketData?.docketNumber ?? ''}`,
         description: (
           <div className="-mt-[18px] flex flex-col gap-6">
             <div className="-mx-[24.62px] border-t border-[#F3F4F6]" />
