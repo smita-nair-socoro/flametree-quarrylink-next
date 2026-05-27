@@ -211,7 +211,7 @@ export function DuplicateDocketContent({
         {/* Docket grid + note */}
         <div className="flex flex-col gap-6 px-6 pt-6">
           {/* Docket info grid */}
-          <div className="grid grid-cols-2 gap-x-6 gap-y-6 text-sm">
+          <div className="grid grid-cols-2 gap-6 text-sm">
             <InfoCell label="Job Reference:" value={jobRef} />
             <InfoCell
               label="Product:"
