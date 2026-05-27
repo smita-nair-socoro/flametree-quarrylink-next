@@ -674,7 +674,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         subtitle: `Create a copy of docket ${docketData?.docketNumber ?? ''}`,
         description: (
           <div className="-mt-[18px] flex flex-col gap-6">
-            <div className="-mx-[24.62px] border-t border-[#F3F4F6]" />
+            <div className="-mx-[25px] border-t border-[#F3F4F6]" />
             <DuplicateDocketDescription docket={docketData} copies={duplicateCopies} />
           </div>
         ),
@@ -691,14 +691,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         ),
         confirmText: 'Create Copy',
         confirmCustomColor: '#99A1AF',
-        confirmCustomClass: 'h-[37.25px] w-[113.94px] rounded-[10px] pt-[8.873px] pr-[14.94px] pb-[8.373px] pl-[15.99px]',
+        confirmCustomClass: 'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px]',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
-        cancelButtonClass: 'h-[37.25px] w-[78.59px] rounded-[10px] border-[0.625px] border-[#E5E7EB] pt-[8.873px] pr-[15.97px] pb-[8.373px] pl-[16.62px] text-[#364153]',
+        cancelButtonClass: 'h-[37px] w-[79px] rounded-[10px] border border-[#E5E7EB] pt-[9px] pr-[16px] pb-[8px] pl-[17px] text-[#364153]',
         customWidth: "w-full !max-w-[672px]",
         titleClassName: 'text-2xl',
         hideSeparator: true,
-        buttonContainerClass: '-mt-[19px] -mx-[24.62px] px-[24.62px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
+        buttonContainerClass: '-mt-[19px] -mx-[25px] px-[25px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
     }),
     [

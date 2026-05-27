@@ -252,7 +252,7 @@ export function DuplicateDocketContent({
 
             {docket?.notes && (
               <div className="col-span-2 flex flex-col gap-1.5">
-                <span className="w-[133px] text-sm font-medium leading-5 tracking-[-0.1504px] text-[#6A7282]">
+                <span className="w-[133px] text-sm font-medium leading-5 text-[#6A7282]">
                   Special Instructions
                 </span>
                 <div className="w-full rounded-[4px] bg-[#F9FAFB] text-sm text-[#101828] py-[12px] px-[20px] min-h-[64px]">
