@@ -926,7 +926,7 @@ export default function DocketForm({
                                         const maxLimit = details.remainingQty;
                                         const val = parseFloat(e.target.value);
                                         const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
-                                        
+
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
                                           setAdjustedAlert({ amount: maxLimit, uom: uomText });
@@ -937,6 +937,9 @@ export default function DocketForm({
                                       }}
                                       value={field.value ?? ''}
                                       isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
                                       disabled={
                                         isReadOnly ||
                                         !jobLineItemId ||
@@ -967,7 +970,7 @@ export default function DocketForm({
                                         const maxLimit = details.remainingQty;
                                         const val = parseFloat(e.target.value);
                                         const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
-                                        
+
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
                                           setAdjustedAlert({ amount: maxLimit, uom: uomText });
@@ -978,6 +981,9 @@ export default function DocketForm({
                                       }}
                                       value={field.value ?? ''}
                                       isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
                                       disabled={!canActualLoadSize}
                                     />
                                   </FormControl>
@@ -1425,12 +1431,12 @@ export default function DocketForm({
                             </span>
                             <span
                               className={`text-xs font-semibold ${selectedDocket.driverChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.driverChecklist
-                                    .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
+                                .checklistStatus === 'PASS'
+                                ? 'text-green-600'
+                                : selectedDocket.driverChecklist
+                                  .checklistStatus === 'FAIL'
+                                  ? 'text-red-600'
+                                  : 'text-muted-foreground'
                                 }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
@@ -1458,12 +1464,12 @@ export default function DocketForm({
                             </span>
                             <span
                               className={`text-xs font-semibold ${selectedDocket.truckChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.truckChecklist
-                                    .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
+                                .checklistStatus === 'PASS'
+                                ? 'text-green-600'
+                                : selectedDocket.truckChecklist
+                                  .checklistStatus === 'FAIL'
+                                  ? 'text-red-600'
+                                  : 'text-muted-foreground'
                                 }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??

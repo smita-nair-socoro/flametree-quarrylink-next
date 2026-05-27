@@ -125,7 +125,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
-  const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
+  const { actions: invoiceActions } = useInvoiceActions(docketData?.invoiceId);
   const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
@@ -828,7 +828,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     actions,
     confirmDialogs: [
       ...confirmDialogs,
-      <InvoiceDetailsDialog key="invoiceDetails" />,
       <InvoiceDocketIndividualModal
         key="invoiceDocketIndividual"
         open={activeDialog === 'invoice'}

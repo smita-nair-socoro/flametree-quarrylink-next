@@ -40,6 +40,7 @@ import {
   SchedulerDriversQueryOptions,
 } from '@/lib/api/scheduler';
 
+import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
   DispatchDocket,
   isDispatchTruckResource,
@@ -816,7 +817,9 @@ export function DispatchView({
   }, [dockets]);
 
   return (
-    <DndContext
+    <>
+      <InvoiceDetailsDialog />
+      <DndContext
       collisionDetection={pointerWithin}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -926,5 +929,6 @@ export function DispatchView({
         />
       )}
     </DndContext>
+    </>
   );
 }
