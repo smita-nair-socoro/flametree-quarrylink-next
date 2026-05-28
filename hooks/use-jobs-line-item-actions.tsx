@@ -7,7 +7,6 @@ import { ActionDialog } from '@/components/action-dialog';
 import { JobLineItemActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-action-buttons';
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useSelectedJob } from '@/app/stores/job-store';
 import { useDeleteJobItem } from '@/lib/api/job';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { useJobLineItemStore } from '@/app/stores/job-line-item-store';
@@ -31,6 +30,7 @@ interface DialogConfig {
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
   confirmActionNeeded?: boolean;
+  cancelText?: string;
 }
 
 interface SelectedAction {
@@ -64,6 +64,18 @@ const getDialogConfigs = (
       : lineItemData?.productSellUom === 'M3'
         ? 'm³'
         : lineItemData?.productSellUom;
+
+  if (selectedAction?.key === 'cannot-delete') {
+    return {
+      'cannot-delete': {
+        title: 'Cannot Remove Line Item',
+        description: <CannotDeleteJobLineItemDescription jobItem={lineItemData} />,
+        content: <CannotDeleteJobLineItemContent />,
+        cancelText: 'Close',
+        confirmActionNeeded: false,
+      },
+    };
+  }
 
   if (selectedAction?.key === 'remove') {
     return {
@@ -149,7 +161,6 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [cannotDeleteOpen, setCannotDeleteOpen] = React.useState(false);
 
   const deleteJobItem = useDeleteJobItem();
 
@@ -172,6 +183,22 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
       setSelectedAction({ key: actionKey });
       setActiveDialog(actionKey);
     };
+  };
+
+  const handleCannotDelete = () => {
+    setSelectedAction({ key: 'cannot-delete' });
+    setActiveDialog('cannot-delete');
+  };
+
+  const handleDelete = async () => {
+    if (!lineItemId) {
+      notifyError('Unable to delete line item');
+      return;
+    }
+    await deleteJobItem.mutateAsync(lineItemId);
+    notifySuccess('Line item removed successfully');
+    setActiveDialog(null);
+    setSelectedAction(null);
   };
 
   const actions = {
@@ -212,23 +239,16 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
         confirmCustomClass={config.confirmCustomClass}
         confirmIcon={config.confirmIcon}
         confirmActionNeeded={config.confirmActionNeeded}
+        cancelText={config.cancelText}
         onConfirmAction={async () => {
           switch (key) {
             case 'remove':
-              if (!lineItemId) {
-                notifyError('Unable to delete line item');
-                return;
-              }
-
               try {
-                await deleteJobItem.mutateAsync(lineItemId);
-                notifySuccess('Line item removed successfully');
-                setActiveDialog(null);
-                setSelectedAction(null);
+                await handleDelete();
               } catch (error) {
                 console.error('Failed to delete job line item:', error);
                 notifyError('Failed to remove line item');
-                setCannotDeleteOpen(true);
+                handleCannotDelete();
               }
               break;
             case 'duplicate':
@@ -239,19 +259,6 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
       />
     );
   });
-
-  const cannotDeleteDialog = (
-    <ActionDialog
-      key="cannot-delete"
-      open={cannotDeleteOpen}
-      onOpenChangeAction={setCannotDeleteOpen}
-      title="Cannot Remove Line Item"
-      description={<CannotDeleteJobLineItemDescription jobItem={lineItemData} />}
-      content={<CannotDeleteJobLineItemContent />}
-      cancelText="Close"
-      confirmActionNeeded={false}
-    />
-  );
 
   const viewDialog = viewOpen ? (
     <FormDialog
@@ -281,7 +288,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
 
   return {
     actions,
-    confirmDialogs: [...confirmDialogs, cannotDeleteDialog],
+    confirmDialogs,
     viewDialog,
   };
 }
