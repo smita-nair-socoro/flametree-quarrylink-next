@@ -375,6 +375,9 @@ export interface DispatchAssignedDocket {
   productDensity: number;
   deliveryState: string;
   productSellUom: string;
+  truckSellQty: number;
+  truckSellUom: string;
+  truckSellPrice: number;
 }
 
 export interface DispatchUnassignedDocket {
@@ -395,6 +398,9 @@ export interface DispatchUnassignedDocket {
   deliverySuburb: string;
   deliveryState: string;
   productSellUom: string;
+  truckSellQty: number;
+  truckSellUom: string;
+  truckSellPrice: number;
 }
 
 /** Slim board docket (assigned or unassigned list item — same fields). */

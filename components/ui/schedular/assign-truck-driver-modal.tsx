@@ -9,6 +9,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
 import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
+import {
+  buildDispatchOperationalLoadUpdate,
+  isGenericDispatchTruck,
+  loadVolumeM3FromProductSellUom,
+  maxLoadInProductSellUom,
+} from '@/lib/utils/dispatch-helper';
 import type {
   DispatchTruckResource,
   DispatchDriverResource,
@@ -21,25 +27,6 @@ import { Input } from '@/components/ui/input';
 import { useOperationalUpdateDocket } from '@/lib/api/docket';
 import { toast } from 'sonner';
 
-function calculateVolumeM3(
-  loadSize: number,
-  uom: string,
-  density: number,
-): number {
-  if (!density) density = 1;
-  const upperUom = uom.toUpperCase();
-  if (upperUom === 'M3' || upperUom === 'BULKA') {
-    return loadSize;
-  }
-  if (upperUom === 'TN') {
-    return loadSize / density;
-  }
-  if (upperUom === 'KG_20' || upperUom === '20KG') {
-    return loadSize / 50 / density;
-  }
-  return loadSize;
-}
-
 interface AssignTruckDriverModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -47,7 +34,7 @@ interface AssignTruckDriverModalProps {
   docket: DispatchDocket | null;
   truck: DispatchTruckResource | null;
   driver: DispatchDriverResource | null;
-  onAssign: (id: number) => void;
+  onAssign: (id: number, adjustedLoadSize?: number) => void;
   onCancel: () => void;
 }
 
@@ -64,45 +51,69 @@ export function AssignTruckDriverModal({
   const [adjustingTruck, setAdjustingTruck] =
     useState<DispatchBoardTruckRef | null>(null);
   const [adjustLoadValue, setAdjustLoadValue] = useState<string>('');
+  const [pendingAssignId, setPendingAssignId] = useState<number | null>(null);
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
 
-  useEffect(() => {
-    if (adjustingTruck && docket) {
-      const defaultLoad = Math.floor(
-        (adjustingTruck.tankVolumeM3 || 0) * (docket.productDensity || 1)
-      );
-      setAdjustLoadValue(defaultLoad.toString());
-    }
+  const maxAdjustLoad = useMemo(() => {
+    if (!adjustingTruck || !docket) return 0;
+    return maxLoadInProductSellUom(
+      adjustingTruck.tankVolumeM3 || 0,
+      docket.productSellUom || 'TN',
+      docket.productDensity || 1,
+    );
   }, [adjustingTruck, docket]);
 
+  useEffect(() => {
+    if (adjustingTruck && docket) {
+      setAdjustLoadValue(maxAdjustLoad.toString());
+    }
+  }, [adjustingTruck, docket, maxAdjustLoad]);
+
   const handleAdjustLoadClick = () => {
-    if (!docket || !adjustingTruck || !adjustLoadValue) return;
+    if (!docket || !adjustingTruck || !adjustLoadValue || pendingAssignId == null)
+      return;
+
+    const loadSize = Number(adjustLoadValue);
+    if (!Number.isFinite(loadSize) || loadSize <= 0) {
+      toast.error('Enter a valid load amount');
+      return;
+    }
+    if (loadSize > maxAdjustLoad) {
+      toast.error(
+        `Load cannot exceed ${formatNumberThousandSeparator(maxAdjustLoad)} ${docket.productSellUom}`,
+      );
+      return;
+    }
 
     operationalUpdateMutation.mutate(
       {
         id: docket.id,
-        data: {
-          actualLoadSize: Number(adjustLoadValue),
-          plannedLoadSize: Number(adjustLoadValue),
-          checkWindowTimeConflict: false,
-        },
+        data: buildDispatchOperationalLoadUpdate(docket, loadSize),
       },
       {
         onSuccess: () => {
           toast.success('Load size adjusted successfully');
+          const assignId = pendingAssignId;
+          setPendingAssignId(null);
           setAdjustingTruck(null);
+          onAssign(assignId, loadSize);
         },
         onError: () => {
           toast.error('Failed to adjust load size');
         },
-      }
+      },
     );
+  };
+
+  const openAdjustLoad = (truckRef: DispatchBoardTruckRef, assignId: number) => {
+    setPendingAssignId(assignId);
+    setAdjustingTruck(truckRef);
   };
 
   const trucksWithStats = useMemo(() => {
     if (!driver?.trucks || !docket) return [];
-    const docketVol = calculateVolumeM3(
+    const docketVol = loadVolumeM3FromProductSellUom(
       docket.actualLoadSize || docket.plannedLoadSize || 0,
       docket.productSellUom || 'TN',
       docket.productDensity || 1,
@@ -110,10 +121,12 @@ export function AssignTruckDriverModal({
 
     return driver.trucks
       .map((t) => {
+        const isGeneric = isGenericDispatchTruck(t);
         const truckVol = t.tankVolumeM3 || 0;
         const fillPct = truckVol > 0 ? (docketVol / truckVol) * 100 : 0;
-        const isOverVolume = docketVol > truckVol;
-        return { ...t, truckVol, docketVol, fillPct, isOverVolume };
+        const isOverVolume =
+          !isGeneric && truckVol > 0 && docketVol > truckVol;
+        return { ...t, truckVol, docketVol, fillPct, isOverVolume, isGeneric };
       })
       .sort((a, b) => {
         if (a.isOverVolume && !b.isOverVolume) return 1;
@@ -128,12 +141,14 @@ export function AssignTruckDriverModal({
   const handleModalClose = (isOpen: boolean) => {
     if (!isOpen) {
       setAdjustingTruck(null);
+      setPendingAssignId(null);
     }
     onOpenChange(isOpen);
   };
 
   const handleCancel = () => {
     setAdjustingTruck(null);
+    setPendingAssignId(null);
     onCancel();
   };
 
@@ -216,19 +231,13 @@ export function AssignTruckDriverModal({
                 </label>
                 <Input
                   type="number"
-                  defaultValue={Math.floor(
-                    (adjustingTruck.tankVolumeM3 || 0) *
-                    (docket.productDensity || 1),
-                  )}
+                  value={adjustLoadValue}
                   onChange={(e) => setAdjustLoadValue(e.target.value)}
                   className="bg-white"
                 />
                 <span className="text-xs text-gray-500">
                   Enter up to{' '}
-                  {Math.floor(
-                    (adjustingTruck.tankVolumeM3 || 0) *
-                    (docket.productDensity || 1),
-                  )}{' '}
+                  {formatNumberThousandSeparator(maxAdjustLoad)}{' '}
                   {docket.productSellUom} for this truck.
                 </span>
               </div>
@@ -252,7 +261,10 @@ export function AssignTruckDriverModal({
             <div className="p-5 bg-white border-t border-gray-100 grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                onClick={() => setAdjustingTruck(null)}
+                onClick={() => {
+                  setAdjustingTruck(null);
+                  setPendingAssignId(null);
+                }}
                 className="px-6 rounded-lg font-medium"
               >
                 Cancel
@@ -330,14 +342,21 @@ export function AssignTruckDriverModal({
                       <div
                         key={d.id ?? d.driverName}
                         onClick={() => {
-                          const docketVol = calculateVolumeM3(
+                          const docketVol = loadVolumeM3FromProductSellUom(
                             docket.actualLoadSize || docket.plannedLoadSize || 0,
                             docket.productSellUom || 'TN',
                             docket.productDensity || 1,
                           );
                           const truckVol = truck.tankVolumeM3 || 0;
-                          if (truckVol > 0 && docketVol > truckVol) {
-                            setAdjustingTruck(truck as DispatchBoardTruckRef);
+                          const needsAdjust =
+                            !isGenericDispatchTruck(truck) &&
+                            truckVol > 0 &&
+                            docketVol > truckVol;
+                          if (needsAdjust && d.id != null) {
+                            openAdjustLoad(
+                              truck as DispatchBoardTruckRef,
+                              d.id,
+                            );
                           } else if (d.id != null) {
                             onAssign(d.id);
                           }
@@ -429,8 +448,8 @@ export function AssignTruckDriverModal({
                         <div
                           key={t.id ?? t.licensePlate}
                           onClick={() => {
-                            if (t.isOverVolume) {
-                              setAdjustingTruck(t);
+                            if (t.isOverVolume && t.id != null) {
+                              openAdjustLoad(t, t.id);
                             } else if (t.id != null) {
                               onAssign(t.id);
                             }

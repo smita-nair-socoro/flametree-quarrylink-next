@@ -43,6 +43,7 @@ import {
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
   DispatchDocket,
+  mapUnassignedDocketDtoToBoardRow,
   isDispatchTruckResource,
   isDispatchDriverResource,
   truckMatchesFleetFilters,
@@ -168,27 +169,7 @@ export function DispatchView({
 
     const globalUnassigned = allUnassignedList
       .filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED)
-      .map((d) => ({
-        id: d.id,
-        docketNumber: d.docketNumber,
-        docketStatus: d.docketStatus,
-        deliveryCollectionDate: d.deliveryCollectionDate,
-        deliveryCollectionStartTime: d.deliveryCollectionStartTime,
-        deliveryCollectionEndTime: d.deliveryCollectionEndTime,
-        productName: d.jobItem?.product?.productName || '',
-        actualLoadSize: d.actualLoadSize || 0,
-        plannedLoadSize: d.plannedLoadSize || 0,
-        customerName:
-          d.job?.customerDto?.businessName || d.job?.contactPersonName || '',
-        pickUpSuburb: d.pickUpAddress?.city || '',
-        pickUpState: d.pickUpAddress?.state || '',
-        deliverySuburb: d.deliveryAddress?.city || '',
-        deliveryState: d.deliveryAddress?.state || '',
-        productDensity: d.jobItem?.product?.densityTonnagePerM3 || 0,
-        productSellUom: d.jobItem?.productSellUom || '',
-        uiAssignedTruckId: null,
-        uiAssignedTime: null,
-      }));
+      .map(mapUnassignedDocketDtoToBoardRow);
 
     if (viewType === 'trucks' && trucksData) {
       const assigned = (trucksData.resources || []).flatMap((r) =>
@@ -727,11 +708,16 @@ export function DispatchView({
     );
   };
 
-  const handleAssignResource = (selectedId: number) => {
+  const handleAssignResource = (
+    selectedId: number,
+    adjustedLoadSize?: number,
+  ) => {
     if (!assignModalData) return;
 
     const { docketId, targetId, time } = assignModalData;
     const docket = dockets.find((d) => String(d.id) === docketId);
+    const plannedLoad =
+      adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
     // Parse time to ISO strings for start and end windows
     // The time variable is like "11:00"
@@ -763,7 +749,7 @@ export function DispatchView({
         truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
-        plannedLoadSize: docket?.plannedLoadSize || 0,
+        plannedLoadSize: plannedLoad,
       },
       {
         onSuccess: () => {
@@ -774,6 +760,9 @@ export function DispatchView({
                     ...d,
                     uiAssignedTruckId: targetId,
                     uiAssignedTime: time,
+                    plannedLoadSize: plannedLoad,
+                    actualLoadSize: adjustedLoadSize ?? d.actualLoadSize,
+                    loadSize: plannedLoad,
                     deliveryCollectionDate:
                       formatLocalISO(startWindow).split('T')[0] +
                       'T00:00:00.000',
