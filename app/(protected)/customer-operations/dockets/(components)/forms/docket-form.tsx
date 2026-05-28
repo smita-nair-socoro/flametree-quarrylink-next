@@ -139,6 +139,7 @@ export default function DocketForm({
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
+  const pendingAssignedPayloadRef = React.useRef<Parameters<typeof operationalUpdateDocket.mutateAsync>[0] | null>(null);
   const {
     docketForm,
     isEditing,
@@ -386,38 +387,44 @@ export default function DocketForm({
           density: productDetails?.densityTonnagePerM3 || 1,
         });
 
+      const assignedPayload = {
+        checkWindowTimeConflict: true,
+        deliveryCollectionDate: values.deliveryCollectionDate
+          ? appendUtcSuffix(
+            format(
+              values.deliveryCollectionDate,
+              "yyyy-MM-dd'T'00:00:00.000",
+            ),
+          )
+          : undefined,
+        deliveryCollectionStartTime: startDateTime
+          ? appendUtcSuffix(startDateTime)
+          : undefined,
+        deliveryCollectionEndTime: endDateTime
+          ? appendUtcSuffix(endDateTime)
+          : undefined,
+        plannedLoadSize: values.plannedLoadSize,
+        actualLoadSize: values.plannedLoadSize,
+        docketEmailRecipients,
+        truckId: selectedDocket.truckId,
+        driverId: selectedDocket.driverId,
+        deliveryDistanceQuantity,
+      };
+
       try {
         setIsSubmitting(true);
         const result = await operationalUpdateDocket.mutateAsync({
           id: selectedDocket.id,
-          data: {
-            checkWindowTimeConflict: true,
-            deliveryCollectionDate: values.deliveryCollectionDate
-              ? appendUtcSuffix(
-                format(
-                  values.deliveryCollectionDate,
-                  "yyyy-MM-dd'T'00:00:00.000",
-                ),
-              )
-              : undefined,
-            deliveryCollectionStartTime: startDateTime
-              ? appendUtcSuffix(startDateTime)
-              : undefined,
-            deliveryCollectionEndTime: endDateTime
-              ? appendUtcSuffix(endDateTime)
-              : undefined,
-            plannedLoadSize: values.plannedLoadSize,
-            actualLoadSize: values.plannedLoadSize,
-            docketEmailRecipients,
-            truckId: selectedDocket.truckId,
-            driverId: selectedDocket.driverId,
-            deliveryDistanceQuantity,
-          },
+          data: assignedPayload,
         });
         if (
           result.conflictingDocketIds &&
           result.conflictingDocketIds.length > 0
         ) {
+          pendingAssignedPayloadRef.current = {
+            id: selectedDocket.id,
+            data: { ...assignedPayload, checkWindowTimeConflict: false },
+          };
           setConflictingDocketIds(result.conflictingDocketIds);
           setTimeConflictOpen(true);
         } else {
@@ -710,9 +717,20 @@ export default function DocketForm({
         confirmText="Save Changes"
         onConfirmAction={async () => {
           setTimeConflictOpen(false);
-          notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
+          const pending = pendingAssignedPayloadRef.current;
+          pendingAssignedPayloadRef.current = null;
+          if (!pending) return;
+          try {
+            setIsSubmitting(true);
+            await operationalUpdateDocket.mutateAsync(pending);
+            notifySuccess('Docket updated successfully');
+            onSaved?.();
+            onSuccess?.();
+          } catch (error) {
+            notifyError(extractErrorMessage(error));
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
       />
 
