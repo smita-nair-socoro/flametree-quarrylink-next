@@ -430,7 +430,7 @@ export default function DocketsTab({
                             className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                             onClick={() => {
                               setUpdateValue(
-                                selectedDocket.actualLoadSize?.toString() ?? '',
+                                (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize)?.toString() ?? '',
                               );
                               setIsUpdateDrawerOpen(true);
                             }}
