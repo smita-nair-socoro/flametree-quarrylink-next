@@ -69,6 +69,8 @@ export function QuarrySupplierTableActions({
             View Details
           </DropdownMenuItem>
 
+          <DropdownMenuSeparator />
+
           {/* Linked Products */}
           <DropdownMenuItem onClick={handleLinkedProducts}>
             <ScanBarcode className="h-4 w-4 mr-2" />

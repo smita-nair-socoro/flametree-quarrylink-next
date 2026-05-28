@@ -5,6 +5,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -63,33 +64,18 @@ export function QuarrySupplierActionButtons({
       {confirmDialogs}
 
       <div className="inline-flex items-center rounded-md overflow-hidden">
-        {/* Delete button - only show when ACTIVE */}
-        {isActive && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={actions.delete}
-            className="h-9 gap-2 rounded-r-none border-r-0 text-destructive hover:text-destructive"
-          >
-            <Archive className="h-4 w-4" />
-            Delete
-          </Button>
-        )}
+        {/* Linked Products - standalone button, always visible */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={actions.linkedProducts}
+          className="h-9 gap-2 rounded-r-none border-r-0"
+        >
+          <ScanBarcode className="h-4 w-4" />
+          Linked Products
+        </Button>
 
-        {/* Unarchive button - only show when ARCHIVED */}
-        {isArchived && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={actions.unarchive}
-            className="h-9 gap-2 rounded-r-none border-r-0 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
-          >
-            <ArchiveRestore className="h-4 w-4" />
-            Unarchive
-          </Button>
-        )}
-
-        {/* More options dropdown */}
+        {/* More options dropdown - Delete or Unarchive inside */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -102,10 +88,28 @@ export function QuarrySupplierActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.linkedProducts}>
-              <ScanBarcode className="h-4 w-4 mr-2" />
-              Linked Products
-            </DropdownMenuItem>
+            {isActive && (
+              <>
+                <DropdownMenuItem
+                  onClick={actions.delete}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Archive className="h-4 w-4 mr-2 text-destructive" />
+                  Delete
+                </DropdownMenuItem>
+              </>
+            )}
+            {isArchived && (
+              <>
+                <DropdownMenuItem
+                  onClick={actions.unarchive}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                  Unarchive
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
