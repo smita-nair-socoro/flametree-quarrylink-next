@@ -666,7 +666,8 @@ export default function DocketsTab({
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {selectedDocket?.actualLoadSize ||
+                {(selectedDocket?.id ? docketSizes[selectedDocket.id] : undefined) ??
+                  selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'
