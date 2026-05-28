@@ -1,10 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Palette } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Checkbox } from '@/components/ui/checkbox';
+import { cn } from '@/lib/utils';
+import { Check, Plus, Palette } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
 
 const STATUS_OPTIONS = [
   'All (Except Unassigned)',
@@ -23,15 +34,9 @@ const DRIVER_OPTIONS = [
   { name: 'Lisa Martinez', rego: 'VIC012' },
 ];
 
-const DRIVER_STATUS_OPTIONS = [
-  'Available',
-  'Busy',
-];
+const DRIVER_STATUS_OPTIONS = ['Available', 'Busy'];
 
-const TRUCK_TYPE_OPTIONS = [
-  'Internal',
-  'External',
-];
+const TRUCK_TYPE_OPTIONS = ['Internal', 'External'];
 
 const HAULIER_OPTIONS = [
   { name: 'HANSON', rego: 'HANSON' },
@@ -48,12 +53,26 @@ const TRUCK_OPTIONS = [
   { name: 'TRUCK5', rego: 'TRUCK5' },
 ];
 
-export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'drivers' | 'trucks', customers?: string[] }) {
-  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>(['All (Except Unassigned)']);
-  const [selectedCustomers, setSelectedCustomers] = React.useState<string[]>([]);
+export function ScheduleFilter({
+  viewType,
+  customers = [],
+}: {
+  viewType: 'drivers' | 'trucks';
+  customers?: string[];
+}) {
+  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([
+    'All (Except Unassigned)',
+  ]);
+  const [selectedCustomers, setSelectedCustomers] = React.useState<string[]>(
+    [],
+  );
   const [selectedDrivers, setSelectedDrivers] = React.useState<string[]>([]);
-  const [selectedDriverStatuses, setSelectedDriverStatuses] = React.useState<string[]>([]);
-  const [selectedTruckType, setSelectedTruckType] = React.useState<string[]>([]);
+  const [selectedDriverStatuses, setSelectedDriverStatuses] = React.useState<
+    string[]
+  >([]);
+  const [selectedTruckType, setSelectedTruckType] = React.useState<string[]>(
+    [],
+  );
   const [selectedHaulier, setSelectedHaulier] = React.useState<string[]>([]);
   const [selectedTrucks, setSelectedTrucks] = React.useState<string[]>([]);
 
@@ -63,19 +82,25 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
   const toggleCustomer = (customer: string) => {
     setSelectedCustomers((prev) =>
-      prev.includes(customer) ? prev.filter((c) => c !== customer) : [...prev, customer]
+      prev.includes(customer)
+        ? prev.filter((c) => c !== customer)
+        : [...prev, customer],
     );
   };
 
   const toggleDriver = (driverName: string) => {
     setSelectedDrivers((prev) =>
-      prev.includes(driverName) ? prev.filter((d) => d !== driverName) : [...prev, driverName]
+      prev.includes(driverName)
+        ? prev.filter((d) => d !== driverName)
+        : [...prev, driverName],
     );
   };
 
   const toggleDriverStatus = (status: string) => {
     setSelectedDriverStatuses((prev) =>
-      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status],
     );
   };
 
@@ -96,16 +121,26 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
       {/* JOBS Section */}
       <div className="border border-gray-200 rounded-lg p-3 flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-gray-500 tracking-wider">JOBS</span>
+          <span className="text-xs font-semibold text-gray-500 tracking-wider">
+            JOBS
+          </span>
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+              <button
+                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+              >
                 <Plus className="w-4 h-4 text-gray-500" />
-                <span className={`font-medium text-gray-700 ${selectedStatuses.length > 0 ? 'mr-1' : ''}`}>Status</span>
+                <span
+                  className={`font-medium text-gray-700 ${selectedStatuses.length > 0 ? 'mr-1' : ''}`}
+                >
+                  Status
+                </span>
                 {selectedStatuses.length > 0 && (
                   <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                    {selectedStatuses.length === 1 ? selectedStatuses[0] : `${selectedStatuses.length} selected`}
+                    {selectedStatuses.length === 1
+                      ? selectedStatuses[0]
+                      : `${selectedStatuses.length} selected`}
                   </span>
                 )}
               </button>
@@ -120,10 +155,16 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                         onSelect={() => toggleStatus(status)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <Checkbox
-                          checked={selectedStatuses.includes(status)}
-                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                        />
+                        <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedStatuses.includes(status)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedStatuses.includes(status) && 'text-white')} />
+                              </div>
                         <span>{status}</span>
                       </CommandItem>
                     ))}
@@ -135,12 +176,20 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
           <Popover>
             <PopoverTrigger asChild>
-              <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedCustomers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+              <button
+                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedCustomers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+              >
                 <Plus className="w-4 h-4 text-gray-500" />
-                <span className={`font-medium text-gray-700 ${selectedCustomers.length > 0 ? 'mr-1' : ''}`}>Customer</span>
+                <span
+                  className={`font-medium text-gray-700 ${selectedCustomers.length > 0 ? 'mr-1' : ''}`}
+                >
+                  Customer
+                </span>
                 {selectedCustomers.length > 0 && (
                   <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                    {selectedCustomers.length === 1 ? selectedCustomers[0] : `${selectedCustomers.length} selected`}
+                    {selectedCustomers.length === 1
+                      ? selectedCustomers[0]
+                      : `${selectedCustomers.length} selected`}
                   </span>
                 )}
               </button>
@@ -149,7 +198,7 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
               <Command>
                 <CommandInput
                   placeholder="Search customers..."
-                  className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                  className="focus-visible:ring-primary focus-within:ring-primary"
                 />
                 <CommandList>
                   <CommandEmpty>No customer found.</CommandEmpty>
@@ -160,10 +209,16 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                         onSelect={() => toggleCustomer(customer)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <Checkbox
-                          checked={selectedCustomers.includes(customer)}
-                          className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                        />
+                        <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedCustomers.includes(customer)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedCustomers.includes(customer) && 'text-white')} />
+                              </div>
                         <span>{customer}</span>
                       </CommandItem>
                     ))}
@@ -179,15 +234,25 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
           <div className="flex items-center gap-3">
             {viewType === 'drivers' && (
               <>
-                <span className="text-xs font-semibold text-gray-500 tracking-wider">DRIVERS</span>
+                <span className="text-xs font-semibold text-gray-500 tracking-wider">
+                  DRIVERS
+                </span>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDriverStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                    <button
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDriverStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
                       <Plus className="w-4 h-4 text-gray-500" />
-                      <span className={`font-medium text-gray-700 ${selectedDriverStatuses.length > 0 ? 'mr-1' : ''}`}>Driver status</span>
+                      <span
+                        className={`font-medium text-gray-700 ${selectedDriverStatuses.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Driver status
+                      </span>
                       {selectedDriverStatuses.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {selectedDriverStatuses.length === 1 ? selectedDriverStatuses[0] : `${selectedDriverStatuses.length} selected`}
+                          {selectedDriverStatuses.length === 1
+                            ? selectedDriverStatuses[0]
+                            : `${selectedDriverStatuses.length} selected`}
                         </span>
                       )}
                     </button>
@@ -202,10 +267,20 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                               onSelect={() => toggleDriverStatus(status)}
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={selectedDriverStatuses.includes(status)}
-                                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                              />
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedDriverStatuses.includes(
+                                  status,
+                                )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedDriverStatuses.includes(
+                                  status,
+                                ) && 'text-white')} />
+                              </div>
                               <span>{status}</span>
                             </CommandItem>
                           ))}
@@ -217,12 +292,20 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                    <button
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
                       <Plus className="w-4 h-4 text-gray-500" />
-                      <span className={`font-medium text-gray-700 ${selectedDrivers.length > 0 ? 'mr-1' : ''}`}>Drivers</span>
+                      <span
+                        className={`font-medium text-gray-700 ${selectedDrivers.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Drivers
+                      </span>
                       {selectedDrivers.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {selectedDrivers.length === 1 ? selectedDrivers[0] : `${selectedDrivers.length} selected`}
+                          {selectedDrivers.length === 1
+                            ? selectedDrivers[0]
+                            : `${selectedDrivers.length} selected`}
                         </span>
                       )}
                     </button>
@@ -231,7 +314,7 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -243,13 +326,25 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedDrivers.includes(driver.name)}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedDrivers.includes(
+                                    driver.name,
+                                  )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedDrivers.includes(
+                                    driver.name,
+                                  ) && 'text-white')} />
+                              </div>
                                 <span>{driver.name}</span>
                               </div>
-                              <span className="text-xs text-gray-500">{driver.rego}</span>
+                              <span className="text-xs text-gray-500">
+                                {driver.rego}
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -262,15 +357,25 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
             {viewType === 'trucks' && (
               <>
-                <span className="text-xs font-semibold text-gray-500 tracking-wider">FLEET</span>
+                <span className="text-xs font-semibold text-gray-500 tracking-wider">
+                  FLEET
+                </span>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDriverStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                    <button
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDriverStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
                       <Plus className="w-4 h-4 text-gray-500" />
-                      <span className={`font-medium text-gray-700 ${selectedTruckType.length > 0 ? 'mr-1' : ''}`}>Truck Type</span>
+                      <span
+                        className={`font-medium text-gray-700 ${selectedTruckType.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Truck Type
+                      </span>
                       {selectedDriverStatuses.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {selectedTruckType.length === 1 ? selectedTruckType[0] : `${selectedTruckType.length} selected`}
+                          {selectedTruckType.length === 1
+                            ? selectedTruckType[0]
+                            : `${selectedTruckType.length} selected`}
                         </span>
                       )}
                     </button>
@@ -285,10 +390,16 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                               onSelect={() => toggleTruckType(status)}
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={selectedTruckType.includes(status)}
-                                className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                              />
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedTruckType.includes(status)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedTruckType.includes(status) && 'text-white')} />
+                              </div>
                               <span>{status}</span>
                             </CommandItem>
                           ))}
@@ -300,12 +411,20 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                    <button
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
                       <Plus className="w-4 h-4 text-gray-500" />
-                      <span className={`font-medium text-gray-700 ${selectedHaulier.length > 0 ? 'mr-1' : ''}`}>Haulier</span>
+                      <span
+                        className={`font-medium text-gray-700 ${selectedHaulier.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Haulier
+                      </span>
                       {selectedDrivers.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {selectedHaulier.length === 1 ? selectedHaulier[0] : `${selectedHaulier.length} selected`}
+                          {selectedHaulier.length === 1
+                            ? selectedHaulier[0]
+                            : `${selectedHaulier.length} selected`}
                         </span>
                       )}
                     </button>
@@ -314,7 +433,7 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -326,13 +445,25 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedHaulier.includes(haulier.name)}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedHaulier.includes(
+                                    haulier.name,
+                                  )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedHaulier.includes(
+                                    haulier.name,
+                                  ) && 'text-white')} />
+                              </div>
                                 <span>{haulier.name}</span>
                               </div>
-                              <span className="text-xs text-gray-500">{haulier.rego}</span>
+                              <span className="text-xs text-gray-500">
+                                {haulier.rego}
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -343,12 +474,20 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}>
+                    <button
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${selectedDrivers.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
                       <Plus className="w-4 h-4 text-gray-500" />
-                      <span className={`font-medium text-gray-700 ${selectedTrucks.length > 0 ? 'mr-1' : ''}`}>Trucks</span>
+                      <span
+                        className={`font-medium text-gray-700 ${selectedTrucks.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Trucks
+                      </span>
                       {selectedTrucks.length > 0 && (
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
-                          {selectedTrucks.length === 1 ? selectedTrucks[0] : `${selectedTrucks.length} selected`}
+                          {selectedTrucks.length === 1
+                            ? selectedTrucks[0]
+                            : `${selectedTrucks.length} selected`}
                         </span>
                       )}
                     </button>
@@ -357,7 +496,7 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-purple-500 focus-within:ring-purple-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>No driver found.</CommandEmpty>
@@ -369,13 +508,21 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={selectedTrucks.includes(truck.name)}
-                                  className="data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  selectedTrucks.includes(truck.name)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', selectedTrucks.includes(truck.name) && 'text-white')} />
+                              </div>
                                 <span>{truck.name}</span>
                               </div>
-                              <span className="text-xs text-gray-500">{truck.rego}</span>
+                              <span className="text-xs text-gray-500">
+                                {truck.rego}
+                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -413,75 +560,110 @@ export function ScheduleFilter({ viewType, customers = [] }: { viewType: 'driver
           <PopoverContent className="w-[420px]" align="end">
             <div className="flex flex-col gap-8">
               <div className="flex flex-col gap-1">
-                <h4 className="text-base font-semibold text-gray-900">Docket status colors</h4>
+                <h4 className="text-base font-semibold text-gray-900">
+                  Docket status colors
+                </h4>
                 <p className="text-sm text-gray-500 leading-relaxed">
-                  Consistent across dispatch board, week, and month. Slot cards use a slightly stronger tint.
+                  Consistent across dispatch board, week, and month. Slot cards
+                  use a slightly stronger tint.
                 </p>
               </div>
 
               <div>
-                <h5 className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-3">Collection & Dispatch</h5>
+                <h5 className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-3">
+                  Collection & Dispatch
+                </h5>
                 <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-gray-300 bg-white overflow-hidden flex flex-col"><div className="h-1.5 w-full border-b border-gray-200" /></div>
+                    <div className="w-8 h-5 rounded border border-gray-300 bg-white overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full border-b border-gray-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Unassigned</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-yellow-200" /></div>
+                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-yellow-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Pending</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-blue-300 bg-blue-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-blue-200" /></div>
+                    <div className="w-8 h-5 rounded border border-blue-300 bg-blue-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-blue-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Preparing</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-pink-300 bg-pink-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-pink-200" /></div>
+                    <div className="w-8 h-5 rounded border border-pink-300 bg-pink-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-pink-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Ready</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-green-300 bg-green-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-green-200" /></div>
+                    <div className="w-8 h-5 rounded border border-green-300 bg-green-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-green-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Collected</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-cyan-300 bg-cyan-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-cyan-200" /></div>
+                    <div className="w-8 h-5 rounded border border-cyan-300 bg-cyan-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-cyan-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Assigned</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-indigo-300 bg-indigo-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-indigo-200" /></div>
+                    <div className="w-8 h-5 rounded border border-indigo-300 bg-indigo-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-indigo-200" />
+                    </div>
                     <span className="text-sm text-gray-700">In transit</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-orange-300 bg-orange-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-orange-200" /></div>
+                    <div className="w-8 h-5 rounded border border-orange-300 bg-orange-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-orange-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Stopped</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-yellow-200" /></div>
+                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-yellow-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Arrived</span>
                   </div>
                 </div>
               </div>
 
               <div>
-                <h5 className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-3">Delivered & Closed</h5>
+                <h5 className="text-xs font-bold text-gray-500 tracking-wider uppercase mb-3">
+                  Delivered & Closed
+                </h5>
                 <div className="grid grid-cols-2 gap-y-3 gap-x-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-green-300 bg-green-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-green-200" /></div>
+                    <div className="w-8 h-5 rounded border border-green-300 bg-green-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-green-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Delivered</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-purple-300 bg-purple-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-purple-200" /></div>
+                    <div className="w-8 h-5 rounded border border-purple-300 bg-purple-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-purple-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Invoiced</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-red-300 bg-red-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-red-200" /></div>
+                    <div className="w-8 h-5 rounded border border-red-300 bg-red-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-red-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Cancelled</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-yellow-200" /></div>
+                    <div className="w-8 h-5 rounded border border-yellow-300 bg-yellow-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-yellow-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Cash sale</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-5 rounded border border-red-300 bg-red-50 overflow-hidden flex flex-col"><div className="h-1.5 w-full bg-red-200" /></div>
+                    <div className="w-8 h-5 rounded border border-red-300 bg-red-50 overflow-hidden flex flex-col">
+                      <div className="h-1.5 w-full bg-red-200" />
+                    </div>
                     <span className="text-sm text-gray-700">Voided</span>
                   </div>
                 </div>

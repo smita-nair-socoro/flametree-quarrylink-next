@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { TriangleAlert } from 'lucide-react';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -84,6 +85,11 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
         (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
           ? 'READY'
           : row.original.docketStatus;
+      if (status === 'INVOICED') {
+        if (row.original.invoiceStatus === 'FAILED') {
+          return <TableBadges names={[status]} visibleCount={1} icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />} />;
+        }
+      }
       return <TableBadges names={[status]} visibleCount={1} />;
     },
     meta: 'Status',
@@ -186,36 +192,36 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     meta: 'Load Size',
   },
-  // {
-  //   id: 'totalInvoice',
-  //   accessorFn: (row) => row.totalInvoice,
-  //   header: ({ column }) => {
-  //     return (
-  //       <TableClientSortableHeader column={column} title="Total Invoice" />
-  //     );
-  //   },
-  //   cell: ({ row }) => {
-  //     const cents = parseFloat(row.original.totalInvoice.toString());
-  //     const dollars = cents / 100;
-  //     const formatted = new Intl.NumberFormat('en-US', {
-  //       style: 'currency',
-  //       currency: 'USD',
-  //     }).format(dollars);
-  //     return (
-  //       <Tooltip delayDuration={300}>
-  //         <TooltipTrigger asChild>
-  //           <div className="py-2 font-medium w-36 max-w-36 truncate">
-  //             {formatted}
-  //           </div>
-  //         </TooltipTrigger>
-  //         <TooltipContent variant="white">
-  //           <p>{formatted}</p>
-  //         </TooltipContent>
-  //       </Tooltip>
-  //     );
-  //   },
-  //   meta: 'Total Invoice',
-  // },
+  {
+    id: 'totalInvoice',
+    accessorFn: (row) => row.totalInvoiceAmount,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Total Invoice" />
+      );
+    },
+    cell: ({ row }) => {
+      const cents = parseFloat(row.original.totalInvoiceAmount.toString());
+      const dollars = cents / 100;
+      const formatted = new Intl.NumberFormat('en-AU', {
+        style: 'currency',
+        currency: 'AUD',
+      }).format(dollars);
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Total Invoice',
+  },
 
   {
     id: 'actions',

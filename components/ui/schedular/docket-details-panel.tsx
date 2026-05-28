@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
@@ -18,6 +20,7 @@ import { useQuery } from '@tanstack/react-query';
 import type { Address } from '@/lib/types/address';
 import { toast } from 'sonner';
 import { calculateConvertedQty } from '@/lib/utils/dispatch-helper';
+import { useDocketActions } from '@/hooks/use-docket-actions';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -62,12 +65,14 @@ interface DocketDetailsPanelProps {
   docketId: number;
   onClose: () => void;
   onUnassign: () => void;
+  isDispatchView?: boolean;
 }
 
 export function DocketDetailsPanel({
   docketId,
   onClose,
   onUnassign,
+  isDispatchView = false,
 }: DocketDetailsPanelProps) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
@@ -78,6 +83,7 @@ export function DocketDetailsPanel({
   const [actualLoadSizeValue, setActualLoadSizeValue] = useState<string>('');
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
+  const { actions, confirmDialogs, viewDialog } = useDocketActions(fullDocket);
 
   useEffect(() => {
     setPlannedLoadSizeValue(
@@ -95,7 +101,11 @@ export function DocketDetailsPanel({
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
 
-    let payload: { plannedLoadSize?: number; actualLoadSize?: number; deliveryDistanceQuantity?: number } = {};
+    let payload: {
+      plannedLoadSize?: number;
+      actualLoadSize?: number;
+      deliveryDistanceQuantity?: number;
+    } = {};
     let val = 0;
 
     if (
@@ -130,7 +140,15 @@ export function DocketDetailsPanel({
 
       if (!needTruckQty) {
         let deliveryDistanceUom = fullDocket.jobItem?.truckSellUom || 'TN';
-        const validUoms = ['KG_20', 'KM', 'LOAD', 'TN', 'BULKA', 'HOURLY', 'M3'];
+        const validUoms = [
+          'KG_20',
+          'KM',
+          'LOAD',
+          'TN',
+          'BULKA',
+          'HOURLY',
+          'M3',
+        ];
         if (!validUoms.includes(deliveryDistanceUom)) {
           const uomMap: Record<string, string> = {
             '20kg': 'KG_20',
@@ -169,9 +187,13 @@ export function DocketDetailsPanel({
 
   if (isLoading || !docket) {
     return (
-      <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full p-4 items-center justify-center">
-        <div className="text-gray-500">Loading docket details...</div>
-      </div>
+      <>
+        {viewDialog}
+        {confirmDialogs}
+        <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full p-4 items-center justify-center">
+          <div className="text-gray-500">Loading docket details...</div>
+        </div>
+      </>
     );
   }
 
@@ -186,6 +208,9 @@ export function DocketDetailsPanel({
   const collectionDay = getCollectionDayForDisplay(docket);
 
   return (
+    <>
+      {viewDialog}
+      {confirmDialogs}
     <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky">
@@ -212,9 +237,13 @@ export function DocketDetailsPanel({
       <div className="p-6 flex-1 flex flex-col gap-6">
         {/* Docket Number & Badge */}
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-gray-900">
+          <button
+            type="button"
+            onClick={() => actions.view(fullDocket)}
+            className="text-2xl font-bold underline cursor-pointer text-primary hover:opacity-80 transition-opacity"
+          >
             {docket.docketNumber || 'No Number'}
-          </h2>
+          </button>
           <TableBadges
             names={[
               docket.docketStatus === 'READY_FOR_COLLECTION'
@@ -317,9 +346,13 @@ export function DocketDetailsPanel({
                           setPlannedLoadSizeValue(inputVal);
                         }
                       }}
-                      disabled={isDocketFinalised || showActualLoadSize}
+                      disabled={!isDispatchView || isDocketFinalised || showActualLoadSize}
+                      isNumber
+                      allowDecimal
+                      maxDecimals={2}
+                      minDecimals={1}
                     />
-                    {!isDocketFinalised && !showActualLoadSize && (
+                    {isDispatchView && !isDocketFinalised && !showActualLoadSize && (
                       <Button
                         variant="default"
                         className="cursor-pointer"
@@ -351,9 +384,13 @@ export function DocketDetailsPanel({
                         }
                         value={actualLoadSizeValue}
                         onChange={(e) => setActualLoadSizeValue(e.target.value)}
-                        disabled={isDocketFinalised}
+                        disabled={!isDispatchView || isDocketFinalised}
+                        isNumber
+                        allowDecimal
+                        maxDecimals={2}
+                        minDecimals={1}
                       />
-                      {!isDocketFinalised && (
+                      {isDispatchView && !isDocketFinalised && (
                         <Button
                           variant="default"
                           className="cursor-pointer"
@@ -698,8 +735,8 @@ export function DocketDetailsPanel({
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
-        {isAssigned && (
+      <div className="p-4 border border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
+        {isDispatchView && isAssigned && (
           <button
             onClick={onUnassign}
             className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -712,5 +749,6 @@ export function DocketDetailsPanel({
         </button>
       </div>
     </div>
+    </>
   );
 }

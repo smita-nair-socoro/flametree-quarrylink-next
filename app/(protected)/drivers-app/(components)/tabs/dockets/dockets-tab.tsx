@@ -379,7 +379,7 @@ export default function DocketsTab({
                       <span className="text-[14px] font-medium text-gray-900">
                         {formatPhoneNumber(
                           selectedDocket.customerContactPhone ||
-                            selectedDocket.job?.contactPersonPhone,
+                          selectedDocket.job?.contactPersonPhone,
                         )}
                       </span>
                     </div>
@@ -416,7 +416,13 @@ export default function DocketsTab({
                             ? 'T'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
-                              : selectedDocket.jobItem?.productSellUom}
+                              : selectedDocket.jobItem?.productSellUom === 'KG_20'
+                                ? 'x 20kg'
+                                : selectedDocket.jobItem?.productSellUom === 'TN'
+                                  ? 'TN'
+                                  : selectedDocket.jobItem?.productSellUom === 'BULKA'
+                                    ? 'Bulka'
+                                    : selectedDocket.jobItem?.productSellUom}
                         </span>
                         {['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) && (
                           <Button
@@ -580,17 +586,17 @@ export default function DocketsTab({
                     </Button>
                   )}
                   {selectedDocket.docketStatus === 'IN_TRANSIT' && (
-                      <Button
-                        variant="outline"
-                        onClick={() => handleAction('stop')}
-                        className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
-                      >
-                        <span className="flex items-center gap-2">
-                          <Pause className="h-4 w-4" />
-                          Stop
-                        </span>
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => handleAction('stop')}
+                      className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                    >
+                      <span className="flex items-center gap-2">
+                        <Pause className="h-4 w-4" />
+                        Stop
+                      </span>
+                    </Button>
+                  )}
                   {selectedDocket.docketStatus === 'STOPPED' && (
                     <Button
                       className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
@@ -624,14 +630,14 @@ export default function DocketsTab({
                   {['ARRIVED', 'DELIVERED', 'ASSIGNED'].includes(
                     selectedDocket.docketStatus,
                   ) && (
-                    <Button
-                      variant="outline"
-                      className="w-full h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
-                      onClick={() => setIsDrawerOpen(false)}
-                    >
-                      Close
-                    </Button>
-                  )}
+                      <Button
+                        variant="outline"
+                        className="w-full h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
+                        onClick={() => setIsDrawerOpen(false)}
+                      >
+                        Close
+                      </Button>
+                    )}
                 </div>
               </div>
             </>

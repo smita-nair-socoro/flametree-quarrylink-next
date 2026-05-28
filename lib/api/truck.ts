@@ -146,6 +146,13 @@ export const TruckInspectionsQueryOptions = (
     enabled: !!truckId,
   });
 
+export const TruckWithDocketsQueryOptions = (truckId: number) =>
+  queryOptions({
+    queryKey: TruckKeys.dockets(truckId),
+    queryFn: () => APIClient.trucks.getDockets(truckId),
+    enabled: !!truckId,
+  });
+
 export const useReactivateTruck = () => {
   const queryClient = useQueryClient();
   return useMutation({

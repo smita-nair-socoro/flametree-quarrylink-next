@@ -71,6 +71,7 @@ import {
   InvoiceDetails,
   RetrySyncResponse,
   InvoiceUrlResponse,
+  JobStatistics,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -861,7 +862,7 @@ export const APIClient = {
       }),
     getAll: async (params?: {
       page?: number;
-      pageSize?: number;
+      size?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
@@ -876,7 +877,7 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
+          size: params?.size?.toString() || '1000',
           search: params?.search,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -884,10 +885,7 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (
-      jobId: number,
-      params?: { page?: number; pageSize?: number },
-    ) => {
+    getByJobId: async (jobId: number) => {
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -895,13 +893,7 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
-        queryString: {
-          page: params?.page?.toString() || '0',
-          size: params?.pageSize?.toString() || '1000',
-          sort: 'id',
-        },
-      });
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
       return response;
     },
     getById: (id: number) => {
@@ -943,9 +935,12 @@ export const APIClient = {
         { body: data },
       ),
     statistics: (date: string) =>
-      appClient.Get<DocketStatistics>(`/socoro/quarrylink/api/dockets/statistics`, {
-        queryString: { date },
-      }),
+      appClient.Get<DocketStatistics>(
+        `/socoro/quarrylink/api/dockets/statistics`,
+        {
+          queryString: { date },
+        },
+      ),
   },
 
   checklists: {
@@ -1079,10 +1074,11 @@ export const APIClient = {
     },
     pause: (
       id: number,
-      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
     ) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
-        body: { pauseStrategy },
+        body: { deliveryPauseStrategy, collectionPauseStrategy },
       }),
     resume: (id: number) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/resume`, {
@@ -1096,6 +1092,8 @@ export const APIClient = {
       appClient.Put<CompleteJobResponse>(
         `/socoro/quarrylink/api/job/${id}/complete`,
       ),
+    statistics: () =>
+      appClient.Get<JobStatistics>(`/socoro/quarrylink/api/job/statistics`),
   },
 
   drivers: {
@@ -1235,6 +1233,8 @@ export const APIClient = {
           },
         },
       ),
+    getDockets: (id: number) =>
+      appClient.Get<TruckDTO>(`/socoro/quarrylink/api/truck/${id}/docket`),
     statistics: () =>
       appClient.Get<TruckStatistics>(`/socoro/quarrylink/api/truck/statistics`),
   },

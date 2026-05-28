@@ -33,6 +33,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { FormSelect } from '@/components/ui/form-select';
+import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 
 interface FormProps {
   id?: number;
@@ -102,6 +103,7 @@ export default function JobForm({
 
   return (
     <div className="w-full relative">
+      <InvoiceDetailsDialog />
       {(isPending || isSyncing) && (
         <div
           className={cn(

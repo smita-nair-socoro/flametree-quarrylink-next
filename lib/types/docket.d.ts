@@ -8,6 +8,7 @@ import { CustomerDTO } from './customer';
 import { TruckDTO } from './truck';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
 import { HaulierDTO } from './haulier';
+import { INVOICE_STATUS } from './invoice-enums';
 
 export interface Docket {
   id: number;
@@ -103,6 +104,7 @@ export interface DocketDTO {
 
   jobItemId: number;
   invoiceId?: number;
+  invoiceStatus?: INVOICE_STATUS;
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
   resumeReason?: string;

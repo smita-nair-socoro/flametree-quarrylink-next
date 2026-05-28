@@ -15,6 +15,7 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,7 +55,8 @@ type ActionType =
   | 'viewInvoice'
   | 'assign'
   | 'backToPending'
-  | 'backToPreparing';
+  | 'backToPreparing'
+  | 'retrySync';
 
 interface ActionItem {
   label: string;
@@ -248,7 +250,16 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
     }
   };
 
-  const currentActions = ACTION_CONFIG[docket.docketStatus] || [];
+  let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
+
+  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
+    currentActions = [{
+      label: 'Retry Sync',
+      icon: RefreshCw,
+      action: 'retrySync',
+      separator: true,
+    }];
+  }
 
   return (
     <div>

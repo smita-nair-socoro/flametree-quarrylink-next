@@ -11,6 +11,7 @@ import {
 import { TableBadges } from '@/components/table-badges';
 import { TruckResource } from '@/lib/types/truck';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { Spinner } from '@/components/ui/spinner';
 
 const TIME_SLOTS = [
   '06:00',
@@ -567,7 +568,7 @@ export default function AssignedDockets({
     : 0;
 
   const maxValidPercentage = React.useMemo(() => {
-    if (!focusDocket || focusLoadSize <= 0) return 0;
+    if (!focusDocket || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') return 0;
     let max = 0;
     for (const truck of trucks) {
       const cap = truck.capacity || 0;
@@ -582,7 +583,7 @@ export default function AssignedDockets({
   }, [trucks, focusDocket, focusLoadSize]);
 
   const sortedTrucks = React.useMemo(() => {
-    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0) {
+    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') {
       return trucks;
     }
 
@@ -592,8 +593,14 @@ export default function AssignedDockets({
       const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
       const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
 
-      const isValidA = pctA > 0 && pctA <= 100;
-      const isValidB = pctB > 0 && pctB <= 100;
+      const isGenericA = pctA === 0 || a.name?.toLowerCase().includes('generic');
+      const isGenericB = pctB === 0 || b.name?.toLowerCase().includes('generic');
+
+      const isValidA = !isGenericA && pctA > 0 && pctA <= 100;
+      const isValidB = !isGenericB && pctB > 0 && pctB <= 100;
+
+      const isExceedA = !isGenericA && pctA > 100;
+      const isExceedB = !isGenericB && pctB > 100;
 
       // 1. Valid fits (<= 100%) come first
       if (isValidA && !isValidB) return -1;
@@ -604,17 +611,15 @@ export default function AssignedDockets({
         return pctB - pctA;
       }
 
-      // 3. 0% capacity trucks go next (before exceeded fits)
-      if (pctA === 0 && pctB !== 0) return 1;
-      if (pctA !== 0 && pctB === 0) return -1;
-      if (pctA === 0 && pctB === 0) return 0;
+      // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
+      if (isGenericA && !isGenericB) return -1;
+      if (!isGenericA && isGenericB) return 1;
+      
+      if (isGenericA && isGenericB) return 0;
 
       // 4. Exceeded fits (> 100%) come last
-      const isExceedA = pctA > 100;
-      const isExceedB = pctB > 100;
-
-      if (isExceedA && !isExceedB) return 1;
-      if (!isExceedA && isExceedB) return -1;
+      if (isExceedA && !isExceedB) return -1;
+      if (!isExceedA && isExceedB) return 1;
 
       // 5. If both exceed, sort ascending (least exceeded first)
       if (isExceedA && isExceedB) {
@@ -639,7 +644,7 @@ export default function AssignedDockets({
       maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
 
     let utilisationNode = null;
-    if (focusDocket && viewType === 'trucks') {
+    if (focusDocket && viewType === 'trucks' && focusDocket.docketStatus === 'UNASSIGNED') {
       const cap = truck.capacity || 0;
       const pct = cap > 0 ? (focusLoadSize / cap) * 100 : 0;
       const displayPct = Math.round(pct);
@@ -822,8 +827,9 @@ export default function AssignedDockets({
         {/* Scrollable Time Slots */}
         <div className="flex-1 overflow-auto relative bg-white">
           {isLoading && (
-            <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-20">
-              <div className="text-sm text-gray-500">
+            <div className="absolute inset-0 bg-white/50 flex flex-col items-center justify-center gap-2 z-20">
+              <Spinner size="medium" />
+              <div className="text-sm text-gray-500 font-medium">
                 Loading assignments...
               </div>
             </div>

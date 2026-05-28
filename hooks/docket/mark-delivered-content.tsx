@@ -30,12 +30,20 @@ export function MarkDeliveredDescription({
         <span className="font-medium text-[#111827]">
           {docket?.docketNumber ?? '—'}
         </span>
-        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+        <div className="flex items-center gap-2 text-sm text-[#6A7282]">
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+            {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>

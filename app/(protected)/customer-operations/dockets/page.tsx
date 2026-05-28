@@ -8,7 +8,6 @@ import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery } from '@tanstack/react-query';
 import {
-  DocketsByJobIdQueryOptions,
   DocketsListQueryOptions,
   DocketStatisticsQueryOptions,
 } from '@/lib/api/docket';
@@ -22,6 +21,7 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { docketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
+import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function DocketsPage() {
@@ -35,10 +35,12 @@ export default function DocketsPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
 
-  const { data: statistics, isLoading: isStatisticsLoading } = useQuery(DocketStatisticsQueryOptions());
+  const { data: statistics, isLoading: isStatisticsLoading } = useQuery(
+    DocketStatisticsQueryOptions(),
+  );
 
-  const [pageIndex, setPageIndex] = React.useState(0);
-  const [pageSize, setPageSize] = React.useState(10);
+  // const [pageIndex, setPageIndex] = React.useState(0);
+  // const [pageSize, setPageSize] = React.useState(10);
 
   const {
     data: allDockets,
@@ -46,24 +48,15 @@ export default function DocketsPage() {
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
+    // ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
+    ...DocketsListQueryOptions(),
     enabled: !linkedJobId,
   });
 
-  const {
-    data: linkedDockets,
-    isLoading: isLinkedDocketsLoading,
-    error: linkedDocketsError,
-    isError: isLinkedDocketsError,
-  } = useQuery({
-    ...DocketsByJobIdQueryOptions(linkedJobId ?? 0, { page: pageIndex, pageSize }),
-    enabled: !!linkedJobId,
-  });
-
-  const dockets = linkedJobId ? linkedDockets : allDockets;
-  const isLoading = linkedJobId ? isLinkedDocketsLoading : isAllDocketsLoading;
-  const isError = linkedJobId ? isLinkedDocketsError : isAllDocketsError;
-  const error = linkedJobId ? linkedDocketsError : allDocketsError;
+  const dockets = allDockets;
+  const isLoading = isAllDocketsLoading;
+  const isError = isAllDocketsError;
+  const error = allDocketsError;
 
   const items: DocketDTO[] = React.useMemo(() => {
     const list: DocketDTO[] = Array.isArray(dockets)
@@ -75,8 +68,8 @@ export default function DocketsPage() {
   }, [dockets]);
 
   // If not using client-side pagination, grab pagination info from backend payload
-  const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
-  const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
+  // const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
+  // const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
 
   const statsCards: StatsCardData[] = [
     {
@@ -92,11 +85,17 @@ export default function DocketsPage() {
       title: 'Unassigned Dockets',
       title2: '(Next 7 Days)',
       value: statistics?.unassignedDocketsNext7Days ?? 0,
-      description: (statistics?.unassignedDocketsNext7Days ?? 0) > 0 ? 'Need attention' : '',
+      description:
+        (statistics?.unassignedDocketsNext7Days ?? 0) > 0
+          ? 'Need attention'
+          : '',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#0A0A0AB2]',
-      descriptionColor: (statistics?.unassignedDocketsNext7Days ?? 0) > 0 ? 'text-[#E7000B]' : 'text-[#737373]',
+      descriptionColor:
+        (statistics?.unassignedDocketsNext7Days ?? 0) > 0
+          ? 'text-[#E7000B]'
+          : 'text-[#737373]',
     },
     {
       title: 'Value of Uninvoiced Dockets',
@@ -156,6 +155,7 @@ export default function DocketsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
+      <InvoiceDetailsDialog />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Dockets</h1>
@@ -172,7 +172,12 @@ export default function DocketsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} isLoading={isStatisticsLoading} />
+      <StatsCards
+        cards={statsCards}
+        mobileGridCols={1}
+        desktopGridCols={4}
+        isLoading={isStatisticsLoading}
+      />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
@@ -193,7 +198,10 @@ export default function DocketsPage() {
                 <div className="mt-1 text-sm text-muted-foreground">
                   {docketIdsSet ? (
                     <span>
-                      Showing {docketIdsSet.size === 1 ? 'a selected docket' : `${docketIdsSet.size} selected dockets`}
+                      Showing{' '}
+                      {docketIdsSet.size === 1
+                        ? 'a selected docket'
+                        : `${docketIdsSet.size} selected dockets`}
                     </span>
                   ) : linkedJobNumberParam ? (
                     <>
@@ -232,14 +240,14 @@ export default function DocketsPage() {
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
                   defaultSorting={[{ id: 'docketNumber', desc: false }]}
-                  totalElements={totalElements}
-                  totalPages={totalPages}
-                  externalPageIndex={pageIndex}
-                  externalPageSize={pageSize}
-                  onPaginationChange={(newPage, newSize) => {
-                    setPageIndex(newPage);
-                    setPageSize(newSize);
-                  }}
+                // totalElements={totalElements}
+                // totalPages={totalPages}
+                // externalPageIndex={pageIndex}
+                // externalPageSize={pageSize}
+                // onPaginationChange={(newPage, newSize) => {
+                //   setPageIndex(newPage);
+                //   setPageSize(newSize);
+                // }}
                 />
               );
             })()}
