@@ -15,6 +15,7 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  Copy,
   RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -292,6 +293,12 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
               </DropdownMenuItem>
             </React.Fragment>
           ))}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleAction('duplicate')}>
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

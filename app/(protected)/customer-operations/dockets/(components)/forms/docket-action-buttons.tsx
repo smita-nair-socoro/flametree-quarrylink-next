@@ -22,6 +22,7 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  Copy,
   RefreshCw,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
@@ -66,7 +67,7 @@ interface ActionItem {
 
 const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PENDING]: [
-    { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing' },
+    { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -75,9 +76,10 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.PREPARING]: [
-    { label: 'Mark Ready', icon: Check, action: 'markReady' },
+    { label: 'Mark Ready', icon: Check, action: 'markReady', separator: true },
     { label: 'Back to Pending', icon: Undo2, action: 'backToPending' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -87,9 +89,11 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
+
   ],
   [DOCKET_STATUS.READY]: [
-    { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected' },
+    { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected', separator: true },
     { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -99,19 +103,23 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale' },
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Invoice', icon: Receipt, action: 'invoice' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
-    { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts' },
+    { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.INVOICED]: [
-    { label: 'View Invoice', icon: Receipt, action: 'viewInvoice' },
+    { label: 'View Invoice', icon: Receipt, action: 'viewInvoice', separator: true },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
-    { label: 'Assign', icon: UserRoundPlus, action: 'assign' },
+    { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -120,9 +128,10 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.ASSIGNED]: [
-    { label: 'Start Transit', icon: CirclePlay, action: 'startTransit' },
+    { label: 'Start Transit', icon: CirclePlay, action: 'startTransit', separator: true },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -132,13 +141,15 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.IN_TRANSIT]: [
-    { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived' },
+    { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived', separator: true },
     { label: 'Stop', icon: Square, action: 'stop', className: 'text-red-600' },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.STOPPED]: [
-    { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit' },
+    { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit', separator: true },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -148,9 +159,10 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.ARRIVED]: [
-    { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered' },
+    { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -159,9 +171,10 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.DELIVERED]: [
-    { label: 'Invoice', icon: Receipt, action: 'invoice' },
+    { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -170,6 +183,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       className: 'text-red-600',
       separator: true,
     },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
 };
 
@@ -203,7 +217,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
   const secondaryActions = currentActions.slice(1);
 
   return (
-    <div className="flex items-start">
+    <div>
       {confirmDialogs}
       {viewDialog}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
@@ -217,34 +231,32 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
           {primaryAction.label}
         </Button>
 
-        {secondaryActions.length > 0 && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {secondaryActions.map((item, index) => (
-                <React.Fragment key={`${item.label}-${index}`}>
-                  {item.separator && <DropdownMenuSeparator />}
-                  <DropdownMenuItem
-                    onSelect={() => actions[item.action]?.()}
-                    className={item.className}
-                  >
-                    <item.icon
-                      className={`h-4 w-4 mr-2 ${item.className || ''}`}
-                    />
-                    {item.label}
-                  </DropdownMenuItem>
-                </React.Fragment>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {secondaryActions.map((item, index) => (
+              <React.Fragment key={`${item.label}-${index}`}>
+                {item.separator && <DropdownMenuSeparator />}
+                <DropdownMenuItem
+                  onSelect={() => actions[item.action]?.()}
+                  className={item.className}
+                >
+                  <item.icon
+                    className={`h-4 w-4 mr-2 ${item.className || ''}`}
+                  />
+                  {item.label}
+                </DropdownMenuItem>
+              </React.Fragment>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </div>
   );
