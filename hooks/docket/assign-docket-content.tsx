@@ -18,7 +18,7 @@ import {
 import { useClientStore } from '@/app/stores/client-store';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
 import { ConflictingDocket } from '@/lib/types/docket';
-import { calculateConvertedQty } from '@/lib/utils/docket-helper';
+import { calculateConvertedQty, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
 import { appendUtcSuffix } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
@@ -52,6 +52,7 @@ interface AssignDocketContentProps extends AssignDocketFormState {
   onTruckChange: (value: number) => void;
   onDriverChange: (value: number) => void;
   onClose?: () => void;
+  onExceedsCapacity?: (exceeds: boolean) => void;
 }
 
 type TruckStatusConfig = {
@@ -201,6 +202,7 @@ export function AssignDocketContent({
   onTruckChange,
   onDriverChange,
   onClose,
+  onExceedsCapacity,
 }: AssignDocketContentProps) {
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
   const { data: haulierTrucksData } = useQuery(
@@ -367,6 +369,10 @@ export function AssignDocketContent({
   const exceedsLimit =
     truckColorOptions.find((o) => o.value === truckSelection)?.badge ===
     'Exceeds limit';
+
+  React.useEffect(() => {
+    onExceedsCapacity?.(exceedsLimit);
+  }, [exceedsLimit, onExceedsCapacity]);
 
   return (
     <div className="flex flex-col gap-4">

@@ -141,11 +141,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [assignDriver, setAssignDriver] = React.useState<number | undefined>(
     undefined,
   );
+  const [assignExceedsCapacity, setAssignExceedsCapacity] = React.useState(false);
 
   const resetAssignState = React.useCallback(() => {
     setAssignHauler(undefined);
     setAssignTruck(undefined);
     setAssignDriver(undefined);
+    setAssignExceedsCapacity(false);
   }, []);
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
@@ -488,7 +490,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     receiverSignature,
   ]);
 
-  const isAssignFormValid = Boolean(assignTruck && assignDriver);
+  const isAssignFormValid = Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -505,6 +507,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             onTruckChange={setAssignTruck}
             onDriverChange={setAssignDriver}
             onClose={() => { setActiveDialog(null); setViewOpen(false); }}
+            onExceedsCapacity={setAssignExceedsCapacity}
           />
         ),
         confirmText: 'Assign docket',
@@ -660,6 +663,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       assignHauler,
       assignTruck,
       assignDriver,
+      assignExceedsCapacity,
     ],
   );
 

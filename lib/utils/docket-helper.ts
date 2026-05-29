@@ -27,6 +27,14 @@ export const calculateConvertedQty = (
   return quantityInTn;
 };
 
+export function convertTruckVolumeToProductUom(
+  tankVolumeM3: number,
+  productUom: string,
+  density: number = 1,
+): number {
+  return Math.round(calculateConvertedQty(tankVolumeM3, 'M3', productUom, density) * 100) / 100;
+}
+
 export function getDeliveryDistanceQuantity({
   isCollection,
   needTruckQty,
