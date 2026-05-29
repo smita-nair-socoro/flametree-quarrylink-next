@@ -5,12 +5,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Archive,
-  ArchiveRestore,
   MoreHorizontal,
   ScanBarcode,
 } from 'lucide-react';
@@ -56,9 +54,6 @@ export function QuarrySupplierActionButtons({
     return null;
   }
 
-  const isActive = quarrySupplier.status === 'ACTIVE';
-  const isArchived = quarrySupplier.status === 'ARCHIVED';
-
   return (
     <div>
       {confirmDialogs}
@@ -75,7 +70,7 @@ export function QuarrySupplierActionButtons({
           Linked Products
         </Button>
 
-        {/* More options dropdown - Delete or Unarchive inside */}
+        {/* More options dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -88,28 +83,13 @@ export function QuarrySupplierActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            {isActive && (
-              <>
-                <DropdownMenuItem
-                  onClick={actions.delete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Archive className="h-4 w-4 mr-2 text-destructive" />
-                  Delete
-                </DropdownMenuItem>
-              </>
-            )}
-            {isArchived && (
-              <>
-                <DropdownMenuItem
-                  onClick={actions.unarchive}
-                  className="text-green-600 focus:text-green-600"
-                >
-                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-                  Unarchive
-                </DropdownMenuItem>
-              </>
-            )}
+            <DropdownMenuItem
+              onClick={actions.delete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Archive className="h-4 w-4 mr-2 text-destructive" />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
