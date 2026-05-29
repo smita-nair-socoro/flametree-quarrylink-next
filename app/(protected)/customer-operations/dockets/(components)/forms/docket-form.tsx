@@ -286,6 +286,96 @@ export default function DocketForm({
     );
   }, [isEditing, selectedDocket]);
 
+  const arrivalDeliveryBanner = React.useMemo(() => {
+    if (!isEditing || !selectedDocket) return null;
+    const status = selectedDocket.docketStatus;
+
+    const formatEventTime = (isoString: string) => {
+      try {
+        const date = new Date(isoString);
+        const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+        return isToday ? `${format(date, 'hh:mm a')} Today` : format(date, 'hh:mm a, d MMM');
+      } catch {
+        return '—';
+      }
+    };
+
+    if (status === DOCKET_STATUS.ARRIVED && selectedDocket.arrivedAt) {
+      return (
+        <div className="flex flex-col gap-2 mb-2">
+          <span className="text-sm text-[#713F12] underline">
+            Arrived at: {formatEventTime(selectedDocket.arrivedAt)}
+          </span>
+          {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
+            <a
+              href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+            >
+              Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
+            </a>
+          )}
+        </div>
+      );
+    }
+
+    if (
+      (status === DOCKET_STATUS.DELIVERED || status === DOCKET_STATUS.INVOICED) &&
+      selectedDocket.deliveredAt
+    ) {
+      let timeOnSite: string | null = null;
+      if (selectedDocket.arrivedAt) {
+        const diff = Math.floor(
+          (new Date(selectedDocket.deliveredAt).getTime() - new Date(selectedDocket.arrivedAt).getTime()) / 1000,
+        );
+        if (diff >= 0) {
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          const s = diff % 60;
+          timeOnSite = [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+        }
+      }
+
+      return (
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-[#14532D] underline">
+              Delivered at: {formatEventTime(selectedDocket.deliveredAt)}
+            </span>
+            {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
+              <a
+                href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+              >
+                Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
+              </a>
+            )}
+          </div>
+          {timeOnSite && (
+            <div className="flex flex-col items-center justify-center border-2 border-[#65A30D] bg-[#F9FFEB] rounded-lg px-[14px] py-[3px] min-w-[130px] shrink-0 self-stretch">
+              <span className="text-[10px] font-bold text-[#65A30D] tracking-wider uppercase">
+                Time on Site
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[20px] font-bold text-[#365314] tabular-nums">
+                  {timeOnSite}
+                </span>
+                <div className="bg-[#65A30D]/50 p-0.5 rounded-full flex items-center justify-center">
+                  <span className="w-[9px] h-[9px] rounded-full bg-[#365314] inline-block" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return null;
+  }, [isEditing, selectedDocket]);
+
   async function handleReadOnlyUpdate(
     values: z.infer<typeof DocketFormSchema>,
   ) {
@@ -757,6 +847,7 @@ export default function DocketForm({
             onSubmit={docketForm.handleSubmit(onSubmit, scrollToFirstError)}
           >
             {statusBanner}
+            {arrivalDeliveryBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
               <div className="border rounded-md p-4 flex flex-col gap-8">
                 <div className="items-center flex gap-2">

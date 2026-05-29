@@ -95,6 +95,11 @@ export function ActionDialog({
           padding ? `${padding}` : 'p-[24.62px] gap-6',
         )}
         style={{ scrollbarGutter: 'auto' }}
+        onEscapeKeyDown={(event) => {
+          if (isAnyDropdownOpen()) {
+            event.preventDefault();
+          }
+        }}
         onInteractOutside={(event) => {
           if (preventOutsideClose || isAnyDropdownOpen()) {
             event.preventDefault();
