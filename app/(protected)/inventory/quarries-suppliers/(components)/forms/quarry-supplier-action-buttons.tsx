@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Archive,
+  Trash2,
   MoreHorizontal,
   ScanBarcode,
 } from 'lucide-react';
@@ -62,7 +62,6 @@ export function QuarrySupplierActionButtons({
         {/* Linked Products - standalone button, always visible */}
         <Button
           variant="outline"
-          size="sm"
           onClick={actions.linkedProducts}
           className="h-9 gap-2 rounded-r-none border-r-0"
         >
@@ -75,7 +74,6 @@ export function QuarrySupplierActionButtons({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
               className="h-9 w-9 p-0 rounded-l-none"
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -87,7 +85,7 @@ export function QuarrySupplierActionButtons({
               onClick={actions.delete}
               className="text-destructive focus:text-destructive"
             >
-              <Archive className="h-4 w-4 mr-2 text-destructive" />
+              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
