@@ -420,7 +420,6 @@ export default function DocketForm({
 
     try {
       setIsSubmitting(true);
-      console.log(windowFieldsChanged);
       const result = await operationalUpdateDocket.mutateAsync({
         id: selectedDocket!.id,
         data: {
