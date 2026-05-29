@@ -133,13 +133,18 @@ export default function DocketForm({
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
-  const [adjustedAlert, setAdjustedAlert] = React.useState<{ amount: number; uom: string } | null>(null);
+  const [adjustedAlert, setAdjustedAlert] = React.useState<{
+    amount: number;
+    uom: string;
+  } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
-  const pendingAssignedPayloadRef = React.useRef<Parameters<typeof operationalUpdateDocket.mutateAsync>[0] | null>(null);
+  const pendingAssignedPayloadRef = React.useRef<
+    Parameters<typeof operationalUpdateDocket.mutateAsync>[0] | null
+  >(null);
   const {
     docketForm,
     isEditing,
@@ -199,24 +204,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-      currentStatus === DOCKET_STATUS.ASSIGNED ||
-      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.STOPPED ||
-      currentStatus === DOCKET_STATUS.ARRIVED
+        currentStatus === DOCKET_STATUS.ASSIGNED ||
+        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.STOPPED ||
+        currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-      currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY);
+        currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.ARRIVED ||
-      currentStatus === DOCKET_STATUS.DELIVERED ||
-      currentStatus === DOCKET_STATUS.STOPPED
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED ||
+        currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY ||
-      currentStatus === DOCKET_STATUS.COLLECTED);
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -281,165 +286,175 @@ export default function DocketForm({
     );
   }, [isEditing, selectedDocket]);
 
-  async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
-    if (isReadOnly) {
-      if (isEditing && (canActualLoadSize || canEditDocketEmail)) {
-        const actualLoadSize = values.actualLoadSize;
-        const docketEmails = values.docketEmail
-          ? values.docketEmail.split(',').map((e) => e.trim())
-          : [];
-        const payload: DocketOperationalUpdateRequest = {
-          checkWindowTimeConflict: false,
-        };
-        if (canEditDocketEmail) {
-          payload.docketEmailRecipients = docketEmails;
-        }
-        if (canActualLoadSize) {
-          if (!actualLoadSize) {
-            notifyError('Actual load size is required');
-            return;
-          }
-          payload.actualLoadSize = actualLoadSize;
+  async function handleReadOnlyUpdate(
+    values: z.infer<typeof DocketFormSchema>,
+  ) {
+    if (!isEditing || (!canActualLoadSize && !canEditDocketEmail)) return;
 
-          const lineItemDetails = selectedJobLineItemDetails();
-          const isCollection = lineItemDetails.type === 'COLLECTION';
+    const actualLoadSize = values.actualLoadSize;
+    const docketEmails = values.docketEmail
+      ? values.docketEmail.split(',').map((e) => e.trim())
+      : [];
+    const payload: DocketOperationalUpdateRequest = {
+      checkWindowTimeConflict: false,
+    };
 
-          const { quantity } = getDeliveryDistanceQuantity({
-            isCollection,
-            needTruckQty: lineItemDetails.needTruckQty,
-            truckQty: values.truckQty,
-            loadSize: actualLoadSize,
-            productUom: lineItemDetails.productUom,
-            truckUom: lineItemDetails.truckUom,
-            density: productDetails?.densityTonnagePerM3 || 1,
-          });
-
-          if (!isCollection) {
-            payload.deliveryDistanceQuantity = quantity;
-          }
-        }
-        try {
-          setIsSubmitting(true);
-          await operationalUpdateDocket.mutateAsync({
-            id: selectedDocket?.id ?? 0,
-            data: payload,
-          });
-          notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
-          return;
-        } catch (error) {
-          console.error('Error updating docket:', error);
-          notifyError(extractErrorMessage(error));
-          return;
-        } finally {
-          setIsSubmitting(false);
-        }
-      }
-      return;
+    if (canEditDocketEmail) {
+      payload.docketEmailRecipients = docketEmails;
     }
-
-    if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
-      let startDateTime = values.deliveryCollectionStartTime;
-      let endDateTime = values.deliveryCollectionEndTime;
-      if (values.deliveryCollectionDate) {
-        if (
-          values.deliveryCollectionStartTime &&
-          !values.deliveryCollectionStartTime.includes('T')
-        ) {
-          startDateTime =
-            combineDateAndTime(
-              values.deliveryCollectionDate,
-              values.deliveryCollectionStartTime,
-            ) ?? startDateTime;
-        }
-        if (
-          values.deliveryCollectionEndTime &&
-          !values.deliveryCollectionEndTime.includes('T')
-        ) {
-          endDateTime =
-            combineDateAndTime(
-              values.deliveryCollectionDate,
-              values.deliveryCollectionEndTime,
-            ) ?? endDateTime;
-        }
+    if (canActualLoadSize) {
+      if (!actualLoadSize) {
+        notifyError('Actual load size is required');
+        return;
       }
-      const additionalEmails = values.docketEmail
-        ? values.docketEmail.split(',').map((e) => e.trim())
-        : [];
-      const docketEmailRecipients = Array.from(
-        new Set(
-          [selectedJob.customerEmail, ...additionalEmails].filter(Boolean),
-        ),
-      );
-
+      payload.actualLoadSize = actualLoadSize;
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
+      const { quantity } = getDeliveryDistanceQuantity({
+        isCollection,
+        needTruckQty: lineItemDetails.needTruckQty,
+        truckQty: values.truckQty,
+        loadSize: actualLoadSize,
+        productUom: lineItemDetails.productUom,
+        truckUom: lineItemDetails.truckUom,
+        density: productDetails?.densityTonnagePerM3 || 1,
+      });
+      if (!isCollection) payload.deliveryDistanceQuantity = quantity;
+    }
 
-      const { quantity: deliveryDistanceQuantity } =
-        getDeliveryDistanceQuantity({
-          isCollection,
-          needTruckQty: lineItemDetails.needTruckQty,
-          truckQty: values.truckQty,
-          loadSize: values.plannedLoadSize || 0,
-          productUom: lineItemDetails.productUom,
-          truckUom: lineItemDetails.truckUom,
-          density: productDetails?.densityTonnagePerM3 || 1,
-        });
+    try {
+      setIsSubmitting(true);
+      await operationalUpdateDocket.mutateAsync({
+        id: selectedDocket?.id ?? 0,
+        data: payload,
+      });
+      notifySuccess('Docket updated successfully');
+      onSaved?.();
+      onSuccess?.();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-      const assignedPayload = {
-        checkWindowTimeConflict: true,
+  async function handleAssignedUpdate(
+    values: z.infer<typeof DocketFormSchema>,
+  ) {
+    let startDateTime = values.deliveryCollectionStartTime;
+    let endDateTime = values.deliveryCollectionEndTime;
+    if (values.deliveryCollectionDate) {
+      if (
+        values.deliveryCollectionStartTime &&
+        !values.deliveryCollectionStartTime.includes('T')
+      ) {
+        startDateTime =
+          combineDateAndTime(
+            values.deliveryCollectionDate,
+            values.deliveryCollectionStartTime,
+          ) ?? startDateTime;
+      }
+      if (
+        values.deliveryCollectionEndTime &&
+        !values.deliveryCollectionEndTime.includes('T')
+      ) {
+        endDateTime =
+          combineDateAndTime(
+            values.deliveryCollectionDate,
+            values.deliveryCollectionEndTime,
+          ) ?? endDateTime;
+      }
+    }
+
+    const additionalEmails = values.docketEmail
+      ? values.docketEmail.split(',').map((e) => e.trim())
+      : [];
+    const docketEmailRecipients = Array.from(
+      new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+    );
+
+    const lineItemDetails = selectedJobLineItemDetails();
+    const isCollection = lineItemDetails.type === 'COLLECTION';
+    const { quantity: deliveryDistanceQuantity } = getDeliveryDistanceQuantity({
+      isCollection,
+      needTruckQty: lineItemDetails.needTruckQty,
+      truckQty: values.truckQty,
+      loadSize: values.plannedLoadSize || 0,
+      productUom: lineItemDetails.productUom,
+      truckUom: lineItemDetails.truckUom,
+      density: productDetails?.densityTonnagePerM3 || 1,
+    });
+
+    const { dirtyFields } = docketForm.formState;
+    const windowFieldsChanged =
+      !!dirtyFields.deliveryCollectionStartTime ||
+      !!dirtyFields.deliveryCollectionEndTime ||
+      !!dirtyFields.deliveryCollectionDate;
+
+    pendingAssignedPayloadRef.current = {
+      id: selectedDocket!.id,
+      data: {
+        checkWindowTimeConflict: false,
         deliveryCollectionDate: values.deliveryCollectionDate
           ? appendUtcSuffix(
-            format(
-              values.deliveryCollectionDate,
-              "yyyy-MM-dd'T'00:00:00.000",
-            ),
-          )
+              format(
+                values.deliveryCollectionDate,
+                "yyyy-MM-dd'T'00:00:00.000",
+              ),
+            )
           : undefined,
-        deliveryCollectionStartTime: startDateTime
+        deliveryStartWindow: startDateTime
           ? appendUtcSuffix(startDateTime)
           : undefined,
-        deliveryCollectionEndTime: endDateTime
+        deliveryEndWindow: endDateTime
           ? appendUtcSuffix(endDateTime)
           : undefined,
         plannedLoadSize: values.plannedLoadSize,
         actualLoadSize: values.plannedLoadSize,
         docketEmailRecipients,
-        truckId: selectedDocket.truckId,
-        driverId: selectedDocket.driverId,
+        truckId: selectedDocket!.truckId,
+        driverId: selectedDocket!.driverId,
         deliveryDistanceQuantity,
-      };
+      },
+    };
 
-      try {
-        setIsSubmitting(true);
-        const result = await operationalUpdateDocket.mutateAsync({
-          id: selectedDocket.id,
-          data: assignedPayload,
-        });
-        if (
-          result.conflictingDocketIds &&
-          result.conflictingDocketIds.length > 0
-        ) {
-          pendingAssignedPayloadRef.current = {
-            id: selectedDocket.id,
-            data: { ...assignedPayload, checkWindowTimeConflict: false },
-          };
-          setConflictingDocketIds(result.conflictingDocketIds);
-          setTimeConflictOpen(true);
-        } else {
-          notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
-        }
-      } catch (error) {
-        notifyError(extractErrorMessage(error));
-      } finally {
-        setIsSubmitting(false);
+    try {
+      setIsSubmitting(true);
+      const result = await operationalUpdateDocket.mutateAsync({
+        id: selectedDocket!.id,
+        data: {
+          ...pendingAssignedPayloadRef.current.data,
+          checkWindowTimeConflict: windowFieldsChanged,
+        },
+      });
+      if (
+        result.conflictingDocketIds &&
+        result.conflictingDocketIds.length > 0
+      ) {
+        setConflictingDocketIds(result.conflictingDocketIds);
+        setTimeConflictOpen(true);
+      } else {
+        pendingAssignedPayloadRef.current = null;
+        notifySuccess('Docket updated successfully');
+        onSaved?.();
+        onSuccess?.();
       }
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
+    if (isReadOnly) {
+      await handleReadOnlyUpdate(values);
       return;
     }
-
+    if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
+      await handleAssignedUpdate(values);
+      return;
+    }
     await doSave(values);
   }
 
@@ -454,18 +469,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-          currentStatus !== DOCKET_STATUS.ASSIGNED &&
-          currentStatus !== DOCKET_STATUS.PENDING
+        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+        currentStatus !== DOCKET_STATUS.ASSIGNED &&
+        currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -551,18 +566,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -670,16 +685,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                    <>
-                      {' '}
-                      ·{' '}
-                      {formatNumberThousandSeparator(
-                        selectedDocket?.actualLoadSize ??
+                  <>
+                    {' '}
+                    ·{' '}
+                    {formatNumberThousandSeparator(
+                      selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                      )}{' '}
-                      {selectedDocket?.jobItem?.productSellUom}
-                    </>
-                  )}
+                    )}{' '}
+                    {selectedDocket?.jobItem?.productSellUom}
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -943,11 +958,19 @@ export default function DocketForm({
                                       onChange={(e) => {
                                         const maxLimit = details.remainingQty;
                                         const val = parseFloat(e.target.value);
-                                        const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
+                                        const uomText =
+                                          details.productUom === '20kg'
+                                            ? 'x 20kg'
+                                            : details.productUom === 'm3'
+                                              ? 'm³'
+                                              : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
-                                          setAdjustedAlert({ amount: maxLimit, uom: uomText });
+                                          setAdjustedAlert({
+                                            amount: maxLimit,
+                                            uom: uomText,
+                                          });
                                         } else {
                                           field.onChange(e);
                                           setAdjustedAlert(null);
@@ -964,7 +987,8 @@ export default function DocketForm({
                                         !canEditPlannedLoadSize ||
                                         (!isEditing &&
                                           !!docketForm.watch('jobLineItemId') &&
-                                          selectedJobLineItemDetails().remainingQty <= 0)
+                                          selectedJobLineItemDetails()
+                                            .remainingQty <= 0)
                                       }
                                     />
                                   </FormControl>
@@ -987,11 +1011,19 @@ export default function DocketForm({
                                       onChange={(e) => {
                                         const maxLimit = details.remainingQty;
                                         const val = parseFloat(e.target.value);
-                                        const uomText = details.productUom === '20kg' ? 'x 20kg' : details.productUom === 'm3' ? 'm³' : (details.productUom || '');
+                                        const uomText =
+                                          details.productUom === '20kg'
+                                            ? 'x 20kg'
+                                            : details.productUom === 'm3'
+                                              ? 'm³'
+                                              : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
-                                          setAdjustedAlert({ amount: maxLimit, uom: uomText });
+                                          setAdjustedAlert({
+                                            amount: maxLimit,
+                                            uom: uomText,
+                                          });
                                         } else {
                                           field.onChange(e);
                                           setAdjustedAlert(null);
@@ -1039,7 +1071,9 @@ export default function DocketForm({
                         <span>Quantity Adjusted</span>
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
-                        Only {adjustedAlert.amount} {adjustedAlert.uom} available. Quantity has been adjusted to {adjustedAlert.amount} {adjustedAlert.uom}.
+                        Only {adjustedAlert.amount} {adjustedAlert.uom}{' '}
+                        available. Quantity has been adjusted to{' '}
+                        {adjustedAlert.amount} {adjustedAlert.uom}.
                       </div>
                     </div>
                   )}
@@ -1079,12 +1113,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                            (isEditing &&
+                              (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                              ? docketForm.watch('actualLoadSize') || 0
-                              : docketForm.watch('plannedLoadSize') || 0),
+                                ? docketForm.watch('actualLoadSize') || 0
+                                : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1448,14 +1482,15 @@ export default function DocketForm({
                               Pre-Start Checklist
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.driverChecklist
-                                .checklistStatus === 'PASS'
-                                ? 'text-green-600'
-                                : selectedDocket.driverChecklist
-                                  .checklistStatus === 'FAIL'
-                                  ? 'text-red-600'
-                                  : 'text-muted-foreground'
-                                }`}
+                              className={`text-xs font-semibold ${
+                                selectedDocket.driverChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.driverChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
                             >
                               {selectedDocket.driverChecklist.checklistStatus ??
                                 'Pending'}
@@ -1481,14 +1516,15 @@ export default function DocketForm({
                               Truck Inspection
                             </span>
                             <span
-                              className={`text-xs font-semibold ${selectedDocket.truckChecklist
-                                .checklistStatus === 'PASS'
-                                ? 'text-green-600'
-                                : selectedDocket.truckChecklist
-                                  .checklistStatus === 'FAIL'
-                                  ? 'text-red-600'
-                                  : 'text-muted-foreground'
-                                }`}
+                              className={`text-xs font-semibold ${
+                                selectedDocket.truckChecklist
+                                  .checklistStatus === 'PASS'
+                                  ? 'text-green-600'
+                                  : selectedDocket.truckChecklist
+                                        .checklistStatus === 'FAIL'
+                                    ? 'text-red-600'
+                                    : 'text-muted-foreground'
+                              }`}
                             >
                               {selectedDocket.truckChecklist.checklistStatus ??
                                 'Pending'}
