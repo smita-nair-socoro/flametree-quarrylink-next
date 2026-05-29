@@ -61,7 +61,7 @@ import {
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
+import { getDeliveryDistanceQuantity, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
@@ -136,6 +136,8 @@ export default function DocketForm({
   const [adjustedAlert, setAdjustedAlert] = React.useState<{
     amount: number;
     uom: string;
+    productMax?: number;
+    truckCapacity?: number;
   } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
@@ -839,6 +841,16 @@ export default function DocketForm({
                     // const truckQtyOverflows =
                     //   isDelivery && needTruckQty && canActualLoadSize;
 
+                    const truckVolumeM3 = selectedDocket?.truck?.tankVolumeM3 ?? null;
+                    const truckCapacityInProductUom =
+                      truckVolumeM3 != null
+                        ? convertTruckVolumeToProductUom(
+                            truckVolumeM3,
+                            details.productUom,
+                            productDetails?.densityTonnagePerM3 || 1,
+                          )
+                        : null;
+
                     const showActualLoadSize =
                       isEditing &&
                       currentStatus !== DOCKET_STATUS.UNASSIGNED &&
@@ -939,7 +951,11 @@ export default function DocketForm({
                                       className="w-full"
                                       {...field}
                                       onChange={(e) => {
-                                        const maxLimit = details.remainingQty;
+                                        const productMax = details.remainingQty;
+                                        const maxLimit =
+                                          truckCapacityInProductUom != null
+                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                            : productMax;
                                         const val = parseFloat(e.target.value);
                                         const uomText =
                                           details.productUom === '20kg'
@@ -953,6 +969,8 @@ export default function DocketForm({
                                           setAdjustedAlert({
                                             amount: maxLimit,
                                             uom: uomText,
+                                            productMax,
+                                            truckCapacity: truckCapacityInProductUom ?? undefined,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -992,7 +1010,11 @@ export default function DocketForm({
                                       className="w-full"
                                       {...field}
                                       onChange={(e) => {
-                                        const maxLimit = details.remainingQty;
+                                        const productMax = details.remainingQty;
+                                        const maxLimit =
+                                          truckCapacityInProductUom != null
+                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                            : productMax;
                                         const val = parseFloat(e.target.value);
                                         const uomText =
                                           details.productUom === '20kg'
@@ -1006,6 +1028,8 @@ export default function DocketForm({
                                           setAdjustedAlert({
                                             amount: maxLimit,
                                             uom: uomText,
+                                            productMax,
+                                            truckCapacity: truckCapacityInProductUom ?? undefined,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -1054,9 +1078,11 @@ export default function DocketForm({
                         <span>Quantity Adjusted</span>
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
-                        Only {adjustedAlert.amount} {adjustedAlert.uom}{' '}
-                        available. Quantity has been adjusted to{' '}
-                        {adjustedAlert.amount} {adjustedAlert.uom}.
+                        {adjustedAlert.truckCapacity != null &&
+                        adjustedAlert.productMax != null &&
+                        adjustedAlert.truckCapacity < adjustedAlert.productMax
+                          ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                          : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
                       </div>
                     </div>
                   )}
@@ -1111,6 +1137,44 @@ export default function DocketForm({
                           total
                         </span>
                       </div>
+                      {(() => {
+                        const vol = selectedDocket?.truck?.tankVolumeM3 ?? null;
+                        if (vol == null) return null;
+                        const d = selectedJobLineItemDetails();
+                        const density = productDetails?.densityTonnagePerM3 || 1;
+                        const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
+                        const uomText =
+                          d.productUom === '20kg'
+                            ? 'x 20kg'
+                            : d.productUom === 'm3'
+                              ? 'm³'
+                              : d.productUom;
+                        const isM3 =
+                          d.productUom === 'M3' ||
+                          d.productUom === 'm3' ||
+                          d.productUom === 'BULKA' ||
+                          d.productUom === 'Bulka';
+                        const calcLabel = isM3
+                          ? `${formatNumberThousandSeparator(vol)} m³`
+                          : d.productUom === 'TN'
+                            ? `${formatNumberThousandSeparator(vol)} m³ × ${density} density`
+                            : `${formatNumberThousandSeparator(vol)} m³ × ${density} density × 50`;
+                        return (
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm text-muted-foreground">
+                                Truck Capacity
+                              </span>
+                              <span className="text-xs text-muted-foreground/70">
+                                {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
+                              </span>
+                            </div>
+                            <span className="text-sm font-medium">
+                              {formatNumberThousandSeparator(cap)} {uomText} total
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
