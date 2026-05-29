@@ -142,9 +142,7 @@ export default function DocketForm({
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
-  const pendingAssignedPayloadRef = React.useRef<
-    Parameters<typeof operationalUpdateDocket.mutateAsync>[0] | null
-  >(null);
+  const [pendingRetry, setPendingRetry] = React.useState<(() => Promise<void>) | null>(null);
   const {
     docketForm,
     isEditing,
@@ -391,50 +389,39 @@ export default function DocketForm({
       !!dirtyFields.deliveryCollectionEndTime ||
       !!dirtyFields.deliveryCollectionDate;
 
-    pendingAssignedPayloadRef.current = {
-      id: selectedDocket!.id,
-      data: {
-        checkWindowTimeConflict: false,
-        deliveryCollectionDate: values.deliveryCollectionDate
-          ? appendUtcSuffix(
-              format(
-                values.deliveryCollectionDate,
-                "yyyy-MM-dd'T'00:00:00.000",
-              ),
-            )
-          : undefined,
-        deliveryStartWindow: startDateTime
-          ? appendUtcSuffix(startDateTime)
-          : undefined,
-        deliveryEndWindow: endDateTime
-          ? appendUtcSuffix(endDateTime)
-          : undefined,
-        plannedLoadSize: values.plannedLoadSize,
-        actualLoadSize: values.plannedLoadSize,
-        docketEmailRecipients,
-        truckId: selectedDocket!.truckId,
-        driverId: selectedDocket!.driverId,
-        deliveryDistanceQuantity,
-      },
+    const assignedPayload = {
+      deliveryCollectionDate: values.deliveryCollectionDate
+        ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+        : undefined,
+      deliveryStartWindow: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
+      deliveryEndWindow: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+      plannedLoadSize: values.plannedLoadSize,
+      actualLoadSize: values.plannedLoadSize,
+      docketEmailRecipients,
+      truckId: selectedDocket!.truckId,
+      driverId: selectedDocket!.driverId,
+      deliveryDistanceQuantity,
     };
 
     try {
       setIsSubmitting(true);
       const result = await operationalUpdateDocket.mutateAsync({
         id: selectedDocket!.id,
-        data: {
-          ...pendingAssignedPayloadRef.current.data,
-          checkWindowTimeConflict: windowFieldsChanged,
-        },
+        data: { ...assignedPayload, checkWindowTimeConflict: windowFieldsChanged },
       });
-      if (
-        result.conflictingDocketIds &&
-        result.conflictingDocketIds.length > 0
-      ) {
+      if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+        setPendingRetry(() => async () => {
+          await operationalUpdateDocket.mutateAsync({
+            id: selectedDocket!.id,
+            data: { ...assignedPayload, checkWindowTimeConflict: false },
+          });
+          notifySuccess('Docket updated successfully');
+          onSaved?.();
+          onSuccess?.();
+        });
         setConflictingDocketIds(result.conflictingDocketIds);
         setTimeConflictOpen(true);
       } else {
-        pendingAssignedPayloadRef.current = null;
         notifySuccess('Docket updated successfully');
         onSaved?.();
         onSuccess?.();
@@ -732,15 +719,11 @@ export default function DocketForm({
         confirmText="Save Changes"
         onConfirmAction={async () => {
           setTimeConflictOpen(false);
-          const pending = pendingAssignedPayloadRef.current;
-          pendingAssignedPayloadRef.current = null;
-          if (!pending) return;
+          if (!pendingRetry) return;
           try {
             setIsSubmitting(true);
-            await operationalUpdateDocket.mutateAsync(pending);
-            notifySuccess('Docket updated successfully');
-            onSaved?.();
-            onSuccess?.();
+            await pendingRetry();
+            setPendingRetry(null);
           } catch (error) {
             notifyError(extractErrorMessage(error));
           } finally {
