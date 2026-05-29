@@ -957,12 +957,15 @@ export default function DocketForm({
                                             ? Math.min(productMax, truckCapacityInProductUom)
                                             : productMax;
                                         const val = parseFloat(e.target.value);
+                                        const uomNorm = details.productUom?.toLowerCase();
                                         const uomText =
-                                          details.productUom === '20kg'
+                                          uomNorm === '20kg' || uomNorm === 'kg_20'
                                             ? 'x 20kg'
-                                            : details.productUom === 'm3'
+                                            : uomNorm === 'm3' || uomNorm === 'bulka'
                                               ? 'm³'
-                                              : details.productUom || '';
+                                              : uomNorm === 'tn'
+                                                ? 't'
+                                                : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
@@ -1016,12 +1019,15 @@ export default function DocketForm({
                                             ? Math.min(productMax, truckCapacityInProductUom)
                                             : productMax;
                                         const val = parseFloat(e.target.value);
+                                        const uomNorm = details.productUom?.toLowerCase();
                                         const uomText =
-                                          details.productUom === '20kg'
+                                          uomNorm === '20kg' || uomNorm === 'kg_20'
                                             ? 'x 20kg'
-                                            : details.productUom === 'm3'
+                                            : uomNorm === 'm3' || uomNorm === 'bulka'
                                               ? 'm³'
-                                              : details.productUom || '';
+                                              : uomNorm === 'tn'
+                                                ? 't'
+                                                : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
@@ -1143,31 +1149,32 @@ export default function DocketForm({
                         const d = selectedJobLineItemDetails();
                         const density = productDetails?.densityTonnagePerM3 || 1;
                         const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
+                        const uomNorm = d.productUom?.toLowerCase();
                         const uomText =
-                          d.productUom === '20kg'
+                          uomNorm === '20kg' || uomNorm === 'kg_20'
                             ? 'x 20kg'
-                            : d.productUom === 'm3'
+                            : uomNorm === 'm3' || uomNorm === 'bulka'
                               ? 'm³'
-                              : d.productUom;
-                        const isM3 =
-                          d.productUom === 'M3' ||
-                          d.productUom === 'm3' ||
-                          d.productUom === 'BULKA' ||
-                          d.productUom === 'Bulka';
+                              : uomNorm === 'tn'
+                                ? 't'
+                                : d.productUom;
+                        const isM3 = uomNorm === 'm3' || uomNorm === 'bulka';
                         const calcLabel = isM3
                           ? `${formatNumberThousandSeparator(vol)} m³`
-                          : d.productUom === 'TN'
-                            ? `${formatNumberThousandSeparator(vol)} m³ × ${density} density`
-                            : `${formatNumberThousandSeparator(vol)} m³ × ${density} density × 50`;
+                          : uomNorm === 'tn'
+                            ? `${formatNumberThousandSeparator(vol)} m3 x ${density} density`
+                            : `${formatNumberThousandSeparator(vol)} m3 x ${density} density x 50`;
                         return (
                           <div className="flex justify-between items-start">
                             <div className="flex flex-col gap-0.5">
                               <span className="text-sm text-muted-foreground">
                                 Truck Capacity
                               </span>
-                              <span className="text-xs text-muted-foreground/70">
-                                {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
-                              </span>
+                              {!isM3 && (
+                                <span className="text-xs text-muted-foreground/70">
+                                  {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
+                                </span>
+                              )}
                             </div>
                             <span className="text-sm font-medium">
                               {formatNumberThousandSeparator(cap)} {uomText} total
