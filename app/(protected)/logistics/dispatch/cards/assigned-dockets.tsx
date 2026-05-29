@@ -533,7 +533,6 @@ function DocketCard({
 }
 
 export default function AssignedDockets({
-  // date,
   trucks,
   dockets,
   isLoading,
@@ -541,11 +540,9 @@ export default function AssignedDockets({
   onResizeDocket,
   selectedDocketId,
   onSelectDocket,
-  // onUnassignDocket,
   viewType = 'drivers',
   focusDocket,
 }: {
-  // date: Date;
   trucks: TruckResource[];
   dockets: DispatchDocket[];
   isLoading?: boolean;
@@ -553,7 +550,6 @@ export default function AssignedDockets({
   onResizeDocket?: (docketId: string, newDuration: number) => void;
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string | null) => void;
-  // onUnassignDocket?: () => void;
   viewType?: 'trucks' | 'drivers';
   focusDocket?: DispatchDocket | null;
 }) {
@@ -614,7 +610,7 @@ export default function AssignedDockets({
       // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
       if (isGenericA && !isGenericB) return -1;
       if (!isGenericA && isGenericB) return 1;
-      
+
       if (isGenericA && isGenericB) return 0;
 
       // 4. Exceeded fits (> 100%) come last

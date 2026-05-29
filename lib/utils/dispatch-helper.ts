@@ -97,6 +97,39 @@ export function maxLoadInProductSellUom(
   return Math.floor(truckVolumeM3 * d);
 }
 
+export function isVolumeProductSellUom(uom?: string): boolean {
+  const upper = (uom || '').toUpperCase();
+  return upper === 'M3' || upper === 'BULKA';
+}
+
+export function formatDispatchProductSellUomLabel(uom?: string): string {
+  if (uom === 'M3') return 'm³';
+  if (uom === 'KG_20') return 'x 20kg';
+  if (uom === 'TN') return 'TN';
+  if (uom === 'BULKA') return 'Bulka';
+  return uom || 'TN';
+}
+
+/** Truck m³ with product-UOM equivalent when product is not volume-based. */
+export function formatTruckMaxCapacityLabel(
+  truckVolumeM3: number,
+  productSellUom: string,
+  density: number,
+  formatQty: (n: number) => string = String,
+): string {
+  const m3Part = `${formatQty(truckVolumeM3)} m³`;
+  if (isVolumeProductSellUom(productSellUom)) {
+    return m3Part;
+  }
+  const maxProductQty = maxLoadInProductSellUom(
+    truckVolumeM3,
+    productSellUom,
+    density,
+  );
+  const uomLabel = formatDispatchProductSellUomLabel(productSellUom);
+  return `${m3Part} (${formatQty(maxProductQty)} ${uomLabel})`;
+}
+
 export function buildDispatchOperationalLoadUpdate(
   docket: Pick<
     DispatchDocket,

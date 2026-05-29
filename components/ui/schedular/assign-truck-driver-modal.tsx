@@ -11,6 +11,8 @@ import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
 import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import {
   buildDispatchOperationalLoadUpdate,
+  formatDispatchProductSellUomLabel,
+  formatTruckMaxCapacityLabel,
   isGenericDispatchTruck,
   loadVolumeM3FromProductSellUom,
   maxLoadInProductSellUom,
@@ -230,6 +232,20 @@ export function AssignTruckDriverModal({
     );
   }, [adjustingTruck, docket]);
 
+  const productUomLabel = formatDispatchProductSellUomLabel(
+    docket?.productSellUom,
+  );
+
+  const truckMaxCapacityLabel = useMemo(() => {
+    if (!adjustingTruck || !docket) return '';
+    return formatTruckMaxCapacityLabel(
+      adjustingTruck.tankVolumeM3 || 0,
+      docket.productSellUom || 'TN',
+      docket.productDensity || 1,
+      formatNumberThousandSeparator,
+    );
+  }, [adjustingTruck, docket]);
+
   useEffect(() => {
     if (adjustingTruck && docket) {
       setAdjustLoadValue(maxAdjustLoad.toString());
@@ -247,7 +263,7 @@ export function AssignTruckDriverModal({
     }
     if (loadSize > maxAdjustLoad) {
       toast.error(
-        `Load cannot exceed ${formatNumberThousandSeparator(maxAdjustLoad)} ${docket.productSellUom}`,
+        `Load cannot exceed ${formatNumberThousandSeparator(maxAdjustLoad)} ${productUomLabel}`,
       );
       return;
     }
@@ -361,8 +377,11 @@ export function AssignTruckDriverModal({
                     {docket.docketNumber}
                   </span>
                   <span className="text-sm text-gray-500">
-                    {docket.productName} • {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-                    {docket.productSellUom}
+                    {docket.productName} •{' '}
+                    {formatNumberThousandSeparator(
+                      docket.actualLoadSize || docket.plannedLoadSize,
+                    )}{' '}
+                    {productUomLabel}
                   </span>
                 </div>
               </div>
@@ -376,14 +395,14 @@ export function AssignTruckDriverModal({
                     </span>
                     <span className="text-[15px] text-yellow-800">
                       <span className="font-bold">
-                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-                        {docket.productSellUom}
+                        {formatNumberThousandSeparator(
+                          docket.actualLoadSize || docket.plannedLoadSize,
+                        )}{' '}
+                        {productUomLabel}
                       </span>{' '}
                       exceeds capacity. Truck {adjustingTruck.licensePlate}{' '}
                       allows up to{' '}
-                      <span className="font-bold">
-                        {adjustingTruck.tankVolumeM3} m³
-                      </span>{' '}
+                      <span className="font-bold">{truckMaxCapacityLabel}</span>{' '}
                       per trip. After you adjust the load, the assignment will
                       use this truck and your chosen driver.
                     </span>
@@ -405,14 +424,14 @@ export function AssignTruckDriverModal({
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Max Capacity</span>
                   <span className="font-bold text-gray-900">
-                    {adjustingTruck.tankVolumeM3} m³
+                    {truckMaxCapacityLabel}
                   </span>
                 </div>
               </div>
 
               <div className="border border-gray-200 bg-purple-50/50 rounded-xl p-4 flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-500 tracking-wider uppercase">
-                  NEW LOAD ({docket.productSellUom})
+                <label className="text-[11px] font-bold text-gray-500 tracking-wider">
+                  NEW LOAD{' '}({productUomLabel})
                 </label>
                 <Input
                   type="number"
@@ -421,9 +440,8 @@ export function AssignTruckDriverModal({
                   className="bg-white"
                 />
                 <span className="text-xs text-gray-500">
-                  Enter up to{' '}
-                  {formatNumberThousandSeparator(maxAdjustLoad)}{' '}
-                  {docket.productSellUom} for this truck.
+                  Enter up to {formatNumberThousandSeparator(maxAdjustLoad)}{' '}
+                  {productUomLabel} for this truck.
                 </span>
               </div>
 

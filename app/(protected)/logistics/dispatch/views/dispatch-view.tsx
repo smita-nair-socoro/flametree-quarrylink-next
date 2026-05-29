@@ -858,7 +858,6 @@ export function DispatchView({
           </div>
           <div className="flex-1 min-w-0">
             <AssignedDockets
-              // date={date}
               trucks={filteredMappedResources}
               dockets={docketsForAssignedBoard}
               isLoading={isLoading}
@@ -866,7 +865,6 @@ export function DispatchView({
               onResizeDocket={handleResizeDocket}
               selectedDocketId={selectedDocketId}
               onSelectDocket={setSelectedDocketId}
-              // onUnassignDocket={handleUnassign}
               viewType={viewType}
               focusDocket={focusDocket}
             />
