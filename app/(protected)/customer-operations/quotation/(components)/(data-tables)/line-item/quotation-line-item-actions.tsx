@@ -14,13 +14,13 @@ import { QuotationLineItem } from '@/lib/types/quotation';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 
-interface QutationLineItemTableActionsProps {
+interface QuotationLineItemTableActionsProps {
   quotationLineItem: QuotationLineItem;
 }
 
 export function QuotationLineItemTableActions({
   quotationLineItem,
-}: QutationLineItemTableActionsProps) {
+}: QuotationLineItemTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
   const quoteStatus = useQuotationStore((state) => state.selectedQuotation?.quoteStatus);
