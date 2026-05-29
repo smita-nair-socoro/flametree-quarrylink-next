@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { useQuotationLineItemActions } from '@/hooks/use-quotations-line-item-actions';
-import { Delete, Plus } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { useQuotationStore } from '@/app/stores/quotation-store';
@@ -64,21 +63,14 @@ export function QuotationLineItemActionButtons({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={actions.duplicate}>
-                <Plus className="h-4 w-4 mr-2" />
-                Duplicate
-              </DropdownMenuItem>
               {canRemove && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={actions.remove}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Delete className="h-4 w-4 mr-2 text-red-600" />
-                    Remove
-                  </DropdownMenuItem>
-                </>
+                <DropdownMenuItem
+                  onClick={actions.remove}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Delete className="h-4 w-4 mr-2 text-red-600" />
+                  Remove
+                </DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -104,21 +96,14 @@ export function QuotationLineItemActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.duplicate}>
-              <Plus className="h-4 w-4 mr-2" />
-              Duplicate
-            </DropdownMenuItem>
             {canRemove && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={actions.remove}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Delete className="h-4 w-4 mr-2 text-red-600" />
-                  Remove
-                </DropdownMenuItem>
-              </>
+              <DropdownMenuItem
+                onClick={actions.remove}
+                className="text-destructive focus:text-destructive"
+              >
+                <Delete className="h-4 w-4 mr-2 text-red-600" />
+                Remove
+              </DropdownMenuItem>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

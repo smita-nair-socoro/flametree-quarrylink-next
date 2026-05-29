@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Delete, Plus } from 'lucide-react';
+import { MoreHorizontal, Eye, Delete } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
 	DropdownMenu,
@@ -32,8 +32,6 @@ export function JobLineItemTableActions({
 
 	const handleView = createHandler(actions.view);
 
-	const handleDuplicate = createHandler(actions.duplicate);
-
 	const handleDelete = createHandler(actions.remove);
 
 	return (
@@ -54,11 +52,6 @@ export function JobLineItemTableActions({
 					<DropdownMenuItem onClick={handleView}>
 						<Eye className="h-4 w-4 mr-2" />
 						View Products
-					</DropdownMenuItem>
-					<DropdownMenuSeparator />
-					<DropdownMenuItem onClick={handleDuplicate}>
-						<Plus className="h-4 w-4 mr-2" />
-						Duplicate
 					</DropdownMenuItem>
 					<DropdownMenuSeparator />
 					<DropdownMenuItem
