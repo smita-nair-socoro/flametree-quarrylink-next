@@ -77,6 +77,7 @@ export function DatePicker({
           mode="single"
           captionLayout="dropdown"
           selected={value}
+          defaultMonth={value}
           onSelect={handleDateSelect}
           disabled={disabled}
           required={required}
