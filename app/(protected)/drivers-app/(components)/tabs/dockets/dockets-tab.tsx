@@ -430,7 +430,7 @@ export default function DocketsTab({
                             className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                             onClick={() => {
                               setUpdateValue(
-                                selectedDocket.actualLoadSize?.toString() ?? '',
+                                (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize)?.toString() ?? '',
                               );
                               setIsUpdateDrawerOpen(true);
                             }}
@@ -666,7 +666,8 @@ export default function DocketsTab({
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {selectedDocket?.actualLoadSize ||
+                {(selectedDocket?.id ? docketSizes[selectedDocket.id] : undefined) ??
+                  selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize}
                 {selectedDocket?.jobItem?.productSellUom === 'TN'
                   ? 'T'

@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { JobItem } from '@/lib/types/job';
 import { useJobLineItemActions } from '@/hooks/use-jobs-line-item-actions';
-import { Delete, Plus } from 'lucide-react';
+import { Delete } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -46,15 +46,6 @@ export function JobLineItemActionButtons({
 				{confirmDialogs}
 				{viewDialog}
 				<div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-					<Button
-						variant="ghost"
-						size="sm"
-						onClick={actions.duplicate}
-						className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-					>
-						<Plus className="h-4 w-4 mr-2" />
-						Duplicate
-					</Button>
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>
 							<Button
@@ -86,15 +77,6 @@ export function JobLineItemActionButtons({
 			{confirmDialogs}
 			{viewDialog}
 			<div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={actions.duplicate}
-					className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-				>
-					<Plus className="h-4 w-4 mr-2" />
-					Duplicate
-				</Button>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
 						<Button
