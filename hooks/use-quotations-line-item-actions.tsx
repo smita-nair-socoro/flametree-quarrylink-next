@@ -176,7 +176,6 @@ export function useQuotationLineItemActions(
       setViewOpen(true);
     },
     remove: createDialogAction('remove'),
-    duplicate: createDialogAction('duplicate'),
   };
 
   // Render active dialog
@@ -222,10 +221,6 @@ export function useQuotationLineItemActions(
                 console.error('Failed to delete line item:', error);
                 notifyError('Failed to remove line item');
               }
-              break;
-            case 'duplicate':
-              console.log('Duplicate quotation line item:', lineItemId);
-              // TODO: implement duplicate logic
               break;
           }
         }}

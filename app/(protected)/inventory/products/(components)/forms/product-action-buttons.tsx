@@ -5,13 +5,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { MoreHorizontal, ArchiveRestore, Ban, Trash2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
-import { Separator } from '@/components/ui/separator';
 
 interface ProductActionButtonsProps {
   product: ProductDetails | null | undefined;
@@ -81,26 +81,28 @@ export function ProductActionButtons({
                   <Ban className="h-4 w-4 mr-2 text-red-600" />
                   Mark as Unavailable
                 </DropdownMenuItem>
-                <Separator />
-
-                <DropdownMenuItem
-                  onClick={actions.delete}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-                  Delete
-                </DropdownMenuItem>
+                <DropdownMenuSeparator />
               </>
             )}
             {isUnavailable && (
-              <DropdownMenuItem
-                onClick={actions.available}
-                className="text-green-600 focus:text-green-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-                Mark as Available
-              </DropdownMenuItem>
+              <>
+                <DropdownMenuItem
+                  onClick={actions.available}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                  Mark as Available
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
             )}
+            <DropdownMenuItem
+              onClick={actions.delete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -112,28 +114,6 @@ export function ProductActionButtons({
       {confirmDialogs}
       {viewDialog}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {!isUnavailable && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.unavailable}
-            className="rounded-none border-r bg-red-100 hover:bg-red-50 text-gray-700 hover:text-gray-900 border-gray-200 "
-          >
-            <Ban className="h-4 w-4 mr-2 text-red-600" />
-            <span className="text-red-600">Mark as Unavailable</span>
-          </Button>
-        )}
-        {isUnavailable && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={actions.available}
-            className="rounded-none border-r bg-green-100 hover:bg-green-50 text-gray-700 hover:text-gray-900 border-gray-200 "
-          >
-            <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-            <span className="text-green-600">Mark as Available</span>
-          </Button>
-        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -145,6 +125,24 @@ export function ProductActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
+            {!isUnavailable ? (
+              <DropdownMenuItem
+                onClick={actions.unavailable}
+                className="text-destructive focus:text-destructive"
+              >
+                <Ban className="h-4 w-4 mr-2 text-red-600" />
+                Mark as Unavailable
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                onClick={actions.available}
+                className="text-green-600 focus:text-green-600"
+              >
+                <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                Mark as Available
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={actions.delete}>
               <Trash2 className="h-4 w-4 mr-2 text-destructive" />
               <span className="text-destructive">Delete</span>
