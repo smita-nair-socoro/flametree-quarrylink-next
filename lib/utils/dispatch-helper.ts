@@ -1,4 +1,6 @@
 import { format, startOfDay } from 'date-fns';
+import { appendUtcSuffix } from '@/lib/utils/date';
+import type { ConflictingDocket } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
@@ -313,6 +315,50 @@ export const formatLocalISO = (d: Date) => {
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
+
+export function buildDispatchAssignmentWindows(
+  assignmentDate: Date,
+  slotTime: string,
+  durationHours: number = 2,
+): {
+  deliveryCollectionDate: string;
+  deliveryStartWindow: string;
+  deliveryEndWindow: string;
+} {
+  const [hours, minutes] = slotTime.split(':').map(Number);
+  const startWindow = new Date(assignmentDate);
+  startWindow.setHours(hours, minutes, 0, 0);
+
+  let endWindow = new Date(startWindow);
+  endWindow.setHours(startWindow.getHours() + durationHours);
+
+  if (
+    endWindow.getDate() !== startWindow.getDate() ||
+    endWindow.getMonth() !== startWindow.getMonth() ||
+    endWindow.getFullYear() !== startWindow.getFullYear()
+  ) {
+    endWindow = new Date(startWindow);
+    endWindow.setHours(23, 59, 59, 999);
+  }
+
+  const startIso = formatLocalISO(startWindow);
+  const endIso = formatLocalISO(endWindow);
+  const dateIso = `${startIso.split('T')[0]}T00:00:00.000`;
+
+  return {
+    deliveryCollectionDate: appendUtcSuffix(dateIso),
+    deliveryStartWindow: appendUtcSuffix(startIso),
+    deliveryEndWindow: appendUtcSuffix(endIso),
+  };
+}
+
+export function formatDispatchConflictDetail(d: ConflictingDocket): string {
+  const start = formatTime(d.deliveryCollectionStartTime);
+  const end = formatTime(d.deliveryCollectionEndTime);
+  const range =
+    start && end ? `${start} - ${end}` : start || end || 'scheduled time';
+  return `Potential overlap with ${d.docketNumber} (${range})`;
+}
 
 export function isDocketOnSelectedLocalDay(
   d: Pick<DispatchDocket, 'deliveryCollectionDate'>,

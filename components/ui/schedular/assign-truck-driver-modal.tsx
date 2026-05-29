@@ -21,11 +21,21 @@ import type {
   DispatchBoardTruckRef,
 } from '@/lib/types/docket';
 import { TableBadges } from '@/components/table-badges';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Input } from '@/components/ui/input';
-import { useOperationalUpdateDocket } from '@/lib/api/docket';
+import { useOperationalUpdateDocket, DocketConflictCheckQueryOptions } from '@/lib/api/docket';
+import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import type { ConflictingDocket } from '@/lib/types/docket';
+import { TimeConflictModalContent } from '@/components/ui/schedular/time-conflict-modal';
+import { Spinner } from '@/components/ui/spinner';
+import {
+  buildDispatchAssignmentWindows,
+} from '@/lib/utils/dispatch-helper';
+
+type AssignStep = 'select' | 'checking' | 'conflict' | 'adjust';
 
 interface AssignTruckDriverModalProps {
   open: boolean;
@@ -34,6 +44,8 @@ interface AssignTruckDriverModalProps {
   docket: DispatchDocket | null;
   truck: DispatchTruckResource | null;
   driver: DispatchDriverResource | null;
+  slotTime: string;
+  assignmentDate: Date;
   onAssign: (id: number, adjustedLoadSize?: number) => void;
   onCancel: () => void;
 }
@@ -45,15 +57,169 @@ export function AssignTruckDriverModal({
   docket,
   truck,
   driver,
+  slotTime,
+  assignmentDate,
   onAssign,
   onCancel,
 }: AssignTruckDriverModalProps) {
+  const [step, setStep] = useState<AssignStep>('select');
   const [adjustingTruck, setAdjustingTruck] =
     useState<DispatchBoardTruckRef | null>(null);
   const [adjustLoadValue, setAdjustLoadValue] = useState<string>('');
   const [pendingAssignId, setPendingAssignId] = useState<number | null>(null);
+  const [pendingTruckId, setPendingTruckId] = useState<number | null>(null);
+  const [pendingDriverId, setPendingDriverId] = useState<number | null>(null);
+  const [conflicts, setConflicts] = useState<ConflictingDocket[]>([]);
+  const conflictHandledRef = useRef(false);
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
+
+  const resetFlow = useCallback(() => {
+    setStep('select');
+    setAdjustingTruck(null);
+    setAdjustLoadValue('');
+    setPendingAssignId(null);
+    setPendingTruckId(null);
+    setPendingDriverId(null);
+    setConflicts([]);
+    conflictHandledRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      resetFlow();
+    }
+  }, [open, resetFlow]);
+
+  const conflictRequest = useMemo(() => {
+    if (
+      step !== 'checking' ||
+      !docket?.id ||
+      pendingTruckId == null ||
+      pendingDriverId == null ||
+      !slotTime
+    ) {
+      return null;
+    }
+    return {
+      truckId: pendingTruckId,
+      driverId: pendingDriverId,
+      ...buildDispatchAssignmentWindows(
+        assignmentDate,
+        slotTime,
+        docket.uiAssignedDuration || 2,
+      ),
+    };
+  }, [
+    step,
+    docket?.id,
+    docket?.uiAssignedDuration,
+    pendingTruckId,
+    pendingDriverId,
+    slotTime,
+    assignmentDate,
+  ]);
+
+  const {
+    data: conflictData,
+    isFetching: isConflictFetching,
+    isError: isConflictError,
+  } = useQuery(DocketConflictCheckQueryOptions(docket?.id, conflictRequest));
+
+  const getPendingTruckRef = useCallback((): DispatchBoardTruckRef | null => {
+    if (viewType === 'trucks' && truck) {
+      return truck as DispatchBoardTruckRef;
+    }
+    if (viewType === 'drivers' && driver && pendingTruckId != null) {
+      return driver.trucks?.find((t) => t.id === pendingTruckId) ?? null;
+    }
+    return null;
+  }, [viewType, truck, driver, pendingTruckId]);
+
+  const needsVolumeAdjust = useCallback(
+    (truckRef: DispatchBoardTruckRef | null) => {
+      if (!docket || !truckRef || isGenericDispatchTruck(truckRef)) return false;
+      const docketVol = loadVolumeM3FromProductSellUom(
+        docket.actualLoadSize || docket.plannedLoadSize || 0,
+        docket.productSellUom || 'TN',
+        docket.productDensity || 1,
+      );
+      const truckVol = truckRef.tankVolumeM3 || 0;
+      return truckVol > 0 && docketVol > truckVol;
+    },
+    [docket],
+  );
+
+  const proceedAfterConflictCheck = useCallback(() => {
+    const truckRef = getPendingTruckRef();
+    if (needsVolumeAdjust(truckRef) && pendingAssignId != null) {
+      setAdjustingTruck(truckRef);
+      setStep('adjust');
+      return;
+    }
+    if (pendingAssignId != null) {
+      onAssign(pendingAssignId);
+    }
+  }, [getPendingTruckRef, needsVolumeAdjust, pendingAssignId, onAssign]);
+
+  useEffect(() => {
+    if (step !== 'checking' || !conflictRequest || isConflictFetching) return;
+    if (conflictHandledRef.current) return;
+
+    if (isConflictError) {
+      conflictHandledRef.current = true;
+      toast.error('Failed to check scheduling conflicts');
+      resetFlow();
+      return;
+    }
+
+    if (!conflictData) return;
+
+    conflictHandledRef.current = true;
+    const activeConflicts = (
+      conflictData.hasConflicts ? conflictData.conflictingDocketIds : []
+    ).filter((c) => c.docketStatus !== DOCKET_STATUS.DELIVERED);
+
+    if (activeConflicts.length > 0) {
+      setConflicts(activeConflicts);
+      setStep('conflict');
+    } else {
+      proceedAfterConflictCheck();
+    }
+  }, [
+    step,
+    conflictRequest,
+    isConflictFetching,
+    isConflictError,
+    conflictData,
+    proceedAfterConflictCheck,
+    resetFlow,
+  ]);
+
+  const handleResourceSelect = (assignId: number) => {
+    if (!docket) return;
+    const truckId = viewType === 'trucks' ? truck!.id : assignId;
+    const driverId = viewType === 'trucks' ? assignId : driver!.id;
+    conflictHandledRef.current = false;
+    setPendingAssignId(assignId);
+    setPendingTruckId(truckId);
+    setPendingDriverId(driverId);
+    setStep('checking');
+  };
+
+  const conflictResourceName = useMemo(() => {
+    if (viewType === 'trucks' && truck && pendingDriverId != null) {
+      return (
+        truck.drivers?.find((d) => d.id === pendingDriverId)?.driverName ?? ''
+      );
+    }
+    if (viewType === 'drivers' && driver && pendingTruckId != null) {
+      return (
+        driver.trucks?.find((t) => t.id === pendingTruckId)?.licensePlate ?? ''
+      );
+    }
+    return '';
+  }, [viewType, truck, driver, pendingDriverId, pendingTruckId]);
 
   const maxAdjustLoad = useMemo(() => {
     if (!adjustingTruck || !docket) return 0;
@@ -106,9 +272,8 @@ export function AssignTruckDriverModal({
     );
   };
 
-  const openAdjustLoad = (truckRef: DispatchBoardTruckRef, assignId: number) => {
-    setPendingAssignId(assignId);
-    setAdjustingTruck(truckRef);
+  const handleBackToSelect = () => {
+    resetFlow();
   };
 
   const trucksWithStats = useMemo(() => {
@@ -140,22 +305,42 @@ export function AssignTruckDriverModal({
 
   const handleModalClose = (isOpen: boolean) => {
     if (!isOpen) {
-      setAdjustingTruck(null);
-      setPendingAssignId(null);
+      resetFlow();
     }
     onOpenChange(isOpen);
   };
 
   const handleCancel = () => {
-    setAdjustingTruck(null);
-    setPendingAssignId(null);
+    resetFlow();
     onCancel();
   };
 
   return (
     <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-[425px] md:max-w-[500px] p-0 gap-0 overflow-hidden">
-        {adjustingTruck && docket ? (
+        {step === 'checking' ? (
+          <>
+            <DialogHeader className="px-6 pt-6 pb-4">
+              <DialogTitle className="text-xl font-bold text-gray-900">
+                Checking assignment
+              </DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center gap-3 py-16 px-6">
+              <Spinner size="small" />
+              <span className="text-sm text-gray-500">
+                Checking for scheduling conflicts...
+              </span>
+            </div>
+          </>
+        ) : step === 'conflict' && docket ? (
+          <TimeConflictModalContent
+            viewType={viewType}
+            resourceName={conflictResourceName}
+            conflicts={conflicts}
+            onConfirm={proceedAfterConflictCheck}
+            onCancel={handleBackToSelect}
+          />
+        ) : step === 'adjust' && adjustingTruck && docket ? (
           <>
             <DialogHeader className="px-6">
               <DialogTitle className="text-xl font-bold text-gray-900">
@@ -261,10 +446,7 @@ export function AssignTruckDriverModal({
             <div className="p-5 bg-white border-t border-gray-100 grid grid-cols-2 gap-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  setAdjustingTruck(null);
-                  setPendingAssignId(null);
-                }}
+                onClick={handleBackToSelect}
                 className="px-6 rounded-lg font-medium"
               >
                 Cancel
@@ -342,23 +524,8 @@ export function AssignTruckDriverModal({
                       <div
                         key={d.id ?? d.driverName}
                         onClick={() => {
-                          const docketVol = loadVolumeM3FromProductSellUom(
-                            docket.actualLoadSize || docket.plannedLoadSize || 0,
-                            docket.productSellUom || 'TN',
-                            docket.productDensity || 1,
-                          );
-                          const truckVol = truck.tankVolumeM3 || 0;
-                          const needsAdjust =
-                            !isGenericDispatchTruck(truck) &&
-                            truckVol > 0 &&
-                            docketVol > truckVol;
-                          if (needsAdjust && d.id != null) {
-                            openAdjustLoad(
-                              truck as DispatchBoardTruckRef,
-                              d.id,
-                            );
-                          } else if (d.id != null) {
-                            onAssign(d.id);
+                          if (d.id != null) {
+                            handleResourceSelect(d.id);
                           }
                         }}
                         className={`flex items-center justify-between p-4 border-2 rounded-xl cursor-pointer transition-all ${index === 0
@@ -448,10 +615,8 @@ export function AssignTruckDriverModal({
                         <div
                           key={t.id ?? t.licensePlate}
                           onClick={() => {
-                            if (t.isOverVolume && t.id != null) {
-                              openAdjustLoad(t, t.id);
-                            } else if (t.id != null) {
-                              onAssign(t.id);
+                            if (t.id != null) {
+                              handleResourceSelect(t.id);
                             }
                           }}
                           className={`flex items-center justify-between p-4 border rounded-xl cursor-pointer transition-all ${t.isOverVolume
@@ -508,7 +673,7 @@ export function AssignTruckDriverModal({
                                 OVER VOLUME
                               </span>
                               <span className="text-xs text-yellow-800 font-medium">
-                                Tap to adjust load
+                                Tap to select
                               </span>
                             </div>
                           ) : (

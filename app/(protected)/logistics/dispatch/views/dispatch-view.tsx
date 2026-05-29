@@ -130,8 +130,6 @@ export function DispatchView({
 
   const start = useMemo(() => format(date, "yyyy-MM-dd'T'00:00:00.000'Z'"), [date]);
   const end = useMemo(() => format(date, "yyyy-MM-dd'T'23:59:59.999'Z'"), [date]);
-  console.log('start', start);
-  console.log('end', end);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(start, end),
@@ -455,14 +453,14 @@ export function DispatchView({
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-            assignedOnSelectedDay
-              .map((d) => d.uiAssignedTruckId)
-              .filter((id): id is string => Boolean(id)),
-          ).size
+          assignedOnSelectedDay
+            .map((d) => d.uiAssignedTruckId)
+            .filter((id): id is string => Boolean(id)),
+        ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-            trucksDataForStats,
-            date,
-          );
+          trucksDataForStats,
+          date,
+        );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -617,10 +615,10 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                    ...d,
-                    uiAssignedDuration: newDuration,
-                    deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  }
+                  ...d,
+                  uiAssignedDuration: newDuration,
+                  deliveryCollectionEndTime: formatLocalISO(endWindow),
+                }
                 : d,
             ),
           );
@@ -666,8 +664,8 @@ export function DispatchView({
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
       destination:
         pendingUnassignDocket.deliverySuburb +
-          ', ' +
-          pendingUnassignDocket.deliveryState || '',
+        ', ' +
+        pendingUnassignDocket.deliveryState || '',
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -693,11 +691,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                    ...d,
-                    uiAssignedTruckId: null,
-                    uiAssignedTime: null,
-                    docketStatus: DOCKET_STATUS.UNASSIGNED,
-                  }
+                  ...d,
+                  uiAssignedTruckId: null,
+                  uiAssignedTime: null,
+                  docketStatus: DOCKET_STATUS.UNASSIGNED,
+                }
                 : d,
             ),
           );
@@ -757,19 +755,19 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                    ...d,
-                    uiAssignedTruckId: targetId,
-                    uiAssignedTime: time,
-                    plannedLoadSize: plannedLoad,
-                    actualLoadSize: adjustedLoadSize ?? d.actualLoadSize,
-                    loadSize: plannedLoad,
-                    deliveryCollectionDate:
-                      formatLocalISO(startWindow).split('T')[0] +
-                      'T00:00:00.000',
-                    deliveryCollectionStartTime: formatLocalISO(startWindow),
-                    deliveryCollectionEndTime: formatLocalISO(endWindow),
-                    docketStatus: DOCKET_STATUS.ASSIGNED,
-                  }
+                  ...d,
+                  uiAssignedTruckId: targetId,
+                  uiAssignedTime: time,
+                  plannedLoadSize: plannedLoad,
+                  actualLoadSize: adjustedLoadSize ?? d.actualLoadSize,
+                  loadSize: plannedLoad,
+                  deliveryCollectionDate:
+                    formatLocalISO(startWindow).split('T')[0] +
+                    'T00:00:00.000',
+                  deliveryCollectionStartTime: formatLocalISO(startWindow),
+                  deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  docketStatus: DOCKET_STATUS.ASSIGNED,
+                }
                 : d,
             ),
           );
@@ -786,19 +784,19 @@ export function DispatchView({
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
       ? (trucksData.resources.find(
-          (r): r is DispatchTruckResource =>
-            isDispatchTruckResource(r) &&
-            String(r.id) === assignModalData.targetId,
-        ) ?? null)
+        (r): r is DispatchTruckResource =>
+          isDispatchTruckResource(r) &&
+          String(r.id) === assignModalData.targetId,
+      ) ?? null)
       : null;
 
   const assignModalDriver: DispatchDriverResource | null =
     assignModalData && viewType === 'drivers' && driversData
       ? (driversData.resources.find(
-          (r): r is DispatchDriverResource =>
-            isDispatchDriverResource(r) &&
-            String(r.id) === assignModalData.targetId,
-        ) ?? null)
+        (r): r is DispatchDriverResource =>
+          isDispatchDriverResource(r) &&
+          String(r.id) === assignModalData.targetId,
+      ) ?? null)
       : null;
 
   const unassignedDocketsForBoard = useMemo(() => {
@@ -809,115 +807,117 @@ export function DispatchView({
     <>
       <InvoiceDetailsDialog />
       <DndContext
-      collisionDetection={pointerWithin}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <DispatchDriversTrucksFilter
-        viewType={viewType}
-        driverOptions={filterDriverOptions}
-        truckOptions={filterTruckOptions}
-        haulierOptions={filterHaulierOptions}
-        customerOptions={filterCustomerOptions}
-        isLoadingResources={isLoading}
-        filter={boardFilter}
-        onFilterChange={setBoardFilter}
-      />
-      <div className="border-b pl-6 py-2.5 bg-white">
-        <div className="flex items-center gap-3">
-          <span className="text-[12px] font-medium text-[#64748B]">
-            {format(date, 'EEE dd MMM').toUpperCase()}
-          </span>
+        collisionDetection={pointerWithin}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <DispatchDriversTrucksFilter
+          viewType={viewType}
+          driverOptions={filterDriverOptions}
+          truckOptions={filterTruckOptions}
+          haulierOptions={filterHaulierOptions}
+          customerOptions={filterCustomerOptions}
+          isLoadingResources={isLoading}
+          filter={boardFilter}
+          onFilterChange={setBoardFilter}
+        />
+        <div className="border-b pl-6 py-2.5 bg-white">
+          <div className="flex items-center gap-3">
+            <span className="text-[12px] font-medium text-[#64748B]">
+              {format(date, 'EEE dd MMM').toUpperCase()}
+            </span>
 
-          <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.trucksBooked}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Trucks booked today
-            </span>
+            <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
+              <span className="text-[12px] font-semibold tracking-wider">
+                {headerStats.trucksBooked}
+              </span>{' '}
+              <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+                Trucks booked today
+              </span>
+            </div>
+            <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
+              <span className="text-[12px] font-semibold tracking-wider">
+                {headerStats.driversOnTrips}
+              </span>{' '}
+              <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+                Drivers on trips
+              </span>
+            </div>
           </div>
-          <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
-            <span className="text-[12px] font-semibold tracking-wider">
-              {headerStats.driversOnTrips}
-            </span>{' '}
-            <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-              Drivers on trips
-            </span>
-          </div>
         </div>
-      </div>
-      <div className="flex h-[calc(100vh-200px)] overflow-hidden pt-2 pb-4 px-4 gap-4">
-        <div className="w-[390px] shrink-0">
-          <UnassignedDockets
-            date={date}
-            dockets={unassignedDocketsForBoard}
-            isLoading={isLoading}
-            selectedDocketId={selectedDocketId}
-            onSelectDocket={setSelectedDocketId}
-          />
-        </div>
-        <div className="flex-1 min-w-0">
-          <AssignedDockets
-            // date={date}
-            trucks={filteredMappedResources}
-            dockets={docketsForAssignedBoard}
-            isLoading={isLoading}
-            onUpdateDocket={handleUpdateDocket}
-            onResizeDocket={handleResizeDocket}
-            selectedDocketId={selectedDocketId}
-            onSelectDocket={setSelectedDocketId}
-            // onUnassignDocket={handleUnassign}
-            viewType={viewType}
-            focusDocket={focusDocket}
-          />
-        </div>
-        {selectedDocketId && (
-          <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
-            <DocketDetailsPanel
-              docketId={Number(selectedDocketId)}
-              onClose={() => setSelectedDocketId(null)}
-              onUnassign={handleUnassign}
-              isDispatchView={true}
+        <div className="flex h-[calc(100vh-200px)] overflow-hidden pt-2 pb-4 px-4 gap-4">
+          <div className="w-[390px] shrink-0">
+            <UnassignedDockets
+              date={date}
+              dockets={unassignedDocketsForBoard}
+              isLoading={isLoading}
+              selectedDocketId={selectedDocketId}
+              onSelectDocket={setSelectedDocketId}
             />
           </div>
-        )}
-      </div>
-      <DragOverlay zIndex={1000} modifiers={[snapCenterToCursor]}>
-        {activeDocket ? <DocketCardOverlay docket={activeDocket} /> : null}
-      </DragOverlay>
+          <div className="flex-1 min-w-0">
+            <AssignedDockets
+              // date={date}
+              trucks={filteredMappedResources}
+              dockets={docketsForAssignedBoard}
+              isLoading={isLoading}
+              onUpdateDocket={handleUpdateDocket}
+              onResizeDocket={handleResizeDocket}
+              selectedDocketId={selectedDocketId}
+              onSelectDocket={setSelectedDocketId}
+              // onUnassignDocket={handleUnassign}
+              viewType={viewType}
+              focusDocket={focusDocket}
+            />
+          </div>
+          {selectedDocketId && (
+            <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
+              <DocketDetailsPanel
+                docketId={Number(selectedDocketId)}
+                onClose={() => setSelectedDocketId(null)}
+                onUnassign={handleUnassign}
+                isDispatchView={true}
+              />
+            </div>
+          )}
+        </div>
+        <DragOverlay zIndex={1000} modifiers={[snapCenterToCursor]}>
+          {activeDocket ? <DocketCardOverlay docket={activeDocket} /> : null}
+        </DragOverlay>
 
-      <AssignTruckDriverModal
-        open={!!assignModalData}
-        onOpenChange={(open) => !open && setAssignModalData(null)}
-        viewType={viewType}
-        docket={assignModalDocket as DispatchDocket | null}
-        truck={assignModalTruck}
-        driver={assignModalDriver}
-        onAssign={handleAssignResource}
-        onCancel={() => setAssignModalData(null)}
-      />
-
-      {unassignDialogSnapshot && (
-        <ConfirmUnassignDialog
-          open={!!pendingUnassignDocketId}
-          onOpenChange={(open) => {
-            if (!open) setPendingUnassignDocketId(null);
-          }}
-          docketNumber={unassignDialogSnapshot.docketNumber}
-          cargoSummary={unassignDialogSnapshot.cargoSummary}
-          destination={unassignDialogSnapshot.destination}
-          customerName={unassignDialogSnapshot.customerName}
-          truckLabel={unassignDialogSnapshot.truckLabel}
-          driverLabel={unassignDialogSnapshot.driverLabel}
-          assignmentDateLabel={unassignDialogSnapshot.assignmentDateLabel}
-          timeWindowLabel={unassignDialogSnapshot.timeWindowLabel}
-          onConfirm={confirmPendingUnassign}
-          isConfirming={unassignMutation.isPending}
+        <AssignTruckDriverModal
+          open={!!assignModalData}
+          onOpenChange={(open) => !open && setAssignModalData(null)}
+          viewType={viewType}
+          docket={assignModalDocket as DispatchDocket | null}
+          truck={assignModalTruck}
+          driver={assignModalDriver}
+          slotTime={assignModalData?.time ?? ''}
+          assignmentDate={date}
+          onAssign={handleAssignResource}
+          onCancel={() => setAssignModalData(null)}
         />
-      )}
-    </DndContext>
+
+        {unassignDialogSnapshot && (
+          <ConfirmUnassignDialog
+            open={!!pendingUnassignDocketId}
+            onOpenChange={(open) => {
+              if (!open) setPendingUnassignDocketId(null);
+            }}
+            docketNumber={unassignDialogSnapshot.docketNumber}
+            cargoSummary={unassignDialogSnapshot.cargoSummary}
+            destination={unassignDialogSnapshot.destination}
+            customerName={unassignDialogSnapshot.customerName}
+            truckLabel={unassignDialogSnapshot.truckLabel}
+            driverLabel={unassignDialogSnapshot.driverLabel}
+            assignmentDateLabel={unassignDialogSnapshot.assignmentDateLabel}
+            timeWindowLabel={unassignDialogSnapshot.timeWindowLabel}
+            onConfirm={confirmPendingUnassign}
+            isConfirming={unassignMutation.isPending}
+          />
+        )}
+      </DndContext>
     </>
   );
 }
