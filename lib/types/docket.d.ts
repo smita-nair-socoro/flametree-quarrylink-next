@@ -85,6 +85,8 @@ export interface DocketOperationalUpdateRequest {
   deliveryCollectionDate?: string;
   deliveryCollectionStartTime?: string;
   deliveryCollectionEndTime?: string;
+  deliveryStartWindow?: string;
+  deliveryEndWindow?: string;
   deliveryDistanceQuantity?: number;
 }
 

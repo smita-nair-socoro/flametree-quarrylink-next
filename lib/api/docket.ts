@@ -220,6 +220,7 @@ export const useOperationalUpdateDocket = () => {
       }
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
 };
