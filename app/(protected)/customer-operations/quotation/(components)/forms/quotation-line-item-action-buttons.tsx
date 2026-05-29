@@ -51,6 +51,40 @@ export function QuotationLineItemActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
+        {canRemove && (
+          <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem
+                  onClick={actions.remove}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Delete className="h-4 w-4 mr-2 text-red-600" />
+                  Remove
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Desktop expanded version - toggle group layout
+  return (
+    <div>
+      {confirmDialogs}
+      {viewDialog}
+      {canRemove && (
         <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -63,40 +97,6 @@ export function QuotationLineItemActionButtons({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              {canRemove && (
-                <DropdownMenuItem
-                  onClick={actions.remove}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Delete className="h-4 w-4 mr-2 text-red-600" />
-                  Remove
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-    );
-  }
-
-  // Desktop expanded version - toggle group layout
-  return (
-    <div>
-      {confirmDialogs}
-      {viewDialog}
-      <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {canRemove && (
               <DropdownMenuItem
                 onClick={actions.remove}
                 className="text-destructive focus:text-destructive"
@@ -104,10 +104,10 @@ export function QuotationLineItemActionButtons({
                 <Delete className="h-4 w-4 mr-2 text-red-600" />
                 Remove
               </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
     </div>
   );
 }
