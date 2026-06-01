@@ -1631,7 +1631,7 @@ export default function DocketForm({
                     )}
                   >
                     {driverChecklist && (
-                      <div className="border rounded-md p-4 flex flex-col gap-3">
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5" />
@@ -1644,7 +1644,7 @@ export default function DocketForm({
                                 setChecklistModalType(CHECKLIST_TYPE.DRIVER);
                                 setChecklistModalOpen(true);
                               }}
-                              className="text-sm font-medium text-[#6B4EFF] hover:underline"
+                              className="text-sm font-medium text-[#6B4EFF] underline"
                             >
                               View Full Report
                             </button>
@@ -1656,7 +1656,7 @@ export default function DocketForm({
                       </div>
                     )}
                     {truckChecklist && (
-                      <div className="border rounded-md p-4 flex flex-col gap-3">
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5" />
@@ -1669,7 +1669,7 @@ export default function DocketForm({
                                 setChecklistModalType(CHECKLIST_TYPE.TRUCK);
                                 setChecklistModalOpen(true);
                               }}
-                              className="text-sm font-medium text-[#6B4EFF] hover:underline"
+                              className="text-sm font-medium text-[#6B4EFF] underline"
                             >
                               View Full Report
                             </button>
