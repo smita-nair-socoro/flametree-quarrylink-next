@@ -349,9 +349,9 @@ export function FormDialog({
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [
-          normalizeTruckStatus(selectedTruck.truckStatus) ??
-            selectedTruck.truckStatus,
-        ]
+        normalizeTruckStatus(selectedTruck.truckStatus) ??
+        selectedTruck.truckStatus,
+      ]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType
       ? [selectedTruck.truckBusinessType]
@@ -441,12 +441,12 @@ export function FormDialog({
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: effectiveId,
-        onCancel: close,
-        onSuccess: handleChildSuccess,
-        onDirtyChange: handleChildDirtyChange,
-        onSaved: handleChildSaved,
-      })
+      id: effectiveId,
+      onCancel: close,
+      onSuccess: handleChildSuccess,
+      onDirtyChange: handleChildDirtyChange,
+      onSaved: handleChildSaved,
+    })
     : children;
 
   const formatBadgeText = (text?: string | number | null): string => {
@@ -596,7 +596,7 @@ export function FormDialog({
             if (isAnyDropdownOpen()) e.preventDefault();
           }}
         >
-          \{dialogInner}
+          {dialogInner}
         </DialogContent>
         <EnhancedConfirmDialog
           open={showUnsavedConfirm}
