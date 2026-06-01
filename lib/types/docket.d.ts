@@ -455,6 +455,22 @@ export interface ConflictCheckResponse {
   conflictingDocketIds: ConflictingDocket[];
 }
 
+export interface DuplicateDocketRequest {
+  numberOfCopies: number;
+  retainPurchaseOrder: boolean;
+  purchaseOrder?: string;
+  deliveryCollectionDate: string;
+}
+
+export interface DuplicateDocketResponse {
+  remainingQuantityBeforeDuplication: number;
+  remainingQuantityAfterDuplication: number;
+  eachCopyQuantity: number;
+  totalRequestedQuantity: number;
+  maximumCopiesAllowed: number;
+  dockets: DocketDTO[];
+}
+
 export interface DocketStatistics {
   scheduledDocketsToday: number;
   scheduledDeliveryDocketsToday: number;

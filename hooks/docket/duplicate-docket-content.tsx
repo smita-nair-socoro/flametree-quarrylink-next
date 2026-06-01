@@ -93,6 +93,8 @@ export interface DuplicateDocketContentProps {
   onRetainPoNumberChange: (checked: boolean) => void;
   newDeliveryDate: Date | undefined;
   onNewDeliveryDateChange: (date: Date | undefined) => void;
+  poValue: string;
+  onPoValueChange: (value: string) => void;
 }
 
 export function DuplicateDocketContent({
@@ -103,12 +105,9 @@ export function DuplicateDocketContent({
   onRetainPoNumberChange,
   newDeliveryDate,
   onNewDeliveryDateChange,
+  poValue,
+  onPoValueChange,
 }: DuplicateDocketContentProps) {
-  const [poValue, setPoValue] = React.useState(docket?.purchaseOrder ?? '');
-
-  React.useEffect(() => {
-    if (retainPoNumber) setPoValue(docket?.purchaseOrder ?? '');
-  }, [retainPoNumber, docket?.purchaseOrder]);
 
   const loadSize =
     docket?.actualLoadSize || docket?.plannedLoadSize || docket?.loadSize || 0;
@@ -188,7 +187,7 @@ export function DuplicateDocketContent({
           <Input
             type="text"
             value={poValue}
-            onChange={(e) => setPoValue(e.target.value)}
+            onChange={(e) => onPoValueChange(e.target.value)}
             placeholder="PO number"
             disabled={retainPoNumber}
             className="w-[208px]"

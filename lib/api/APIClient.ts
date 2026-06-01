@@ -60,6 +60,8 @@ import {
   ConflictCheckRequest,
   ConflictCheckResponse,
   DocketStatistics,
+  DuplicateDocketRequest,
+  DuplicateDocketResponse,
 } from '../types/docket';
 import {
   JobDTO,
@@ -940,6 +942,11 @@ export const APIClient = {
         {
           queryString: { date },
         },
+      ),
+    duplicate: (id: number, data: DuplicateDocketRequest) =>
+      appClient.Post<DuplicateDocketResponse>(
+        `/socoro/quarrylink/api/dockets/${id}/duplicate`,
+        { body: data },
       ),
   },
 
