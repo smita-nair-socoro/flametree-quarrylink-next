@@ -288,6 +288,28 @@ export default function DocketForm({
     );
   }, [isEditing, selectedDocket]);
 
+  const invoiceSyncFailedBanner = React.useMemo(() => {
+    if (!isEditing || !selectedDocket) return null;
+    if (
+      selectedDocket.docketStatus !== DOCKET_STATUS.INVOICED ||
+      selectedDocket.invoiceStatus !== 'FAILED'
+    ) {
+      return null;
+    }
+
+    return (
+      <div className="border border-red-300 bg-red-50 p-4 rounded-md flex flex-col">
+        <div className="flex items-start gap-2 font-medium text-sm">
+          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-red-600" />
+          <span className="text-red-900">
+            Invoice created, but third-party sync failed. The docket remains
+            invoiced. Select Resync Invoice to try again.
+          </span>
+        </div>
+      </div>
+    );
+  }, [isEditing, selectedDocket]);
+
   const arrivalDeliveryBanner = React.useMemo(() => {
     if (!isEditing || !selectedDocket) return null;
     const status = selectedDocket.docketStatus;
@@ -849,6 +871,7 @@ export default function DocketForm({
             onSubmit={docketForm.handleSubmit(onSubmit, scrollToFirstError)}
           >
             {statusBanner}
+            {invoiceSyncFailedBanner}
             {arrivalDeliveryBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
               <div className="border rounded-md p-4 flex flex-col gap-8">
