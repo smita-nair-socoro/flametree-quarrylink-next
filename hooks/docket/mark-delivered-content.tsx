@@ -15,7 +15,7 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
-import { toast } from 'sonner';
+import { notifyError } from '@/lib/toast';
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
 
@@ -29,7 +29,7 @@ function acceptImageFile(
     return;
   }
   if (file.size > MAX_IMAGE_SIZE) {
-    toast.error(`${label} must be 5MB or smaller`);
+    notifyError(`${label} must be 5MB or smaller`);
     return;
   }
   onChange(file);
