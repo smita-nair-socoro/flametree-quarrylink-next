@@ -1,0 +1,15 @@
+Hi {DriverName},
+
+The scheduled time for your delivery has been updated.
+
+Docket Number: {DocketNumber}
+Customer: {CustomerName}
+Pickup Address: {PickupAddress}
+Delivery Address: {DeliveryAddress}
+
+Previous Date & Time: {PreviousDeliveryWindow}
+Updated Date & Time: {NewDeliveryWindow}
+
+View Delivery: {DocketUrl}
+
+You're receiving this because the scheduled time for one of your deliveries on QuarryLink has been updated.
