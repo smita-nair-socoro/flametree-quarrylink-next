@@ -15,6 +15,25 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
+import { toast } from 'sonner';
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+
+function acceptImageFile(
+  file: File | undefined,
+  onChange: (file: File | null) => void,
+  label: string,
+) {
+  if (!file) {
+    onChange(null);
+    return;
+  }
+  if (file.size > MAX_IMAGE_SIZE) {
+    toast.error(`${label} must be 5MB or smaller`);
+    return;
+  }
+  onChange(file);
+}
 
 export function MarkDeliveredDescription({
   docket,
@@ -174,7 +193,11 @@ export function MarkDeliveredContent({
               accept="image/*"
               className="hidden"
               onChange={(event) => {
-                onUnloadedPhotoChange(event.target.files?.[0] ?? null);
+                acceptImageFile(
+                  event.target.files?.[0],
+                  onUnloadedPhotoChange,
+                  'Unloaded photo',
+                );
                 event.currentTarget.value = '';
               }}
             />
@@ -239,7 +262,11 @@ export function MarkDeliveredContent({
               accept="image/*"
               className="hidden"
               onChange={(event) => {
-                onReceiptPhotoChange(event.target.files?.[0] ?? null);
+                acceptImageFile(
+                  event.target.files?.[0],
+                  onReceiptPhotoChange,
+                  'Receipt photo',
+                );
                 event.currentTarget.value = '';
               }}
             />
