@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Delivery Assignment Removed — QuarryLink</title>
+    <title>Delivery Time Updated — QuarryLink</title>
     <style>
       body {
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
+          sans-serif;
       }
       .container {
         max-width: 600px;
@@ -118,6 +118,13 @@
         color: #111827;
         font-weight: 600;
       }
+      .block-details .time-previous {
+        color: #9ca3af;
+      }
+      .block-details .time-updated {
+        color: #059669;
+        font-weight: 600;
+      }
       .contact-info {
         background-color: #f9fafb;
         border-left: 4px solid #7c3aed;
@@ -217,15 +224,31 @@
       <div class="card">
         <div class="header">Hi {DriverName},</div>
         <div class="content">
-          <p>Your delivery assignment has been <strong>removed</strong>.</p>
+          <p>The scheduled time for your delivery has been <strong>updated</strong>.</p>
         </div>
         <div class="block-details {BorderColorClass}">
           <p><strong>Docket Number:</strong> {DocketNumber}</p>
+          <p><strong>Customer:</strong> {CustomerName}</p>
+          <p><strong>Pickup Address:</strong> {PickupAddress}</p>
+          <p><strong>Delivery Address:</strong> {DeliveryAddress}</p>
+          <p>
+            <strong>Previous Date &amp; Time:</strong>
+            <span class="time-previous">{PreviousDeliveryWindow}</span>
+          </p>
+          <p>
+            <strong>Updated Date &amp; Time:</strong>
+            <span class="time-updated">{NewDeliveryWindow}</span>
+          </p>
+        </div>
+        <div class="button-container">
+          <a href="{DocketUrl}" class="btn-primary {ButtonColorClass}"
+            >View Delivery</a
+          >
         </div>
         <div class="card-footer">
           <p>
-            You're receiving this because your delivery assignment was updated
-            on QuarryLink.
+            You're receiving this because the scheduled time for one of your
+            deliveries on QuarryLink has been updated.
           </p>
         </div>
       </div>
