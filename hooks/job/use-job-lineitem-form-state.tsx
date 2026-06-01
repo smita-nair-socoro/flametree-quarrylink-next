@@ -36,6 +36,7 @@ import {
   Address,
   CustomerDeliveryAddress,
 } from '@/lib/types/address';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 
@@ -73,8 +74,6 @@ export function useJobLineItemFormState({
   onSaved,
 }: Props) {
   const isEditing = Boolean(id && id > 0);
-  const isReadOnly = isEditing && !canEdit;
-
   const jobLineItemId = Number(id || 0);
 
   const { data: jobLineItemData } = useQuery({
@@ -82,8 +81,15 @@ export function useJobLineItemFormState({
     enabled: isEditing && jobLineItemId > 0,
   });
 
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const isDocketLinked = React.useMemo(() => {
+    return Boolean(jobLineItemData?.allocatedQuantity && jobLineItemData.allocatedQuantity > 0);
+  }, [jobLineItemData]);
+
   const selectedJob = useSelectedJob();
+
+  const isReadOnly = (isEditing && !canEdit) || isDocketLinked || selectedJob?.jobStatus === JOB_STATUS.CANCELLED;
+
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const jobId = jobLineItemData?.jobId ?? selectedJob?.id ?? 0;
   const { data: jobWithItems } = useQuery({
     ...JobItemsQueryOptions(jobId),

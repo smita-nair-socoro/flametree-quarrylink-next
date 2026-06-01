@@ -12,6 +12,7 @@ import { JobDetails } from '@/lib/types/job';
 import { DocketDTO } from '@/lib/types/docket';
 import { useQuery } from '@tanstack/react-query';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 
 interface DocketsTabProps {
   selectedJob: JobDetails | null;
@@ -20,6 +21,8 @@ interface DocketsTabProps {
 export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const jobId = selectedJob?.id ?? 0;
+
+  const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
   const { data: dockets } = useQuery({
     ...DocketsByJobIdQueryOptions(jobId),
@@ -45,9 +48,11 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
         )}
       >
         <span className="text-lg font-semibold">Dockets</span>
-        <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
-          <DocketForm isQuickDocket={false} jobId={jobId} />
-        </FormDialog>
+        {jobStatus !== JOB_STATUS.CANCELLED && (
+          <FormDialog dialogTitle="Add New Docket" buttonTitle="Add New Docket">
+            <DocketForm isQuickDocket={false} jobId={jobId} />
+          </FormDialog>
+        )}
       </div>
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
