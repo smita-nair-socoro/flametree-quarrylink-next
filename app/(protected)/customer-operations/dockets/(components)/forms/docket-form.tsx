@@ -1637,16 +1637,18 @@ export default function DocketForm({
                             <FileText className="w-5 h-5" />
                             <span className="text-base font-bold">Pre-Start Checklist</span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.DRIVER);
-                              setChecklistModalOpen(true);
-                            }}
-                            className="text-sm font-medium text-[#6B4EFF] hover:underline"
-                          >
-                            View Full Report
-                          </button>
+                          {driverChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                                setChecklistModalOpen(true);
+                              }}
+                              className="text-sm font-medium text-[#6B4EFF] hover:underline"
+                            >
+                              View Full Report
+                            </button>
+                          )}
                         </div>
                         {driverChecklist.checklistStatus && (
                           <TableBadges names={driverChecklist.checklistStatus} />
@@ -1660,16 +1662,18 @@ export default function DocketForm({
                             <FileText className="w-5 h-5" />
                             <span className="text-base font-bold">Truck Inspection</span>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.TRUCK);
-                              setChecklistModalOpen(true);
-                            }}
-                            className="text-sm font-medium text-[#6B4EFF] hover:underline"
-                          >
-                            View Full Report
-                          </button>
+                          {truckChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                                setChecklistModalOpen(true);
+                              }}
+                              className="text-sm font-medium text-[#6B4EFF] hover:underline"
+                            >
+                              View Full Report
+                            </button>
+                          )}
                         </div>
                         {truckChecklist.checklistStatus && (
                           <TableBadges names={truckChecklist.checklistStatus} />
