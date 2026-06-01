@@ -62,7 +62,6 @@ export function JobLineItemTableActions({
 					{jobStatus !== JOB_STATUS.CANCELLED && (
 						<>
 							<DropdownMenuSeparator />
-
 							<DropdownMenuItem
 								onClick={handleDelete}
 								className="text-destructive focus:text-destructive"
