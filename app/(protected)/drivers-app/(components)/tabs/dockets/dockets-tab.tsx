@@ -412,17 +412,13 @@ export default function DocketsTab({
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
                             : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
-                          {selectedDocket.jobItem?.productSellUom === 'TN'
-                            ? 'TN'
-                            : selectedDocket.jobItem?.productSellUom === 'M3'
-                              ? 'm³'
-                              : selectedDocket.jobItem?.productSellUom === 'KG_20'
-                                ? 'x 20kg'
-                                : selectedDocket.jobItem?.productSellUom === 'TN'
-                                  ? 'TN'
-                                  : selectedDocket.jobItem?.productSellUom === 'BULKA'
-                                    ? 'Bulka'
-                                    : selectedDocket.jobItem?.productSellUom}
+                          {selectedDocket.jobItem?.productSellUom === 'M3'
+                            ? 'm³'
+                            : selectedDocket.jobItem?.productSellUom === 'KG_20'
+                              ? 'x 20kg'
+                              : selectedDocket.jobItem?.productSellUom === 'BULKA'
+                                ? 'Bulka'
+                                : selectedDocket.jobItem?.productSellUom}
                         </span>
                         {['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) && (
                           <Button
