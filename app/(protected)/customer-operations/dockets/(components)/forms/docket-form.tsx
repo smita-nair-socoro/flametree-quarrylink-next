@@ -138,6 +138,7 @@ export default function DocketForm({
     uom: string;
     productMax?: number;
     truckCapacity?: number;
+    overProductMax?: boolean;
   } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
@@ -964,7 +965,7 @@ export default function DocketForm({
                                             : uomNorm === 'm3' || uomNorm === 'bulka'
                                               ? 'm³'
                                               : uomNorm === 'tn'
-                                                ? 't'
+                                                ? 'TN'
                                                 : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
@@ -974,6 +975,7 @@ export default function DocketForm({
                                             uom: uomText,
                                             productMax,
                                             truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            overProductMax: val > productMax,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -1026,7 +1028,7 @@ export default function DocketForm({
                                             : uomNorm === 'm3' || uomNorm === 'bulka'
                                               ? 'm³'
                                               : uomNorm === 'tn'
-                                                ? 't'
+                                                ? 'TN'
                                                 : details.productUom || '';
 
                                         if (!isNaN(val) && val > maxLimit) {
@@ -1036,6 +1038,7 @@ export default function DocketForm({
                                             uom: uomText,
                                             productMax,
                                             truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            overProductMax: val > productMax,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -1087,7 +1090,9 @@ export default function DocketForm({
                         {adjustedAlert.truckCapacity != null &&
                         adjustedAlert.productMax != null &&
                         adjustedAlert.truckCapacity < adjustedAlert.productMax
-                          ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                          ? adjustedAlert.overProductMax
+                            ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                            : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                           : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
                       </div>
                     </div>
@@ -1156,7 +1161,7 @@ export default function DocketForm({
                             : uomNorm === 'm3' || uomNorm === 'bulka'
                               ? 'm³'
                               : uomNorm === 'tn'
-                                ? 't'
+                                ? 'TN'
                                 : d.productUom;
                         const isM3 = uomNorm === 'm3' || uomNorm === 'bulka';
                         const calcLabel = isM3
