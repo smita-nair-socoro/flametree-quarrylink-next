@@ -241,27 +241,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleMarkArrived = async () => {
     if (!docketData?.id) return;
     try {
-      let latitude: string | undefined;
-      let longitude: string | undefined;
-
-      if (typeof navigator !== 'undefined' && navigator.geolocation) {
-        await new Promise<void>((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              latitude = pos.coords.latitude.toFixed(7);
-              longitude = pos.coords.longitude.toFixed(7);
-              resolve();
-            },
-            () => resolve(), // proceed without coords if denied/unavailable
-          );
-        });
-      }
-
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.ARRIVED,
-        latitude,
-        longitude,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),
