@@ -18,10 +18,12 @@ import RolesTab from './(components)/tabs/roles-tab';
 // import BillingTab from './(components)/tabs/billing-tab';
 import BrandingTab from './(components)/tabs/branding-tab';
 import IntegrationTab from './(components)/tabs/integration-tab';
-import { useIsSuperAdmin } from '@/app/stores/user-store';
+import { useIsSuperAdmin, useUserStore } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
   const isSuperAdmin = useIsSuperAdmin();
+  const userGroups = useUserStore((s) => s.userGroups);
+  const isAdmin = !isSuperAdmin && userGroups.some((g) => g.toLowerCase().includes('admin'));
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') ?? undefined;
 
@@ -31,14 +33,14 @@ export default function UserRolesPage() {
       content: <SettingsTab />,
       icon: <SettingsIcon className="w-4 h-4" />,
     },
-    ...(isSuperAdmin
+    ...(isSuperAdmin || isAdmin
       ? [
-        {
-          name: 'Team & Admin',
-          content: <TeamAdminTab />,
-          icon: <UsersRound className="w-4 h-4" />,
-        },
-      ]
+          {
+            name: 'Team & Admin',
+            content: <TeamAdminTab />,
+            icon: <UsersRound className="w-4 h-4" />,
+          },
+        ]
       : []),
     {
       name: 'Roles',
@@ -50,11 +52,15 @@ export default function UserRolesPage() {
     //   content: <BillingTab />,
     //   icon: <CreditCard className="w-4 h-4" />,
     // },
-    {
-      name: 'Integration',
-      content: <IntegrationTab />,
-      icon: <Plug className="w-4 h-4" />,
-    },
+    ...(isSuperAdmin
+      ? [
+          {
+            name: 'Integration',
+            content: <IntegrationTab />,
+            icon: <Plug className="w-4 h-4" />,
+          },
+        ]
+      : []),
     {
       name: 'Branding',
       content: <BrandingTab />,
