@@ -413,7 +413,7 @@ export default function DocketsTab({
                             ? selectedDocket.plannedLoadSize
                             : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
                           {selectedDocket.jobItem?.productSellUom === 'TN'
-                            ? 'T'
+                            ? 'TN'
                             : selectedDocket.jobItem?.productSellUom === 'M3'
                               ? 'm³'
                               : selectedDocket.jobItem?.productSellUom === 'KG_20'
