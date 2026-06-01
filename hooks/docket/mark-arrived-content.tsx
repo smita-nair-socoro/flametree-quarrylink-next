@@ -41,7 +41,7 @@ export function MarkArrivedDescription({
   );
 }
 
-export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
+export function MarkArrivedContent({ docket, isAdmin }: { docket?: DocketDTO | null; isAdmin: boolean }) {
   const now = new Date();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
@@ -51,20 +51,22 @@ export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="border border-[#FED7AA] rounded-md p-4 bg-[#FFF7ED]">
-        <div className="flex justify-start gap-2 self-stretch">
-          <Shield className="h-[20px] w-[20px] text-[#C2410C] flex-shrink-0 mt-0.5" />
-          <div className="flex flex-col gap-1">
-            <span className="text-[16px] text-[#C2410C] font-medium">
-              Admin Override
-            </span>
-            <span className="text-[14px] font-normal text-[#EA580C]">
-              You are marking this docket as arrived on behalf of the driver.
-              This action will be logged for audit purposes.
-            </span>
+      {isAdmin && (
+        <div className="border border-[#FED7AA] rounded-md p-4 bg-[#FFF7ED]">
+          <div className="flex justify-start gap-2 self-stretch">
+            <Shield className="h-[20px] w-[20px] text-[#C2410C] flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[16px] text-[#C2410C] font-medium">
+                Admin Override
+              </span>
+              <span className="text-[14px] font-normal text-[#EA580C]">
+                You are marking this docket as arrived on behalf of the driver.
+                This action will be logged for audit purposes.
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-3 rounded-md bg-[#F9FAFB] px-4 py-3">
         <div className="flex flex-col gap-1">

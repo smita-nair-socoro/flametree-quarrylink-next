@@ -103,7 +103,7 @@ export function ChecklistReportModal({
       >
         {/* Title */}
         <div className="pb-4 -mx-6 px-6 border-b">
-          <DialogTitle className="text-base font-bold">
+          <DialogTitle className="text-2xl font-bold">
             {type === CHECKLIST_TYPE.DRIVER ? 'Checklist Report' : 'Inspection Report'}
           </DialogTitle>
         </div>
@@ -132,11 +132,10 @@ export function ChecklistReportModal({
                   </span>
                 </div>
                 <span
-                  className={`flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full border ${
-                    isPass
-                      ? 'border-green-500 text-green-600 bg-green-50'
-                      : 'border-red-400 text-red-600 bg-red-50'
-                  }`}
+                  className={`flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full border ${isPass
+                    ? 'border-green-500 text-green-600 bg-green-50'
+                    : 'border-red-400 text-red-600 bg-red-50'
+                    }`}
                 >
                   {isPass ? (
                     <CircleCheck className="w-3.5 h-3.5" />

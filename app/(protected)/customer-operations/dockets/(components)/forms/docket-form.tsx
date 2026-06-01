@@ -69,6 +69,7 @@ import {
   ChecklistReportModal,
   CHECKLIST_TYPE,
 } from '@/components/checklist-report-modal';
+import { TableBadges } from '@/components/table-badges';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
@@ -205,24 +206,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -549,18 +550,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -646,18 +647,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -738,13 +739,13 @@ export default function DocketForm({
         }
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.DRIVER}
-        submissionId={selectedDocket?.driverChecklist?.id ?? 0}
+        submissionId={selectedDocket?.driverChecklistSubmission?.id ?? 0}
       />
       <ChecklistReportModal
         open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.TRUCK}
-        submissionId={selectedDocket?.truckChecklist?.id ?? 0}
+        submissionId={selectedDocket?.truckChecklistSubmission?.id ?? 0}
         truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 
@@ -765,16 +766,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -937,10 +938,10 @@ export default function DocketForm({
                     const truckCapacityInProductUom =
                       truckVolumeM3 != null
                         ? convertTruckVolumeToProductUom(
-                            truckVolumeM3,
-                            details.productUom,
-                            productDetails?.densityTonnagePerM3 || 1,
-                          )
+                          truckVolumeM3,
+                          details.productUom,
+                          productDetails?.densityTonnagePerM3 || 1,
+                        )
                         : null;
 
                     const showActualLoadSize =
@@ -1179,8 +1180,8 @@ export default function DocketForm({
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
                         {adjustedAlert.truckCapacity != null &&
-                        adjustedAlert.productMax != null &&
-                        adjustedAlert.truckCapacity < adjustedAlert.productMax
+                          adjustedAlert.productMax != null &&
+                          adjustedAlert.truckCapacity < adjustedAlert.productMax
                           ? adjustedAlert.overProductMax
                             ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                             : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
@@ -1224,12 +1225,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1614,88 +1615,80 @@ export default function DocketForm({
               )}
 
               {/* Checklist Section */}
-              {isEditing &&
-                (selectedDocket?.driverChecklist ||
-                  selectedDocket?.truckChecklist) && (
-                  <div className="border rounded-md p-4 flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      <span className="text-[17px] font-medium">
-                        Checklists
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      {selectedDocket?.driverChecklist && (
-                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium">
-                              Pre-Start Checklist
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.driverChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.driverChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
-                            >
-                              {selectedDocket.driverChecklist.checklistStatus ??
-                                'Pending'}
-                            </span>
+              {(() => {
+                const driverChecklist =
+                  selectedDocket?.hasTodayDriverPreStart && selectedDocket?.driverChecklistSubmissionId
+                    ? selectedDocket?.driverChecklistSubmission
+                    : null;
+                const truckChecklist =
+                  selectedDocket?.hasTodayTruckInspectionByCurrentDriver && selectedDocket?.truckChecklistSubmissionId
+                    ? selectedDocket?.truckChecklistSubmission
+                    : null;
+
+                if (!isEditing || (!driverChecklist && !truckChecklist)) return null;
+
+                return (
+                  <div
+                    className={cn(
+                      'grid gap-4',
+                      driverChecklist && truckChecklist ? 'grid-cols-2' : 'grid-cols-1',
+                    )}
+                  >
+                    {driverChecklist && (
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
+                            <span className="text-base font-bold">Pre-Start Checklist</span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.DRIVER);
-                              setChecklistModalOpen(true);
-                            }}
-                          >
-                            View Report
-                          </Button>
-                        </div>
-                      )}
-                      {selectedDocket?.truckChecklist && (
-                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium">
-                              Truck Inspection
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.truckChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.truckChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
+                          {driverChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                                setChecklistModalOpen(true);
+                              }}
                             >
-                              {selectedDocket.truckChecklist.checklistStatus ??
-                                'Pending'}
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.TRUCK);
-                              setChecklistModalOpen(true);
-                            }}
-                          >
-                            View Report
-                          </Button>
+                              View Full Report
+                            </Button>
+                          )}
                         </div>
-                      )}
-                    </div>
+                        {driverChecklist.checklistStatus && (
+                          <TableBadges names={driverChecklist.checklistStatus} />
+                        )}
+                      </div>
+                    )}
+                    {truckChecklist && (
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
+                            <span className="text-base font-bold">Truck Inspection</span>
+                          </div>
+                          {truckChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                                setChecklistModalOpen(true);
+                              }}
+                            >
+                              View Full Report
+                            </Button>
+                          )}
+                        </div>
+                        {truckChecklist.checklistStatus && (
+                          <TableBadges names={truckChecklist.checklistStatus} />
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
+                );
+              })()}
 
               {/* Sign Off Section */}
               {isEditing &&
