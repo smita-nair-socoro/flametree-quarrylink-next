@@ -236,15 +236,9 @@ export const useDuplicateDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
-      const jobId = data.dockets[0]?.jobId;
-      if (jobId) {
-        try {
-          const updatedJob = await APIClient.jobs.getJobItems(jobId);
-          useJobStore.getState().setSelectedJob(updatedJob);
-        } catch {
-          useJobStore.getState().setSelectedJob(null);
-        }
-      }
+      queryClient.invalidateQueries({
+        queryKey: JobKeys.items(data.dockets[0]?.jobId),
+      });
     },
   });
 };
