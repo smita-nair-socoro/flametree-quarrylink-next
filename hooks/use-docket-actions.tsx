@@ -61,9 +61,11 @@ import {
   useUpdateDocketStatus,
   useAssignDocket,
   useUnassignDocket,
+  useDuplicateDocket,
 } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
 import { useRetrySync } from '@/lib/api/invoices';
@@ -144,17 +146,26 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [duplicateDeliveryDate, setDuplicateDeliveryDate] = React.useState<
     Date | undefined
   >(undefined);
+  const [duplicatePurchaseOrder, setDuplicatePurchaseOrder] = React.useState(
+    () => docketData?.purchaseOrder ?? '',
+  );
+
+  React.useEffect(() => {
+    if (duplicateRetainPo) setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
+  }, [duplicateRetainPo, docketData?.purchaseOrder]);
 
   const resetDuplicateState = React.useCallback(() => {
     setDuplicateCopies(0);
     setDuplicateRetainPo(true);
     setDuplicateDeliveryDate(undefined);
-  }, []);
+    setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
+  }, [docketData?.purchaseOrder]);
   const { actions: invoiceActions } = useInvoiceActions(docketData?.invoiceId);
   const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
+  const duplicateDocketMutation = useDuplicateDocket();
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
@@ -498,25 +509,38 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   };
 
   const handleDuplicateDocket = async () => {
-    // TODO: replace with real API call once backend is ready
-    console.log('Duplicate docket:', {
-      id: docketData?.id,
-      copies: duplicateCopies,
-      retainPoNumber: duplicateRetainPo,
-      deliveryDate: duplicateDeliveryDate,
-    });
-    notifySuccess(
-      `${duplicateCopies} docket${duplicateCopies > 1 ? 's' : ''} duplicated successfully`,
-    );
-    setActiveDialog(null);
-    resetDuplicateState();
+    if (!docketData?.id || !duplicateDeliveryDate) return;
+    try {
+      const result = await duplicateDocketMutation.mutateAsync({
+        id: docketData.id,
+        data: {
+          numberOfCopies: duplicateCopies,
+          retainPurchaseOrder: duplicateRetainPo,
+          purchaseOrder: duplicateRetainPo ? undefined : duplicatePurchaseOrder,
+          deliveryCollectionDate: duplicateDeliveryDate.toISOString(),
+        },
+      });
+      result.dockets.forEach((d) =>
+        addNewRecordId('docket_main_data_table', d.id),
+      );
+      notifySuccess(
+        `${result.dockets.length} docket${result.dockets.length !== 1 ? 's' : ''} duplicated successfully`,
+      );
+      setActiveDialog(null);
+      resetDuplicateState();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   const duplicateLoadSize =
     docketData?.plannedLoadSize || docketData?.actualLoadSize || docketData?.loadSize || 0;
   const duplicateRemaining = docketData?.jobItem?.remainingQuantity ?? 0;
   const duplicateMaxCopies = duplicateLoadSize > 0 ? Math.floor(duplicateRemaining / duplicateLoadSize) : 99;
-  const isDuplicateFormValid = duplicateCopies >= 1 && duplicateCopies <= duplicateMaxCopies;
+  const isDuplicateFormValid =
+    duplicateCopies >= 1 &&
+    duplicateCopies <= duplicateMaxCopies &&
+    !!duplicateDeliveryDate;
 
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
@@ -704,11 +728,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             onRetainPoNumberChange={setDuplicateRetainPo}
             newDeliveryDate={duplicateDeliveryDate}
             onNewDeliveryDateChange={setDuplicateDeliveryDate}
+            poValue={duplicatePurchaseOrder}
+            onPoValueChange={setDuplicatePurchaseOrder}
           />
         ),
         confirmText: 'Create Copy',
         confirmCustomColor: '#99A1AF',
-        confirmCustomClass: 'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px]',
+        confirmCustomClass: 'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px] cursor-pointer hover:opacity-80 transition-opacity',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
         cancelButtonClass: 'h-[37px] w-[79px] rounded-[10px] border border-[#E5E7EB] pt-[9px] pr-[16px] pb-[8px] pl-[17px] text-[#364153]',
@@ -730,6 +756,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       duplicateCopies,
       duplicateRetainPo,
       duplicateDeliveryDate,
+      duplicatePurchaseOrder,
       receiptPhoto,
       receiverName,
       receiverOnSite,

@@ -91,7 +91,7 @@ export function ActionDialog({
       <DialogContent
         className={cn(
           customWidth ? customWidth : 'w-[512px]',
-          'max-w-full  max-h-[90vh] overflow-y-auto ',
+          'max-w-full max-h-[90vh] overflow-y-auto overflow-x-hidden',
           padding ? `${padding}` : 'p-[24.62px] gap-6',
         )}
         style={{ scrollbarGutter: 'auto' }}

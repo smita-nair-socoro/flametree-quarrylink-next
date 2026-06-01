@@ -22,6 +22,7 @@ import {
   DocketDTO,
   DocketOperationalUpdateRequest,
   ConflictCheckRequest,
+  DuplicateDocketRequest,
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
@@ -221,6 +222,29 @@ export const useOperationalUpdateDocket = () => {
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
       queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
+    },
+  });
+};
+
+export const useDuplicateDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: DuplicateDocketRequest }) =>
+      APIClient.dockets.duplicate(id, data),
+    onSuccess: async (data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      const jobId = data.dockets[0]?.jobId;
+      if (jobId) {
+        try {
+          const updatedJob = await APIClient.jobs.getJobItems(jobId);
+          useJobStore.getState().setSelectedJob(updatedJob);
+        } catch {
+          useJobStore.getState().setSelectedJob(null);
+        }
+      }
     },
   });
 };
