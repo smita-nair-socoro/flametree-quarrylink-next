@@ -206,24 +206,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -550,18 +550,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -647,18 +647,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -766,16 +766,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -938,10 +938,10 @@ export default function DocketForm({
                     const truckCapacityInProductUom =
                       truckVolumeM3 != null
                         ? convertTruckVolumeToProductUom(
-                            truckVolumeM3,
-                            details.productUom,
-                            productDetails?.densityTonnagePerM3 || 1,
-                          )
+                          truckVolumeM3,
+                          details.productUom,
+                          productDetails?.densityTonnagePerM3 || 1,
+                        )
                         : null;
 
                     const showActualLoadSize =
@@ -1180,8 +1180,8 @@ export default function DocketForm({
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
                         {adjustedAlert.truckCapacity != null &&
-                        adjustedAlert.productMax != null &&
-                        adjustedAlert.truckCapacity < adjustedAlert.productMax
+                          adjustedAlert.productMax != null &&
+                          adjustedAlert.truckCapacity < adjustedAlert.productMax
                           ? adjustedAlert.overProductMax
                             ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                             : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
@@ -1225,12 +1225,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1645,7 +1645,7 @@ export default function DocketForm({
                             <Button
                               type="button"
                               variant="link"
-                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
                               onClick={() => {
                                 setChecklistModalType(CHECKLIST_TYPE.DRIVER);
                                 setChecklistModalOpen(true);
@@ -1671,7 +1671,7 @@ export default function DocketForm({
                             <Button
                               type="button"
                               variant="link"
-                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
                               onClick={() => {
                                 setChecklistModalType(CHECKLIST_TYPE.TRUCK);
                                 setChecklistModalOpen(true);

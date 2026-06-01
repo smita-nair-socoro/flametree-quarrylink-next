@@ -176,7 +176,7 @@ export function ChecklistPromptDrawer({
               <button
                 onClick={handleCompleteExternally}
                 disabled={!template || submitChecklist.isPending}
-                className="w-full bg-[#00A63E] hover:bg-[#009036] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98] disabled:opacity-50"
+                className="w-full bg-[#00A63E] hover:bg-[#009036] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98] disabled:opacity-50 cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-1.5 rounded-lg">
@@ -192,7 +192,7 @@ export function ChecklistPromptDrawer({
 
               <button
                 onClick={handleCompleteNow}
-                className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98]"
+                className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white rounded-2xl p-4 flex items-center justify-between transition-colors active:scale-[0.98] cursor-pointer"
               >
                 <div className="flex items-center gap-3">
                   <div className="bg-white/20 p-1.5 rounded-lg">

@@ -424,6 +424,7 @@ export default function DocketsTab({
                           <Button
                             variant="ghost"
                             className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
+                            size="xs"
                             onClick={() => {
                               setUpdateValue(
                                 (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize)?.toString() ?? '',
@@ -436,7 +437,7 @@ export default function DocketsTab({
                         )}
                       </div>
                     </div>
-                    <Separator className="bg-gray-100 -my-1" />
+                    <Separator className={cn("bg-gray-100", ['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) ? '' : 'mt-1')} />
 
                     <div className="grid grid-cols-2">
                       <span className="text-[13px] text-gray-400">Product</span>
@@ -652,11 +653,13 @@ export default function DocketsTab({
                 {updateValue || '0'}
               </span>
               <span className="text-[24px] text-[#64748B] font-medium">
-                {selectedDocket?.jobItem?.productSellUom === 'TN'
-                  ? 'T'
-                  : selectedDocket?.jobItem?.productSellUom === 'M3'
-                    ? 'm³'
-                    : (selectedDocket?.jobItem?.productSellUom ?? '')}
+                {selectedDocket?.jobItem?.productSellUom === 'M3'
+                  ? 'm³'
+                  : selectedDocket?.jobItem?.productSellUom === 'KG_20'
+                    ? 'x 20kg'
+                    : selectedDocket?.jobItem?.productSellUom === 'BULKA'
+                      ? 'Bulka'
+                      : selectedDocket?.jobItem?.productSellUom}
               </span>
             </div>
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
@@ -665,11 +668,14 @@ export default function DocketsTab({
                 {(selectedDocket?.id ? docketSizes[selectedDocket.id] : undefined) ??
                   selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize}
-                {selectedDocket?.jobItem?.productSellUom === 'TN'
-                  ? 'T'
-                  : selectedDocket?.jobItem?.productSellUom === 'M3'
+                {
+                  selectedDocket?.jobItem?.productSellUom === 'M3'
                     ? 'm³'
-                    : selectedDocket?.jobItem?.productSellUom}
+                    : selectedDocket?.jobItem?.productSellUom === 'KG_20'
+                      ? 'x 20kg'
+                      : selectedDocket?.jobItem?.productSellUom === 'BULKA'
+                        ? 'Bulka'
+                        : selectedDocket?.jobItem?.productSellUom}
               </span>
             </span>
           </div>
@@ -711,13 +717,13 @@ export default function DocketsTab({
           <div className="flex items-center gap-4 p-5 bg-[#E2E8F0]">
             <Button
               variant="outline"
-              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-white border-white text-[#475569] shadow-sm hover:bg-gray-50"
+              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-white border-white text-[#475569] shadow-sm hover:bg-gray-50 cursor-pointer"
               onClick={() => setIsUpdateDrawerOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-[#8E51FF] hover:bg-[#7c46e0] text-white shadow-sm"
+              className="flex-1 h-14 rounded-2xl text-[16px] font-bold bg-[#8E51FF] hover:bg-[#7c46e0] text-white shadow-sm cursor-pointer"
               disabled={operationalUpdate.isPending}
               onClick={async () => {
                 if (!selectedDocket?.id || !updateValue) return;

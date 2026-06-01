@@ -385,14 +385,14 @@ export function BaseChecklist({
         {remainingCount > 0 ? (
           <Button
             variant="secondary"
-            className="w-full bg-gray-100 text-gray-400 hover:bg-gray-200 h-12 rounded-xl font-medium"
+            className="w-full bg-gray-100 text-gray-400 hover:bg-gray-200 h-12 rounded-xl font-medium cursor-pointer"
             disabled
           >
             Complete All {remainingCount} Remaining Questions
           </Button>
         ) : (
           <Button
-            className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-lg font-semibold shadow-lg shadow-purple-200 active:scale-[0.98] transition-all"
+            className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-lg font-semibold shadow-lg shadow-purple-200 active:scale-[0.98] transition-all cursor-pointer"
             onClick={() => {
               const formatted: BaseChecklistAnswer[] = questions
                 .filter((q) => answers[q.id] != null)
