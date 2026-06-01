@@ -4,6 +4,7 @@ import {
   MoreHorizontal,
   Eye,
   ScanBarcode,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -38,6 +39,11 @@ export function QuarrySupplierTableActions({
     actions.linkedProducts();
   };
 
+  const handleDelete = () => {
+    setDropdownOpen(false);
+    actions.delete();
+  };
+
   return (
     <div>
       {confirmDialogs}
@@ -61,6 +67,17 @@ export function QuarrySupplierTableActions({
           <DropdownMenuItem onClick={handleLinkedProducts}>
             <ScanBarcode className="h-4 w-4 mr-2" />
             Linked Products
+          </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {/* Delete */}
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+            Delete
           </DropdownMenuItem>
 
         </DropdownMenuContent>

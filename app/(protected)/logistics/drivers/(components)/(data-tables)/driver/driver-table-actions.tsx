@@ -1,5 +1,6 @@
 'use client';
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   MoreHorizontal,
   Eye,
@@ -7,6 +8,7 @@ import {
   PowerOff,
   Power,
   Delete,
+  FileText,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -35,8 +37,20 @@ export function DriverTableActions({
   userSub,
 }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
+  const { actions, confirmDialogs, viewDialog, fullDriverData } = useDriverActions(driver);
   const resendInvitationMutation = useResendUserInvitation();
+  const router = useRouter();
+
+  const handleAssignedDockets = () => {
+    setDropdownOpen(false);
+    const targetDriver = fullDriverData || driver;
+    if (!targetDriver?.dockets || targetDriver.dockets.length === 0) {
+      notifyError('No dockets assigned to this driver.');
+      return;
+    }
+    const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
+    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+  };
 
   const handleView = () => {
     setDropdownOpen(false);
@@ -86,6 +100,11 @@ export function DriverTableActions({
           <DropdownMenuItem onClick={handleView}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleAssignedDockets}>
+            <FileText className="h-4 w-4 mr-2" />
+            Assigned Dockets
           </DropdownMenuItem>
           {driver.driverStatus === 'DEACTIVATED' && (
             <>
