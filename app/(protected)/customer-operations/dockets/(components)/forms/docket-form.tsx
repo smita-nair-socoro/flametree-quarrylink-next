@@ -61,7 +61,7 @@ import {
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
+import { getDeliveryDistanceQuantity, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
@@ -69,6 +69,7 @@ import {
   ChecklistReportModal,
   CHECKLIST_TYPE,
 } from '@/components/checklist-report-modal';
+import { TableBadges } from '@/components/table-badges';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
@@ -133,11 +134,19 @@ export default function DocketForm({
   const [checklistModalOpen, setChecklistModalOpen] = React.useState(false);
   const [checklistModalType, setChecklistModalType] =
     React.useState<CHECKLIST_TYPE>(CHECKLIST_TYPE.DRIVER);
+  const [adjustedAlert, setAdjustedAlert] = React.useState<{
+    amount: number;
+    uom: string;
+    productMax?: number;
+    truckCapacity?: number;
+    overProductMax?: boolean;
+  } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
+  const [pendingRetry, setPendingRetry] = React.useState<(() => Promise<void>) | null>(null);
   const {
     docketForm,
     isEditing,
@@ -197,24 +206,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -279,159 +288,254 @@ export default function DocketForm({
     );
   }, [isEditing, selectedDocket]);
 
-  async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
-    if (isReadOnly) {
-      if (isEditing && (canActualLoadSize || canEditDocketEmail)) {
-        const actualLoadSize = values.actualLoadSize;
-        const docketEmails = values.docketEmail
-          ? values.docketEmail.split(',').map((e) => e.trim())
-          : [];
-        const payload: DocketOperationalUpdateRequest = {
-          checkWindowTimeConflict: false,
-        };
-        if (canEditDocketEmail) {
-          payload.docketEmailRecipients = docketEmails;
-        }
-        if (canActualLoadSize) {
-          if (!actualLoadSize) {
-            notifyError('Actual load size is required');
-            return;
-          }
-          payload.actualLoadSize = actualLoadSize;
+  const arrivalDeliveryBanner = React.useMemo(() => {
+    if (!isEditing || !selectedDocket) return null;
+    const status = selectedDocket.docketStatus;
 
-          const lineItemDetails = selectedJobLineItemDetails();
-          const isCollection = lineItemDetails.type === 'COLLECTION';
-
-          const { quantity } = getDeliveryDistanceQuantity({
-            isCollection,
-            needTruckQty: lineItemDetails.needTruckQty,
-            truckQty: values.truckQty,
-            loadSize: actualLoadSize,
-            productUom: lineItemDetails.productUom,
-            truckUom: lineItemDetails.truckUom,
-            density: productDetails?.densityTonnagePerM3 || 1,
-          });
-
-          if (!isCollection) {
-            payload.deliveryDistanceQuantity = quantity;
-          }
-        }
-        try {
-          setIsSubmitting(true);
-          await operationalUpdateDocket.mutateAsync({
-            id: selectedDocket?.id ?? 0,
-            data: payload,
-          });
-          notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
-          return;
-        } catch (error) {
-          console.error('Error updating docket:', error);
-          notifyError(extractErrorMessage(error));
-          return;
-        } finally {
-          setIsSubmitting(false);
-        }
+    const formatEventTime = (isoString: string) => {
+      try {
+        const date = new Date(isoString);
+        const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+        return isToday ? `${format(date, 'hh:mm a')} Today` : format(date, 'hh:mm a, d MMM');
+      } catch {
+        return '—';
       }
-      return;
+    };
+
+    if (status === DOCKET_STATUS.ARRIVED && selectedDocket.arrivedAt) {
+      return (
+        <div className="flex flex-col gap-2 mb-2">
+          <span className="text-sm text-[#713F12] underline">
+            Arrived at: {formatEventTime(selectedDocket.arrivedAt)}
+          </span>
+          {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
+            <a
+              href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+            >
+              Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
+            </a>
+          )}
+        </div>
+      );
     }
 
-    if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
-      let startDateTime = values.deliveryCollectionStartTime;
-      let endDateTime = values.deliveryCollectionEndTime;
-      if (values.deliveryCollectionDate) {
-        if (
-          values.deliveryCollectionStartTime &&
-          !values.deliveryCollectionStartTime.includes('T')
-        ) {
-          startDateTime =
-            combineDateAndTime(
-              values.deliveryCollectionDate,
-              values.deliveryCollectionStartTime,
-            ) ?? startDateTime;
-        }
-        if (
-          values.deliveryCollectionEndTime &&
-          !values.deliveryCollectionEndTime.includes('T')
-        ) {
-          endDateTime =
-            combineDateAndTime(
-              values.deliveryCollectionDate,
-              values.deliveryCollectionEndTime,
-            ) ?? endDateTime;
+    if (
+      (status === DOCKET_STATUS.DELIVERED || status === DOCKET_STATUS.INVOICED) &&
+      selectedDocket.deliveredAt
+    ) {
+      let timeOnSite: string | null = null;
+      if (selectedDocket.arrivedAt) {
+        const diff = Math.floor(
+          (new Date(selectedDocket.deliveredAt).getTime() - new Date(selectedDocket.arrivedAt).getTime()) / 1000,
+        );
+        if (diff >= 0) {
+          const h = Math.floor(diff / 3600);
+          const m = Math.floor((diff % 3600) / 60);
+          const s = diff % 60;
+          timeOnSite = [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
         }
       }
-      const additionalEmails = values.docketEmail
-        ? values.docketEmail.split(',').map((e) => e.trim())
-        : [];
-      const docketEmailRecipients = Array.from(
-        new Set(
-          [selectedJob.customerEmail, ...additionalEmails].filter(Boolean),
-        ),
-      );
 
+      return (
+        <div className="flex items-start justify-between gap-4 mb-2">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm text-[#14532D] underline">
+              Delivered at: {formatEventTime(selectedDocket.deliveredAt)}
+            </span>
+            {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
+              <a
+                href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+              >
+                Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
+              </a>
+            )}
+          </div>
+          {timeOnSite && (
+            <div className="flex flex-col items-center justify-center border-2 border-[#65A30D] bg-[#F9FFEB] rounded-lg px-[14px] py-[3px] min-w-[130px] shrink-0 self-stretch">
+              <span className="text-[10px] font-bold text-[#65A30D] tracking-wider uppercase">
+                Time on Site
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[20px] font-bold text-[#365314] tabular-nums">
+                  {timeOnSite}
+                </span>
+                <div className="bg-[#65A30D]/50 p-0.5 rounded-full flex items-center justify-center">
+                  <span className="w-[9px] h-[9px] rounded-full bg-[#365314] inline-block" />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return null;
+  }, [isEditing, selectedDocket]);
+
+  async function handleReadOnlyUpdate(
+    values: z.infer<typeof DocketFormSchema>,
+  ) {
+    if (!isEditing || (!canActualLoadSize && !canEditDocketEmail)) return;
+
+    const actualLoadSize = values.actualLoadSize;
+    const docketEmails = values.docketEmail
+      ? values.docketEmail.split(',').map((e) => e.trim())
+      : [];
+    const payload: DocketOperationalUpdateRequest = {
+      checkWindowTimeConflict: false,
+    };
+
+    if (canEditDocketEmail) {
+      payload.docketEmailRecipients = docketEmails;
+    }
+    if (canActualLoadSize) {
+      if (!actualLoadSize) {
+        notifyError('Actual load size is required');
+        return;
+      }
+      payload.actualLoadSize = actualLoadSize;
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
+      const { quantity } = getDeliveryDistanceQuantity({
+        isCollection,
+        needTruckQty: lineItemDetails.needTruckQty,
+        truckQty: values.truckQty,
+        loadSize: actualLoadSize,
+        productUom: lineItemDetails.productUom,
+        truckUom: lineItemDetails.truckUom,
+        density: productDetails?.densityTonnagePerM3 || 1,
+      });
+      if (!isCollection) payload.deliveryDistanceQuantity = quantity;
+    }
 
-      const { quantity: deliveryDistanceQuantity } =
-        getDeliveryDistanceQuantity({
-          isCollection,
-          needTruckQty: lineItemDetails.needTruckQty,
-          truckQty: values.truckQty,
-          loadSize: values.plannedLoadSize || 0,
-          productUom: lineItemDetails.productUom,
-          truckUom: lineItemDetails.truckUom,
-          density: productDetails?.densityTonnagePerM3 || 1,
-        });
+    try {
+      setIsSubmitting(true);
+      await operationalUpdateDocket.mutateAsync({
+        id: selectedDocket?.id ?? 0,
+        data: payload,
+      });
+      notifySuccess('Docket updated successfully');
+      onSaved?.();
+      onSuccess?.();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
-      try {
-        setIsSubmitting(true);
-        const result = await operationalUpdateDocket.mutateAsync({
-          id: selectedDocket.id,
-          data: {
-            checkWindowTimeConflict: true,
-            deliveryCollectionDate: values.deliveryCollectionDate
-              ? appendUtcSuffix(
-                  format(
-                    values.deliveryCollectionDate,
-                    "yyyy-MM-dd'T'00:00:00.000",
-                  ),
-                )
-              : undefined,
-            deliveryCollectionStartTime: startDateTime
-              ? appendUtcSuffix(startDateTime)
-              : undefined,
-            deliveryCollectionEndTime: endDateTime
-              ? appendUtcSuffix(endDateTime)
-              : undefined,
-            plannedLoadSize: values.plannedLoadSize,
-            actualLoadSize: values.plannedLoadSize,
-            docketEmailRecipients,
-            truckId: selectedDocket.truckId,
-            driverId: selectedDocket.driverId,
-            deliveryDistanceQuantity,
-          },
-        });
-        if (
-          result.conflictingDocketIds &&
-          result.conflictingDocketIds.length > 0
-        ) {
-          setConflictingDocketIds(result.conflictingDocketIds);
-          setTimeConflictOpen(true);
-        } else {
+  async function handleAssignedUpdate(
+    values: z.infer<typeof DocketFormSchema>,
+  ) {
+    let startDateTime = values.deliveryCollectionStartTime;
+    let endDateTime = values.deliveryCollectionEndTime;
+    if (values.deliveryCollectionDate) {
+      if (
+        values.deliveryCollectionStartTime &&
+        !values.deliveryCollectionStartTime.includes('T')
+      ) {
+        startDateTime =
+          combineDateAndTime(
+            values.deliveryCollectionDate,
+            values.deliveryCollectionStartTime,
+          ) ?? startDateTime;
+      }
+      if (
+        values.deliveryCollectionEndTime &&
+        !values.deliveryCollectionEndTime.includes('T')
+      ) {
+        endDateTime =
+          combineDateAndTime(
+            values.deliveryCollectionDate,
+            values.deliveryCollectionEndTime,
+          ) ?? endDateTime;
+      }
+    }
+
+    const additionalEmails = values.docketEmail
+      ? values.docketEmail.split(',').map((e) => e.trim())
+      : [];
+    const docketEmailRecipients = Array.from(
+      new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+    );
+
+    const lineItemDetails = selectedJobLineItemDetails();
+    const isCollection = lineItemDetails.type === 'COLLECTION';
+    const { quantity: deliveryDistanceQuantity } = getDeliveryDistanceQuantity({
+      isCollection,
+      needTruckQty: lineItemDetails.needTruckQty,
+      truckQty: values.truckQty,
+      loadSize: values.plannedLoadSize || 0,
+      productUom: lineItemDetails.productUom,
+      truckUom: lineItemDetails.truckUom,
+      density: productDetails?.densityTonnagePerM3 || 1,
+    });
+
+    const { dirtyFields } = docketForm.formState;
+    const windowFieldsChanged =
+      !!dirtyFields.deliveryCollectionStartTime ||
+      !!dirtyFields.deliveryCollectionEndTime ||
+      !!dirtyFields.deliveryCollectionDate;
+
+    const assignedPayload = {
+      deliveryCollectionDate: values.deliveryCollectionDate
+        ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+        : undefined,
+      deliveryStartWindow: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
+      deliveryEndWindow: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+      plannedLoadSize: values.plannedLoadSize,
+      actualLoadSize: values.plannedLoadSize,
+      docketEmailRecipients,
+      truckId: selectedDocket!.truckId,
+      driverId: selectedDocket!.driverId,
+      deliveryDistanceQuantity,
+    };
+
+    try {
+      setIsSubmitting(true);
+      const result = await operationalUpdateDocket.mutateAsync({
+        id: selectedDocket!.id,
+        data: { ...assignedPayload, checkWindowTimeConflict: windowFieldsChanged },
+      });
+      if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+        setPendingRetry(() => async () => {
+          await operationalUpdateDocket.mutateAsync({
+            id: selectedDocket!.id,
+            data: { ...assignedPayload, checkWindowTimeConflict: false },
+          });
           notifySuccess('Docket updated successfully');
           onSaved?.();
           onSuccess?.();
-        }
-      } catch (error) {
-        notifyError(extractErrorMessage(error));
-      } finally {
-        setIsSubmitting(false);
+        });
+        setConflictingDocketIds(result.conflictingDocketIds);
+        setTimeConflictOpen(true);
+      } else {
+        notifySuccess('Docket updated successfully');
+        onSaved?.();
+        onSuccess?.();
       }
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
+    if (isReadOnly) {
+      await handleReadOnlyUpdate(values);
       return;
     }
-
+    if (isEditing && selectedDocket?.docketStatus === DOCKET_STATUS.ASSIGNED) {
+      await handleAssignedUpdate(values);
+      return;
+    }
     await doSave(values);
   }
 
@@ -446,18 +550,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -543,18 +647,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-                googlePlaceId: deliveryAddress.googlePlaceId,
-                formattedAddress: deliveryAddress.formattedAddress,
-                streetDetailsPrimary: deliveryAddress.address1,
-                streetDetailsOptional: deliveryAddress.address2,
-                city: deliveryAddress.city,
-                suburb: deliveryAddress.city,
-                state: deliveryAddress.region,
-                postcode: deliveryAddress.postalCode,
-                country: deliveryAddress.country,
-                latitude: deliveryAddress.lat,
-                longitude: deliveryAddress.lng,
-              }
+              googlePlaceId: deliveryAddress.googlePlaceId,
+              formattedAddress: deliveryAddress.formattedAddress,
+              streetDetailsPrimary: deliveryAddress.address1,
+              streetDetailsOptional: deliveryAddress.address2,
+              city: deliveryAddress.city,
+              suburb: deliveryAddress.city,
+              state: deliveryAddress.region,
+              postcode: deliveryAddress.postalCode,
+              country: deliveryAddress.country,
+              latitude: deliveryAddress.lat,
+              longitude: deliveryAddress.lng,
+            }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -635,13 +739,13 @@ export default function DocketForm({
         }
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.DRIVER}
-        submissionId={selectedDocket?.driverChecklist?.id ?? 0}
+        submissionId={selectedDocket?.driverChecklistSubmission?.id ?? 0}
       />
       <ChecklistReportModal
         open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.TRUCK}
-        submissionId={selectedDocket?.truckChecklist?.id ?? 0}
+        submissionId={selectedDocket?.truckChecklistSubmission?.id ?? 0}
         truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 
@@ -662,16 +766,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -709,9 +813,16 @@ export default function DocketForm({
         confirmText="Save Changes"
         onConfirmAction={async () => {
           setTimeConflictOpen(false);
-          notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
+          if (!pendingRetry) return;
+          try {
+            setIsSubmitting(true);
+            await pendingRetry();
+            setPendingRetry(null);
+          } catch (error) {
+            notifyError(extractErrorMessage(error));
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
       />
 
@@ -738,6 +849,7 @@ export default function DocketForm({
             onSubmit={docketForm.handleSubmit(onSubmit, scrollToFirstError)}
           >
             {statusBanner}
+            {arrivalDeliveryBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
               <div className="border rounded-md p-4 flex flex-col gap-8">
                 <div className="items-center flex gap-2">
@@ -821,6 +933,16 @@ export default function DocketForm({
                     const needTruckQty = details.needTruckQty;
                     // const truckQtyOverflows =
                     //   isDelivery && needTruckQty && canActualLoadSize;
+
+                    const truckVolumeM3 = selectedDocket?.truck?.tankVolumeM3 ?? null;
+                    const truckCapacityInProductUom =
+                      truckVolumeM3 != null
+                        ? convertTruckVolumeToProductUom(
+                          truckVolumeM3,
+                          details.productUom,
+                          productDetails?.densityTonnagePerM3 || 1,
+                        )
+                        : null;
 
                     const showActualLoadSize =
                       isEditing &&
@@ -922,20 +1044,49 @@ export default function DocketForm({
                                       className="w-full"
                                       {...field}
                                       onChange={(e) => {
-                                        const maxLimit = details.remainingQty;
+                                        const productMax = details.remainingQty;
+                                        const maxLimit =
+                                          truckCapacityInProductUom != null
+                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                            : productMax;
                                         const val = parseFloat(e.target.value);
+                                        const uomNorm = details.productUom?.toLowerCase();
+                                        const uomText =
+                                          uomNorm === '20kg' || uomNorm === 'kg_20'
+                                            ? 'x 20kg'
+                                            : uomNorm === 'm3' || uomNorm === 'bulka'
+                                              ? 'm³'
+                                              : uomNorm === 'tn'
+                                                ? 'TN'
+                                                : details.productUom || '';
+
                                         if (!isNaN(val) && val > maxLimit) {
                                           field.onChange(maxLimit);
+                                          setAdjustedAlert({
+                                            amount: maxLimit,
+                                            uom: uomText,
+                                            productMax,
+                                            truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            overProductMax: val > productMax,
+                                          });
                                         } else {
                                           field.onChange(e);
+                                          setAdjustedAlert(null);
                                         }
                                       }}
                                       value={field.value ?? ''}
                                       isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
                                       disabled={
                                         isReadOnly ||
                                         !jobLineItemId ||
-                                        !canEditPlannedLoadSize
+                                        !canEditPlannedLoadSize ||
+                                        (!isEditing &&
+                                          !!docketForm.watch('jobLineItemId') &&
+                                          selectedJobLineItemDetails()
+                                            .remainingQty <= 0)
                                       }
                                     />
                                   </FormControl>
@@ -955,8 +1106,42 @@ export default function DocketForm({
                                     <Input
                                       className="w-full"
                                       {...field}
+                                      onChange={(e) => {
+                                        const productMax = details.remainingQty;
+                                        const maxLimit =
+                                          truckCapacityInProductUom != null
+                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                            : productMax;
+                                        const val = parseFloat(e.target.value);
+                                        const uomNorm = details.productUom?.toLowerCase();
+                                        const uomText =
+                                          uomNorm === '20kg' || uomNorm === 'kg_20'
+                                            ? 'x 20kg'
+                                            : uomNorm === 'm3' || uomNorm === 'bulka'
+                                              ? 'm³'
+                                              : uomNorm === 'tn'
+                                                ? 'TN'
+                                                : details.productUom || '';
+
+                                        if (!isNaN(val) && val > maxLimit) {
+                                          field.onChange(maxLimit);
+                                          setAdjustedAlert({
+                                            amount: maxLimit,
+                                            uom: uomText,
+                                            productMax,
+                                            truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            overProductMax: val > productMax,
+                                          });
+                                        } else {
+                                          field.onChange(e);
+                                          setAdjustedAlert(null);
+                                        }
+                                      }}
                                       value={field.value ?? ''}
                                       isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
                                       disabled={!canActualLoadSize}
                                     />
                                   </FormControl>
@@ -972,7 +1157,8 @@ export default function DocketForm({
                     );
                   })()}
 
-                  {!!docketForm.watch('jobLineItemId') &&
+                  {!isEditing &&
+                    !!docketForm.watch('jobLineItemId') &&
                     selectedJobLineItemDetails().remainingQty <= 0 && (
                       <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
                         <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
@@ -985,6 +1171,24 @@ export default function DocketForm({
                         </div>
                       </div>
                     )}
+
+                  {adjustedAlert && (
+                    <div className="border border-[#FDE68A] bg-[#FEFCE8] p-3 rounded-md flex flex-col gap-1">
+                      <div className="flex items-center gap-2 font-medium text-sm text-[#92400E]">
+                        <Info className="h-4 w-4 text-[#D97706]" />
+                        <span>Quantity Adjusted</span>
+                      </div>
+                      <div className="text-sm text-[#92400E] pl-6">
+                        {adjustedAlert.truckCapacity != null &&
+                          adjustedAlert.productMax != null &&
+                          adjustedAlert.truckCapacity < adjustedAlert.productMax
+                          ? adjustedAlert.overProductMax
+                            ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                            : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                          : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
+                      </div>
+                    </div>
+                  )}
 
                   <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
@@ -1021,12 +1225,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1036,6 +1240,45 @@ export default function DocketForm({
                           total
                         </span>
                       </div>
+                      {(() => {
+                        const vol = selectedDocket?.truck?.tankVolumeM3 ?? null;
+                        if (vol == null) return null;
+                        const d = selectedJobLineItemDetails();
+                        const density = productDetails?.densityTonnagePerM3 || 1;
+                        const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
+                        const uomNorm = d.productUom?.toLowerCase();
+                        const uomText =
+                          uomNorm === '20kg' || uomNorm === 'kg_20'
+                            ? 'x 20kg'
+                            : uomNorm === 'm3' || uomNorm === 'bulka'
+                              ? 'm³'
+                              : uomNorm === 'tn'
+                                ? 'TN'
+                                : d.productUom;
+                        const isM3 = uomNorm === 'm3' || uomNorm === 'bulka';
+                        const calcLabel = isM3
+                          ? `${formatNumberThousandSeparator(vol)} m³`
+                          : uomNorm === 'tn'
+                            ? `${formatNumberThousandSeparator(vol)} m3 x ${density} density`
+                            : `${formatNumberThousandSeparator(vol)} m3 x ${density} density x 50`;
+                        return (
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-0.5">
+                              <span className="text-sm text-muted-foreground">
+                                Truck Capacity
+                              </span>
+                              {!isM3 && (
+                                <span className="text-xs text-muted-foreground/70">
+                                  {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-sm font-medium">
+                              {formatNumberThousandSeparator(cap)} {uomText} total
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1372,88 +1615,80 @@ export default function DocketForm({
               )}
 
               {/* Checklist Section */}
-              {isEditing &&
-                (selectedDocket?.driverChecklist ||
-                  selectedDocket?.truckChecklist) && (
-                  <div className="border rounded-md p-4 flex flex-col gap-4">
-                    <div className="flex items-center gap-2">
-                      <FileText className="w-5 h-5" />
-                      <span className="text-[17px] font-medium">
-                        Checklists
-                      </span>
-                    </div>
-                    <div className="flex flex-col gap-3">
-                      {selectedDocket?.driverChecklist && (
-                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium">
-                              Pre-Start Checklist
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.driverChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.driverChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
-                            >
-                              {selectedDocket.driverChecklist.checklistStatus ??
-                                'Pending'}
-                            </span>
+              {(() => {
+                const driverChecklist =
+                  selectedDocket?.hasTodayDriverPreStart && selectedDocket?.driverChecklistSubmissionId
+                    ? selectedDocket?.driverChecklistSubmission
+                    : null;
+                const truckChecklist =
+                  selectedDocket?.hasTodayTruckInspectionByCurrentDriver && selectedDocket?.truckChecklistSubmissionId
+                    ? selectedDocket?.truckChecklistSubmission
+                    : null;
+
+                if (!isEditing || (!driverChecklist && !truckChecklist)) return null;
+
+                return (
+                  <div
+                    className={cn(
+                      'grid gap-4',
+                      driverChecklist && truckChecklist ? 'grid-cols-2' : 'grid-cols-1',
+                    )}
+                  >
+                    {driverChecklist && (
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
+                            <span className="text-base font-bold">Pre-Start Checklist</span>
                           </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.DRIVER);
-                              setChecklistModalOpen(true);
-                            }}
-                          >
-                            View Report
-                          </Button>
-                        </div>
-                      )}
-                      {selectedDocket?.truckChecklist && (
-                        <div className="flex items-center justify-between rounded-md border bg-[#F9FAFB] px-4 py-3">
-                          <div className="flex flex-col gap-0.5">
-                            <span className="text-sm font-medium">
-                              Truck Inspection
-                            </span>
-                            <span
-                              className={`text-xs font-semibold ${
-                                selectedDocket.truckChecklist
-                                  .checklistStatus === 'PASS'
-                                  ? 'text-green-600'
-                                  : selectedDocket.truckChecklist
-                                        .checklistStatus === 'FAIL'
-                                    ? 'text-red-600'
-                                    : 'text-muted-foreground'
-                              }`}
+                          {driverChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                                setChecklistModalOpen(true);
+                              }}
                             >
-                              {selectedDocket.truckChecklist.checklistStatus ??
-                                'Pending'}
-                            </span>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setChecklistModalType(CHECKLIST_TYPE.TRUCK);
-                              setChecklistModalOpen(true);
-                            }}
-                          >
-                            View Report
-                          </Button>
+                              View Full Report
+                            </Button>
+                          )}
                         </div>
-                      )}
-                    </div>
+                        {driverChecklist.checklistStatus && (
+                          <TableBadges names={driverChecklist.checklistStatus} />
+                        )}
+                      </div>
+                    )}
+                    {truckChecklist && (
+                      <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
+                            <span className="text-base font-bold">Truck Inspection</span>
+                          </div>
+                          {truckChecklist.checklistStatus !== 'CONFIRMED' && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto cursor-pointer"
+                              onClick={() => {
+                                setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                                setChecklistModalOpen(true);
+                              }}
+                            >
+                              View Full Report
+                            </Button>
+                          )}
+                        </div>
+                        {truckChecklist.checklistStatus && (
+                          <TableBadges names={truckChecklist.checklistStatus} />
+                        )}
+                      </div>
+                    )}
                   </div>
-                )}
+                );
+              })()}
 
               {/* Sign Off Section */}
               {isEditing &&

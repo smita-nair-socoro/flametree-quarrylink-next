@@ -2,6 +2,7 @@
 import { MapPin, Shield, User, Clock } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export function MarkArrivedDescription({
   docket,
@@ -19,13 +20,20 @@ export function MarkArrivedDescription({
         <span className="font-medium">{docket?.docketNumber ?? '—'}</span>
         <div className="flex justify-start gap-2">
           <span className="text-sm text-[#6A7282]">
-            {docket?.jobItem?.product?.productName}
+            {docket?.jobItem?.product?.productName ?? '—'}
           </span>
-          <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
-          <span className="font-bold">•</span>
-          <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+          <span className="text-sm text-[#6A7282] font-bold">•</span>
+          <span className="text-sm text-[#6A7282]">
+            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
@@ -33,7 +41,7 @@ export function MarkArrivedDescription({
   );
 }
 
-export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
+export function MarkArrivedContent({ docket, isAdmin }: { docket?: DocketDTO | null; isAdmin: boolean }) {
   const now = new Date();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
@@ -43,20 +51,22 @@ export function MarkArrivedContent({ docket }: { docket?: DocketDTO | null }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <div className="border border-[#FED7AA] rounded-md p-4 bg-[#FFF7ED]">
-        <div className="flex justify-start gap-2 self-stretch">
-          <Shield className="h-[20px] w-[20px] text-[#C2410C] flex-shrink-0 mt-0.5" />
-          <div className="flex flex-col gap-1">
-            <span className="text-[16px] text-[#C2410C] font-medium">
-              Admin Override
-            </span>
-            <span className="text-[14px] font-normal text-[#EA580C]">
-              You are marking this docket as arrived on behalf of the driver.
-              This action will be logged for audit purposes.
-            </span>
+      {isAdmin && (
+        <div className="border border-[#FED7AA] rounded-md p-4 bg-[#FFF7ED]">
+          <div className="flex justify-start gap-2 self-stretch">
+            <Shield className="h-[20px] w-[20px] text-[#C2410C] flex-shrink-0 mt-0.5" />
+            <div className="flex flex-col gap-1">
+              <span className="text-[16px] text-[#C2410C] font-medium">
+                Admin Override
+              </span>
+              <span className="text-[14px] font-normal text-[#EA580C]">
+                You are marking this docket as arrived on behalf of the driver.
+                This action will be logged for audit purposes.
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       <div className="flex flex-col gap-3 rounded-md bg-[#F9FAFB] px-4 py-3">
         <div className="flex flex-col gap-1">

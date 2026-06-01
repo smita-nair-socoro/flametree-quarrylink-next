@@ -514,8 +514,12 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
             queryKey: CustomerKeys.detail(customerId),
           });
         }
-      } else if (apiErrorMessage.includes('blocking quotes/dockets/jobs exist')) {
-        // Xero archived OK but QuarryLink blocked by active records
+      } else if (
+        (responseData as ArchiveCustomerResponseDTO)?.blockingQuotes?.length ||
+        (responseData as ArchiveCustomerResponseDTO)?.blockingDockets?.length ||
+        (responseData as ArchiveCustomerResponseDTO)?.blockingJobs?.length
+      ) {
+        // Backend blocked archive due to active records
         const data = responseData as ArchiveCustomerResponseDTO;
         const parts: string[] = [];
         if (data?.blockingQuotes?.length)

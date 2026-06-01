@@ -1,6 +1,8 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, PowerOff, Power, Delete } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { MoreHorizontal, Eye, PowerOff, Power, Delete, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +15,8 @@ import {
 import { TruckDTO } from '@/lib/types/truck';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { normalizeTruckStatus, TRUCK_STATUS } from '@/lib/types/truck-enums';
+import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
+import { notifyError } from '@/lib/toast';
 
 interface TruckTableActionsProps {
   truck: TruckDTO;
@@ -21,10 +25,27 @@ interface TruckTableActionsProps {
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useTruckActions(truck);
+  const router = useRouter();
+
+  const { data: truckWithDockets } = useQuery({
+    ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
+    enabled: !!truck?.id,
+  });
 
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();
+  };
+
+  const handleLinkedDockets = () => {
+    setDropdownOpen(false);
+    const dockets = truckWithDockets?.dockets ?? [];
+    if (dockets.length === 0) {
+      notifyError('No dockets assigned to this truck.');
+      return;
+    }
+    const docketIds = dockets.map((d) => d.id).join(',');
+    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
   };
 
   const handleDeactivate = () => {
@@ -57,6 +78,11 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
           <DropdownMenuItem onClick={handleView}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleLinkedDockets}>
+            <FileText className="h-4 w-4 mr-2" />
+            Linked Dockets
           </DropdownMenuItem>
           {status === TRUCK_STATUS.DEACTIVATED && (
             <>

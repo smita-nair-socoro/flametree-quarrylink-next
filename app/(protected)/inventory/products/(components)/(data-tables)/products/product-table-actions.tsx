@@ -1,14 +1,14 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, Ban, ArchiveRestore } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Separator } from '@/components/ui/separator';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductStore } from '@/app/stores/product-store';
@@ -20,6 +20,7 @@ interface ProducTableActionProps {
 export function ProductTableActions({ product }: ProducTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useProductActions(product);
+  const isUnavailable = product.isActive === false;
 
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct,
@@ -27,8 +28,20 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
 
   const handleView = () => {
     setSelectedProduct(product);
-    setDropdownOpen(false); // Close dropdown before opening modal
+    setDropdownOpen(false);
     actions.view();
+  };
+
+  const handleUnavailable = () => {
+    setSelectedProduct(product);
+    setDropdownOpen(false);
+    actions.unavailable();
+  };
+
+  const handleAvailable = () => {
+    setSelectedProduct(product);
+    setDropdownOpen(false);
+    actions.available();
   };
 
   const handleDelete = () => {
@@ -52,7 +65,19 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <Separator />
+          <DropdownMenuSeparator />
+          {!isUnavailable ? (
+            <DropdownMenuItem onClick={handleUnavailable} className="text-destructive focus:text-destructive">
+              <Ban className="h-4 w-4 mr-2 text-red-600" />
+              Mark as Unavailable
+            </DropdownMenuItem>
+          ) : (
+            <DropdownMenuItem onClick={handleAvailable} className="text-green-600 focus:text-green-600">
+              <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+              Mark as Available
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={handleDelete}
             className="text-destructive focus:text-destructive"

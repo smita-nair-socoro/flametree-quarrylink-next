@@ -66,3 +66,4 @@ nb-configuration.xml
 docs/*
 CLAUDE.md
 .claude/*
+public/config.json

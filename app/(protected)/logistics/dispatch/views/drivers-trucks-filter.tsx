@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Palette } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Check, Plus, Palette } from 'lucide-react';
 import {
   Popover,
   PopoverContent,
@@ -15,7 +16,6 @@ import {
   CommandItem,
   CommandList,
 } from '@/components/ui/command';
-import { Checkbox } from '@/components/ui/checkbox';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
@@ -208,10 +208,16 @@ export function DispatchDriversTrucksFilter({
                           onSelect={() => toggleJobStatus(opt.value)}
                           className="flex items-center gap-2 cursor-pointer"
                         >
-                          <Checkbox
-                            checked={isChecked}
-                            className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                          />
+                          <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  isChecked
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', isChecked && 'text-white')} />
+                              </div>
                           <span>{opt.label}</span>
                         </CommandItem>
                       );
@@ -247,7 +253,7 @@ export function DispatchDriversTrucksFilter({
               <Command>
                 <CommandInput
                   placeholder="Search customers..."
-                  className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                  className="focus-visible:ring-primary focus-within:ring-primary"
                 />
                 <CommandList>
                   <CommandEmpty>No customer found.</CommandEmpty>
@@ -258,10 +264,16 @@ export function DispatchDriversTrucksFilter({
                         onSelect={() => toggleCustomerName(customer)}
                         className="flex items-center gap-2 cursor-pointer"
                       >
-                        <Checkbox
-                          checked={filter.customerNames.includes(customer)}
-                          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                        />
+                        <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.customerNames.includes(customer)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.customerNames.includes(customer) && 'text-white')} />
+                              </div>
                         <span>{customer}</span>
                       </CommandItem>
                     ))}
@@ -313,12 +325,20 @@ export function DispatchDriversTrucksFilter({
                               onSelect={() => toggleDriverStatus(opt.value)}
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={filter.driverStatuses.includes(
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.driverStatuses.includes(
                                   opt.value,
+                                )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
                                 )}
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                              />
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.driverStatuses.includes(
+                                  opt.value,
+                                ) && 'text-white')} />
+                              </div>
                               <span>{opt.label}</span>
                             </CommandItem>
                           ))}
@@ -355,7 +375,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search drivers..."
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -372,10 +392,16 @@ export function DispatchDriversTrucksFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={filter.driverIds.includes(driver.id)}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.driverIds.includes(driver.id)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.driverIds.includes(driver.id) && 'text-white')} />
+                              </div>
                                 <span>{driver.label}</span>
                               </div>
                             </CommandItem>
@@ -428,12 +454,20 @@ export function DispatchDriversTrucksFilter({
                               }
                               className="flex items-center gap-2 cursor-pointer"
                             >
-                              <Checkbox
-                                checked={filter.truckBusinessTypes.includes(
+                              <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.truckBusinessTypes.includes(
                                   opt.value,
+                                )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
                                 )}
-                                className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                              />
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.truckBusinessTypes.includes(
+                                  opt.value,
+                                ) && 'text-white')} />
+                              </div>
                               <span>{opt.label}</span>
                             </CommandItem>
                           ))}
@@ -470,7 +504,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search hauliers..."
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -489,12 +523,20 @@ export function DispatchDriversTrucksFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={filter.haulierIds.includes(
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.haulierIds.includes(
                                     haulier.id,
-                                  )}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                  )
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.haulierIds.includes(
+                                    haulier.id,
+                                  ) && 'text-white')} />
+                              </div>
                                 <span>{haulier.label}</span>
                               </div>
                             </CommandItem>
@@ -532,7 +574,7 @@ export function DispatchDriversTrucksFilter({
                     <Command>
                       <CommandInput
                         placeholder="Search trucks…"
-                        className="focus-visible:ring-blue-500 focus-within:ring-blue-500"
+                        className="focus-visible:ring-primary focus-within:ring-primary"
                       />
                       <CommandList>
                         <CommandEmpty>
@@ -549,10 +591,16 @@ export function DispatchDriversTrucksFilter({
                               className="flex items-center justify-between cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <Checkbox
-                                  checked={filter.truckIds.includes(truck.id)}
-                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 data-[state=checked]:text-white"
-                                />
+                                <div
+                                className={cn(
+                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                  filter.truckIds.includes(truck.id)
+                                    ? 'bg-primary text-white'
+                                    : 'opacity-50 [&_svg]:invisible'
+                                )}
+                              >
+                                <Check className={cn('h-3.5 w-3.5', filter.truckIds.includes(truck.id) && 'text-white')} />
+                              </div>
                                 <span>{truck.label}</span>
                               </div>
                             </CommandItem>

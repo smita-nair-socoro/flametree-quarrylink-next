@@ -533,7 +533,6 @@ function DocketCard({
 }
 
 export default function AssignedDockets({
-  // date,
   trucks,
   dockets,
   isLoading,
@@ -541,11 +540,9 @@ export default function AssignedDockets({
   onResizeDocket,
   selectedDocketId,
   onSelectDocket,
-  // onUnassignDocket,
   viewType = 'drivers',
   focusDocket,
 }: {
-  // date: Date;
   trucks: TruckResource[];
   dockets: DispatchDocket[];
   isLoading?: boolean;
@@ -553,7 +550,6 @@ export default function AssignedDockets({
   onResizeDocket?: (docketId: string, newDuration: number) => void;
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string | null) => void;
-  // onUnassignDocket?: () => void;
   viewType?: 'trucks' | 'drivers';
   focusDocket?: DispatchDocket | null;
 }) {
@@ -568,7 +564,7 @@ export default function AssignedDockets({
     : 0;
 
   const maxValidPercentage = React.useMemo(() => {
-    if (!focusDocket || focusLoadSize <= 0) return 0;
+    if (!focusDocket || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') return 0;
     let max = 0;
     for (const truck of trucks) {
       const cap = truck.capacity || 0;
@@ -583,7 +579,7 @@ export default function AssignedDockets({
   }, [trucks, focusDocket, focusLoadSize]);
 
   const sortedTrucks = React.useMemo(() => {
-    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0) {
+    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') {
       return trucks;
     }
 
@@ -614,7 +610,7 @@ export default function AssignedDockets({
       // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
       if (isGenericA && !isGenericB) return -1;
       if (!isGenericA && isGenericB) return 1;
-      
+
       if (isGenericA && isGenericB) return 0;
 
       // 4. Exceeded fits (> 100%) come last
@@ -644,7 +640,7 @@ export default function AssignedDockets({
       maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
 
     let utilisationNode = null;
-    if (focusDocket && viewType === 'trucks') {
+    if (focusDocket && viewType === 'trucks' && focusDocket.docketStatus === 'UNASSIGNED') {
       const cap = truck.capacity || 0;
       const pct = cap > 0 ? (focusLoadSize / cap) * 100 : 0;
       const displayPct = Math.round(pct);

@@ -15,13 +15,15 @@ import {
 import { jobColumns } from './(components)/(data-tables)/job/columns';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
-import { JobsListQueryOptions } from '@/lib/api/job';
+import { JobsListQueryOptions, JobStatisticsQueryOptions } from '@/lib/api/job';
+import { centsToDollars } from '@/lib/utils/currency';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { data: jobs } = useQuery(JobsListQueryOptions());
+  const { data: statistics } = useQuery(JobStatisticsQueryOptions());
   const items: JobDTO[] = React.useMemo(() => {
     const list: JobDTO[] = Array.isArray(jobs) ? jobs : (jobs?.content ?? []);
     return list.map((job) => ({
@@ -29,11 +31,10 @@ export default function CustomersPage() {
     })) as JobDTO[];
   }, [jobs]);
 
-  // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
-      title: 'Open Jobs',
-      value: '15',
+      title: 'Jobs In Progress',
+      value: statistics?.jobsInProgress ?? 0,
       description: 'Jobs requiring resources',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
@@ -42,17 +43,17 @@ export default function CustomersPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: '$1,043,570',
-      description: '12 Delivery | 10 Collection',
+      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Completed Jobs ',
-      value: '12',
-      description: '24 dockets ready for invoicing',
+      title: 'Completed Jobs',
+      value: statistics?.completedJobsReadyForInvoicing ?? 0,
+      description: `${statistics?.completedDocketsReadyForInvoicing ?? 0} dockets ready for invoicing`,
       icon: Package,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -60,7 +61,7 @@ export default function CustomersPage() {
     },
     {
       title: 'Paused Jobs',
-      value: '3',
+      value: statistics?.pausedJobs ?? 0,
       description: 'Need attention',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',

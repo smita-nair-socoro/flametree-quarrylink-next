@@ -281,9 +281,16 @@ export function FormDialog({
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
-    finalCustomId = selectedCustomer.businessName?.trim() || selectedCustomer.individualContactName || '';
-    finalPrimaryBadges = selectedCustomer.customerStatus ? [selectedCustomer.customerStatus] : [];
-    finalSecondaryBadges = selectedCustomer.customerType ? [selectedCustomer.customerType] : [];
+    finalCustomId =
+      selectedCustomer.businessName?.trim() ||
+      selectedCustomer.individualContactName ||
+      '';
+    finalPrimaryBadges = selectedCustomer.customerStatus
+      ? [selectedCustomer.customerStatus]
+      : [];
+    finalSecondaryBadges = selectedCustomer.customerType
+      ? [selectedCustomer.customerType]
+      : [];
   }
 
   if (headerInfo?.useSelectedProduct && selectedProduct) {
@@ -330,16 +337,25 @@ export function FormDialog({
 
   if (headerInfo?.useSelectedDriver && selectedDriver) {
     finalCustomId = selectedDriver.driverName;
-    finalPrimaryBadges = selectedDriver.driverStatus ? [selectedDriver.driverStatus] : [];
-    finalSecondaryBadges = selectedDriver.driverType ? [selectedDriver.driverType] : [];
+    finalPrimaryBadges = selectedDriver.driverStatus
+      ? [selectedDriver.driverStatus]
+      : [];
+    finalSecondaryBadges = selectedDriver.driverType
+      ? [selectedDriver.driverType]
+      : [];
   }
 
   if (headerInfo?.useSelectedTruck && selectedTruck) {
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
-      ? [normalizeTruckStatus(selectedTruck.truckStatus) ?? selectedTruck.truckStatus]
+      ? [
+        normalizeTruckStatus(selectedTruck.truckStatus) ??
+        selectedTruck.truckStatus,
+      ]
       : [];
-    finalSecondaryBadges = selectedTruck.truckBusinessType ? [selectedTruck.truckBusinessType] : [];
+    finalSecondaryBadges = selectedTruck.truckBusinessType
+      ? [selectedTruck.truckBusinessType]
+      : [];
   }
 
   const defaultTitle = effectiveId ? 'View / Edit' : 'Add New Data';
@@ -455,18 +471,23 @@ export function FormDialog({
       <div className="flex flex-wrap gap-2 mt-2">
         {/* Render primary badges */}
         {finalPrimaryBadges?.map((badge, index) => {
-          const isFailedInvoice = headerInfo?.useSelectedDocket && badge === 'INVOICED' && selectedDocket?.invoiceStatus === 'FAILED';
+          const isFailedInvoice =
+            headerInfo?.useSelectedDocket &&
+            badge === 'INVOICED' &&
+            selectedDocket?.invoiceStatus === 'FAILED';
           return (
             <Badge
               key={`primary-${index}`}
               variant="outline"
               className={
-                BADGE_COLORS[badge] || 'bg-blue-100 text-blue-800 border-blue-300'
+                BADGE_COLORS[badge] ||
+                'bg-blue-100 text-blue-800 border-blue-300'
               }
             >
               {formatBadgeText(badge)}
-              {isFailedInvoice && <TriangleAlert className="mb-0.5 text-red-500" />}
-
+              {isFailedInvoice && (
+                <TriangleAlert className="mb-0.5 text-red-500" />
+              )}
             </Badge>
           );
         })}
@@ -565,6 +586,9 @@ export function FormDialog({
           onOpenAutoFocus={
             preventAutoFocus ? (e) => e.preventDefault() : undefined
           }
+          onEscapeKeyDown={(e) => {
+            if (isAnyDropdownOpen()) e.preventDefault();
+          }}
           onPointerDownOutside={(e) => {
             if (isAnyDropdownOpen()) e.preventDefault();
           }}
