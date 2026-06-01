@@ -11,6 +11,8 @@ import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
+import { useSelectedJob } from '@/app/stores/job-store';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 
 interface LineItemsTabProps {
   jobLineItems: JobItem[];
@@ -28,6 +30,9 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
     return jobLineItems.every((item) => item.jobItemType === 'COLLECTION');
   }, [jobLineItems]);
 
+  const selectedJob = useSelectedJob();
+  const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
+
   return (
     <div className="flex flex-col gap-4 mt-6">
       <div
@@ -38,15 +43,17 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
         )}
       >
         <span className="text-lg font-semibold">Line Items</span>
-        <FormDialog
-          dialogTitle="Add Product"
-          buttonTitle="Add New Product"
-          dialogWidth="700px"
-          contentClass="-mt-5"
-          preventAutoFocus
-        >
-          <JobLineItemForm canEdit={true} />
-        </FormDialog>
+        {jobStatus !== JOB_STATUS.CANCELLED && (
+          <FormDialog
+            dialogTitle="Add Product"
+            buttonTitle="Add New Product"
+            dialogWidth="700px"
+            contentClass="-mt-5"
+            preventAutoFocus
+          >
+            <JobLineItemForm canEdit={true} />
+          </FormDialog>
+        )}
       </div>
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
