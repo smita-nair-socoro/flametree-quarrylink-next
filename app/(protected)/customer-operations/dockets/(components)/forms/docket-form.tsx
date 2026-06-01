@@ -739,13 +739,13 @@ export default function DocketForm({
         }
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.DRIVER}
-        submissionId={(selectedDocket?.driverChecklistSubmission ?? selectedDocket?.driverChecklist)?.id ?? 0}
+        submissionId={selectedDocket?.driverChecklistSubmission?.id ?? 0}
       />
       <ChecklistReportModal
         open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
         onOpenChange={setChecklistModalOpen}
         type={CHECKLIST_TYPE.TRUCK}
-        submissionId={(selectedDocket?.truckChecklistSubmission ?? selectedDocket?.truckChecklist)?.id ?? 0}
+        submissionId={selectedDocket?.truckChecklistSubmission?.id ?? 0}
         truckLicensePlate={selectedDocket?.truck?.licensePlate}
       />
 
@@ -1618,11 +1618,11 @@ export default function DocketForm({
               {(() => {
                 const driverChecklist =
                   selectedDocket?.hasTodayDriverPreStart && selectedDocket?.driverChecklistSubmissionId
-                    ? (selectedDocket?.driverChecklistSubmission ?? selectedDocket?.driverChecklist)
+                    ? selectedDocket?.driverChecklistSubmission
                     : null;
                 const truckChecklist =
                   selectedDocket?.hasTodayTruckInspectionByCurrentDriver && selectedDocket?.truckChecklistSubmissionId
-                    ? (selectedDocket?.truckChecklistSubmission ?? selectedDocket?.truckChecklist)
+                    ? selectedDocket?.truckChecklistSubmission
                     : null;
 
                 if (!isEditing || (!driverChecklist && !truckChecklist)) return null;
@@ -1638,20 +1638,21 @@ export default function DocketForm({
                       <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-5 h-5" />
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
                             <span className="text-base font-bold">Pre-Start Checklist</span>
                           </div>
                           {driverChecklist.checklistStatus !== 'CONFIRMED' && (
-                            <button
+                            <Button
                               type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto"
                               onClick={() => {
                                 setChecklistModalType(CHECKLIST_TYPE.DRIVER);
                                 setChecklistModalOpen(true);
                               }}
-                              className="text-sm font-medium text-[#6B4EFF] underline"
                             >
                               View Full Report
-                            </button>
+                            </Button>
                           )}
                         </div>
                         {driverChecklist.checklistStatus && (
@@ -1663,20 +1664,21 @@ export default function DocketForm({
                       <div className="border-t-2 border-t-primary p-4 flex flex-col gap-3 bg-[#F9FAFB]">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-5 h-5" />
+                            <FileText className="w-5 h-5 text-[#6A7282]" />
                             <span className="text-base font-bold">Truck Inspection</span>
                           </div>
                           {truckChecklist.checklistStatus !== 'CONFIRMED' && (
-                            <button
+                            <Button
                               type="button"
+                              variant="link"
+                              className="text-sm font-medium text-[#8E51FF] underline p-0 h-auto"
                               onClick={() => {
                                 setChecklistModalType(CHECKLIST_TYPE.TRUCK);
                                 setChecklistModalOpen(true);
                               }}
-                              className="text-sm font-medium text-[#6B4EFF] underline"
                             >
                               View Full Report
-                            </button>
+                            </Button>
                           )}
                         </div>
                         {truckChecklist.checklistStatus && (
