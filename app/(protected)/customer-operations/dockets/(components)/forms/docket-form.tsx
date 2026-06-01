@@ -1617,9 +1617,13 @@ export default function DocketForm({
               {/* Checklist Section */}
               {(() => {
                 const driverChecklist =
-                  selectedDocket?.driverChecklistSubmission ?? selectedDocket?.driverChecklist;
+                  selectedDocket?.hasTodayDriverPreStart && selectedDocket?.driverChecklistSubmissionId
+                    ? (selectedDocket?.driverChecklistSubmission ?? selectedDocket?.driverChecklist)
+                    : null;
                 const truckChecklist =
-                  selectedDocket?.truckChecklistSubmission ?? selectedDocket?.truckChecklist;
+                  selectedDocket?.hasTodayTruckInspectionByCurrentDriver && selectedDocket?.truckChecklistSubmissionId
+                    ? (selectedDocket?.truckChecklistSubmission ?? selectedDocket?.truckChecklist)
+                    : null;
 
                 if (!isEditing || (!driverChecklist && !truckChecklist)) return null;
 
