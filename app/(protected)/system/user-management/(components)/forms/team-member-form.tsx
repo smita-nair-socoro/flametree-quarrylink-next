@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
+import { useUserStore } from '@/app/stores/user-store';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TableBadges } from '@/components/table-badges';
@@ -56,6 +57,12 @@ interface EditTeamMemberFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
+function isUserSuperAdmin(groups: string[] | undefined): boolean {
+  if (!groups?.length) return false;
+  const g = groups.join(',').toLowerCase();
+  return g.includes('super_admin') || g.includes('superadmin');
+}
+
 export function EditTeamMemberForm({
   roles,
   currentUserId,
@@ -64,6 +71,7 @@ export function EditTeamMemberForm({
   onDirtyChange,
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
   const selectedUser = useSelectedTeamMember(); // User from store (basic data from list)
 
   // Use the update user mutation
@@ -140,10 +148,16 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const disableRoleChange =
+  const isEditingSelf =
     currentUserId !== undefined &&
     initialData?.sub !== undefined &&
     String(currentUserId) === String(initialData.sub);
+
+  const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
+
+  // Admins cannot change their own role, and cannot change a Super Admin's role
+  const disableRoleChange =
+    isEditingSelf || (!isSuperAdmin && isTargetSuperAdmin);
 
   const handleCancel = () => {
     form.reset();
@@ -392,14 +406,22 @@ export function EditTeamMemberForm({
               />
             </div>
 
-            {disableRoleChange ? (
+            {isEditingSelf && (
               <Alert className="border-amber-200 bg-amber-50 text-amber-900 mt-0">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
                   You cannot change your own role.
                 </AlertDescription>
               </Alert>
-            ) : null}
+            )}
+            {!isEditingSelf && !isSuperAdmin && isTargetSuperAdmin && (
+              <Alert className="border-amber-200 bg-amber-50 text-amber-900 mt-0">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-sm">
+                  You cannot change a Super Admin&apos;s role.
+                </AlertDescription>
+              </Alert>
+            )}
           </section>
 
           {/* <section className="space-y-4">

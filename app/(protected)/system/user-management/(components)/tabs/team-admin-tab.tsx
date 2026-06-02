@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
-import { useUserStore, useIsSuperAdmin } from '@/app/stores/user-store';
+import { useUserStore } from '@/app/stores/user-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
@@ -29,8 +29,7 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
-// Roles options for the form
-const rolesOptions: readonly FormSelectOption[] = [
+const allRolesOptions: readonly FormSelectOption[] = [
   // { label: 'User', value: Role.USER },
   { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
@@ -73,10 +72,17 @@ function getRoleLabel(groups: string[] | undefined) {
   return 'User';
 }
 
+function isUserSuperAdmin(groups: string[] | undefined): boolean {
+  if (!groups?.length) return false;
+  const g = groups.join(',').toLowerCase();
+  return g.includes('super_admin') || g.includes('superadmin');
+}
+
 export default function TeamAdminTab() {
   const isMobile = useMediaQuery('(max-width: 910px)');
   const userGroups = useUserStore((state) => state.userGroups);
-  const isSuperAdmin = useIsSuperAdmin();
+  const currentUser = useUserStore((state) => state.user);
+  const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
 
   React.useEffect(() => {
     console.log('[TeamAdminTab] userGroups:', userGroups);
@@ -165,15 +171,26 @@ export default function TeamAdminTab() {
   const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
     React.useState<User | null>(null);
 
+  // Admins cannot assign Super Admin role; filter it out for non-super-admins
+  const rolesOptions = React.useMemo(
+    () =>
+      isSuperAdmin
+        ? allRolesOptions
+        : allRolesOptions.filter((r) => r.value !== Role.SUPERADMIN),
+    [isSuperAdmin],
+  );
+
   const { actions, viewDialog } = useTeamMemberActions(
     selectedTeamMemberForActions?.sub,
     selectedTeamMemberForActions,
     rolesOptions,
-    1,
+    currentUser?.sub,
   );
 
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
+    // Admins cannot edit Super Admins
+    if (!isSuperAdmin && isUserSuperAdmin(member.groups)) return;
     setSelectedTeamMember(member);
     setSelectedTeamMemberForActions(member);
     actions.viewEdit();
@@ -181,8 +198,8 @@ export default function TeamAdminTab() {
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
-    () => createTeamMemberColumns(rolesOptions, 1),
-    [],
+    () => createTeamMemberColumns(rolesOptions, currentUser?.sub),
+    [rolesOptions, currentUser?.sub],
   );
 
   const facetDefs: FacetDefinition[] = [
@@ -191,6 +208,11 @@ export default function TeamAdminTab() {
 
   const renderTeamMemberCard = React.useCallback(
     (user: User, onViewDetails?: () => void) => {
+      // Admins cannot view/edit Super Admins — suppress the detail handler
+      const effectiveOnViewDetails =
+        !isSuperAdmin && isUserSuperAdmin(user.groups)
+          ? undefined
+          : onViewDetails;
       const initials = getInitials(user.name || user.email || '');
       const color = getAvatarColor(user.name || user.email || '');
       const roleLabel = getRoleLabel(user.groups);
@@ -198,15 +220,15 @@ export default function TeamAdminTab() {
       return (
         <div
           className="flex items-center gap-3 border-t border-[#E4E4E7] bg-white px-4 py-3 transition-colors hover:bg-gray-50"
-          onClick={onViewDetails}
-          role={onViewDetails ? 'button' : undefined}
-          tabIndex={onViewDetails ? 0 : undefined}
+          onClick={effectiveOnViewDetails}
+          role={effectiveOnViewDetails ? 'button' : undefined}
+          tabIndex={effectiveOnViewDetails ? 0 : undefined}
           onKeyDown={
-            onViewDetails
+            effectiveOnViewDetails
               ? (event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    onViewDetails();
+                    effectiveOnViewDetails();
                   }
                 }
               : undefined
@@ -236,13 +258,13 @@ export default function TeamAdminTab() {
             <TeamMemberTableActions
               teamMember={user}
               roles={rolesOptions}
-              currentUserId={1}
+              currentUserId={currentUser?.sub}
             />
           </div>
         </div>
       );
     },
-    [],
+    [isSuperAdmin, rolesOptions, currentUser?.sub],
   );
 
   return (
