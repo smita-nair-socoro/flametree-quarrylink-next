@@ -382,6 +382,7 @@ export default function ProductForm({
                         <Input
                           className="w-full"
                           placeholder="Enter Product Name"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -401,6 +402,7 @@ export default function ProductForm({
                         <Input
                           className="w-full"
                           placeholder="Enter Product Code"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -418,6 +420,7 @@ export default function ProductForm({
                   placeholder="Select Material Type"
                   showSearch={true}
                   className="col-span-1"
+                  disabled={productJustCreated}
                 />
 
                 {/* Density (TN/m³) */}
@@ -433,7 +436,11 @@ export default function ProductForm({
                           placeholder="Enter Density Tonnage per m3"
                           isNumber
                           allowDecimal
+                          minDecimals={2}
+                          maxDecimals={2}
+                          suffix="TN/m³"
                           {...field}
+                          disabled={productJustCreated}
                         />
                       </FormControl>
                       <FormMessage />
@@ -454,6 +461,7 @@ export default function ProductForm({
                         <Textarea
                           className="w-full"
                           placeholder="Enter Product Description"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -578,7 +586,14 @@ export default function ProductForm({
                     >
                       <SupplierForm
                         productId={activeProductId ?? undefined}
-                        existingQuarryIds={selectedProduct?.quarrySupplierProducts?.map((q) => q.quarrySupplierId) ?? []}
+                        existingQuarryIds={
+                          selectedProduct?.quarrySupplierProducts?.map(
+                            (q) => q.quarrySupplierId,
+                          ) ?? []
+                        }
+                        defaultProductDensity={
+                          selectedProduct?.densityTonnagePerM3 || 0
+                        }
                       />
                     </FormDialog>
                   )}

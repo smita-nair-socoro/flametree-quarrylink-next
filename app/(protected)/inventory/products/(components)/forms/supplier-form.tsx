@@ -44,6 +44,7 @@ interface FormProps {
   productId?: number;
   quarrySupplierId?: number;
   existingQuarryIds?: number[];
+  defaultProductDensity?: number;
   onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
@@ -60,6 +61,7 @@ export default function SupplierForm({
   productId,
   quarrySupplierId,
   existingQuarryIds = [],
+  defaultProductDensity,
   onCancel,
   onSuccess,
   onSaved,
@@ -113,7 +115,11 @@ export default function SupplierForm({
     if (!quarriesData) return [];
 
     return quarriesData
-      .filter((quarry) => !existingQuarryIds.includes(quarry.id) || quarry.id === quarrySupplierId)
+      .filter(
+        (quarry) =>
+          !existingQuarryIds.includes(quarry.id) ||
+          quarry.id === quarrySupplierId,
+      )
       .map((quarry) => ({
         label: quarry.name,
         value: quarry.id,
@@ -146,6 +152,7 @@ export default function SupplierForm({
     convertedQuarrySupplierProduct,
     isEditing,
     supplierForm,
+    defaultProductDensity,
   );
 
   const tabs = [
@@ -157,12 +164,14 @@ export default function SupplierForm({
             <CardTitle>
               <div className="flex items-center gap-3">
                 <div className="w-4 h-px bg-gray-300 shrink-0" />
-                <span className="whitespace-nowrap text-base font-semibold">Quarry / Supplier Information</span>
+                <span className="whitespace-nowrap text-base font-semibold">
+                  Quarry / Supplier Information
+                </span>
                 <div className="flex-1 h-px bg-gray-300" />
               </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col md:flex-row justify-between gap-4">
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormSelect
               control={supplierForm.control}
               name="quarry_supplier_id"
@@ -199,6 +208,27 @@ export default function SupplierForm({
                     <Input
                       className="w-full"
                       placeholder="Enter Product Code"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={supplierForm.control}
+              name="density_tonnage_per_m3"
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Product Density (TN/m³)*</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      isNumber
+                      allowDecimal
+                      minDecimals={2}
+                      maxDecimals={2}
+                      suffix="TN/m³"
                       {...field}
                     />
                   </FormControl>
@@ -334,6 +364,7 @@ export default function SupplierForm({
         productId: productId,
         supplierProductName: processedValues.supplier_product_name,
         supplierProductCode: processedValues.supplier_product_code,
+        densityTonnagePerM3: processedValues.density_tonnage_per_m3,
         availableUnits: availableUnits, // Send as array, not JSON string
         perTnCostPrice: processedValues.cost_price_tn,
         perTnSellPrice: processedValues.sell_price_tn,
@@ -481,8 +512,9 @@ export default function SupplierForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'
-        } supplier. Please try again.`,
+          `Failed to ${
+            isEditing ? 'update' : 'create'
+          } supplier. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -553,7 +585,12 @@ export default function SupplierForm({
           )}
           onSubmit={handleSubmit}
         >
-          <Tab tabs={tabs} defaultTab={tabs[0].name} className="w-full" enableDropdownOnMobile />
+          <Tab
+            tabs={tabs}
+            defaultTab={tabs[0].name}
+            className="w-full"
+            enableDropdownOnMobile
+          />
 
           <Separator className="my-4" />
 
@@ -615,7 +652,8 @@ export default function SupplierForm({
                           <li key={label} className="text-sm text-amber-700 ">
                             <strong>{label}:</strong> Cost $
                             {formatDollars(costValue)} {'>'} Sell $
-                            {formatDollars(sellValue)} (Margin: {margin.toFixed(2)}
+                            {formatDollars(sellValue)} (Margin:{' '}
+                            {margin.toFixed(2)}
                             %)
                           </li>
                         );

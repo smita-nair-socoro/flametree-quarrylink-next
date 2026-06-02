@@ -68,6 +68,7 @@ export interface LinkedQuarrySupplierProduct {
   productId: number;
   supplierProductName: string;
   supplierProductCode: string;
+  densityTonnagePerM3: number;
   availableUnits: string[];
 
   perM3CostPrice: number;

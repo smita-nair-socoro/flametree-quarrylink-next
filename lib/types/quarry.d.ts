@@ -36,6 +36,7 @@ export interface QuarrySupplierProduct {
   productId: number;
   supplierProductName: string;
   supplierProductCode: string;
+  densityTonnagePerM3?: number;
   quarryName?: string;
 
   createdBy: string;
