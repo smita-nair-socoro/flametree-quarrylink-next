@@ -37,7 +37,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
 const allRolesOptions: readonly FormSelectOption[] = [
-  // { label: 'User', value: Role.USER },
+  { label: 'User', value: Role.USER },
   { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
@@ -243,19 +243,17 @@ export default function TeamAdminTab() {
                 Team Members
               </h1>
             </div>
-            {isSuperAdmin && (
-              <div>
-                <FormDialog
-                  dialogTitle="Invite User"
-                  dialogWidth="max-w-md"
-                  buttonTitle={isMobile ? 'Invite' : 'Invite User'}
-                  headerClassName="pb-2 h-[32px] pb-6"
-                  preserveEmptyBadgeSpace={false}
-                >
-                  <InviteUserForm roleOptions={rolesOptions} />
-                </FormDialog>
-              </div>
-            )}
+            <div>
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogWidth="max-w-md"
+                buttonTitle={isMobile ? 'Invite' : 'Invite User'}
+                headerClassName="pb-2 h-[32px] pb-6"
+                preserveEmptyBadgeSpace={false}
+              >
+                <InviteUserForm roleOptions={rolesOptions} />
+              </FormDialog>
+            </div>
           </div>
 
           {isLoading ? (
