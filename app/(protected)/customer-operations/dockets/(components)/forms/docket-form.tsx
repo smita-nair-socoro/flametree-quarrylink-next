@@ -70,6 +70,9 @@ import {
   CHECKLIST_TYPE,
 } from '@/components/checklist-report-modal';
 import { TableBadges } from '@/components/table-badges';
+import { VOID_REASON_LABELS } from '@/hooks/docket/void-docket-content';
+import { CANCEL_REASON_LABELS } from '@/hooks/docket/cancel-docket-content';
+import { STOP_REASON_LABELS } from '@/hooks/docket/stop-transit-content';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
@@ -270,8 +273,15 @@ export default function DocketForm({
           ? selectedDocket.cancelledReason
           : selectedDocket.voidedReason;
 
-    const { reason: parsedReason, note } = splitReasonNote(rawReason);
-    const reason = parsedReason || 'N/A';
+    const { note } = splitReasonNote(rawReason);
+    const rawReasonKey = rawReason?.split('-')[0]?.trim() ?? '';
+    const labelMap =
+      actionLabel === 'stopped'
+        ? STOP_REASON_LABELS
+        : actionLabel === 'cancelled'
+          ? CANCEL_REASON_LABELS
+          : VOID_REASON_LABELS;
+    const reason = labelMap[rawReasonKey] || rawReasonKey.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) || 'N/A';
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">

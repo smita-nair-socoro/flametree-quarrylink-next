@@ -5,19 +5,23 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
 
-const STOP_REASONS = [
-  { value: 'vehicle_breakdown', label: 'Vehicle breakdown' },
-  { value: 'traffic_delay', label: 'Traffic delay' },
-  { value: 'site_access_issue', label: 'Site access issue' },
-  { value: 'customer_not_ready', label: 'Customer not ready' },
-  { value: 'safety_concern', label: 'Safety concern' },
-  { value: 'weather_conditions', label: 'Weather conditions' },
-  { value: 'incorrect_delivery_details', label: 'Incorrect delivery details' },
-  { value: 'load_issue_detected', label: 'Load issue detected' },
-  { value: 'driver_rest_fatigue_break', label: 'Driver rest / fatigue break' },
-  { value: 'awaiting_instructions', label: 'Awaiting instructions' },
-  { value: 'other', label: 'Other' },
-];
+export const STOP_REASON_LABELS: Record<string, string> = {
+  vehicle_breakdown: 'Vehicle breakdown',
+  traffic_delay: 'Traffic delay',
+  site_access_issue: 'Site access issue',
+  customer_not_ready: 'Customer not ready',
+  safety_concern: 'Safety concern',
+  weather_conditions: 'Weather conditions',
+  incorrect_delivery_details: 'Incorrect delivery details',
+  load_issue_detected: 'Load issue detected',
+  driver_rest_fatigue_break: 'Driver rest / fatigue break',
+  awaiting_instructions: 'Awaiting instructions',
+  other: 'Other',
+};
+
+const STOP_REASONS = Object.entries(STOP_REASON_LABELS).map(
+  ([value, label]) => ({ value, label }),
+);
 
 export function StopTransitDescription({ docket }: { docket?: DocketDTO | null }) {
   return (

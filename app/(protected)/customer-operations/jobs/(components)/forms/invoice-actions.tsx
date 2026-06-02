@@ -43,6 +43,7 @@ export function InvoiceActions({
   );
 
   const createInvoiceMutation = useCreateInvoice({
+    jobId: selectedDockets[0]?.jobId,
     onSuccess: () => {
       setDialogType(null);
       onClearSelection();

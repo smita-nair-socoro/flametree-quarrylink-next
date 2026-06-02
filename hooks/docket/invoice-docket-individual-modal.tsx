@@ -26,6 +26,7 @@ export function InvoiceDocketIndividualModal({
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
 
   const createInvoiceMutation = useCreateInvoice({
+    jobId: docket?.job?.id,
     onSuccess: () => {
       onOpenChange(false);
       setSelectedDocket({

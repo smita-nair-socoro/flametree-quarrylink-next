@@ -50,10 +50,11 @@ export const useCreateInvoice = (options?: {
     onSettled: async () => {
       queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
-      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
-      if (options?.jobId) {
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      const jobIdToRefresh = options?.jobId ?? useJobStore.getState().selectedJob?.id;
+      if (jobIdToRefresh) {
         try {
-          const updatedJob = await APIClient.jobs.getJobItems(options.jobId);
+          const updatedJob = await APIClient.jobs.getJobItems(jobIdToRefresh);
           useJobStore.getState().setSelectedJob(updatedJob);
         } catch {
           useJobStore.getState().setSelectedJob(null);

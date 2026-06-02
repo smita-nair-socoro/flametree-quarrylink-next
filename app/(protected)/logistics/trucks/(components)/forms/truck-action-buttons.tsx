@@ -37,7 +37,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
     enabled: !!truck?.id,
   });
 
-  const handleAssignedDockets = () => {
+  const handleLinkedDockets = () => {
     const dockets = truckWithDockets?.dockets ?? [];
     if (dockets.length === 0) {
       notifyError('No dockets assigned to this truck.');
@@ -60,11 +60,11 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleAssignedDockets}
-          className="rounded-none bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800 border-r border-gray-200"
+          onClick={handleLinkedDockets}
+          className="rounded-none border-r border-gray-200"
         >
           <FileText className="h-4 w-4 mr-2" />
-          Assigned Dockets
+          Linked Dockets
         </Button>
 
         {status !== TRUCK_STATUS.ON_DUTY && (
