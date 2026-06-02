@@ -4,6 +4,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TeamMemberTableActions } from './team-member-table-actions';
 import { User } from '@/lib/types/user';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { getRoleLabel } from '@/lib/utils/user-helper';
 import {
   Tooltip,
   TooltipContent,
@@ -64,43 +65,12 @@ export const createTeamMemberColumns = (
   },
   {
     id: 'role',
-    accessorFn: (row) => {
-      const groups = row.groups;
-      if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
-      const g = groups.join(',').toLowerCase();
-      if (g.includes('super_admin') || g.includes('superadmin')) return 'Super Admin';
-      if (g.includes('driver')) return 'Driver';
-      if (g.includes('admin')) return 'Admin';
-      return 'User';
-    },
+    accessorFn: (row) => getRoleLabel(row.groups),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Role" />;
     },
     cell: ({ row }) => {
-      const groups = row.original.groups;
-      if (!groups || !Array.isArray(groups) || groups.length === 0) {
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="py-2 text-left truncate block w-[140px] sm:w-[160px] md:w-[180px] lg:w-[200px] xl:w-[220px]">
-                User
-              </div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>User</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      }
-      const g = groups.join(',').toLowerCase();
-      const formattedRole =
-        g.includes('super_admin') || g.includes('superadmin')
-          ? 'Super Admin'
-          : g.includes('driver')
-          ? 'Driver'
-          : g.includes('admin')
-          ? 'Admin'
-          : 'User';
+      const formattedRole = getRoleLabel(row.original.groups);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

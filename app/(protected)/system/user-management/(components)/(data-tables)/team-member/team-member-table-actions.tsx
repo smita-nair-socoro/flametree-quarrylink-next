@@ -12,7 +12,9 @@ import {
 import { User } from '@/lib/types/user';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
+import { useUserStore } from '@/app/stores/user-store';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { isUserSuperAdmin } from '@/lib/utils/user-helper';
 
 interface TeamMemberTableActionsProps {
   teamMember: User;
@@ -26,6 +28,17 @@ export function TeamMemberTableActions({
   currentUserId,
 }: TeamMemberTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
+  const currentUserSub = useUserStore((state) => state.user?.sub);
+
+  const isTargetSuperAdmin = isUserSuperAdmin(teamMember.groups);
+  const isTargetSelf =
+    !!currentUserSub && String(teamMember.sub) === String(currentUserSub);
+
+  // Admins cannot edit or delete a Super Admin; no one can delete themselves
+  const canEdit = isSuperAdmin || !isTargetSuperAdmin;
+  const canDelete = isSuperAdmin || (!isTargetSelf && !isTargetSuperAdmin);
+
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
     teamMember.sub,
     teamMember,
@@ -47,6 +60,9 @@ export function TeamMemberTableActions({
     actions.delete();
   };
 
+  // Hide the ellipsis entirely when no actions are available
+  if (!canEdit && !canDelete) return null;
+
   return (
     <div>
       {deleteDialog}
@@ -58,18 +74,22 @@ export function TeamMemberTableActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={handleViewEdit}>
-            <Eye className="h-4 w-4 mr-2" />
-            View/Edit User
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleDelete}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
-            Delete User
-          </DropdownMenuItem>
+          {canEdit && (
+            <DropdownMenuItem onClick={handleViewEdit}>
+              <Eye className="h-4 w-4 mr-2" />
+              View/Edit User
+            </DropdownMenuItem>
+          )}
+          {canEdit && canDelete && <DropdownMenuSeparator />}
+          {canDelete && (
+            <DropdownMenuItem
+              onClick={handleDelete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+              Delete User
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
