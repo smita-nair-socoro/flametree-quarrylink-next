@@ -698,11 +698,13 @@ export function DocketDetailsPanel({
             !isUnassigned &&
             (() => {
               const driverChecklist =
-                docket.hasTodayDriverPreStart && docket.driverChecklistSubmissionId
+                docket.hasTodayDriverPreStart &&
+                docket.driverChecklistSubmissionId
                   ? docket.driverChecklistSubmission
                   : null;
               const truckChecklist =
-                docket.hasTodayTruckInspectionByCurrentDriver && docket.truckChecklistSubmissionId
+                docket.hasTodayTruckInspectionByCurrentDriver &&
+                docket.truckChecklistSubmissionId
                   ? docket.truckChecklistSubmission
                   : null;
 
@@ -717,14 +719,18 @@ export function DocketDetailsPanel({
                       Compliance
                     </h3>
                   </div>
-                  <div className={`p-4 grid gap-4 ${bothPresent ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                  <div
+                    className={`p-4 grid gap-4 ${bothPresent ? 'grid-cols-2' : 'grid-cols-1'}`}
+                  >
                     {driverChecklist && (
                       <div className="space-y-3">
                         <h4 className="text-sm font-semibold text-slate-600">
                           Pre-start
                         </h4>
                         {driverChecklist.checklistStatus && (
-                          <TableBadges names={driverChecklist.checklistStatus} />
+                          <TableBadges
+                            names={driverChecklist.checklistStatus}
+                          />
                         )}
                         {driverChecklist.checklistStatus !== 'CONFIRMED' && (
                           <button
