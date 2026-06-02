@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { X, User, Check, MapPin, ExternalLink } from 'lucide-react';
+import { X, User, MapPin, ExternalLink } from 'lucide-react';
 import { formatTimeRange } from '@/lib/utils/dispatch-helper';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -21,6 +21,10 @@ import type { Address } from '@/lib/types/address';
 import { toast } from 'sonner';
 import { calculateConvertedQty } from '@/lib/utils/dispatch-helper';
 import { useDocketActions } from '@/hooks/use-docket-actions';
+import {
+  ChecklistReportModal,
+  CHECKLIST_TYPE,
+} from '@/components/checklist-report-modal';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -81,6 +85,10 @@ export function DocketDetailsPanel({
 
   const [plannedLoadSizeValue, setPlannedLoadSizeValue] = useState<string>('');
   const [actualLoadSizeValue, setActualLoadSizeValue] = useState<string>('');
+  const [checklistModalOpen, setChecklistModalOpen] = useState(false);
+  const [checklistModalType, setChecklistModalType] = useState<CHECKLIST_TYPE>(
+    CHECKLIST_TYPE.DRIVER,
+  );
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
   const { actions, confirmDialogs, viewDialog } = useDocketActions(fullDocket);
@@ -211,6 +219,21 @@ export function DocketDetailsPanel({
     <>
       {viewDialog}
       {confirmDialogs}
+      <ChecklistReportModal
+        open={
+          checklistModalOpen && checklistModalType === CHECKLIST_TYPE.DRIVER
+        }
+        onOpenChange={setChecklistModalOpen}
+        type={CHECKLIST_TYPE.DRIVER}
+        submissionId={docket.driverChecklistSubmission?.id ?? 0}
+      />
+      <ChecklistReportModal
+        open={checklistModalOpen && checklistModalType === CHECKLIST_TYPE.TRUCK}
+        onOpenChange={setChecklistModalOpen}
+        type={CHECKLIST_TYPE.TRUCK}
+        submissionId={docket.truckChecklistSubmission?.id ?? 0}
+        truckLicensePlate={docket.truck?.licensePlate}
+      />
       <div className="flex flex-col bg-[#F8FAFC] overflow-y-auto h-full">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white sticky">
@@ -672,66 +695,83 @@ export function DocketDetailsPanel({
 
           {/* COMPLIANCE */}
           {docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY &&
-            !isUnassigned && (
-              <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-                <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
-                  <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">
-                    Compliance
-                  </h3>
-                </div>
-                <div className="p-4 grid grid-cols-2 gap-4">
-                  {/* Pre-start Column */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-600">
-                      Pre-start
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-800">
-                        {docket.driverChecklist ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-gray-300" />
-                        )}
-                        Driver OK
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-800">
-                        {docket.driverChecklist ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-gray-300" />
-                        )}
-                        BAC
-                      </div>
-                    </div>
-                  </div>
+            !isUnassigned &&
+            (() => {
+              const driverChecklist =
+                docket.hasTodayDriverPreStart &&
+                docket.driverChecklistSubmissionId
+                  ? docket.driverChecklistSubmission
+                  : null;
+              const truckChecklist =
+                docket.hasTodayTruckInspectionByCurrentDriver &&
+                docket.truckChecklistSubmissionId
+                  ? docket.truckChecklistSubmission
+                  : null;
 
-                  {/* Truck inspection Column */}
-                  <div className="space-y-3">
-                    <h4 className="text-sm font-semibold text-slate-600">
-                      Truck inspection
-                    </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2 text-sm text-gray-800">
-                        {docket.truckChecklist ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-gray-300" />
+              if (!driverChecklist && !truckChecklist) return null;
+
+              const bothPresent = !!(driverChecklist && truckChecklist);
+
+              return (
+                <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+                  <div className="p-4 border-b border-gray-100 bg-gray-50 rounded-t-xl">
+                    <h3 className="text-xs font-bold text-gray-500 tracking-wider uppercase">
+                      Compliance
+                    </h3>
+                  </div>
+                  <div
+                    className={`p-4 grid gap-4 ${bothPresent ? 'grid-cols-2' : 'grid-cols-1'}`}
+                  >
+                    {driverChecklist && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-slate-600">
+                          Pre-start
+                        </h4>
+                        {driverChecklist.checklistStatus && (
+                          <TableBadges
+                            names={driverChecklist.checklistStatus}
+                          />
                         )}
-                        Truck OK
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-800">
-                        {docket.truckChecklist ? (
-                          <Check className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <div className="w-4 h-4 rounded-full border border-gray-300" />
+                        {driverChecklist.checklistStatus !== 'CONFIRMED' && (
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-[#8E51FF] underline cursor-pointer"
+                            onClick={() => {
+                              setChecklistModalType(CHECKLIST_TYPE.DRIVER);
+                              setChecklistModalOpen(true);
+                            }}
+                          >
+                            View Full Report
+                          </button>
                         )}
-                        Trailer OK
                       </div>
-                    </div>
+                    )}
+                    {truckChecklist && (
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold text-slate-600">
+                          Truck inspection
+                        </h4>
+                        {truckChecklist.checklistStatus && (
+                          <TableBadges names={truckChecklist.checklistStatus} />
+                        )}
+                        {truckChecklist.checklistStatus !== 'CONFIRMED' && (
+                          <button
+                            type="button"
+                            className="text-sm font-medium text-[#8E51FF] underline cursor-pointer"
+                            onClick={() => {
+                              setChecklistModalType(CHECKLIST_TYPE.TRUCK);
+                              setChecklistModalOpen(true);
+                            }}
+                          >
+                            View Full Report
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
           {/* NOTES */}
           <div className="bg-white rounded-xl p-4 border border-gray-200 shadow-sm">
@@ -755,6 +795,24 @@ export function DocketDetailsPanel({
             </button>
           )}
           <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center cursor-pointer">
+            Duplicate
+          </button>
+        </div>
+      </div>
+        {/* Footer */}
+        <div className="p-4 border border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
+          {isDispatchView && isAssigned && (
+            <button
+              onClick={onUnassign}
+              className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center gap-2"
+            >
+              <User className="w-4 h-4" /> Unassign from trip
+            </button>
+          )}
+          <button
+            onClick={() => actions.duplicate()}
+            className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center"
+          >
             Duplicate
           </button>
         </div>

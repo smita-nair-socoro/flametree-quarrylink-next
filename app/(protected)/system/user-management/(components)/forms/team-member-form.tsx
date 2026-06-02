@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { EditTeamMemberFormSchema } from './schemas/team-member-form-schema';
 import { useSelectedTeamMember } from '@/app/stores/team-member-store';
+import { useUserStore } from '@/app/stores/user-store';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TableBadges } from '@/components/table-badges';
@@ -33,6 +34,11 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import {
+  isUserSuperAdmin,
+  getRoleValueFromGroups,
+  getInitials,
+} from '@/lib/utils/user-helper';
 
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
@@ -64,6 +70,7 @@ export function EditTeamMemberForm({
   onDirtyChange,
 }: EditTeamMemberFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
   const selectedUser = useSelectedTeamMember(); // User from store (basic data from list)
 
   // Use the update user mutation
@@ -84,32 +91,8 @@ export function EditTeamMemberForm({
 
   const fullName = initialData?.name?.trim() || 'Unnamed User';
 
-  // Convert groups array to role string for form
-  const getRoleFromGroups = React.useCallback(
-    (groups: string[] | undefined): string => {
-      if (!groups || !Array.isArray(groups) || groups.length === 0) {
-        return '';
-      }
-
-      const groupsStr = groups.join(',').toLowerCase();
-
-      // Check in priority order
-      if (
-        groupsStr.includes('super_admin') ||
-        groupsStr.includes('superadmin')
-      ) {
-        return 'SUPERADMIN';
-      }
-      if (groupsStr.includes('admin')) {
-        return 'ADMIN';
-      }
-      return 'USER';
-    },
-    []
-  );
-
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(() => {
-    const role = getRoleFromGroups(initialData?.groups);
+    const role = getRoleValueFromGroups(initialData?.groups);
 
     return {
       full_name: fullName,
@@ -124,7 +107,6 @@ export function EditTeamMemberForm({
     initialData?.phone,
     initialData?.groups,
     initialData?.status,
-    getRoleFromGroups,
   ]);
 
   const form = useForm<EditTeamMemberFormValues>({
@@ -140,10 +122,15 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const disableRoleChange =
+  const isEditingSelf =
     currentUserId !== undefined &&
     initialData?.sub !== undefined &&
     String(currentUserId) === String(initialData.sub);
+
+  const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
+
+  // Only block role change when a non-super-admin is editing a super admin
+  const disableRoleChange = !isSuperAdmin && isTargetSuperAdmin;
 
   const handleCancel = () => {
     form.reset();
@@ -392,14 +379,14 @@ export function EditTeamMemberForm({
               />
             </div>
 
-            {disableRoleChange ? (
+            {!isSuperAdmin && isTargetSuperAdmin && (
               <Alert className="border-amber-200 bg-amber-50 text-amber-900 mt-0">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
-                  You cannot change your own role.
+                  You cannot change a Super Admin&apos;s role.
                 </AlertDescription>
               </Alert>
-            ) : null}
+            )}
           </section>
 
           {/* <section className="space-y-4">
@@ -466,14 +453,4 @@ export function EditTeamMemberForm({
       </Form>
     </div>
   );
-}
-
-function getInitials(name: string | undefined): string {
-  if (!name) return '?';
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-  return initials.slice(0, 2) || '?';
 }
