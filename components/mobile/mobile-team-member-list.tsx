@@ -32,44 +32,13 @@ import { cn } from '@/lib/utils';
 import { User } from '@/lib/types/user';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TeamMemberTableActions } from '@/app/(protected)/system/user-management/(components)/(data-tables)/team-member/team-member-table-actions';
-
-const AVATAR_PALETTE = [
-  { bg: '#DBEAFE', text: '#2563EB' },
-  { bg: '#D1FAE5', text: '#059669' },
-  { bg: '#EDE9FE', text: '#7C3AED' },
-  { bg: '#FEE2E2', text: '#DC2626' },
-  { bg: '#FEF3C7', text: '#D97706' },
-  { bg: '#FCE7F3', text: '#BE185D' },
-  { bg: '#CCFBF1', text: '#0D9488' },
-];
+import {
+  getAvatarColor,
+  getInitials,
+  getRoleLabel,
+} from '@/lib/utils/user-helper';
 
 const ROLE_OPTIONS = ['Super Admin', 'Admin', 'User'];
-
-function getAvatarColor(name: string) {
-  const hash = (name || '')
-    .split('')
-    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
-}
-
-function getInitials(name: string) {
-  if (!name?.trim()) return '??';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((n) => n[0]?.toUpperCase() || '')
-    .join('')
-    .slice(0, 2);
-}
-
-function getRole(groups: string[] | undefined): string {
-  if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
-  const s = groups.join(',').toUpperCase();
-  if (s.includes('SUPER_ADMIN') || s.includes('SUPERADMIN'))
-    return 'Super Admin';
-  if (s.includes('ADMIN')) return 'Admin';
-  return 'User';
-}
 
 const PAGE_SIZE = 10;
 
@@ -109,7 +78,7 @@ export function MobileTeamMemberList({
         u.name?.toLowerCase().includes(q) ||
         u.email?.toLowerCase().includes(q);
       const matchesRole =
-        selectedRoles.length === 0 || selectedRoles.includes(getRole(u.groups));
+        selectedRoles.length === 0 || selectedRoles.includes(getRoleLabel(u.groups));
       return matchesSearch && matchesRole;
     });
   }, [users, search, selectedRoles]);
@@ -268,7 +237,7 @@ export function MobileTeamMemberList({
             paginated.map((user) => {
               const initials = getInitials(user.name || user.email || '');
               const color = getAvatarColor(user.name || user.email || '');
-              const role = getRole(user.groups);
+              const role = getRoleLabel(user.groups);
               return (
                 <div
                   key={user.sub || user.email}

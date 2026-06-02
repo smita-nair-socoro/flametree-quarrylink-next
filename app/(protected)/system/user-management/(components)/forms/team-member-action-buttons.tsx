@@ -7,12 +7,7 @@ import { useUserStore } from '@/app/stores/user-store';
 import { User } from '@/lib/types/user';
 import { UserStatus } from '@/lib/types/user-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
-
-function isUserSuperAdmin(groups: string[] | undefined): boolean {
-  if (!groups?.length) return false;
-  const g = groups.join(',').toLowerCase();
-  return g.includes('super_admin') || g.includes('superadmin');
-}
+import { isUserSuperAdmin } from '@/lib/utils/user-helper';
 
 interface TeamMemberActionButtonsProps {
   teamMember: User | null | undefined;

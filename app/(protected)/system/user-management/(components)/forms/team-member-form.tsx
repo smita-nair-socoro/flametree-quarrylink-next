@@ -34,6 +34,11 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import {
+  isUserSuperAdmin,
+  getRoleValueFromGroups,
+  getInitials,
+} from '@/lib/utils/user-helper';
 
 type EditTeamMemberFormValues = z.infer<typeof EditTeamMemberFormSchema>;
 
@@ -55,12 +60,6 @@ interface EditTeamMemberFormProps {
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
-}
-
-function isUserSuperAdmin(groups: string[] | undefined): boolean {
-  if (!groups?.length) return false;
-  const g = groups.join(',').toLowerCase();
-  return g.includes('super_admin') || g.includes('superadmin');
 }
 
 export function EditTeamMemberForm({
@@ -92,32 +91,8 @@ export function EditTeamMemberForm({
 
   const fullName = initialData?.name?.trim() || 'Unnamed User';
 
-  // Convert groups array to role string for form
-  const getRoleFromGroups = React.useCallback(
-    (groups: string[] | undefined): string => {
-      if (!groups || !Array.isArray(groups) || groups.length === 0) {
-        return '';
-      }
-
-      const groupsStr = groups.join(',').toLowerCase();
-
-      // Check in priority order
-      if (
-        groupsStr.includes('super_admin') ||
-        groupsStr.includes('superadmin')
-      ) {
-        return 'SUPERADMIN';
-      }
-      if (groupsStr.includes('admin')) {
-        return 'ADMIN';
-      }
-      return 'USER';
-    },
-    []
-  );
-
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(() => {
-    const role = getRoleFromGroups(initialData?.groups);
+    const role = getRoleValueFromGroups(initialData?.groups);
 
     return {
       full_name: fullName,
@@ -132,7 +107,6 @@ export function EditTeamMemberForm({
     initialData?.phone,
     initialData?.groups,
     initialData?.status,
-    getRoleFromGroups,
   ]);
 
   const form = useForm<EditTeamMemberFormValues>({
@@ -488,14 +462,4 @@ export function EditTeamMemberForm({
       </Form>
     </div>
   );
-}
-
-function getInitials(name: string | undefined): string {
-  if (!name) return '?';
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-  return initials.slice(0, 2) || '?';
 }

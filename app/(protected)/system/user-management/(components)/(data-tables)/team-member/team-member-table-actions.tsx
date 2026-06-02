@@ -14,12 +14,7 @@ import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { useUserStore } from '@/app/stores/user-store';
 import { FormSelectOption } from '@/components/ui/form-select';
-
-function isUserSuperAdmin(groups: string[] | undefined): boolean {
-  if (!groups?.length) return false;
-  const g = groups.join(',').toLowerCase();
-  return g.includes('super_admin') || g.includes('superadmin');
-}
+import { isUserSuperAdmin } from '@/lib/utils/user-helper';
 
 interface TeamMemberTableActionsProps {
   teamMember: User;

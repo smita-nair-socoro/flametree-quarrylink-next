@@ -20,6 +20,13 @@ import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useQuery } from '@tanstack/react-query';
 import {
+  isUserSuperAdmin,
+  getRoleLabel,
+  getHighestRole,
+  getInitials,
+  getAvatarColor,
+} from '@/lib/utils/user-helper';
+import {
   UsersListQueryOptions,
   useResendUserInvitation,
   useDeleteUser,
@@ -35,48 +42,7 @@ const allRolesOptions: readonly FormSelectOption[] = [
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
 
-const AVATAR_PALETTE = [
-  { bg: '#DBEAFE', text: '#2563EB' },
-  { bg: '#D1FAE5', text: '#059669' },
-  { bg: '#EDE9FE', text: '#7C3AED' },
-  { bg: '#FEE2E2', text: '#DC2626' },
-  { bg: '#FEF3C7', text: '#D97706' },
-  { bg: '#FCE7F3', text: '#BE185D' },
-  { bg: '#CCFBF1', text: '#0D9488' },
-];
 
-function getAvatarColor(name: string) {
-  const hash = (name || '')
-    .split('')
-    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
-}
-
-function getInitials(name: string) {
-  if (!name?.trim()) return '??';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((value) => value[0]?.toUpperCase() || '')
-    .join('')
-    .slice(0, 2);
-}
-
-function getRoleLabel(groups: string[] | undefined) {
-  if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
-  const groupsStr = groups.join(',').toUpperCase();
-  if (groupsStr.includes('SUPER_ADMIN') || groupsStr.includes('SUPERADMIN')) {
-    return 'Super Admin';
-  }
-  if (groupsStr.includes('ADMIN')) return 'Admin';
-  return 'User';
-}
-
-function isUserSuperAdmin(groups: string[] | undefined): boolean {
-  if (!groups?.length) return false;
-  const g = groups.join(',').toLowerCase();
-  return g.includes('super_admin') || g.includes('superadmin');
-}
 
 export default function TeamAdminTab() {
   const isMobile = useMediaQuery('(max-width: 910px)');
@@ -107,17 +73,6 @@ export default function TeamAdminTab() {
       });
     }
   }, [error]);
-
-  // Helper function to convert groups array to Role string for display
-  const getHighestRole = (groups: string[] | undefined): Role => {
-    if (!groups || !Array.isArray(groups)) return Role.USER;
-    const groupsStr = groups.join(',').toLowerCase();
-    if (groupsStr.includes('super_admin') || groupsStr.includes('superadmin')) {
-      return Role.SUPERADMIN;
-    }
-    if (groupsStr.includes('admin')) return Role.USER; // Map admin to USER for now
-    return Role.USER;
-  };
 
   // Convert pending users from API to PendingInvitation format
   const pendingInvitations: PendingInvitation[] = React.useMemo(() => {
