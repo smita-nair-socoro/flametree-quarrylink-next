@@ -1,6 +1,6 @@
 import z from 'zod';
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ACCEPTED_IMAGE_TYPES = [
   'image/jpeg',
   'image/jpg',
@@ -24,7 +24,7 @@ export const BrandingSchema = z.object({
       if (file.size > MAX_FILE_SIZE) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'File size must be less than 2MB',
+          message: 'File size must be less than 5MB',
         });
       }
 

@@ -197,11 +197,10 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
 
   if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
-    currentActions = [{
-      label: 'Retry Sync',
-      icon: RefreshCw,
-      action: 'retrySync',
-    }];
+    currentActions = [
+      { label: 'Retry Sync', icon: RefreshCw, action: 'retrySync', separator: true },
+      { label: 'Duplicate', icon: Copy, action: 'duplicate' },
+    ];
   }
 
   if (currentActions.length === 0) {
