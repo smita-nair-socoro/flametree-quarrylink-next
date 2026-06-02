@@ -35,7 +35,7 @@ export function TeamMemberActionButtons({
   const isTargetSuperAdmin = isUserSuperAdmin(teamMember.groups);
   const isTargetSelf =
     !!currentUserSub && String(teamMember.sub) === String(currentUserSub);
-  const canDelete = !isTargetSelf && (isSuperAdmin || !isTargetSuperAdmin);
+  const canDelete = isSuperAdmin || (!isTargetSelf && !isTargetSuperAdmin);
 
   const showAnyButton =
     teamMember.status === UserStatus.PENDING || canDelete;
