@@ -15,6 +15,8 @@ import {
   Trash2,
   LucideIcon,
   UserRoundPlus,
+  Copy,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -54,7 +56,8 @@ type ActionType =
   | 'viewInvoice'
   | 'assign'
   | 'backToPending'
-  | 'backToPreparing';
+  | 'backToPreparing'
+  | 'retrySync';
 
 interface ActionItem {
   label: string;
@@ -248,7 +251,16 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
     }
   };
 
-  const currentActions = ACTION_CONFIG[docket.docketStatus] || [];
+  let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
+
+  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
+    currentActions = [{
+      label: 'Retry Sync',
+      icon: RefreshCw,
+      action: 'retrySync',
+      separator: true,
+    }];
+  }
 
   return (
     <div>
@@ -281,6 +293,12 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
               </DropdownMenuItem>
             </React.Fragment>
           ))}
+
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleAction('duplicate')}>
+            <Copy className="h-4 w-4 mr-2" />
+            Duplicate
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

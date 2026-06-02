@@ -221,3 +221,13 @@ export interface InvoiceUrlResponse {
   externalInvoiceId: string;
   invoiceLink: string;
 }
+
+export interface JobStatistics {
+  jobsInProgress: number;
+  uninvoicedDocketsValue: number;
+  uninvoicedDeliveryDockets: number;
+  uninvoicedCollectionDockets: number;
+  completedJobsReadyForInvoicing: number;
+  completedDocketsReadyForInvoicing: number;
+  pausedJobs: number;
+}

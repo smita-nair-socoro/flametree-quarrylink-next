@@ -11,6 +11,7 @@ interface TableBadgesProps {
   names: string | string[];
   visibleCount?: number;
   variant?: 'default' | 'suburb' | 'haulier';
+  icon?: React.ReactNode;
 }
 const PALETTE: Record<string, string> = {
   red: 'bg-red-100 text-red-800',
@@ -101,6 +102,7 @@ export function TableBadges({
   names,
   visibleCount = 2,
   variant = 'default',
+  icon,
 }: TableBadgesProps) {
   const all = Array.isArray(names) ? names : [names];
   // Filter out undefined, null, and empty strings
@@ -118,6 +120,7 @@ export function TableBadges({
           )}
         >
           {n.replace(/_/g, ' ')}
+          {icon && icon}
         </Badge>
       ))}
       {hidden.length > 0 && (

@@ -8,8 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
-  Archive,
-  ArchiveRestore,
+  Trash2,
   MoreHorizontal,
   ScanBarcode,
 } from 'lucide-react';
@@ -55,46 +54,26 @@ export function QuarrySupplierActionButtons({
     return null;
   }
 
-  const isActive = quarrySupplier.status === 'ACTIVE';
-  const isArchived = quarrySupplier.status === 'ARCHIVED';
-
   return (
     <div>
       {confirmDialogs}
 
       <div className="inline-flex items-center rounded-md overflow-hidden">
-        {/* Delete button - only show when ACTIVE */}
-        {isActive && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={actions.delete}
-            className="h-9 gap-2 rounded-r-none border-r-0 text-destructive hover:text-destructive"
-          >
-            <Archive className="h-4 w-4" />
-            Delete
-          </Button>
-        )}
-
-        {/* Unarchive button - only show when ARCHIVED */}
-        {isArchived && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={actions.unarchive}
-            className="h-9 gap-2 rounded-r-none border-r-0 bg-green-50 hover:bg-green-100 text-green-900 hover:text-green-800"
-          >
-            <ArchiveRestore className="h-4 w-4" />
-            Unarchive
-          </Button>
-        )}
+        {/* Linked Products - standalone button, always visible */}
+        <Button
+          variant="outline"
+          onClick={actions.linkedProducts}
+          className="h-9 gap-2 rounded-r-none border-r-0"
+        >
+          <ScanBarcode className="h-4 w-4" />
+          Linked Products
+        </Button>
 
         {/* More options dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              size="sm"
               className="h-9 w-9 p-0 rounded-l-none"
             >
               <MoreHorizontal className="h-4 w-4" />
@@ -102,9 +81,12 @@ export function QuarrySupplierActionButtons({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={actions.linkedProducts}>
-              <ScanBarcode className="h-4 w-4 mr-2" />
-              Linked Products
+            <DropdownMenuItem
+              onClick={actions.delete}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

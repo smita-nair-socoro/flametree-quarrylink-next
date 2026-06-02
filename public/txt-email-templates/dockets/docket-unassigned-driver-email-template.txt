@@ -4,6 +4,4 @@ Your delivery assignment has been removed.
 
 Docket Number: {DocketNumber}
 
-View Delivery: {DocketUrl}
-
 You're receiving this because your delivery assignment was updated on QuarryLink.

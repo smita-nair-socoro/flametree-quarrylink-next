@@ -617,8 +617,8 @@ export function DataTableClient<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     getRowId: (originalRow, index) => {
-      const r = originalRow as TData & { id?: number | string; sub?: string };
-      if (r?.id !== undefined) return String(r.id);
+      const r = originalRow as TData & { id?: number | string | null; sub?: string };
+      if (r?.id != null && r.id !== 0) return String(r.id);
       if (typeof r?.sub === 'string' && r.sub.length > 0) return r.sub;
       return String(index);
     },
@@ -652,7 +652,9 @@ export function DataTableClient<TData, TValue>({
       sorting,
       pagination: {
         pageIndex: externalPageIndex ?? pagination.pageIndex,
-        pageSize: externalPageSize ?? pagination.pageSize,
+        pageSize: simpleTable 
+          ? (data.length > 0 ? data.length : 10) 
+          : (externalPageSize ?? pagination.pageSize),
       },
       columnFilters,
       globalFilter,

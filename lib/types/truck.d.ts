@@ -32,6 +32,7 @@ export interface TruckDTO {
   haulierId?: number;
   haulier?: HaulierDTO;
   drivers?: DriverDTO[];
+  dockets?: Array<{ id: number }>;
   driverIds?: number[];
   driverTrucks?: DriverTruckDTO[];
   version?: number;

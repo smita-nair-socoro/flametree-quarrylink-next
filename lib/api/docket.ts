@@ -22,6 +22,7 @@ import {
   DocketDTO,
   DocketOperationalUpdateRequest,
   ConflictCheckRequest,
+  DuplicateDocketRequest,
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
@@ -38,7 +39,10 @@ export const DocketStatisticsQueryOptions = () => {
   });
 };
 
-export const DocketsListQueryOptions = (params?: { page?: number; pageSize?: number }) =>
+export const DocketsListQueryOptions = (params?: {
+  page?: number;
+  size?: number;
+}) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
     queryFn: () => APIClient.dockets.getAll(params),
@@ -65,10 +69,10 @@ export const useCreateDocket = () => {
   });
 };
 
-export const DocketsByJobIdQueryOptions = (jobId: number, params?: { page?: number; pageSize?: number }) =>
+export const DocketsByJobIdQueryOptions = (jobId: number) =>
   queryOptions({
-    queryKey: [...DocketKeys.byJobId(jobId), params],
-    queryFn: () => APIClient.dockets.getByJobId(jobId, params),
+    queryKey: [...DocketKeys.byJobId(jobId)],
+    queryFn: () => APIClient.dockets.getByJobId(jobId),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -217,6 +221,24 @@ export const useOperationalUpdateDocket = () => {
       }
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
+    },
+  });
+};
+
+export const useDuplicateDocket = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: DuplicateDocketRequest }) =>
+      APIClient.dockets.duplicate(id, data),
+    onSuccess: async (data, { id }) => {
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: JobKeys.list() });
+      queryClient.invalidateQueries({
+        queryKey: JobKeys.items(data.dockets[0]?.jobId),
+      });
     },
   });
 };

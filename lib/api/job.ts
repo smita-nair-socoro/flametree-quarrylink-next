@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { JobKeys } from './keys';
+import { DocketKeys, JobKeys } from './keys';
 import type { JobDTO, JobItem, SettleJobResponse } from '../types/job';
 import { useJobStore } from '@/app/stores/job-store';
 
@@ -47,6 +47,14 @@ export const JobItemByIdQueryOptions = (jobItemId: number) =>
   queryOptions({
     queryKey: JobKeys.item(jobItemId),
     queryFn: () => APIClient.jobs.getJobItemById(jobItemId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const JobStatisticsQueryOptions = () =>
+  queryOptions({
+    queryKey: JobKeys.statistics(),
+    queryFn: () => APIClient.jobs.statistics(),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -205,6 +213,7 @@ export const useResumeJob = () => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.byJobId(data.id) });
       useJobStore.getState().setSelectedJob(data);
     },
   });
@@ -230,15 +239,18 @@ export const usePauseJob = () => {
   return useMutation({
     mutationFn: ({
       id,
-      pauseStrategy,
+      deliveryPauseStrategy,
+      collectionPauseStrategy,
     }: {
       id: number;
-      pauseStrategy: 'STOP_ALL_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE';
-    }) => APIClient.jobs.pause(id, pauseStrategy),
+      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE';
+      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE';
+    }) => APIClient.jobs.pause(id, deliveryPauseStrategy, collectionPauseStrategy),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      queryClient.refetchQueries({ queryKey: DocketKeys.byJobId(data.id) });
       useJobStore.getState().setSelectedJob(data);
     },
   });

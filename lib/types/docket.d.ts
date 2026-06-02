@@ -8,6 +8,7 @@ import { CustomerDTO } from './customer';
 import { TruckDTO } from './truck';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
 import { HaulierDTO } from './haulier';
+import { INVOICE_STATUS } from './invoice-enums';
 
 export interface Docket {
   id: number;
@@ -84,6 +85,8 @@ export interface DocketOperationalUpdateRequest {
   deliveryCollectionDate?: string;
   deliveryCollectionStartTime?: string;
   deliveryCollectionEndTime?: string;
+  deliveryStartWindow?: string;
+  deliveryEndWindow?: string;
   deliveryDistanceQuantity?: number;
 }
 
@@ -103,6 +106,7 @@ export interface DocketDTO {
 
   jobItemId: number;
   invoiceId?: number;
+  invoiceStatus?: INVOICE_STATUS;
   docketStatus: DOCKET_STATUS;
   stopReason?: string;
   resumeReason?: string;
@@ -373,6 +377,9 @@ export interface DispatchAssignedDocket {
   productDensity: number;
   deliveryState: string;
   productSellUom: string;
+  truckSellQty: number;
+  truckSellUom: string;
+  truckSellPrice: number;
 }
 
 export interface DispatchUnassignedDocket {
@@ -393,6 +400,9 @@ export interface DispatchUnassignedDocket {
   deliverySuburb: string;
   deliveryState: string;
   productSellUom: string;
+  truckSellQty: number;
+  truckSellUom: string;
+  truckSellPrice: number;
 }
 
 /** Slim board docket (assigned or unassigned list item — same fields). */
@@ -443,6 +453,22 @@ export interface ConflictingDocket {
 export interface ConflictCheckResponse {
   hasConflicts: boolean;
   conflictingDocketIds: ConflictingDocket[];
+}
+
+export interface DuplicateDocketRequest {
+  numberOfCopies: number;
+  retainPurchaseOrder: boolean;
+  purchaseOrder?: string;
+  deliveryCollectionDate: string;
+}
+
+export interface DuplicateDocketResponse {
+  remainingQuantityBeforeDuplication: number;
+  remainingQuantityAfterDuplication: number;
+  eachCopyQuantity: number;
+  totalRequestedQuantity: number;
+  maximumCopiesAllowed: number;
+  dockets: DocketDTO[];
 }
 
 export interface DocketStatistics {

@@ -99,7 +99,6 @@ export function transformQuoteData(
     // Default: use top-level customerName
     customerDisplayName = customerName || 'N/A';
   }
-
   return {
     inclDeliveryCost: inclDeliveryCost ?? false,
     navbar: {
@@ -113,7 +112,8 @@ export function transformQuoteData(
     },
     customer: {
       customerName: customerDisplayName,
-      email: quoteDto?.email || 'N/A',
+      email:
+        quoteDto?.customerWithAddressResponseDto?.contactPersonEmail || 'N/A',
       phone: quoteDto?.phone || 'N/A',
       billingAddress: {
         line1: customerBillingAddress?.line1 || 'N/A',

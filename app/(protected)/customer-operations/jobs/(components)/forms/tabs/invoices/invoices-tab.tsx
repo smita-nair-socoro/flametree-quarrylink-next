@@ -8,10 +8,12 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { FormDialog } from '@/components/form-dialog';
-import InvoiceForm from '../../invoice-form';
+import InvoiceForm from './forms/invoice-form';
 import { Button } from '@/components/ui/button';
 import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';
+import { useSelectedJob } from '@/app/stores/job-store';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -19,6 +21,9 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
   const retrySyncMutation = useRetrySync();
 
   const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
+
+  const selectedJob = useSelectedJob();
+  const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
   return (
     <div className="flex flex-col gap-4 mt-6">
@@ -31,15 +36,21 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
       >
         <span className="text-lg font-semibold">Invoices</span>
         <div className="flex gap-3">
-          <Button variant="outline" type="button" onClick={() => {
-            retrySyncMutation.mutate(jobId);
-          }}>
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => {
+              retrySyncMutation.mutate(jobId);
+            }}
+          >
             <RefreshCw className="h-4 w-4" />
             Sync All to Xero
           </Button>
-          <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
-            <InvoiceForm jobId={jobId} />
-          </FormDialog>
+          {jobStatus !== JOB_STATUS.CANCELLED && (
+            <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
+              <InvoiceForm jobId={jobId} />
+            </FormDialog>
+          )}
         </div>
       </div>
 

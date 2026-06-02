@@ -51,18 +51,24 @@ import {
   AssignDocketDescription,
   AssignDocketContent,
 } from '@/hooks/docket/assign-docket-content';
+import {
+  DuplicateDocketDescription,
+  DuplicateDocketContent,
+} from '@/hooks/docket/duplicate-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
 import { useDocketStore } from '@/app/stores/docket-store';
 import {
   useUpdateDocketStatus,
   useAssignDocket,
   useUnassignDocket,
+  useDuplicateDocket,
 } from '@/lib/api/docket';
-import { useCreateInvoice } from '@/lib/api/invoices';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { addNewRecordId } from '@/lib/utils';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
+import { useRetrySync } from '@/lib/api/invoices';
 
 export type DocketActionKey =
   | 'viewDetails'
@@ -83,7 +89,8 @@ export type DocketActionKey =
   | 'markCollected'
   | 'backToPreparing'
   | 'cashSale'
-  | 'cashReceipts';
+  | 'cashReceipts'
+  | 'duplicate';
 
 interface DialogConfig {
   title: string;
@@ -98,8 +105,15 @@ interface DialogConfig {
   | 'secondary'
   | 'ghost';
   confirmDisabled?: boolean;
+  confirmCustomClass?: string;
   cancelText?: string;
+  cancelButtonClass?: string;
   preventOutsideClose?: boolean;
+  customWidth?: string;
+  titleClassName?: string;
+  subtitle?: string;
+  hideSeparator?: boolean;
+  buttonContainerClass?: string;
 }
 
 interface SelectedAction {
@@ -125,11 +139,33 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
-  const { actions: invoiceActions, InvoiceDetailsDialog } = useInvoiceActions(docketData?.invoiceId);
 
+  // Duplicate state
+  const [duplicateCopies, setDuplicateCopies] = React.useState(0);
+  const [duplicateRetainPo, setDuplicateRetainPo] = React.useState(true);
+  const [duplicateDeliveryDate, setDuplicateDeliveryDate] = React.useState<
+    Date | undefined
+  >(undefined);
+  const [duplicatePurchaseOrder, setDuplicatePurchaseOrder] = React.useState(
+    () => docketData?.purchaseOrder ?? '',
+  );
+
+  React.useEffect(() => {
+    if (duplicateRetainPo) setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
+  }, [duplicateRetainPo, docketData?.purchaseOrder]);
+
+  const resetDuplicateState = React.useCallback(() => {
+    setDuplicateCopies(0);
+    setDuplicateRetainPo(true);
+    setDuplicateDeliveryDate(undefined);
+    setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
+  }, [docketData?.purchaseOrder]);
+  const { actions: invoiceActions } = useInvoiceActions(docketData?.invoiceId);
+  const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
+  const duplicateDocketMutation = useDuplicateDocket();
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
@@ -141,11 +177,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [assignDriver, setAssignDriver] = React.useState<number | undefined>(
     undefined,
   );
+  const [assignExceedsCapacity, setAssignExceedsCapacity] = React.useState(false);
 
   const resetAssignState = React.useCallback(() => {
     setAssignHauler(undefined);
     setAssignTruck(undefined);
     setAssignDriver(undefined);
+    setAssignExceedsCapacity(false);
   }, []);
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
@@ -214,27 +252,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleMarkArrived = async () => {
     if (!docketData?.id) return;
     try {
-      let latitude: string | undefined;
-      let longitude: string | undefined;
-
-      if (typeof navigator !== 'undefined' && navigator.geolocation) {
-        await new Promise<void>((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              latitude = pos.coords.latitude.toFixed(7);
-              longitude = pos.coords.longitude.toFixed(7);
-              resolve();
-            },
-            () => resolve(), // proceed without coords if denied/unavailable
-          );
-        });
-      }
-
       await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.ARRIVED,
-        latitude,
-        longitude,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),
@@ -297,6 +317,23 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleBackToPending = async () => {
+    if (!docketData?.id) return;
+    try {
+      await updateDocketStatusMutation.mutateAsync({
+        docketId: docketData.id,
+        docketStatus: DOCKET_STATUS.PENDING,
+      });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: DOCKET_STATUS.PENDING,
+      });
+      notifySuccess('Docket status updated to Pending');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
   const handleStartPreparing = async () => {
     if (!docketData?.id) return;
     try {
@@ -338,6 +375,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
+  };
+
+  const handleRetrySync = async () => {
+    if (!docketData?.id) return;
+    try {
+      await retrySyncMutation.mutateAsync(docketData.jobId);
+      notifySuccess('Retry sync successful');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    };
   };
 
   const isVoidFormValid = React.useMemo(() => {
@@ -443,6 +490,40 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }
   };
 
+  const handleDuplicateDocket = async () => {
+    if (!docketData?.id || !duplicateDeliveryDate) return;
+    try {
+      const result = await duplicateDocketMutation.mutateAsync({
+        id: docketData.id,
+        data: {
+          numberOfCopies: duplicateCopies,
+          retainPurchaseOrder: duplicateRetainPo,
+          purchaseOrder: duplicateRetainPo ? undefined : duplicatePurchaseOrder,
+          deliveryCollectionDate: duplicateDeliveryDate.toISOString(),
+        },
+      });
+      result.dockets.forEach((d) =>
+        addNewRecordId('docket_main_data_table', d.id),
+      );
+      notifySuccess(
+        `${result.dockets.length} docket${result.dockets.length !== 1 ? 's' : ''} duplicated successfully`,
+      );
+      setActiveDialog(null);
+      resetDuplicateState();
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  };
+
+  const duplicateLoadSize =
+    docketData?.plannedLoadSize || docketData?.actualLoadSize || docketData?.loadSize || 0;
+  const duplicateRemaining = docketData?.jobItem?.remainingQuantity ?? 0;
+  const duplicateMaxCopies = duplicateLoadSize > 0 ? Math.floor(duplicateRemaining / duplicateLoadSize) : 99;
+  const isDuplicateFormValid =
+    duplicateCopies >= 1 &&
+    duplicateCopies <= duplicateMaxCopies &&
+    !!duplicateDeliveryDate;
+
   const isStopFormValid = React.useMemo(() => {
     if (!stopReason) return false;
     if (stopReason === 'other') return Boolean(stopNotes.trim());
@@ -461,7 +542,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     receiverSignature,
   ]);
 
-  const isAssignFormValid = Boolean(assignTruck && assignDriver);
+  const isAssignFormValid = Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
@@ -478,6 +559,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             onTruckChange={setAssignTruck}
             onDriverChange={setAssignDriver}
             onClose={() => { setActiveDialog(null); setViewOpen(false); }}
+            onExceedsCapacity={setAssignExceedsCapacity}
           />
         ),
         confirmText: 'Assign docket',
@@ -488,7 +570,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       markArrived: {
         title: 'Mark as Arrived',
         description: <MarkArrivedDescription docket={docketData} />,
-        content: <MarkArrivedContent docket={docketData} />,
+        content: <MarkArrivedContent docket={docketData} isAdmin={true} />,
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
@@ -610,6 +692,39 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmDisabled: !isCancelFormValid,
         cancelText: 'Keep Docket',
       },
+      duplicate: {
+        title: 'Duplicate Docket',
+        subtitle: `Create a copy of docket ${docketData?.docketNumber ?? ''}`,
+        description: (
+          <div className="-mt-[18px] flex flex-col gap-6">
+            <div className="-mx-[25px] border-t border-[#F3F4F6]" />
+            <DuplicateDocketDescription docket={docketData} copies={duplicateCopies} />
+          </div>
+        ),
+        content: (
+          <DuplicateDocketContent
+            docket={docketData}
+            copies={duplicateCopies}
+            onCopiesChange={setDuplicateCopies}
+            retainPoNumber={duplicateRetainPo}
+            onRetainPoNumberChange={setDuplicateRetainPo}
+            newDeliveryDate={duplicateDeliveryDate}
+            onNewDeliveryDateChange={setDuplicateDeliveryDate}
+            poValue={duplicatePurchaseOrder}
+            onPoValueChange={setDuplicatePurchaseOrder}
+          />
+        ),
+        confirmText: 'Create Copy',
+        confirmCustomColor: '#99A1AF',
+        confirmCustomClass: 'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px] cursor-pointer hover:opacity-80 transition-opacity',
+        confirmDisabled: !isDuplicateFormValid,
+        cancelText: 'Cancel',
+        cancelButtonClass: 'h-[37px] w-[79px] rounded-[10px] border border-[#E5E7EB] pt-[9px] pr-[16px] pb-[8px] pl-[17px] text-[#364153]',
+        customWidth: "w-full !max-w-[672px]",
+        titleClassName: 'text-2xl',
+        hideSeparator: true,
+        buttonContainerClass: '-mt-[19px] -mx-[25px] px-[25px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
+      },
     }),
     [
       docketData,
@@ -619,6 +734,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       isVoidFormValid,
       isCancelFormValid,
       isAssignFormValid,
+      isDuplicateFormValid,
+      duplicateCopies,
+      duplicateRetainPo,
+      duplicateDeliveryDate,
+      duplicatePurchaseOrder,
       receiptPhoto,
       receiverName,
       receiverOnSite,
@@ -633,6 +753,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       assignHauler,
       assignTruck,
       assignDriver,
+      assignExceedsCapacity,
     ],
   );
 
@@ -674,11 +795,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     viewInvoice: () => {
       invoiceActions.viewDetails();
     },
+
+    retrySync: handleRetrySync,
+
     assign: createDialogAction('assign'),
 
-    backToPending: () => {
-      console.log('Back to pending confirmed:', docketData);
-    },
+    backToPending: handleBackToPending,
     backToPreparing: () => {
       console.log('Back to preparing confirmed:', docketData);
     },
@@ -694,6 +816,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         onOpenChangeAction={(open) => {
           if (!open) {
             if (key === 'assign') resetAssignState();
+            if (key === 'duplicate') resetDuplicateState();
             setActiveDialog(null);
           }
         }}
@@ -704,8 +827,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         confirmCustomColor={config.confirmCustomColor}
         confirmVariant={config.confirmVariant}
         confirmDisabled={config.confirmDisabled}
+        confirmCustomClass={config.confirmCustomClass}
         cancelText={config.cancelText}
+        cancelButtonClass={config.cancelButtonClass}
         preventOutsideClose={config.preventOutsideClose}
+        customWidth={config.customWidth}
+        titleClassName={config.titleClassName}
+        subtitle={config.subtitle}
+        hideSeparator={config.hideSeparator}
+        buttonContainerClass={config.buttonContainerClass}
+
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':
@@ -740,6 +871,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
               break;
             case 'startPreparing':
               await handleStartPreparing();
+              break;
+            case 'duplicate':
+              await handleDuplicateDocket();
               break;
             case 'cashSale':
               console.log('Cash sale confirmed:', docketData);
@@ -799,9 +933,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   return {
     actions,
     confirmDialogs: [
-      ...confirmDialogs, 
-      <InvoiceDetailsDialog key="invoiceDetails" />,
-      <InvoiceDocketIndividualModal 
+      ...confirmDialogs,
+      <InvoiceDocketIndividualModal
         key="invoiceDocketIndividual"
         open={activeDialog === 'invoice'}
         onOpenChange={(open) => {

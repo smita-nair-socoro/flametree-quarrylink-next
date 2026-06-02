@@ -178,7 +178,7 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
       markArrived: {
         title: 'Mark as Arrived',
         description: <MarkArrivedDescription docket={docketData} />,
-        content: <MarkArrivedContent docket={docketData} />,
+        content: <MarkArrivedContent docket={docketData} isAdmin={false} />,
         confirmText: 'Confirm Arrival',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',

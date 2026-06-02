@@ -17,6 +17,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { CurrencyInput } from '@/components/ui/input-mask';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import {
   Tooltip,
   TooltipContent,
@@ -61,6 +62,7 @@ export default function JobLineItemForm({
     isEditing,
     isReadOnly,
     form: jobLineItemForm,
+    selectedJob,
     billingAddress,
     selectedQuarrySupplierProduct,
     addressInput,
@@ -81,6 +83,8 @@ export default function JobLineItemForm({
     productDetails,
     isSubmitting,
   } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
+
+  const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -434,8 +438,11 @@ export default function JobLineItemForm({
                           <Input
                             className="w-full"
                             {...field}
-                            disabled={isReadOnly}
+                            disabled={jobStatus === JOB_STATUS.CANCELLED}
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -474,14 +481,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productSellUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productSellUom') ===
-                                    'M3'
+                                  'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productSellUom') ===
-                                      'KG_20'
+                                    'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                          'productSellUom',
-                                        ) === 'BULKA'
+                                      'productSellUom',
+                                    ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -539,6 +546,9 @@ export default function JobLineItemForm({
                             {...field}
                             disabled
                             isNumber
+                            allowDecimal
+                            maxDecimals={2}
+                            minDecimals={1}
                           />
                         </FormControl>
                         <FormMessage />
@@ -577,14 +587,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productCostUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productCostUom') ===
-                                    'M3'
+                                  'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productCostUom') ===
-                                      'KG_20'
+                                    'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                          'productCostUom',
-                                        ) === 'BULKA'
+                                      'productCostUom',
+                                    ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -599,20 +609,20 @@ export default function JobLineItemForm({
 
               {pricingBreakdown.totalProductCostPrice >
                 pricingBreakdown.totalProductSellPrice && (
-                <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
-                  <div className="flex items-start gap-2">
-                    <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                    <div className="flex-1 text-sm">
-                      <p className="font-semibold">Review Product Pricing</p>
-                      <p className="text-[#364153]">
-                        This line item will generate a loss based on current
-                        costs. If this is expected, you can continue. Otherwise,
-                        adjust the price to restore profitability.
-                      </p>
+                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold">Review Product Pricing</p>
+                        <p className="text-[#364153]">
+                          This line item will generate a loss based on current
+                          costs. If this is expected, you can continue. Otherwise,
+                          adjust the price to restore profitability.
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
 
             {/* Truck Configuration */}
@@ -677,6 +687,9 @@ export default function JobLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -716,18 +729,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckSellUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckSellUom') ===
-                                      'M3'
+                                    'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckSellUom') ===
-                                        'HOURLY'
+                                      'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                            'truckSellUom',
-                                          ) === 'LOAD'
+                                        'truckSellUom',
+                                      ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                              'truckSellUom',
-                                            ) === 'KM'
+                                          'truckSellUom',
+                                        ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -789,6 +802,9 @@ export default function JobLineItemForm({
                                 {...field}
                                 disabled={isReadOnly || !isEnabled}
                                 isNumber
+                                allowDecimal
+                                maxDecimals={2}
+                                minDecimals={1}
                               />
                             </FormControl>
                             <FormMessage />
@@ -828,18 +844,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckCostUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckCostUom') ===
-                                      'M3'
+                                    'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckCostUom') ===
-                                        'HOURLY'
+                                      'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                            'truckCostUom',
-                                          ) === 'LOAD'
+                                        'truckCostUom',
+                                      ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                              'truckCostUom',
-                                            ) === 'KM'
+                                          'truckCostUom',
+                                        ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -854,20 +870,20 @@ export default function JobLineItemForm({
 
                 {pricingBreakdown.totalTruckCostPrice >
                   pricingBreakdown.totalTruckSellPrice && (
-                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
-                    <div className="flex items-start gap-2">
-                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                      <div className="flex-1 text-sm">
-                        <p className="font-semibold">Review Truck Pricing</p>
-                        <p className="text-[#364153]">
-                          The truck configuration will generate a loss based on
-                          current costs. If this is expected, you can continue.
-                          Otherwise, adjust the price to restore profitability.
-                        </p>
+                    <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
+                      <div className="flex items-start gap-2">
+                        <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                        <div className="flex-1 text-sm">
+                          <p className="font-semibold">Review Truck Pricing</p>
+                          <p className="text-[#364153]">
+                            The truck configuration will generate a loss based on
+                            current costs. If this is expected, you can continue.
+                            Otherwise, adjust the price to restore profitability.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -1013,7 +1029,10 @@ export default function JobLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          {new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(pricingBreakdown.grossProfit)}
+                          {new Intl.NumberFormat('en-AU', {
+                            style: 'currency',
+                            currency: 'AUD',
+                          }).format(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

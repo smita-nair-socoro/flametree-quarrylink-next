@@ -3,9 +3,8 @@ import * as React from 'react';
 import {
   MoreHorizontal,
   Eye,
-  Archive,
-  ArchiveRestore,
   ScanBarcode,
+  Trash2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -45,13 +44,6 @@ export function QuarrySupplierTableActions({
     actions.delete();
   };
 
-  const handleUnarchive = () => {
-    setDropdownOpen(false);
-    actions.unarchive();
-  };
-
-  const isArchived = quarrySupplier.status === 'ARCHIVED';
-
   return (
     <div>
       {confirmDialogs}
@@ -69,6 +61,8 @@ export function QuarrySupplierTableActions({
             View Details
           </DropdownMenuItem>
 
+          <DropdownMenuSeparator />
+
           {/* Linked Products */}
           <DropdownMenuItem onClick={handleLinkedProducts}>
             <ScanBarcode className="h-4 w-4 mr-2" />
@@ -77,24 +71,15 @@ export function QuarrySupplierTableActions({
 
           <DropdownMenuSeparator />
 
-          {/* Conditional: Delete or Unarchive based on status */}
-          {isArchived ? (
-            <DropdownMenuItem
-              onClick={handleUnarchive}
-              className="text-green-500 focus:text-green-500"
-            >
-              <ArchiveRestore className="h-4 w-4 mr-2 text-green-500" />
-              Unarchive
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-destructive focus:text-destructive"
-            >
-              <Archive className="h-4 w-4 mr-2 text-destructive" />
-              Delete
-            </DropdownMenuItem>
-          )}
+          {/* Delete */}
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="text-red-600 focus:text-red-600"
+          >
+            <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+            Delete
+          </DropdownMenuItem>
+
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

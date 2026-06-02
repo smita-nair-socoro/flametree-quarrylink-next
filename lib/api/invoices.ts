@@ -5,7 +5,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { InvoicesKeys } from './keys';
+import { DocketKeys, InvoicesKeys, JobKeys } from './keys';
+import { useJobStore } from '@/app/stores/job-store';
 import { toast } from 'sonner';
 
 export const InvoicesListQueryOptions = (jobId: number) =>
@@ -25,6 +26,7 @@ export const InvoiceByIdQueryOptions = (id: number) =>
   });
 
 export const useCreateInvoice = (options?: {
+  jobId?: number;
   onSuccess?: () => void;
   onError?: (error: Error) => void;
 }) => {
@@ -38,14 +40,26 @@ export const useCreateInvoice = (options?: {
     }) => APIClient.invoices.create(data),
     onSuccess: () => {
       toast.success('Invoices created successfully');
-      queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      queryClient.invalidateQueries({ queryKey: ['dockets'] });
       options?.onSuccess?.();
     },
     onError: (error) => {
       toast.error('Failed to create invoices');
       console.error('Failed to create invoices:', error);
       options?.onError?.(error);
+    },
+    onSettled: async () => {
+      queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      const jobIdToRefresh = options?.jobId ?? useJobStore.getState().selectedJob?.id;
+      if (jobIdToRefresh) {
+        try {
+          const updatedJob = await APIClient.jobs.getJobItems(jobIdToRefresh);
+          useJobStore.getState().setSelectedJob(updatedJob);
+        } catch {
+          useJobStore.getState().setSelectedJob(null);
+        }
+      }
     },
   });
 };

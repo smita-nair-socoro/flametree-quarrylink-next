@@ -15,6 +15,7 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
+import { acceptImageFile } from '@/lib/utils/image-file-size';
 
 export function MarkDeliveredDescription({
   docket,
@@ -30,12 +31,20 @@ export function MarkDeliveredDescription({
         <span className="font-medium text-[#111827]">
           {docket?.docketNumber ?? '—'}
         </span>
-        <div className="flex items-center gap-2 text-sm text-[#6B7280]">
+        <div className="flex items-center gap-2 text-sm text-[#6A7282]">
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}
-            {docket?.jobItem?.productSellUom}
+            {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
+            {docket?.jobItem?.productSellUom === 'M3'
+              ? 'm³'
+              : docket?.jobItem?.productSellUom === 'KG_20'
+                ? 'x 20kg'
+                : docket?.jobItem?.productSellUom === 'TN'
+                  ? 'TN'
+                  : docket?.jobItem?.productSellUom === 'BULKA'
+                    ? 'Bulka'
+                    : docket?.jobItem?.productSellUom}
           </span>
         </div>
       </div>
@@ -166,7 +175,11 @@ export function MarkDeliveredContent({
               accept="image/*"
               className="hidden"
               onChange={(event) => {
-                onUnloadedPhotoChange(event.target.files?.[0] ?? null);
+                acceptImageFile(
+                  event.target.files?.[0],
+                  onUnloadedPhotoChange,
+                  'Unloaded photo',
+                );
                 event.currentTarget.value = '';
               }}
             />
@@ -231,7 +244,11 @@ export function MarkDeliveredContent({
               accept="image/*"
               className="hidden"
               onChange={(event) => {
-                onReceiptPhotoChange(event.target.files?.[0] ?? null);
+                acceptImageFile(
+                  event.target.files?.[0],
+                  onReceiptPhotoChange,
+                  'Receipt photo',
+                );
                 event.currentTarget.value = '';
               }}
             />
