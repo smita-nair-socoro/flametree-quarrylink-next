@@ -129,9 +129,8 @@ export function EditTeamMemberForm({
 
   const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
 
-  // Admins cannot change their own role, and cannot change a Super Admin's role
-  const disableRoleChange =
-    isEditingSelf || (!isSuperAdmin && isTargetSuperAdmin);
+  // Only block role change when a non-super-admin is editing a super admin
+  const disableRoleChange = !isSuperAdmin && isTargetSuperAdmin;
 
   const handleCancel = () => {
     form.reset();
@@ -380,15 +379,7 @@ export function EditTeamMemberForm({
               />
             </div>
 
-            {isEditingSelf && (
-              <Alert className="border-amber-200 bg-amber-50 text-amber-900 mt-0">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-sm">
-                  You cannot change your own role.
-                </AlertDescription>
-              </Alert>
-            )}
-            {!isEditingSelf && !isSuperAdmin && isTargetSuperAdmin && (
+            {!isSuperAdmin && isTargetSuperAdmin && (
               <Alert className="border-amber-200 bg-amber-50 text-amber-900 mt-0">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription className="text-sm">
