@@ -512,9 +512,8 @@ export default function SupplierForm({
       // Fallback error using extracted message
       notifyError(
         messageFromErr ||
-          `Failed to ${
-            isEditing ? 'update' : 'create'
-          } supplier. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'
+        } supplier. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -588,7 +587,9 @@ export default function SupplierForm({
           <Tab
             tabs={tabs}
             defaultTab={tabs[0].name}
-            className="w-full"
+            className="w-full min-w-0"
+            tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
+            tabsTriggerClassName="h-8 flex-1 justify-center"
             enableDropdownOnMobile
           />
 

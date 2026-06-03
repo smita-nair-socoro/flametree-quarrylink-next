@@ -170,7 +170,6 @@ export default function DocketForm({
     setPickUpSearchInput,
     deliverySearchInput,
     setDeliverySearchInput,
-    productDetails,
     selectedDocket,
   } = useDocketFormState({
     id,
@@ -441,7 +440,7 @@ export default function DocketForm({
         loadSize: actualLoadSize,
         productUom: lineItemDetails.productUom,
         truckUom: lineItemDetails.truckUom,
-        density: productDetails?.densityTonnagePerM3 || 1,
+        density: lineItemDetails.densityTonnagePerM3 || 1,
       });
       if (!isCollection) payload.deliveryDistanceQuantity = quantity;
     }
@@ -506,7 +505,7 @@ export default function DocketForm({
       loadSize: values.plannedLoadSize || 0,
       productUom: lineItemDetails.productUom,
       truckUom: lineItemDetails.truckUom,
-      density: productDetails?.densityTonnagePerM3 || 1,
+      density: lineItemDetails.densityTonnagePerM3 || 1,
     });
 
     const { dirtyFields } = docketForm.formState;
@@ -578,7 +577,7 @@ export default function DocketForm({
 
       setIsSubmitting(true);
 
-      const density = productDetails?.densityTonnagePerM3 || 1;
+      const density = lineItemDetails.densityTonnagePerM3 || 1;
 
       const effectiveLoadSize =
         isEditing &&
@@ -917,7 +916,7 @@ export default function DocketForm({
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
                     <FormSelect
                       control={docketForm.control}
                       name="jobLineItemId"
@@ -939,26 +938,38 @@ export default function DocketForm({
                       }
                     />
 
-                    <FormField
-                      name="quarryName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Quarry / Supplier*</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              readOnly
-                              value={
-                                field.value ??
-                                selectedJobLineItemDetails().quarryName ??
-                                ''
-                              }
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem>
+                      <FormLabel>Quarry / Supplier*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full mb-7"
+                          readOnly
+                          value={selectedJobLineItemDetails().quarryName ?? ''}
+                        />
+                      </FormControl>
+                    </FormItem>
+
+                    <FormItem>
+                      <FormLabel>Product Density (TN/m³)*</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          readOnly
+                          isNumber
+                          allowDecimal
+                          minDecimals={2}
+                          maxDecimals={2}
+                          value={
+                            selectedJobLineItemDetails().densityTonnagePerM3 > 0
+                              ? selectedJobLineItemDetails().densityTonnagePerM3
+                              : ''
+                          }
+                          suffix="TN/m³"
+                          suffixPositionClassName="mb-7"
+                        />
+                      </FormControl>
+                    </FormItem>
+
                   </div>
                   {(() => {
                     const jobLineItemId = docketForm.watch('jobLineItemId');
@@ -973,7 +984,7 @@ export default function DocketForm({
                         ? convertTruckVolumeToProductUom(
                           truckVolumeM3,
                           details.productUom,
-                          productDetails?.densityTonnagePerM3 || 1,
+                          details.densityTonnagePerM3 || 1,
                         )
                         : null;
 
@@ -1277,7 +1288,7 @@ export default function DocketForm({
                         const vol = selectedDocket?.truck?.tankVolumeM3 ?? null;
                         if (vol == null) return null;
                         const d = selectedJobLineItemDetails();
-                        const density = productDetails?.densityTonnagePerM3 || 1;
+                        const density = d.densityTonnagePerM3 || 1;
                         const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
                         const uomNorm = d.productUom?.toLowerCase();
                         const uomText =
