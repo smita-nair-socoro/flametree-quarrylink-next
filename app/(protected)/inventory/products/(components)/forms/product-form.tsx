@@ -74,7 +74,7 @@ export default function ProductForm({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
-
+  const [isDensityChanged, setIsDensityChanged] = React.useState(false);
   // Create flow steps (only used when creating a new product)
   const [createStep, setCreateStep] = React.useState<1 | 2>(1);
 
@@ -176,6 +176,14 @@ export default function ProductForm({
       // Convert to camelCase as API expects camelCase keys
       if (isEditing && id) {
         // Update existing product
+
+        if (selectedProduct?.densityTonnagePerM3 !== values.density_tonnage_per_m3) {
+          setIsDensityChanged(true);
+          return;
+        } else {
+          setIsDensityChanged(false);
+        }
+
         await updateProduct.mutateAsync({
           id: id,
           data: { ...payload, id },
@@ -284,6 +292,19 @@ export default function ProductForm({
             {materialsError?.message ||
               productError?.message ||
               'An error occurred'}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
+  if (isDensityChanged) {
+    return (
+      <div className="w-full flex items-center justify-center h-96">
+        <div className="text-center">
+          <p className="text-lg text-destructive font-bold mb-2">
+            Density changed. Please update the density of the suppliers.
           </p>
         </div>
       </div>
