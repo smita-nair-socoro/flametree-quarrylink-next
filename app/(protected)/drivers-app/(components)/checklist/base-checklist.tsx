@@ -20,6 +20,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { acceptImageFile } from '@/lib/utils/image-file-size';
 
 export type Answer = 'yes' | 'no' | null;
 
@@ -68,10 +69,7 @@ export function QuestionCard({
   }, [answer]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      onImageChange(file);
-    }
+    acceptImageFile(event.target.files?.[0], onImageChange, 'Photo');
   };
 
   return (

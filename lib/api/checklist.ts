@@ -2,6 +2,8 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 import { APIClient } from './APIClient';
 import { ChecklistKeys, DocketKeys, DriverAppKeys } from './keys';
 import type { ChecklistSubmitRequest } from '../types/checklist-submission';
+import { notifyError } from '../toast';
+import { extractErrorMessage } from '../utils/error-message-helper';
 
 export const TruckChecklistTemplateQueryOptions = () =>
   queryOptions({
@@ -69,6 +71,12 @@ export const useSubmitChecklist = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverAppKeys.assignedDockets() });
+    },
+    onError: (error: unknown) => {
+      const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail = data?.detail ?? data?.title;
+      const message = typeof detail === 'string' ? detail : extractErrorMessage(error);
+      notifyError('Submission Failed', { description: message });
     },
   });
 };
