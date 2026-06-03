@@ -32,7 +32,11 @@ export function convertTruckVolumeToProductUom(
   productUom: string,
   density: number = 1,
 ): number {
-  return Math.round(calculateConvertedQty(tankVolumeM3, 'M3', productUom, density) * 100) / 100;
+  return (
+    Math.round(
+      calculateConvertedQty(tankVolumeM3, 'M3', productUom, density) * 100,
+    ) / 100
+  );
 }
 
 export function getDeliveryDistanceQuantity({

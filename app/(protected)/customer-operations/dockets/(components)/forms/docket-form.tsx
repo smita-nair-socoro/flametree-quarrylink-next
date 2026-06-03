@@ -40,6 +40,7 @@ import {
   Truck,
   User,
   UserPlus,
+  Infinity,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import {
@@ -143,6 +144,7 @@ export default function DocketForm({
     productMax?: number;
     truckCapacity?: number;
     overProductMax?: boolean;
+    isGenericTruck?: boolean;
   } | null>(null);
   const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
@@ -976,6 +978,10 @@ export default function DocketForm({
                           productDetails?.densityTonnagePerM3 || 1,
                         )
                         : null;
+                    const isGenericTruck =
+                      selectedDocket?.truck?.licensePlate
+                        ?.toUpperCase()
+                        .startsWith('GENERIC') ?? false;
 
                     const showActualLoadSize =
                       isEditing &&
@@ -1078,9 +1084,13 @@ export default function DocketForm({
                                       {...field}
                                       onChange={(e) => {
                                         const productMax = details.remainingQty;
-                                        const maxLimit =
-                                          truckCapacityInProductUom != null
-                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                        const maxLimit = isGenericTruck
+                                          ? productMax
+                                          : truckCapacityInProductUom != null
+                                            ? Math.min(
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = parseFloat(e.target.value);
                                         const uomNorm = details.productUom?.toLowerCase();
@@ -1101,6 +1111,7 @@ export default function DocketForm({
                                             productMax,
                                             truckCapacity: truckCapacityInProductUom ?? undefined,
                                             overProductMax: val > productMax,
+                                            isGenericTruck,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -1141,9 +1152,13 @@ export default function DocketForm({
                                       {...field}
                                       onChange={(e) => {
                                         const productMax = details.remainingQty;
-                                        const maxLimit =
-                                          truckCapacityInProductUom != null
-                                            ? Math.min(productMax, truckCapacityInProductUom)
+                                        const maxLimit = isGenericTruck
+                                          ? productMax
+                                          : truckCapacityInProductUom != null
+                                            ? Math.min(
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = parseFloat(e.target.value);
                                         const uomNorm = details.productUom?.toLowerCase();
@@ -1164,6 +1179,7 @@ export default function DocketForm({
                                             productMax,
                                             truckCapacity: truckCapacityInProductUom ?? undefined,
                                             overProductMax: val > productMax,
+                                            isGenericTruck,
                                           });
                                         } else {
                                           field.onChange(e);
@@ -1212,13 +1228,18 @@ export default function DocketForm({
                         <span>Quantity Adjusted</span>
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
-                        {adjustedAlert.truckCapacity != null &&
+                        {adjustedAlert.isGenericTruck &&
                           adjustedAlert.productMax != null &&
-                          adjustedAlert.truckCapacity < adjustedAlert.productMax
-                          ? adjustedAlert.overProductMax
-                            ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
-                            : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
-                          : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
+                          adjustedAlert.overProductMax
+                          ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry up to ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                          : adjustedAlert.truckCapacity != null &&
+                            adjustedAlert.productMax != null &&
+                            adjustedAlert.truckCapacity <
+                            adjustedAlert.productMax
+                            ? adjustedAlert.overProductMax
+                              ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                              : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
+                            : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
                       </div>
                     </div>
                   )}
@@ -1279,6 +1300,10 @@ export default function DocketForm({
                         const d = selectedJobLineItemDetails();
                         const density = productDetails?.densityTonnagePerM3 || 1;
                         const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
+                        const isGenericTruck =
+                          selectedDocket?.truck?.licensePlate
+                            ?.toUpperCase()
+                            .startsWith('GENERIC') ?? false;
                         const uomNorm = d.productUom?.toLowerCase();
                         const uomText =
                           uomNorm === '20kg' || uomNorm === 'kg_20'
@@ -1292,22 +1317,27 @@ export default function DocketForm({
                         const calcLabel = isM3
                           ? `${formatNumberThousandSeparator(vol)} m³`
                           : uomNorm === 'tn'
-                            ? `${formatNumberThousandSeparator(vol)} m3 x ${density} density`
-                            : `${formatNumberThousandSeparator(vol)} m3 x ${density} density x 50`;
+                            ? `${formatNumberThousandSeparator(vol)} m³ x ${density} density`
+                            : `${formatNumberThousandSeparator(vol)} m³ x ${density} density x 50`;
                         return (
                           <div className="flex justify-between items-start">
                             <div className="flex flex-col gap-0.5">
                               <span className="text-sm text-muted-foreground">
                                 Truck Capacity
                               </span>
-                              {!isM3 && (
+                              {!isM3 && !isGenericTruck && (
                                 <span className="text-xs text-muted-foreground/70">
                                   {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
                                 </span>
                               )}
+                              {isGenericTruck && (
+                                <span className="text-xs text-muted-foreground/70">
+                                  GENERIC Truck
+                                </span>
+                              )}
                             </div>
                             <span className="text-sm font-medium">
-                              {formatNumberThousandSeparator(cap)} {uomText} total
+                              {isGenericTruck ? <Infinity className="w-5 h-5" /> : `${formatNumberThousandSeparator(cap)} ${uomText} total`}
                             </span>
                           </div>
                         );

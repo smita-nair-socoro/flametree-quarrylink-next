@@ -242,9 +242,9 @@ export function useDocketFormState({
     defaultValues: initialDocket
       ? mapDocketToFormValues(initialDocket)
       : {
-          ...EMPTY_DOCKET_FORM_VALUES,
-          jobId: isJobLocked && jobId ? jobId : 0,
-        },
+        ...EMPTY_DOCKET_FORM_VALUES,
+        jobId: isJobLocked && jobId ? jobId : 0,
+      },
   });
 
   const [pickUpAddress, setPickUpAddress] =
@@ -627,9 +627,9 @@ export function useDocketFormState({
     const currentStatus = selectedDocket?.docketStatus;
     const effectiveLoadSize =
       isEditing &&
-      currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-      currentStatus !== DOCKET_STATUS.ASSIGNED &&
-      currentStatus !== DOCKET_STATUS.PENDING
+        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+        currentStatus !== DOCKET_STATUS.ASSIGNED &&
+        currentStatus !== DOCKET_STATUS.PENDING
         ? actualLoadSize || 0
         : loadSize || 0;
 
