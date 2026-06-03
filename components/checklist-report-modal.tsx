@@ -10,12 +10,13 @@ import {
 import {
   ChevronUp,
   ChevronDown,
-  CircleCheck,
+  CircleCheckBigBig,
   CircleX,
   FileText,
   Truck,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { format } from 'date-fns';
 import {
   TruckSubmissionQueryOptions,
@@ -79,6 +80,7 @@ export function ChecklistReportModal({
   const [expandedPhotos, setExpandedPhotos] = React.useState<Set<number>>(
     new Set(),
   );
+  const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
 
   const toggleSection = (title: string) => {
     setCollapsedSections((prev) => {
@@ -108,6 +110,7 @@ export function ChecklistReportModal({
     '—';
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="w-full max-h-[95vh] overflow-y-auto flex flex-col gap-6 p-6"
@@ -150,7 +153,7 @@ export function ChecklistReportModal({
                     }`}
                 >
                   {isPass ? (
-                    <CircleCheck className="w-3.5 h-3.5" />
+                    <CircleCheckBig className="w-3.5 h-3.5" />
                   ) : (
                     <CircleX className="w-3.5 h-3.5" />
                   )}
@@ -250,7 +253,7 @@ export function ChecklistReportModal({
                       <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
                           {yesInSection}
-                          <CircleCheck className="w-3 h-3" />
+                          <CircleCheckBig className="w-3 h-3" />
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {section.totalQuestions} total
@@ -273,6 +276,7 @@ export function ChecklistReportModal({
                               key={answer.questionId}
                               className="px-4 py-3 flex flex-col gap-2"
                             >
+                              {/* Question text + photo toggle */}
                               <div className="flex items-start justify-between gap-2">
                                 <span className="text-sm text-[#364153]">
                                   {answer.questionText}
@@ -289,9 +293,10 @@ export function ChecklistReportModal({
                                   </button>
                                 )}
                               </div>
+                              {/* Badge */}
                               {answer.answerValue === ANSWER_VALUE.YES ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
-                                  <CircleCheck className="w-3.5 h-3.5" />
+                                  <CircleCheckBig className="w-3.5 h-3.5" />
                                   Yes
                                 </span>
                               ) : (
@@ -300,26 +305,39 @@ export function ChecklistReportModal({
                                   No
                                 </span>
                               )}
-                              {hasPhotos && photosExpanded && (
-                                <div className="flex flex-wrap gap-2 mt-1">
-                                  {answer.photoKeys.map((key, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="relative w-[220px] h-[160px] rounded-lg overflow-hidden border border-gray-200 shrink-0"
-                                    >
-                                      <img
-                                        src={key}
-                                        alt={`Photo ${idx + 1}`}
-                                        className="w-full h-full object-cover"
-                                      />
-                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                        <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
-                                          <CircleCheck className="w-3.5 h-3.5 text-green-400" />
-                                          Photo Captured
-                                        </span>
-                                      </div>
+                              {/* Comment + Photos aligned */}
+                              {(!!answer.comment || (hasPhotos && photosExpanded)) && (
+                                <div className="flex gap-3 items-start">
+                                  {!!answer.comment && (
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Note</p>
+                                      <p className="text-sm text-[#364153] whitespace-pre-wrap">{answer.comment}</p>
                                     </div>
-                                  ))}
+                                  )}
+                                  {hasPhotos && photosExpanded && (
+                                    <div className="flex flex-wrap gap-2 shrink-0">
+                                      {answer.photoKeys.map((key, idx) => (
+                                        <button
+                                          key={idx}
+                                          type="button"
+                                          onClick={() => setPreviewSrc(key)}
+                                          className="relative w-[200px] h-[150px] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
+                                        >
+                                          <img
+                                            src={key}
+                                            alt={`Photo ${idx + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                            <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
+                                              <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                              Photo Captured
+                                            </span>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -335,5 +353,12 @@ export function ChecklistReportModal({
         )}
       </DialogContent>
     </Dialog>
+
+    <ImagePreviewDialog
+      open={!!previewSrc}
+      onOpenChange={(open) => { if (!open) setPreviewSrc(null); }}
+      src={previewSrc ?? ''}
+    />
+    </>
   );
 }
