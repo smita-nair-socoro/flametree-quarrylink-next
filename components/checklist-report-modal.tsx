@@ -11,11 +11,14 @@ import {
   ChevronUp,
   ChevronDown,
   CircleCheck,
+  CircleCheckBig,
   CircleX,
   FileText,
   Truck,
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
+import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import {
   TruckSubmissionQueryOptions,
@@ -76,12 +79,25 @@ export function ChecklistReportModal({
   const [collapsedSections, setCollapsedSections] = React.useState<Set<string>>(
     new Set(),
   );
+  const [expandedPhotos, setExpandedPhotos] = React.useState<Set<number>>(
+    new Set(),
+  );
+  const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
 
   const toggleSection = (title: string) => {
     setCollapsedSections((prev) => {
       const next = new Set(prev);
       if (next.has(title)) next.delete(title);
       else next.add(title);
+      return next;
+    });
+  };
+
+  const togglePhotos = (questionId: number) => {
+    setExpandedPhotos((prev) => {
+      const next = new Set(prev);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
       return next;
     });
   };
@@ -96,6 +112,7 @@ export function ChecklistReportModal({
     '—';
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="w-full max-h-[95vh] overflow-y-auto flex flex-col gap-6 p-6"
@@ -253,27 +270,82 @@ export function ChecklistReportModal({
 
                     {!isCollapsed && (
                       <div className="flex flex-col divide-y border-t">
-                        {section.answers.map((answer) => (
-                          <div
-                            key={answer.questionId}
-                            className="px-4 py-3 flex flex-col gap-2"
-                          >
-                            <span className="text-sm text-[#364153]">
-                              {answer.questionText}
-                            </span>
-                            {answer.answerValue === ANSWER_VALUE.YES ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
-                                <CircleCheck className="w-3.5 h-3.5" />
-                                Yes
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-red-700 text-xs font-medium w-fit">
-                                <CircleX className="w-3.5 h-3.5" />
-                                No
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                        {section.answers.map((answer) => {
+                          const hasPhotos = answer.photoKeys?.length > 0;
+                          const photosExpanded = expandedPhotos.has(answer.questionId);
+                          return (
+                            <div
+                              key={answer.questionId}
+                              className="px-4 py-3 flex flex-col gap-2"
+                            >
+                              {/* Question text + photo toggle */}
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-sm text-[#364153]">
+                                  {answer.questionText}
+                                </span>
+                                {hasPhotos && (
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePhotos(answer.questionId)}
+                                    className="text-xs text-[#7C3AED] font-medium shrink-0 hover:underline"
+                                  >
+                                    {photosExpanded
+                                      ? `Hide ${answer.photoKeys.length} photo${answer.photoKeys.length > 1 ? 's' : ''}`
+                                      : `Show ${answer.photoKeys.length} photo${answer.photoKeys.length > 1 ? 's' : ''}`}
+                                  </button>
+                                )}
+                              </div>
+                              {/* Badge */}
+                              {answer.answerValue === ANSWER_VALUE.YES ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
+                                  <CircleCheck className="w-3.5 h-3.5" />
+                                  Yes
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-red-700 text-xs font-medium w-fit">
+                                  <CircleX className="w-3.5 h-3.5" />
+                                  No
+                                </span>
+                              )}
+                              {/* Comment + Photos aligned */}
+                              {(!!answer.comment || (hasPhotos && photosExpanded)) && (
+                                <div className="flex gap-3 items-start justify-between">
+                                  {!!answer.comment ? (
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs text-muted-foreground">Notes:</p>
+                                      <p className="text-sm text-[#364153] whitespace-pre-wrap">{answer.comment}</p>
+                                    </div>
+                                  ) : <div className="flex-1" />}
+                                  {hasPhotos && photosExpanded && (
+                                    <div className="flex flex-wrap gap-2 shrink-0">
+                                      {answer.photoKeys.map((key, idx) => (
+                                        <button
+                                          key={idx}
+                                          type="button"
+                                          onClick={() => setPreviewSrc(key)}
+                                          className="relative w-[200px] h-[150px] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
+                                        >
+                                          <Image
+                                            src={key}
+                                            alt={`Photo ${idx + 1}`}
+                                            fill
+                                            className="object-cover"
+                                          />
+                                          <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                            <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
+                                              <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                              Photo Captured
+                                            </span>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -284,5 +356,12 @@ export function ChecklistReportModal({
         )}
       </DialogContent>
     </Dialog>
+
+    <ImagePreviewDialog
+      open={!!previewSrc}
+      onOpenChange={(open) => { if (!open) setPreviewSrc(null); }}
+      src={previewSrc ?? ''}
+    />
+    </>
   );
 }
