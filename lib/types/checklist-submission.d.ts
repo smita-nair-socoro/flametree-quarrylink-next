@@ -19,7 +19,7 @@ export interface ChecklistSubmissionSection {
 }
 
 export interface ChecklistSubmitPhotoRequest {
-  photoKey: string;
+  fileIndex: number;
   displayOrder: number;
 }
 

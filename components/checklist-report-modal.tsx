@@ -76,12 +76,24 @@ export function ChecklistReportModal({
   const [collapsedSections, setCollapsedSections] = React.useState<Set<string>>(
     new Set(),
   );
+  const [expandedPhotos, setExpandedPhotos] = React.useState<Set<number>>(
+    new Set(),
+  );
 
   const toggleSection = (title: string) => {
     setCollapsedSections((prev) => {
       const next = new Set(prev);
       if (next.has(title)) next.delete(title);
       else next.add(title);
+      return next;
+    });
+  };
+
+  const togglePhotos = (questionId: number) => {
+    setExpandedPhotos((prev) => {
+      const next = new Set(prev);
+      if (next.has(questionId)) next.delete(questionId);
+      else next.add(questionId);
       return next;
     });
   };
@@ -253,27 +265,66 @@ export function ChecklistReportModal({
 
                     {!isCollapsed && (
                       <div className="flex flex-col divide-y border-t">
-                        {section.answers.map((answer) => (
-                          <div
-                            key={answer.questionId}
-                            className="px-4 py-3 flex flex-col gap-2"
-                          >
-                            <span className="text-sm text-[#364153]">
-                              {answer.questionText}
-                            </span>
-                            {answer.answerValue === ANSWER_VALUE.YES ? (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
-                                <CircleCheck className="w-3.5 h-3.5" />
-                                Yes
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-red-700 text-xs font-medium w-fit">
-                                <CircleX className="w-3.5 h-3.5" />
-                                No
-                              </span>
-                            )}
-                          </div>
-                        ))}
+                        {section.answers.map((answer) => {
+                          const hasPhotos = answer.photoKeys?.length > 0;
+                          const photosExpanded = expandedPhotos.has(answer.questionId);
+                          return (
+                            <div
+                              key={answer.questionId}
+                              className="px-4 py-3 flex flex-col gap-2"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <span className="text-sm text-[#364153]">
+                                  {answer.questionText}
+                                </span>
+                                {hasPhotos && (
+                                  <button
+                                    type="button"
+                                    onClick={() => togglePhotos(answer.questionId)}
+                                    className="text-xs text-[#7C3AED] font-medium shrink-0 hover:underline"
+                                  >
+                                    {photosExpanded
+                                      ? `Hide ${answer.photoKeys.length} photo${answer.photoKeys.length > 1 ? 's' : ''}`
+                                      : `Show ${answer.photoKeys.length} photo${answer.photoKeys.length > 1 ? 's' : ''}`}
+                                  </button>
+                                )}
+                              </div>
+                              {answer.answerValue === ANSWER_VALUE.YES ? (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
+                                  <CircleCheck className="w-3.5 h-3.5" />
+                                  Yes
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-red-200 bg-red-50 text-red-700 text-xs font-medium w-fit">
+                                  <CircleX className="w-3.5 h-3.5" />
+                                  No
+                                </span>
+                              )}
+                              {hasPhotos && photosExpanded && (
+                                <div className="flex flex-wrap gap-2 mt-1">
+                                  {answer.photoKeys.map((key, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="relative w-[220px] h-[160px] rounded-lg overflow-hidden border border-gray-200 shrink-0"
+                                    >
+                                      <img
+                                        src={key}
+                                        alt={`Photo ${idx + 1}`}
+                                        className="w-full h-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                        <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
+                                          <CircleCheck className="w-3.5 h-3.5 text-green-400" />
+                                          Photo Captured
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>

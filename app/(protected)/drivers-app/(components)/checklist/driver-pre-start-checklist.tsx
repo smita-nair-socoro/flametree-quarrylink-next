@@ -49,21 +49,23 @@ export default function DriverPreStartChecklist({
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
     await submitChecklist.mutateAsync({
-      templateId: template.id,
-      checklistType: CHECKLIST_TYPE.DRIVER,
-      driverId,
-      confirmed: false,
-      submittedAt: new Date().toISOString(),
-      answers: answers.map((a) => {
-        const failOn = failOnAnswerMap.get(a.questionId);
-        return {
-          questionId: a.questionId,
-          answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
-          failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
-          comment: a.notes?.trim() || null,
-          photos: [],
-        };
-      }),
+      request: {
+        templateId: template.id,
+        checklistType: CHECKLIST_TYPE.DRIVER,
+        driverId,
+        confirmed: false,
+        submittedAt: new Date().toISOString(),
+        answers: answers.map((a) => {
+          const failOn = failOnAnswerMap.get(a.questionId);
+          return {
+            questionId: a.questionId,
+            answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
+            failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
+            comment: a.notes?.trim() || null,
+            photos: [],
+          };
+        }),
+      },
     });
     onSubmit?.();
   };

@@ -52,7 +52,21 @@ export const DriverSubmissionQueryOptions = (submissionId: number) =>
 export const useSubmitChecklist = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ChecklistSubmitRequest) => APIClient.checklists.submit(data),
+    mutationFn: ({
+      request,
+      photos,
+    }: {
+      request: ChecklistSubmitRequest;
+      photos?: File[];
+    }) => {
+      const formData = new FormData();
+      formData.append(
+        'request',
+        new Blob([JSON.stringify(request)], { type: 'application/json' }),
+      );
+      photos?.forEach((photo) => formData.append('photos', photo));
+      return APIClient.checklists.submit(formData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverAppKeys.assignedDockets() });
     },
