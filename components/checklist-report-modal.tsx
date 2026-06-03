@@ -309,13 +309,13 @@ export function ChecklistReportModal({
                               )}
                               {/* Comment + Photos aligned */}
                               {(!!answer.comment || (hasPhotos && photosExpanded)) && (
-                                <div className="flex gap-3 items-start">
-                                  {!!answer.comment && (
+                                <div className="flex gap-3 items-start justify-between">
+                                  {!!answer.comment ? (
                                     <div className="flex-1 min-w-0">
                                       <p className="text-xs text-muted-foreground">Notes:</p>
                                       <p className="text-sm text-[#364153] whitespace-pre-wrap">{answer.comment}</p>
                                     </div>
-                                  )}
+                                  ) : <div className="flex-1" />}
                                   {hasPhotos && photosExpanded && (
                                     <div className="flex flex-wrap gap-2 shrink-0">
                                       {answer.photoKeys.map((key, idx) => (
