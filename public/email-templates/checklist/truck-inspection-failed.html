@@ -239,7 +239,10 @@
         <div class="header">Truck Vehicle Inspection – FAILED</div>
 
         <div class="content">
-          <p>A truck vehicle inspection checklist was submitted with a FAIL status.</p>
+          <p>
+            A truck vehicle inspection checklist was submitted with a FAIL
+            status.
+          </p>
         </div>
 
         <div class="section-title">Submission</div>
@@ -248,7 +251,8 @@
             <span class="info-label">Reference:</span> {submissionNumber}
           </div>
           <div class="info-row">
-            <span class="info-label">Submitted at:</span> {submittedAtLocal} ({tenantTimezone})
+            <span class="info-label">Submitted at:</span> {submittedAtLocal}
+            ({tenantTimezone})
           </div>
         </div>
 
@@ -258,7 +262,8 @@
             <span class="info-label">Registration:</span> {truckLicensePlate}
           </div>
           <div class="info-row">
-            <span class="info-label">Haulier:</span> {haulierName} ({haulierEmail})
+            <span class="info-label">Haulier:</span> {haulierName}
+            ({haulierEmail})
           </div>
         </div>
 
@@ -289,7 +294,9 @@
 
         <div class="section-title">Failed items (high level)</div>
         <div class="info-block failed-block">
-          <ul class="failed-list">{failedItemsBulletList}</ul>
+          <ul class="failed-list">
+            {failedItemsBulletList}
+          </ul>
         </div>
 
         <div class="section-title">Action</div>
@@ -298,10 +305,6 @@
             Review the full checklist in the trucks profile and decide whether
             the vehicle may be used or must be stood down.
           </p>
-        </div>
-
-        <div class="cta-section">
-          <a href="{adminChecklistUrl}" class="cta-button">Open in app</a>
         </div>
 
         <div class="card-footer">
