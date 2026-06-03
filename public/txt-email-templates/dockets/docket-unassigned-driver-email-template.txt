@@ -1,7 +1,7 @@
 Hi {DriverName},
 
-Your delivery assignment has been removed.
+You've been unassigned from docket {DocketNumber}, previously scheduled for delivery on {DeliveryDate}, so you're no longer required for this job.
 
-Docket Number: {DocketNumber}
+Your dispatcher will be in touch if you're needed elsewhere.
 
 You're receiving this because your delivery assignment was updated on QuarryLink.
