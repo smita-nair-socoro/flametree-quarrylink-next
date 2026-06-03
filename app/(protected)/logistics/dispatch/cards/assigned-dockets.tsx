@@ -2,11 +2,19 @@
 
 import * as React from 'react';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
-import { Maximize2, Minimize2, GripVertical, Lock, Infinity } from 'lucide-react';
+import {
+  Maximize2,
+  Minimize2,
+  GripVertical,
+  Lock,
+  Infinity,
+} from 'lucide-react';
 import {
   DispatchDocket,
   formatTime,
   formatTimeRange,
+  isGenericDispatchTruckName,
+  sortDispatchBoardTruckColumns,
 } from '@/lib/utils/dispatch-helper';
 import { TableBadges } from '@/components/table-badges';
 import { TruckResource } from '@/lib/types/truck';
@@ -218,10 +226,11 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-0 h-full p-1.5 transition-colors ${isOver
-        ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
-        : 'bg-transparent'
-        }`}
+      className={`min-h-0 h-full p-1.5 transition-colors ${
+        isOver
+          ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
+          : 'bg-transparent'
+      }`}
     >
       {children}
     </div>
@@ -455,11 +464,11 @@ function DocketCard({
     endBoundaryHour >= GRID_SPAN_HOURS - 1e-6
       ? '00:00'
       : TIME_SLOTS[
-      Math.min(
-        Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
-        TIME_SLOTS.length - 1,
-      )
-      ];
+          Math.min(
+            Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
+            TIME_SLOTS.length - 1,
+          )
+        ];
 
   return (
     <div
@@ -489,7 +498,9 @@ function DocketCard({
             <div className={`font-bold ${colors.text} truncate text-[15px]`}>
               {docket.docketNumber}{' '}
               <span className={`${colors.text} font-semibold text-[12px] ml-1`}>
-                {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
+                {formatNumberThousandSeparator(
+                  docket.actualLoadSize || docket.plannedLoadSize,
+                )}{' '}
                 {docket.productSellUom === 'M3'
                   ? 'm³'
                   : docket.productSellUom === 'KG_20'
@@ -541,7 +552,7 @@ export default function AssignedDockets({
   selectedDocketId,
   onSelectDocket,
   viewType = 'drivers',
-  focusDocket,
+  utilisationFocus,
 }: {
   trucks: TruckResource[];
   dockets: DispatchDocket[];
@@ -551,20 +562,16 @@ export default function AssignedDockets({
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string | null) => void;
   viewType?: 'trucks' | 'drivers';
-  focusDocket?: DispatchDocket | null;
+  utilisationFocus?: { docketId: string; loadSize: number } | null;
 }) {
   const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(
     null,
   );
 
-  // Calculate max valid percentage across all trucks for the focus docket
-  const focusLoadSize = focusDocket
-    ? focusDocket.actualLoadSize ||
-    focusDocket.plannedLoadSize || 0
-    : 0;
+  const focusLoadSize = utilisationFocus?.loadSize ?? 0;
 
   const maxValidPercentage = React.useMemo(() => {
-    if (!focusDocket || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') return 0;
+    if (!utilisationFocus || focusLoadSize <= 0) return 0;
     let max = 0;
     for (const truck of trucks) {
       const cap = truck.capacity || 0;
@@ -576,21 +583,20 @@ export default function AssignedDockets({
       }
     }
     return max;
-  }, [trucks, focusDocket, focusLoadSize]);
+  }, [trucks, utilisationFocus, focusLoadSize]);
 
   const sortedTrucks = React.useMemo(() => {
-    if (!focusDocket || viewType !== 'trucks' || focusLoadSize <= 0 || focusDocket.docketStatus !== 'UNASSIGNED') {
-      return trucks;
-    }
-
-    return [...trucks].sort((a, b) => {
+    if (utilisationFocus && viewType === 'trucks' && focusLoadSize > 0) {
+      return [...trucks].sort((a, b) => {
       const capA = a.capacity || 0;
       const capB = b.capacity || 0;
       const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
       const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
 
-      const isGenericA = pctA === 0 || a.name?.toLowerCase().includes('generic');
-      const isGenericB = pctB === 0 || b.name?.toLowerCase().includes('generic');
+      const isGenericA =
+        pctA === 0 || isGenericDispatchTruckName(a.name);
+      const isGenericB =
+        pctB === 0 || isGenericDispatchTruckName(b.name);
 
       const isValidA = !isGenericA && pctA > 0 && pctA <= 100;
       const isValidB = !isGenericB && pctB > 0 && pctB <= 100;
@@ -624,7 +630,14 @@ export default function AssignedDockets({
 
       return 0;
     });
-  }, [trucks, focusDocket, viewType, focusLoadSize]);
+    }
+
+    if (viewType === 'trucks') {
+      return sortDispatchBoardTruckColumns(trucks);
+    }
+
+    return trucks;
+  }, [trucks, utilisationFocus, viewType, focusLoadSize]);
 
   const renderTruckCard = (truck: TruckResource) => {
     const isExpanded = expandedTruckId === truck.id;
@@ -640,15 +653,14 @@ export default function AssignedDockets({
       maxCols > 1 ? `calc(max(100%, ${maxCols * DOCKET_WIDTH}px))` : '100%';
 
     let utilisationNode = null;
-    if (focusDocket && viewType === 'trucks' && focusDocket.docketStatus === 'UNASSIGNED') {
+    if (utilisationFocus && viewType === 'trucks') {
       const cap = truck.capacity || 0;
       const pct = cap > 0 ? (focusLoadSize / cap) * 100 : 0;
       const displayPct = Math.round(pct);
       const isExceeds = pct > 100;
       const isMostEfficient =
         !isExceeds && pct === maxValidPercentage && pct > 0;
-      const isGeneric = truck.name?.toLowerCase().includes('generic');
-
+      const isGeneric = isGenericDispatchTruckName(truck.name);
 
       let colorTheme = {
         container: 'bg-amber-50 border-amber-200',
@@ -714,8 +726,16 @@ export default function AssignedDockets({
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
-            <span className={`text-[13px] font-bold ${colorTheme.pctText} flex items-center`}>
-              {isGeneric ? <><Infinity className="w-5 h-5" />%</> : `${displayPct}%`}
+            <span
+              className={`text-[13px] font-bold ${colorTheme.pctText} flex items-center`}
+            >
+              {isGeneric ? (
+                <>
+                  <Infinity className="w-5 h-5" />%
+                </>
+              ) : (
+                `${displayPct}%`
+              )}
             </span>
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${colorTheme.badgeBg} ${colorTheme.badgeText}`}
@@ -730,8 +750,9 @@ export default function AssignedDockets({
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-          }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
+          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+        }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
@@ -765,7 +786,12 @@ export default function AssignedDockets({
               <>
                 <div className="flex flex-col items-center justify-center py-2 px-1 border border-[#E2E8F0] rounded-lg bg-white">
                   <span className="flex items-center justify-center gap-1 text-[18px] font-bold text-[#0F172A]">
-                    {truck.name?.toLowerCase().includes('generic') ? <Infinity className="w-5 h-5" /> : truck.capacity} m³
+                    {isGenericDispatchTruckName(truck.name) ? (
+                      <Infinity className="w-5 h-5" />
+                    ) : (
+                      truck.capacity
+                    )}{' '}
+                    m³
                   </span>
                   <span className="text-[11px] text-[#64748B] font-medium mt-0.5">
                     Capacity
