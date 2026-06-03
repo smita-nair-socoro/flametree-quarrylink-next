@@ -16,6 +16,7 @@ import type {
 } from '@/lib/types/docket';
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
+import type { TruckResource } from '@/lib/types/truck';
 
 export type DispatchDocketUiFields = {
   uiAssignedTruckId?: string | null;
@@ -446,6 +447,48 @@ export function matchesUnassignedSearch(
   const num = (docket.docketNumber || '').toLowerCase();
   const customer = (docket.customerName || '').toLowerCase();
   return num.includes(q) || customer.includes(q);
+}
+
+export function isGenericDispatchTruckName(name?: string): boolean {
+  return (name ?? '').toLowerCase().includes('generic');
+}
+
+/** Default truck column order when utilisation sorting is off. */
+export function sortDispatchBoardTruckColumns(
+  trucks: TruckResource[],
+): TruckResource[] {
+  const internal = trucks.filter(
+    (t) => t.businessType === TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  const external = trucks.filter(
+    (t) => t.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+
+  const sortWithinFleetGroup = (list: TruckResource[]) =>
+    [...list].sort((a, b) => {
+      const genericA = isGenericDispatchTruckName(a.name);
+      const genericB = isGenericDispatchTruckName(b.name);
+      if (genericA !== genericB) return genericA ? 1 : -1;
+      return (a.name || '').localeCompare(b.name || '', undefined, {
+        sensitivity: 'base',
+      });
+    });
+
+  const sortedInternal = sortWithinFleetGroup(internal);
+
+  const byHaulier = new Map<string, TruckResource[]>();
+  for (const t of external) {
+    const key = t.haulierName?.trim() || 'External';
+    const group = byHaulier.get(key);
+    if (group) group.push(t);
+    else byHaulier.set(key, [t]);
+  }
+
+  const sortedExternal = [...byHaulier.keys()]
+    .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
+    .flatMap((key) => sortWithinFleetGroup(byHaulier.get(key)!));
+
+  return [...sortedInternal, ...sortedExternal];
 }
 
 export const calculateConvertedQty = (

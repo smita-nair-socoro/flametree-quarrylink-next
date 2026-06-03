@@ -122,7 +122,6 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-
   const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
 
   // Only block role change when a non-super-admin is editing a super admin
