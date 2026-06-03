@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +29,6 @@ interface TruckActionButtonsProps {
 
 export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
   const { actions, confirmDialogs } = useTruckActions(truck);
-  const router = useRouter();
 
   const { data: truckWithDockets } = useQuery({
     ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
@@ -44,7 +42,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
       return;
     }
     const docketIds = dockets.map((d) => d.id).join(',');
-    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   if (!truck || !truck.id) {

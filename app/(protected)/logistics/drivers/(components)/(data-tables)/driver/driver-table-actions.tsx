@@ -1,6 +1,5 @@
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import {
   MoreHorizontal,
   Eye,
@@ -39,7 +38,6 @@ export function DriverTableActions({
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog, fullDriverData } = useDriverActions(driver);
   const resendInvitationMutation = useResendUserInvitation();
-  const router = useRouter();
 
   const handleAssignedDockets = () => {
     setDropdownOpen(false);
@@ -49,7 +47,7 @@ export function DriverTableActions({
       return;
     }
     const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
-    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   const handleView = () => {

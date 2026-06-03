@@ -75,8 +75,8 @@ export default function ProductsPage() {
       title: 'Average Product Margin',
       value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
       description: `${
-        reportingData?.averageProductMarginChangePercent || 0
-      }% vs last month`,
+        reportingData?.averageProductMarginChangeVsLastMonth || 0
+      }% last month`,
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
       iconColor: 'text-[#00A63E]',

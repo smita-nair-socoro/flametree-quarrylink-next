@@ -830,10 +830,9 @@ export default function DocketForm({
               <span
                 className="font-medium underline cursor-pointer text-[#155DFC]"
                 onClick={() => {
-                  setTimeConflictOpen(false);
-                  onCancel?.();
-                  router.push(
+                  window.open(
                     `/customer-operations/dockets/?docketId=${conflictingDocketIds.join(',')}`,
+                    '_blank',
                   );
                 }}
               >
