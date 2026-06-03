@@ -2,7 +2,6 @@
 
 import { Package, CircleCheckBig } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export function MarkReadyDescription({
   docket,

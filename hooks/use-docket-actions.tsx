@@ -55,6 +55,10 @@ import {
   DuplicateDocketDescription,
   DuplicateDocketContent,
 } from '@/hooks/docket/duplicate-docket-content';
+import {
+  UnassignDocketDescription,
+  UnassignDocketContent,
+} from '@/hooks/docket/unassign-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
 import { useDocketStore } from '@/app/stores/docket-store';
 import {
@@ -544,6 +548,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
 
   const isAssignFormValid = Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
 
+  const loadSizeDiffersFromPlanned = React.useMemo(() => {
+    if (!docketData) return false;
+    const planned = docketData.plannedLoadSize;
+    const actual = docketData.actualLoadSize;
+    if (planned == null || actual == null) return false;
+    return actual !== planned;
+  }, [docketData]);
+
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
       assign: {
@@ -725,6 +737,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         hideSeparator: true,
         buttonContainerClass: '-mt-[19px] -mx-[25px] px-[25px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
+      unassign: {
+        title: 'Confirm unassign',
+        description: <UnassignDocketDescription docket={docketData} />,
+        content: <UnassignDocketContent docket={docketData} />,
+        confirmText: 'Unassign docket',
+        confirmVariant: 'destructive',
+        cancelText: 'Cancel',
+        preventOutsideClose: true,
+      },
     }),
     [
       docketData,
@@ -783,7 +804,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
     cancel: createDialogAction('cancel'),
-    unassign: handleUnassignDocket,
+    unassign: () => {
+      if (loadSizeDiffersFromPlanned) {
+        console.log('Load size differs from planned');
+        createDialogAction('unassign')();
+        return;
+      }
+      console.log('Load size does not differ from planned');
+      void handleUnassignDocket();
+    },
     startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
       console.log('Cash sale confirmed:', docketData);
