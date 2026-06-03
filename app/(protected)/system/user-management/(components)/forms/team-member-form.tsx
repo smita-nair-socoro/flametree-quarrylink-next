@@ -55,6 +55,7 @@ type EditTeamMemberPayload = EditTeamMemberFormValues & {
 
 interface EditTeamMemberFormProps {
   roles: readonly FormSelectOption[];
+  currentUserId?: number | string;
   onSave?: (updated: EditTeamMemberPayload) => void | Promise<void>;
   onCancel?: () => void;
   onSuccess?: () => void;
