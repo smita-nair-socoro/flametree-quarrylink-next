@@ -2,6 +2,8 @@ import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query
 import { APIClient } from './APIClient';
 import { ChecklistKeys, DocketKeys, DriverAppKeys } from './keys';
 import type { ChecklistSubmitRequest } from '../types/checklist-submission';
+import { notifyError } from '../toast';
+import { extractErrorMessage } from '../utils/error-message-helper';
 
 export const TruckChecklistTemplateQueryOptions = () =>
   queryOptions({
@@ -52,9 +54,29 @@ export const DriverSubmissionQueryOptions = (submissionId: number) =>
 export const useSubmitChecklist = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ChecklistSubmitRequest) => APIClient.checklists.submit(data),
+    mutationFn: ({
+      request,
+      photos,
+    }: {
+      request: ChecklistSubmitRequest;
+      photos?: File[];
+    }) => {
+      const formData = new FormData();
+      formData.append(
+        'request',
+        new Blob([JSON.stringify(request)], { type: 'application/json' }),
+      );
+      photos?.forEach((photo) => formData.append('photos', photo));
+      return APIClient.checklists.submit(formData);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: DriverAppKeys.assignedDockets() });
+    },
+    onError: (error: unknown) => {
+      const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
+      const detail = data?.detail ?? data?.title;
+      const message = typeof detail === 'string' ? detail : extractErrorMessage(error);
+      notifyError('Submission Failed', { description: message });
     },
   });
 };

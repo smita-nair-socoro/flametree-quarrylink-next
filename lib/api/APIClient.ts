@@ -88,10 +88,7 @@ import {
   PutDriverDTO,
 } from '../types/driver';
 import { ChecklistTemplate } from '../types/checklist-template';
-import {
-  ChecklistSubmission,
-  ChecklistSubmitRequest,
-} from '../types/checklist-submission';
+import { ChecklistSubmission } from '../types/checklist-submission';
 
 type RequestBody =
   | BodyInit
@@ -967,9 +964,9 @@ export const APIClient = {
       appClient.Get<ChecklistSubmission>(
         `/socoro/quarrylink/api/checklists/driver-submissions/${submissionId}`,
       ),
-    submit: (data: ChecklistSubmitRequest) =>
+    submit: (formData: FormData) =>
       appClient.Post<ChecklistSubmission>(`/socoro/quarrylink/api/checklists`, {
-        body: data,
+        body: formData,
       }),
   },
 

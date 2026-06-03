@@ -56,24 +56,36 @@ export default function TruckInspectionChecklist({
   const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
+
+    const photos: File[] = [];
+    const mappedAnswers = answers.map((a) => {
+      const photoRefs: { fileIndex: number; displayOrder: number }[] = [];
+      if (a.image) {
+        photoRefs.push({ fileIndex: photos.length, displayOrder: 1 });
+        photos.push(a.image);
+      }
+      const failOn = failOnAnswerMap.get(a.questionId);
+      return {
+        questionId: a.questionId,
+        answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
+        failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
+        comment: a.notes?.trim() || null,
+        photos: photoRefs,
+      };
+    });
+
     await submitChecklist.mutateAsync({
-      templateId: template.id,
-      checklistType: CHECKLIST_TYPE.TRUCK,
-      truckId,
-      driverId,
-      docketId,
-      confirmed: false,
-      submittedAt: new Date().toISOString(),
-      answers: answers.map((a) => {
-        const failOn = failOnAnswerMap.get(a.questionId);
-        return {
-          questionId: a.questionId,
-          answerValue: a.answer === 'yes' ? ANSWER_VALUE.YES : ANSWER_VALUE.NO,
-          failed: failOn === ANSWER_VALUE.YES ? a.answer === 'yes' : a.answer === 'no',
-          comment: a.notes?.trim() || null,
-          photos: a.image ? [{ photoKey: a.image, displayOrder: 0 }] : [],
-        };
-      }),
+      request: {
+        templateId: template.id,
+        checklistType: CHECKLIST_TYPE.TRUCK,
+        truckId,
+        driverId,
+        docketId,
+        confirmed: false,
+        submittedAt: new Date().toISOString(),
+        answers: mappedAnswers,
+      },
+      photos,
     });
     if (docketId != null) {
       setTruckInspectionPassed(docketId);

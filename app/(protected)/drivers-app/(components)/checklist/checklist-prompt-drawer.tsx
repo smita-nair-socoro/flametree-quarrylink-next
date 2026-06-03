@@ -56,23 +56,27 @@ export function ChecklistPromptDrawer({
     if (!template) return;
     if (isPreStart) {
       await submitChecklist.mutateAsync({
-        templateId: template.id,
-        checklistType: CHECKLIST_TYPE.DRIVER,
-        driverId: driverId ?? 0,
-        confirmed: true,
-        submittedAt: new Date().toISOString(),
-        answers: [],
+        request: {
+          templateId: template.id,
+          checklistType: CHECKLIST_TYPE.DRIVER,
+          driverId: driverId ?? 0,
+          confirmed: true,
+          submittedAt: new Date().toISOString(),
+          answers: [],
+        },
       });
     } else {
       await submitChecklist.mutateAsync({
-        templateId: template.id,
-        checklistType: CHECKLIST_TYPE.TRUCK,
-        truckId: truckId ?? 0,
-        driverId,
-        docketId,
-        confirmed: true,
-        submittedAt: new Date().toISOString(),
-        answers: [],
+        request: {
+          templateId: template.id,
+          checklistType: CHECKLIST_TYPE.TRUCK,
+          truckId: truckId ?? 0,
+          driverId,
+          docketId,
+          confirmed: true,
+          submittedAt: new Date().toISOString(),
+          answers: [],
+        },
       });
     }
     onCompleteExternally();
