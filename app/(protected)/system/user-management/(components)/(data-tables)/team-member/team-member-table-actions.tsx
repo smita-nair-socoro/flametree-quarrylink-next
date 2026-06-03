@@ -37,7 +37,7 @@ export function TeamMemberTableActions({
 
   // Admins cannot edit or delete a Super Admin; no one can delete themselves
   const canEdit = isSuperAdmin || !isTargetSuperAdmin;
-  const canDelete = isSuperAdmin || (!isTargetSelf && !isTargetSuperAdmin);
+  const canDelete = !isTargetSelf && (isSuperAdmin || !isTargetSuperAdmin);
 
   const { actions, deleteDialog, viewDialog } = useTeamMemberActions(
     teamMember.sub,
