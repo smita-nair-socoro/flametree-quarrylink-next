@@ -799,23 +799,6 @@ export function DocketDetailsPanel({
           </button>
         </div>
       </div>
-      {/* Footer */}
-      <div className="p-4 border border-gray-200 bg-white sticky bottom-0 z-10 flex flex-col gap-3">
-        {isDispatchView && isAssigned && (
-          <button
-            onClick={onUnassign}
-            className="w-full px-4 py-2.5 text-sm font-medium text-red-600 bg-red-50 border border-red-100 hover:bg-red-100 rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <User className="w-4 h-4" /> Unassign from trip
-          </button>
-        )}
-        <button
-          onClick={() => actions.duplicate()}
-          className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center"
-        >
-          Duplicate
-        </button>
-      </div>
     </>
   );
 }

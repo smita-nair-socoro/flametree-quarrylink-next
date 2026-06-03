@@ -64,7 +64,6 @@ interface EditTeamMemberFormProps {
 
 export function EditTeamMemberForm({
   roles,
-  currentUserId,
   onCancel,
   onSuccess,
   onDirtyChange,
