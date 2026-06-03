@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -144,7 +143,6 @@ export default function DocketForm({
     truckCapacity?: number;
     overProductMax?: boolean;
   } | null>(null);
-  const router = useRouter();
   const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
