@@ -10,7 +10,8 @@ import {
 import {
   ChevronUp,
   ChevronDown,
-  CircleCheckBigBig,
+  CircleCheck,
+  CircleCheckBig,
   CircleX,
   FileText,
   Truck,
@@ -153,7 +154,7 @@ export function ChecklistReportModal({
                     }`}
                 >
                   {isPass ? (
-                    <CircleCheckBig className="w-3.5 h-3.5" />
+                    <CircleCheck className="w-3.5 h-3.5" />
                   ) : (
                     <CircleX className="w-3.5 h-3.5" />
                   )}
@@ -253,7 +254,7 @@ export function ChecklistReportModal({
                       <div className="flex items-center gap-2">
                         <span className="flex items-center gap-1 bg-green-100 text-green-700 text-xs font-medium px-2 py-0.5 rounded-full">
                           {yesInSection}
-                          <CircleCheckBig className="w-3 h-3" />
+                          <CircleCheck className="w-3 h-3" />
                         </span>
                         <span className="text-xs text-muted-foreground">
                           {section.totalQuestions} total
@@ -296,7 +297,7 @@ export function ChecklistReportModal({
                               {/* Badge */}
                               {answer.answerValue === ANSWER_VALUE.YES ? (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-xs font-medium w-fit">
-                                  <CircleCheckBig className="w-3.5 h-3.5" />
+                                  <CircleCheck className="w-3.5 h-3.5" />
                                   Yes
                                 </span>
                               ) : (
