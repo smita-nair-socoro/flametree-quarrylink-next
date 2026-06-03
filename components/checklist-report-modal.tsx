@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
+import Image from 'next/image';
 import { format } from 'date-fns';
 import {
   TruckSubmissionQueryOptions,
@@ -324,10 +325,11 @@ export function ChecklistReportModal({
                                           onClick={() => setPreviewSrc(key)}
                                           className="relative w-[200px] h-[150px] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
                                         >
-                                          <img
+                                          <Image
                                             src={key}
                                             alt={`Photo ${idx + 1}`}
-                                            className="w-full h-full object-cover"
+                                            fill
+                                            className="object-cover"
                                           />
                                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                                             <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">

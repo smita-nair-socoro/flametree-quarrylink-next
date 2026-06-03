@@ -122,10 +122,6 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const isEditingSelf =
-    currentUserId !== undefined &&
-    initialData?.sub !== undefined &&
-    String(currentUserId) === String(initialData.sub);
 
   const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
 
