@@ -137,7 +137,7 @@ export interface ProductReporting {
   unavailableProductsCount: number;
   unavailableProductsPercentOfInventory: number;
   averageProductMarginThisMonth: number;
-  averageProductMarginChangePercent: number;
+  averageProductMarginChangeVsLastMonth: number;
   totalProducts: number;
   productsAddedThisMonth: number;
 }

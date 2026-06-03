@@ -70,20 +70,30 @@ export default function QuarriesSuppliersPage() {
     }
   }, [isError, error]);
 
+  const suppliersChange = reportingData?.suppliersMonthlyProfitValueChangeVsLastMonth ?? 0;
+  const quarriesChange = reportingData?.quarriesMonthlyProfitValueChangeVsLastMonth ?? 0;
+
+  const formatValueChange = (value: number) =>
+    `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
+
+  const changeColor = (value: number) => {
+    if (value > 0) return 'text-[#00A63E]';
+    if (value < 0) return 'text-[#E7000B]';
+    return 'text-[#737373]';
+  };
+
   // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
       value: `$${centsToDollars(
-        reportingData?.suppliersMonthlyProfitValueChangePercent || 0,
+        reportingData?.supplierTotalMonthlyProfitValueOfQuotedProducts || 0,
       )}`,
-      description: `${
-        reportingData?.suppliersMonthlyProfitValueChangePercent || 0
-      }% vs last month`,
+      description: formatValueChange(suppliersChange),
       icon: DollarSign,
       iconBgColor: 'bg-[#ECFCCA]',
       iconColor: 'text-[#016630]',
-      descriptionColor: 'text-[#00A63E]',
+      descriptionColor: changeColor(suppliersChange),
     },
     {
       title: 'Top Supplier',
@@ -99,15 +109,13 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Monthly Value - Quarries',
       value: `$${centsToDollars(
-        reportingData?.quarriesMonthlyProfitValueChangePercent || 0,
+        reportingData?.quarriesTotalMonthlyProfitValueOfQuotedProducts || 0,
       )}`,
-      description: `${
-        reportingData?.quarriesMonthlyProfitValueChangePercent || 0
-      }% vs last month`,
+      description: formatValueChange(quarriesChange),
       icon: Mountain,
       iconBgColor: 'bg-[#F1F5F9]',
       iconColor: 'text-[#71717B]',
-      descriptionColor: 'text-[#F54900]',
+      descriptionColor: changeColor(quarriesChange),
     },
     {
       title: 'Top Quarry',
