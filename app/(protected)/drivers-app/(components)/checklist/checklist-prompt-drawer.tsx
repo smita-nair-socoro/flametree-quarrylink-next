@@ -44,15 +44,26 @@ export function ChecklistPromptDrawer({
   driverName,
   driverId,
   truckId,
+  truckType,
   docketId,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
   const isPreStart = type === 'pre-start';
 
   const driverTemplate = useChecklistTemplateStore((s) => s.driverTemplate);
-  const truckTemplate = useChecklistTemplateStore((s) => s.truckTemplate);
-  const template = isPreStart ? driverTemplate : truckTemplate;
+  const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
+  const truckTemplateFromStore = useChecklistTemplateStore((s) => s.truckTemplate);
+  const template = isPreStart ? driverTemplate : truckTemplateFromStore;
   const submitChecklist = useSubmitChecklist();
+
+  const { data: fetchedTruckTemplate } = useQuery({
+    ...TruckChecklistTemplateQueryOptions(truckType),
+    enabled: open && !isPreStart,
+  });
+
+  React.useEffect(() => {
+    if (fetchedTruckTemplate) setTruckTemplate(fetchedTruckTemplate);
+  }, [fetchedTruckTemplate, setTruckTemplate]);
 
   const handleCompleteExternally = async () => {
     if (!template) return;
