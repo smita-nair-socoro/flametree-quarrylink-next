@@ -98,7 +98,7 @@ export default function QuotationsPage() {
     return items.filter((q) => linkedQuotationIdsSet.has(q.id));
   }, [items, linkedQuotationIdsSet]);
 
-  const quotesChange = reportingData?.totalQuotesChangeVsLastMonth ?? 0;
+  const quotesChange = Math.round(reportingData?.totalQuotesChangeVsLastMonth ?? 0);
   const quotesValueChange = reportingData?.totalQuotesValueChangeVsLastMonth ?? 0;
 
   const formatCountChange = (value: number) =>
