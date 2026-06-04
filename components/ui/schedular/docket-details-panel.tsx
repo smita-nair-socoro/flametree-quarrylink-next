@@ -70,6 +70,8 @@ interface DocketDetailsPanelProps {
   onClose: () => void;
   onUnassign: () => void;
   isDispatchView?: boolean;
+  /** Dispatch trucks view: refresh utilisation sort after load size save */
+  onUtilisationLoadSizeChange?: (loadSize: number) => void;
 }
 
 export function DocketDetailsPanel({
@@ -77,6 +79,7 @@ export function DocketDetailsPanel({
   onClose,
   onUnassign,
   isDispatchView = false,
+  onUtilisationLoadSizeChange,
 }: DocketDetailsPanelProps) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
@@ -180,12 +183,16 @@ export function DocketDetailsPanel({
     }
 
     payload.deliveryDistanceQuantity = deliveryDistanceQuantity;
-    console.log(payload);
 
     operationalUpdateMutation.mutate(
       { id: docketId, data: payload },
       {
-        onSuccess: () => toast.success('Load size updated successfully'),
+        onSuccess: () => {
+          if (isDispatchView && onUtilisationLoadSizeChange && val > 0) {
+            onUtilisationLoadSizeChange(val);
+          }
+          toast.success('Load size updated successfully');
+        },
         onError: () => toast.error('Failed to update load size'),
       },
     );
