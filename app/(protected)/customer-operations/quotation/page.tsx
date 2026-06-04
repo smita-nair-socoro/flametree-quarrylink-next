@@ -98,11 +98,14 @@ export default function QuotationsPage() {
     return items.filter((q) => linkedQuotationIdsSet.has(q.id));
   }, [items, linkedQuotationIdsSet]);
 
-  const quotesChange = Math.round(reportingData?.totalQuotesChangeVsLastMonth ?? 0);
-  const quotesValueChange = reportingData?.totalQuotesValueChangeVsLastMonth ?? 0;
+  const quotesChange = Math.round(
+    reportingData?.totalQuotesChangeVsLastMonth ?? 0,
+  );
+  const quotesValueChange =
+    reportingData?.totalQuotesValueChangeVsLastMonth ?? 0;
 
   const formatCountChange = (value: number) =>
-    `${value > 0 ? '+' : ''}${formatNumberThousandSeparator(value)} vs last month`;
+    `${value > 0 ? '+' : ''}${value} vs last month`;
 
   const formatValueChange = (value: number) =>
     `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
