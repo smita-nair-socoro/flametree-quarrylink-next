@@ -10,9 +10,10 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useSubmitChecklist } from '@/lib/api/checklist';
+import { useSubmitChecklist, TruckChecklistTemplateQueryOptions } from '@/lib/api/checklist';
 import { CHECKLIST_TYPE } from '@/lib/types/checklist-template-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { useQuery } from '@tanstack/react-query';
 
 import DriverPreStartChecklist from './driver-pre-start-checklist';
 import TruckInspectionChecklist from './truck-inspection-checklist';
@@ -29,6 +30,7 @@ interface ChecklistPromptDrawerProps {
   driverName?: string;
   driverId?: number;
   truckId?: number;
+  truckType?: string;
   docketId?: number;
 }
 

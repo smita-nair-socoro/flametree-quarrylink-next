@@ -948,9 +948,10 @@ export const APIClient = {
   },
 
   checklists: {
-    getTruckTemplate: () =>
+    getTruckTemplate: (truckType?: string) =>
       appClient.Get<ChecklistTemplate>(
         `/socoro/quarrylink/api/checklists/truck/template`,
+        { queryString: truckType ? { truckType } : undefined },
       ),
     getDriverTemplate: () =>
       appClient.Get<ChecklistTemplate>(

@@ -109,7 +109,7 @@ export const DocketKeys = {
 
 export const ChecklistKeys = {
   all: ['checklists'] as const,
-  truckTemplate: () => [...ChecklistKeys.all, 'truck-template'] as const,
+  truckTemplate: (truckType?: string) => [...ChecklistKeys.all, 'truck-template', truckType ?? ''] as const,
   driverTemplate: () => [...ChecklistKeys.all, 'driver-template'] as const,
   truckSubmission: (submissionId: number) =>
     [...ChecklistKeys.all, 'truck-submission', submissionId] as const,
