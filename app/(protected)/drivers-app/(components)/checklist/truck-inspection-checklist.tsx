@@ -105,6 +105,7 @@ export default function TruckInspectionChecklist({
       onBack={onBack}
       onSubmit={handleSubmit}
       needPhotoAndDetails={true}
+      maxPhotoSize={8 * 1024 * 1024}
     />
   );
 }

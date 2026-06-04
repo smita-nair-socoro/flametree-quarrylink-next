@@ -47,6 +47,7 @@ interface QuestionCardProps {
   image: File | null;
   onImageChange: (image: File | null) => void;
   needPhotoAndDetails?: boolean;
+  maxPhotoSize?: number;
 }
 
 export function QuestionCard({
@@ -58,6 +59,7 @@ export function QuestionCard({
   image,
   onImageChange,
   needPhotoAndDetails = true,
+  maxPhotoSize,
 }: QuestionCardProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
@@ -69,7 +71,7 @@ export function QuestionCard({
   }, [answer]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    acceptImageFile(event.target.files?.[0], onImageChange, 'Photo');
+    acceptImageFile(event.target.files?.[0], onImageChange, 'Photo', maxPhotoSize);
   };
 
   return (
@@ -207,6 +209,7 @@ interface BaseChecklistProps {
   questions: Question[];
   alertMessage: string;
   needPhotoAndDetails?: boolean;
+  maxPhotoSize?: number;
   submitButtonText: string;
   onSubmit?: (answers: BaseChecklistAnswer[]) => void;
 }
@@ -217,6 +220,7 @@ export function BaseChecklist({
   showBackButton,
   onBack,
   needPhotoAndDetails = true,
+  maxPhotoSize,
   questions,
   alertMessage,
   submitButtonText,
@@ -342,6 +346,7 @@ export function BaseChecklist({
                       image={images[q.id] ?? null}
                       onImageChange={(img) => handleImage(q.id, img)}
                       needPhotoAndDetails={needPhotoAndDetails}
+                      maxPhotoSize={maxPhotoSize}
                     />
                   ))}
               </div>

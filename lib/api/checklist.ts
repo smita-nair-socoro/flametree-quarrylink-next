@@ -73,6 +73,11 @@ export const useSubmitChecklist = () => {
       queryClient.invalidateQueries({ queryKey: DriverAppKeys.assignedDockets() });
     },
     onError: (error: unknown) => {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 413) {
+        notifyError('Image too large! Maximum size allowed is 8MB.');
+        return;
+      }
       const data = (error as { response?: { data?: Record<string, unknown> } })?.response?.data;
       const detail = data?.detail ?? data?.title;
       const message = typeof detail === 'string' ? detail : extractErrorMessage(error);
