@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
+import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
@@ -197,15 +198,17 @@ export function InvoiceDetailsDialog() {
               </div>
             </div>
 
-            <div className="flex justify-end border-t border-gray-100 bg-gray-50/50 px-6 py-4">
-              <Button
-                variant="outline"
-                className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
-                onClick={handleDownload}
-              >
-                Download PDF
-              </Button>
-            </div>
+            {invoice.status !== INVOICE_STATUS.FAILED && (
+              <div className="flex justify-end border-t border-gray-100 bg-gray-50/50 px-6 py-4">
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
+                  onClick={handleDownload}
+                >
+                  Download PDF
+                </Button>
+              </div>
+            )}
           </>
         )}
       </DialogContent>
