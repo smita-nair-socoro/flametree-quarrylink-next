@@ -80,7 +80,6 @@ export default function JobLineItemForm({
     isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
-    productDetails,
     isSubmitting,
   } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
@@ -330,7 +329,7 @@ export default function JobLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={isReadOnly}
+                disabled={isReadOnly || isEditing}
               />
 
               <FormSelect
@@ -343,7 +342,7 @@ export default function JobLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={!selectedProductId || isReadOnly}
+                disabled={!selectedProductId || isReadOnly || isEditing}
               />
 
               {isCollection && (
@@ -393,6 +392,29 @@ export default function JobLineItemForm({
                       <Input className="w-full" {...field} disabled />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobLineItemForm.control}
+                name="densityTonnagePerM3"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Product Density (TN/m³)*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        {...field}
+                        value={field.value === 0 ? '' : field.value}
+                        suffix="TN/m³"
+                        disabled
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />
@@ -499,18 +521,17 @@ export default function JobLineItemForm({
                     )}
                   />
                   <div className="col-span-3 -mt-3 mb-3">
-                    {productDetails?.densityTonnagePerM3 &&
-                      productDetails.densityTonnagePerM3 > 0 && (
+                    {(jobLineItemForm.watch('densityTonnagePerM3') ?? 0) >
+                      0 && (
                         <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
                           <div className="text-sm text-purple-900">
                             The conversion is using the product density of{' '}
-                            {productDetails.densityTonnagePerM3} TN/m³.
+                            {jobLineItemForm.watch('densityTonnagePerM3')} TN/m³.
                           </div>
                         </div>
                       )}
                   </div>
                 </div>
-                {/* Conversion Info Box */}
               </div>
 
               {/* Cost Pricing */}

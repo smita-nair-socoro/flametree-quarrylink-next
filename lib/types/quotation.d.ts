@@ -60,6 +60,7 @@ export interface QuotationLineItem {
   productName: string;
   quarryName: string;
   supplierProductName: string;
+  densityTonnagePerM3: number;
   productCostUom: string;
   productCostQty: number;
   productCostPrice: number;

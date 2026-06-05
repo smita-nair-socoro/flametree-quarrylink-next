@@ -499,6 +499,10 @@ export function useDocketFormState({
         selectedJobLineItem?.customerDeliveryAddress ?? null,
       productName: selectedJobLineItem?.product?.productName ?? '',
       quarryName: selectedJobLineItem?.quarrySupplierName ?? '',
+      densityTonnagePerM3:
+        selectedJobLineItem?.densityTonnagePerM3 ??
+        selectedJobLineItem?.product?.densityTonnagePerM3 ??
+        0,
       productUom:
         selectedJobLineItem?.productSellUom === 'TN'
           ? 'TN'
@@ -593,6 +597,8 @@ export function useDocketFormState({
     if (details.truckType) {
       docketForm.setValue('truckType', details.truckType);
     }
+
+
   }, [
     docketForm.watch('jobLineItemId'),
     isEditing,
@@ -622,7 +628,7 @@ export function useDocketFormState({
 
   const pricingBreakdown = React.useMemo(() => {
     const details = selectedJobLineItemDetails();
-    const density = productDetailsQuery.data?.densityTonnagePerM3 || 1;
+    const density = details.densityTonnagePerM3 || 1;
 
     const currentStatus = selectedDocket?.docketStatus;
     const effectiveLoadSize =
@@ -675,7 +681,6 @@ export function useDocketFormState({
     jobLineItemId,
     isEditing,
     selectedDocket?.docketStatus,
-    productDetailsQuery.data?.densityTonnagePerM3,
   ]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(

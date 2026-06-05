@@ -8,6 +8,7 @@ export const EMPTY_SUPPLIER_FORM_VALUES = {
   quarry_supplier_id: undefined,
   supplier_product_name: '',
   supplier_product_code: '',
+  density_tonnage_per_m3: 0,
   cost_price_tn: 0,
   sell_price_tn: 0,
   cost_price_m3: 0,
@@ -45,6 +46,7 @@ function formValuesFromQuarrySupplierProduct(data: QuarrySupplierProduct) {
     quarry_supplier_id: data.quarrySupplierId,
     supplier_product_name: data.supplierProductName || '',
     supplier_product_code: data.supplierProductCode || '',
+    density_tonnage_per_m3: data.densityTonnagePerM3 || 0,
     cost_price_tn: (data.perTnCostPrice || 0) / 100,
     sell_price_tn: (data.perTnSellPrice || 0) / 100,
     cost_price_m3: (data.perM3CostPrice || 0) / 100,
@@ -85,6 +87,7 @@ export function useQuarrySupplierProductState(
   selectedSupplierProduct: QuarrySupplierProduct | null | undefined,
   isEditing: boolean,
   supplierForm: UseFormReturn<any>,
+  defaultProductDensity?: number,
 ) {
   const [supplierProductName, setSupplierProductName] = React.useState('');
   const [supplierProductCode, setSupplierProductCode] = React.useState('');
@@ -110,6 +113,13 @@ export function useQuarrySupplierProductState(
       );
     } else if (!isEditing) {
       supplierForm.reset(EMPTY_SUPPLIER_FORM_VALUES);
+      supplierForm.setValue(
+        'density_tonnage_per_m3',
+        defaultProductDensity ?? 0,
+        {
+          shouldDirty: false,
+        },
+      );
     }
   }, [isEditing, selectedSupplierProduct, supplierForm]);
 

@@ -8,6 +8,7 @@ interface ExtendedInputProps extends React.ComponentProps<'input'> {
   maxDecimals?: number;
   minDecimals?: number;
   suffix?: React.ReactNode;
+  suffixPositionClassName?: string;
 }
 
 function Input({
@@ -25,6 +26,7 @@ function Input({
   value,
   inputMode,
   pattern,
+  suffixPositionClassName = '',
   ...props
 }: ExtendedInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
@@ -43,9 +45,9 @@ function Input({
     if (isNaN(num)) return value;
     return allowDecimal
       ? num.toLocaleString('en-AU', {
-          minimumFractionDigits: minDecimals ?? 0,
-          maximumFractionDigits: maxDecimals ?? 10,
-        })
+        minimumFractionDigits: minDecimals ?? 0,
+        maximumFractionDigits: maxDecimals ?? 10,
+      })
       : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
   }, [isNumber, isFocused, value, allowDecimal, maxDecimals, minDecimals]);
 
@@ -169,7 +171,7 @@ function Input({
 
   if (suffix) {
     return (
-      <div className="relative">
+      <div className={cn("relative", suffixPositionClassName)}>
         {inputElement}
         <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm pointer-events-none">
           {suffix}
