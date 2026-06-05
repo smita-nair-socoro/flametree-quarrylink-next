@@ -248,6 +248,8 @@ export function DispatchView({
           actualLoadSize: d.actualLoadSize ?? old.actualLoadSize,
           plannedLoadSize: d.plannedLoadSize ?? old.plannedLoadSize,
           productDensity: d.productDensity ?? old.productDensity,
+          productEstimatedVolume:
+            d.productEstimatedVolume ?? old.productEstimatedVolume,
           productSellUom: d.productSellUom || old.productSellUom,
           productName: d.productName || old.productName,
         };
