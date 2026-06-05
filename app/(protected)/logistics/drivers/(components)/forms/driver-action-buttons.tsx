@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,7 +63,6 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
     }
   };
 
-  const router = useRouter();
   const handleAssignedDockets = () => {
     const targetDriver = fullDriverData || driver;
     if (!targetDriver?.dockets || targetDriver.dockets.length === 0) {
@@ -72,7 +70,7 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
       return;
     }
     const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
-    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   if (!driver || !driver.id) {

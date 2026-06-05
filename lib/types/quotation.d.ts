@@ -172,6 +172,6 @@ interface QuotationReporting {
   totalValueOfQuotesRaisedThisMonth: number;
   totalPendingQuotes: number;
   totalQuotesExpiringIn7Days: number;
-  totalQuotesPercentageChangeVsLastMonth: number;
-  totalQuotesValuePercentageChangeVsLastMonth: 0;
+  totalQuotesChangeVsLastMonth: number;
+  totalQuotesValueChangeVsLastMonth: number;
 }

@@ -53,7 +53,9 @@ export function ConfirmUnassignDialog({
               <User className="h-5 w-5 text-pink-600" aria-hidden />
             </div>
             <div className="min-w-0 pt-0.5">
-              <p className="text-base font-bold text-[#0F172A]">{docketNumber}</p>
+              <p className="text-base font-bold text-[#0F172A]">
+                {docketNumber}
+              </p>
               <p className="text-sm text-[#64748B] mt-0.5">{cargoSummary}</p>
             </div>
           </div>
@@ -123,7 +125,9 @@ export function ConfirmUnassignDialog({
                 <p className="text-[11px] font-medium text-[#64748B]">
                   Time window
                 </p>
-                <p className="font-semibold text-[#0F172A]">{timeWindowLabel}</p>
+                <p className="font-semibold text-[#0F172A]">
+                  {timeWindowLabel}
+                </p>
               </div>
             </div>
           </div>

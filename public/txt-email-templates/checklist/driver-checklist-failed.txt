@@ -16,6 +16,4 @@ Summary / notes from submission
 Action
   Review the checklist responses and follow your compliance process (e.g. contact driver / haulier, restrict assignments).
 
-Open in app: {adminChecklistUrl}
-
 You're receiving this because a driver compliance checklist was submitted with a FAIL status on QuarryLink.

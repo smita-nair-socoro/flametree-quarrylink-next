@@ -14,11 +14,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { getRelativeTimeFuture } from '@/lib/utils/date';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
-import { useUserStore, useIsSuperAdmin } from '@/app/stores/user-store';
+import { useUserStore } from '@/app/stores/user-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { useQuery } from '@tanstack/react-query';
+import {
+  isUserSuperAdmin,
+  getRoleLabel,
+  getHighestRole,
+  getInitials,
+  getAvatarColor,
+} from '@/lib/utils/user-helper';
 import {
   UsersListQueryOptions,
   useResendUserInvitation,
@@ -29,54 +36,19 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
-// Roles options for the form
-const rolesOptions: readonly FormSelectOption[] = [
-  // { label: 'User', value: Role.USER },
+const allRolesOptions: readonly FormSelectOption[] = [
+  { label: 'User', value: Role.USER },
   { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
 
-const AVATAR_PALETTE = [
-  { bg: '#DBEAFE', text: '#2563EB' },
-  { bg: '#D1FAE5', text: '#059669' },
-  { bg: '#EDE9FE', text: '#7C3AED' },
-  { bg: '#FEE2E2', text: '#DC2626' },
-  { bg: '#FEF3C7', text: '#D97706' },
-  { bg: '#FCE7F3', text: '#BE185D' },
-  { bg: '#CCFBF1', text: '#0D9488' },
-];
 
-function getAvatarColor(name: string) {
-  const hash = (name || '')
-    .split('')
-    .reduce((acc, c) => acc + c.charCodeAt(0), 0);
-  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
-}
-
-function getInitials(name: string) {
-  if (!name?.trim()) return '??';
-  return name
-    .trim()
-    .split(/\s+/)
-    .map((value) => value[0]?.toUpperCase() || '')
-    .join('')
-    .slice(0, 2);
-}
-
-function getRoleLabel(groups: string[] | undefined) {
-  if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
-  const groupsStr = groups.join(',').toUpperCase();
-  if (groupsStr.includes('SUPER_ADMIN') || groupsStr.includes('SUPERADMIN')) {
-    return 'Super Admin';
-  }
-  if (groupsStr.includes('ADMIN')) return 'Admin';
-  return 'User';
-}
 
 export default function TeamAdminTab() {
   const isMobile = useMediaQuery('(max-width: 910px)');
   const userGroups = useUserStore((state) => state.userGroups);
-  const isSuperAdmin = useIsSuperAdmin();
+  const currentUser = useUserStore((state) => state.user);
+  const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
 
   React.useEffect(() => {
     console.log('[TeamAdminTab] userGroups:', userGroups);
@@ -101,17 +73,6 @@ export default function TeamAdminTab() {
       });
     }
   }, [error]);
-
-  // Helper function to convert groups array to Role string for display
-  const getHighestRole = (groups: string[] | undefined): Role => {
-    if (!groups || !Array.isArray(groups)) return Role.USER;
-    const groupsStr = groups.join(',').toLowerCase();
-    if (groupsStr.includes('super_admin') || groupsStr.includes('superadmin')) {
-      return Role.SUPERADMIN;
-    }
-    if (groupsStr.includes('admin')) return Role.USER; // Map admin to USER for now
-    return Role.USER;
-  };
 
   // Convert pending users from API to PendingInvitation format
   const pendingInvitations: PendingInvitation[] = React.useMemo(() => {
@@ -165,15 +126,26 @@ export default function TeamAdminTab() {
   const [selectedTeamMemberForActions, setSelectedTeamMemberForActions] =
     React.useState<User | null>(null);
 
+  // Admins cannot assign Super Admin role; filter it out for non-super-admins
+  const rolesOptions = React.useMemo(
+    () =>
+      isSuperAdmin
+        ? allRolesOptions
+        : allRolesOptions.filter((r) => r.value !== Role.SUPERADMIN),
+    [isSuperAdmin],
+  );
+
   const { actions, viewDialog } = useTeamMemberActions(
     selectedTeamMemberForActions?.sub,
     selectedTeamMemberForActions,
     rolesOptions,
-    1,
+    currentUser?.sub,
   );
 
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
+    // Admins cannot edit Super Admins
+    if (!isSuperAdmin && isUserSuperAdmin(member.groups)) return;
     setSelectedTeamMember(member);
     setSelectedTeamMemberForActions(member);
     actions.viewEdit();
@@ -181,8 +153,8 @@ export default function TeamAdminTab() {
 
   // Create columns with roles and currentUserId
   const columns = React.useMemo(
-    () => createTeamMemberColumns(rolesOptions, 1),
-    [],
+    () => createTeamMemberColumns(rolesOptions, currentUser?.sub),
+    [rolesOptions, currentUser?.sub],
   );
 
   const facetDefs: FacetDefinition[] = [
@@ -191,6 +163,11 @@ export default function TeamAdminTab() {
 
   const renderTeamMemberCard = React.useCallback(
     (user: User, onViewDetails?: () => void) => {
+      // Admins cannot view/edit Super Admins — suppress the detail handler
+      const effectiveOnViewDetails =
+        !isSuperAdmin && isUserSuperAdmin(user.groups)
+          ? undefined
+          : onViewDetails;
       const initials = getInitials(user.name || user.email || '');
       const color = getAvatarColor(user.name || user.email || '');
       const roleLabel = getRoleLabel(user.groups);
@@ -198,15 +175,15 @@ export default function TeamAdminTab() {
       return (
         <div
           className="flex items-center gap-3 border-t border-[#E4E4E7] bg-white px-4 py-3 transition-colors hover:bg-gray-50"
-          onClick={onViewDetails}
-          role={onViewDetails ? 'button' : undefined}
-          tabIndex={onViewDetails ? 0 : undefined}
+          onClick={effectiveOnViewDetails}
+          role={effectiveOnViewDetails ? 'button' : undefined}
+          tabIndex={effectiveOnViewDetails ? 0 : undefined}
           onKeyDown={
-            onViewDetails
+            effectiveOnViewDetails
               ? (event) => {
                   if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
-                    onViewDetails();
+                    effectiveOnViewDetails();
                   }
                 }
               : undefined
@@ -236,13 +213,13 @@ export default function TeamAdminTab() {
             <TeamMemberTableActions
               teamMember={user}
               roles={rolesOptions}
-              currentUserId={1}
+              currentUserId={currentUser?.sub}
             />
           </div>
         </div>
       );
     },
-    [],
+    [isSuperAdmin, rolesOptions, currentUser?.sub],
   );
 
   return (
@@ -266,19 +243,17 @@ export default function TeamAdminTab() {
                 Team Members
               </h1>
             </div>
-            {isSuperAdmin && (
-              <div>
-                <FormDialog
-                  dialogTitle="Invite User"
-                  dialogWidth="max-w-md"
-                  buttonTitle={isMobile ? 'Invite' : 'Invite User'}
-                  headerClassName="pb-2 h-[32px] pb-6"
-                  preserveEmptyBadgeSpace={false}
-                >
-                  <InviteUserForm roleOptions={rolesOptions} />
-                </FormDialog>
-              </div>
-            )}
+            <div>
+              <FormDialog
+                dialogTitle="Invite User"
+                dialogWidth="max-w-md"
+                buttonTitle={isMobile ? 'Invite' : 'Invite User'}
+                headerClassName="pb-2 h-[32px] pb-6"
+                preserveEmptyBadgeSpace={false}
+              >
+                <InviteUserForm roleOptions={rolesOptions} />
+              </FormDialog>
+            </div>
           </div>
 
           {isLoading ? (

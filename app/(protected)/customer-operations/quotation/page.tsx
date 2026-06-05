@@ -28,7 +28,6 @@ import {
 } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { centsToDollars } from '@/lib/utils/currency';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
@@ -98,18 +97,34 @@ export default function QuotationsPage() {
     return items.filter((q) => linkedQuotationIdsSet.has(q.id));
   }, [items, linkedQuotationIdsSet]);
 
+  const quotesChange = Math.round(
+    reportingData?.totalQuotesChangeVsLastMonth ?? 0,
+  );
+  const quotesValueChange =
+    reportingData?.totalQuotesValueChangeVsLastMonth ?? 0;
+
+  const formatCountChange = (value: number) =>
+    `${value > 0 ? '+' : ''}${value} vs last month`;
+
+  const formatValueChange = (value: number) =>
+    `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
+
+  const changeColor = (value: number) => {
+    if (value > 0) return 'text-[#00A63E]';
+    if (value < 0) return 'text-[#E7000B]';
+    return 'text-[#737373]';
+  };
+
   // Statistics cards data
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Quotations',
       value: reportingData?.totalQuotesRaisedThisMonth || 0,
-      description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesPercentageChangeVsLastMonth || 0,
-      )}% vs last month`,
+      description: formatCountChange(quotesChange),
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#193CB8]',
-      descriptionColor: 'text-[#00A63E]',
+      descriptionColor: changeColor(quotesChange),
     },
     {
       title: 'Pending Approval',
@@ -125,13 +140,11 @@ export default function QuotationsPage() {
       value: `$${centsToDollars(
         reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
       )}`,
-      description: `${formatNumberThousandSeparator(
-        reportingData?.totalQuotesValuePercentageChangeVsLastMonth || 0,
-      )}% vs last month`,
+      description: formatValueChange(quotesValueChange),
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0D542B]',
-      descriptionColor: 'text-[#00A63E]',
+      descriptionColor: changeColor(quotesValueChange),
     },
     {
       title: 'Expiring Soon',

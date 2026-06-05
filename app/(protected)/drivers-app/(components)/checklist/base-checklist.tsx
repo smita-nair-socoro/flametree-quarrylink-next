@@ -20,6 +20,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
+import { acceptImageFile } from '@/lib/utils/image-file-size';
 
 export type Answer = 'yes' | 'no' | null;
 
@@ -34,7 +35,7 @@ export interface BaseChecklistAnswer {
   questionId: number;
   answer: 'yes' | 'no';
   notes?: string;
-  image?: string | null;
+  image?: File | null;
 }
 
 interface QuestionCardProps {
@@ -43,9 +44,10 @@ interface QuestionCardProps {
   onAnswer: (answer: Answer) => void;
   notes: string;
   onNotesChange: (notes: string) => void;
-  image: string | null;
-  onImageChange: (image: string | null) => void;
+  image: File | null;
+  onImageChange: (image: File | null) => void;
   needPhotoAndDetails?: boolean;
+  maxPhotoSize?: number;
 }
 
 export function QuestionCard({
@@ -57,9 +59,9 @@ export function QuestionCard({
   image,
   onImageChange,
   needPhotoAndDetails = true,
+  maxPhotoSize,
 }: QuestionCardProps) {
   const [isOpen, setIsOpen] = React.useState(false);
-  const [fileName, setFileName] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -69,15 +71,7 @@ export function QuestionCard({
   }, [answer]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        onImageChange(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+    acceptImageFile(event.target.files?.[0], onImageChange, 'Photo', maxPhotoSize);
   };
 
   return (
@@ -166,7 +160,7 @@ export function QuestionCard({
               {image ? (
                 <>
                   <div className="flex-1 min-w-0">
-                    <p className="text-purple-700 font-semibold text-sm truncate">{fileName}</p>
+                    <p className="text-purple-700 font-semibold text-sm truncate">{image.name}</p>
                     <p className="text-gray-500 text-xs flex items-center gap-1">
                       Photo attached
                       <span className="inline-block w-1 h-1 rounded-full bg-gray-400 self-center" />
@@ -177,7 +171,6 @@ export function QuestionCard({
                     onClick={(e) => {
                       e.stopPropagation();
                       onImageChange(null);
-                      setFileName(null);
                     }}
                     className="shrink-0 text-gray-400 hover:text-gray-600 p-1"
                   >
@@ -216,6 +209,7 @@ interface BaseChecklistProps {
   questions: Question[];
   alertMessage: string;
   needPhotoAndDetails?: boolean;
+  maxPhotoSize?: number;
   submitButtonText: string;
   onSubmit?: (answers: BaseChecklistAnswer[]) => void;
 }
@@ -226,6 +220,7 @@ export function BaseChecklist({
   showBackButton,
   onBack,
   needPhotoAndDetails = true,
+  maxPhotoSize,
   questions,
   alertMessage,
   submitButtonText,
@@ -233,7 +228,7 @@ export function BaseChecklist({
 }: BaseChecklistProps) {
   const [answers, setAnswers] = React.useState<Record<string, Answer>>({});
   const [notes, setNotes] = React.useState<Record<string, string>>({});
-  const [images, setImages] = React.useState<Record<string, string | null>>({});
+  const [images, setImages] = React.useState<Record<string, File | null>>({});
   const [additionalNotes, setAdditionalNotes] = React.useState('');
 
   const totalQuestions = questions.length;
@@ -250,7 +245,7 @@ export function BaseChecklist({
     setNotes((prev) => ({ ...prev, [id]: text }));
   };
 
-  const handleImage = (id: string, image: string | null) => {
+  const handleImage = (id: string, image: File | null) => {
     setImages((prev) => ({ ...prev, [id]: image }));
   };
 
@@ -351,6 +346,7 @@ export function BaseChecklist({
                       image={images[q.id] ?? null}
                       onImageChange={(img) => handleImage(q.id, img)}
                       needPhotoAndDetails={needPhotoAndDetails}
+                      maxPhotoSize={maxPhotoSize}
                     />
                   ))}
               </div>

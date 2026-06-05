@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay } from 'date-fns';
 import {
   DndContext,
   DragEndEvent,
@@ -116,6 +116,12 @@ export function DispatchView({
     string | null
   >(null);
 
+  /** Cached load for truck utilisation — survives assign + API refetch. */
+  const [utilisationFocus, setUtilisationFocus] = useState<{
+    docketId: string;
+    loadSize: number;
+  } | null>(null);
+
   const [boardFilter, setBoardFilter] = useState<DispatchBoardFilterState>(
     DEFAULT_DISPATCH_BOARD_FILTER,
   );
@@ -126,10 +132,17 @@ export function DispatchView({
 
   useEffect(() => {
     setSelectedDocketId(null);
+    setUtilisationFocus(null);
   }, [date]);
 
-  const start = useMemo(() => format(date, "yyyy-MM-dd'T'00:00:00.000'Z'"), [date]);
-  const end = useMemo(() => format(date, "yyyy-MM-dd'T'23:59:59.999'Z'"), [date]);
+  useEffect(() => {
+    if (viewType !== 'trucks') {
+      setUtilisationFocus(null);
+    }
+  }, [viewType]);
+
+  const start = useMemo(() => startOfDay(date).toISOString(), [date]);
+  const end = useMemo(() => endOfDay(date).toISOString(), [date]);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(start, end),
@@ -225,7 +238,21 @@ export function DispatchView({
       newDockets = [...assigned, ...unassigned];
     }
 
-    setDockets(newDockets || []);
+    setDockets((prev) => {
+      const prevById = new Map(prev.map((d) => [d.id, d]));
+      return (newDockets || []).map((d) => {
+        const old = prevById.get(d.id);
+        if (!old) return d;
+        return {
+          ...d,
+          actualLoadSize: d.actualLoadSize ?? old.actualLoadSize,
+          plannedLoadSize: d.plannedLoadSize ?? old.plannedLoadSize,
+          productDensity: d.productDensity ?? old.productDensity,
+          productSellUom: d.productSellUom || old.productSellUom,
+          productName: d.productName || old.productName,
+        };
+      });
+    });
   }, [trucksData, driversData, allDocketsData, viewType]);
 
   const mappedResources: TruckResource[] = useMemo(() => {
@@ -487,19 +514,43 @@ export function DispatchView({
     };
   }, [docketsForSelectedDay, viewType, trucksData, trucksDataForStats, date]);
 
+  const applyUtilisationForDocket = (docketId: string) => {
+    if (viewType !== 'trucks') return;
+
+    const d = dockets.find((x) => String(x.id) === docketId);
+    if (!d) return;
+
+    const loadSize = d.actualLoadSize || d.plannedLoadSize || 0;
+    if (loadSize > 0) {
+      setUtilisationFocus({ docketId, loadSize });
+    }
+  };
+
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+    const id = event.active.id as string;
+    const docket = dockets.find((d) => String(d.id) === id);
+
+    setActiveId(id);
+    setSelectedDocketId(id);
+
+    if (docket?.docketStatus === DOCKET_STATUS.UNASSIGNED) {
+      applyUtilisationForDocket(id);
+    }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveId(null);
     const { active, over } = event;
-    if (!over) return;
-
     const docketId = active.id as string;
+
+    if (!over) {
+      setActiveId(null);
+      return;
+    }
+
     const overId = over.id as string;
 
     if (overId === 'unassigned-queue') {
+      setActiveId(null);
       const docket = dockets.find((d) => String(d.id) === docketId);
       if (docket && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
         return;
@@ -518,7 +569,8 @@ export function DispatchView({
         docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
         docket.docketStatus !== DOCKET_STATUS.ASSIGNED
       ) {
-        return; // Cannot move locked dockets
+        setActiveId(null);
+        return;
       }
 
       if (
@@ -526,12 +578,18 @@ export function DispatchView({
         docket.uiAssignedTruckId === targetId &&
         docket.uiAssignedTime === time
       ) {
-        // Dropped on the same slot, do nothing
+        setActiveId(null);
         return;
       }
 
+      setSelectedDocketId(docketId);
+      setActiveId(null);
+      applyUtilisationForDocket(docketId);
       setAssignModalData({ docketId, targetId, time });
+      return;
     }
+
+    setActiveId(null);
   };
 
   const handleDragCancel = () => {
@@ -631,11 +689,41 @@ export function DispatchView({
     ? dockets.find((d) => String(d.id) === activeId)
     : null;
 
-  const focusDocket =
-    activeDocket ||
-    (selectedDocketId
-      ? dockets.find((d) => String(d.id) === selectedDocketId)
-      : null);
+  const handleSelectUnassignedDocket = (id: string) => {
+    setSelectedDocketId(id);
+    applyUtilisationForDocket(id);
+  };
+
+  const handleSelectAssignedDocket = (id: string | null) => {
+    setSelectedDocketId(id);
+    setUtilisationFocus(null);
+  };
+
+  const handleCloseDetailsPanel = () => {
+    setSelectedDocketId(null);
+    setUtilisationFocus(null);
+  };
+
+  const handleUtilisationLoadSizeChange = (loadSize: number) => {
+    if (viewType !== 'trucks' || !selectedDocketId || loadSize <= 0) return;
+
+    setUtilisationFocus((prev) => {
+      if (prev?.docketId !== selectedDocketId) return prev;
+      return { docketId: selectedDocketId, loadSize };
+    });
+
+    setDockets((prev) =>
+      prev.map((d) => {
+        if (String(d.id) !== selectedDocketId) return d;
+        return {
+          ...d,
+          plannedLoadSize: loadSize,
+          actualLoadSize: loadSize,
+          loadSize,
+        };
+      }),
+    );
+  };
 
   const handleUnassign = () => {
     if (selectedDocketId) {
@@ -700,7 +788,10 @@ export function DispatchView({
             ),
           );
           setPendingUnassignDocketId(null);
-          if (selectedDocketId === id) setSelectedDocketId(null);
+          if (selectedDocketId === id) {
+            setSelectedDocketId(null);
+            setUtilisationFocus(null);
+          }
         },
       },
     );
@@ -747,7 +838,11 @@ export function DispatchView({
         truckId,
         deliveryStartWindow: formatLocalISO(startWindow),
         deliveryEndWindow: formatLocalISO(endWindow),
-        plannedLoadSize: plannedLoad,
+        plannedLoadSize:
+          adjustedLoadSize ??
+          docket?.actualLoadSize ??
+          docket?.plannedLoadSize ??
+          0,
       },
       {
         onSuccess: () => {
@@ -767,10 +862,23 @@ export function DispatchView({
                   deliveryCollectionStartTime: formatLocalISO(startWindow),
                   deliveryCollectionEndTime: formatLocalISO(endWindow),
                   docketStatus: DOCKET_STATUS.ASSIGNED,
+                  ...(adjustedLoadSize != null
+                    ? {
+                      actualLoadSize: adjustedLoadSize,
+                      plannedLoadSize: adjustedLoadSize,
+                    }
+                    : {}),
                 }
                 : d,
             ),
           );
+          setUtilisationFocus((prev) => {
+            if (prev?.docketId !== docketId) return prev;
+            if (adjustedLoadSize != null) {
+              return { docketId, loadSize: adjustedLoadSize };
+            }
+            return prev;
+          });
           setAssignModalData(null);
         },
       },
@@ -853,7 +961,7 @@ export function DispatchView({
               dockets={unassignedDocketsForBoard}
               isLoading={isLoading}
               selectedDocketId={selectedDocketId}
-              onSelectDocket={setSelectedDocketId}
+              onSelectDocket={handleSelectUnassignedDocket}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -864,18 +972,19 @@ export function DispatchView({
               onUpdateDocket={handleUpdateDocket}
               onResizeDocket={handleResizeDocket}
               selectedDocketId={selectedDocketId}
-              onSelectDocket={setSelectedDocketId}
+              onSelectDocket={handleSelectAssignedDocket}
               viewType={viewType}
-              focusDocket={focusDocket}
+              utilisationFocus={utilisationFocus}
             />
           </div>
           {selectedDocketId && (
             <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
               <DocketDetailsPanel
                 docketId={Number(selectedDocketId)}
-                onClose={() => setSelectedDocketId(null)}
+                onClose={handleCloseDetailsPanel}
                 onUnassign={handleUnassign}
                 isDispatchView={true}
+                onUtilisationLoadSizeChange={handleUtilisationLoadSizeChange}
               />
             </div>
           )}

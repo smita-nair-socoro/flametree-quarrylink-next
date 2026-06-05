@@ -1,6 +1,5 @@
 'use client';
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { MoreHorizontal, Eye, PowerOff, Power, Delete, FileText } from 'lucide-react';
 
@@ -25,7 +24,6 @@ interface TruckTableActionsProps {
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useTruckActions(truck);
-  const router = useRouter();
 
   const { data: truckWithDockets } = useQuery({
     ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
@@ -45,7 +43,7 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
       return;
     }
     const docketIds = dockets.map((d) => d.id).join(',');
-    router.push(`/customer-operations/dockets/?docketId=${docketIds}`);
+    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   const handleDeactivate = () => {

@@ -25,6 +25,4 @@ Failed items (high level)
 Action
   Review the full checklist in the trucks profile and decide whether the vehicle may be used or must be stood down.
 
-Open in app: {adminChecklistUrl}
-
 You're receiving this because a truck vehicle inspection checklist was submitted with a FAIL status on QuarryLink.
