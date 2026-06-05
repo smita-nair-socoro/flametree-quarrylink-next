@@ -19,6 +19,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { useDriverActions } from '@/hooks/use-driver-actions';
+import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { UsersListQueryOptions, useResendUserInvitation } from '@/lib/api/user';
@@ -30,9 +31,10 @@ interface DriverActionButtonsProps {
 }
 
 export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsProps) {
-  const { actions, confirmDialogs, fullDriverData } = useDriverActions(driver, {
+  const { actions, confirmDialogs } = useDriverActions(driver, {
     onDeleteSuccess: onDelete,
   });
+  const { driverData: fullDriver } = useDriverFormState(driver?.id, !!driver?.id);
 
   // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
   // Users list is already cached from the drivers page query (React Query dedup).
@@ -64,12 +66,12 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
   };
 
   const handleAssignedDockets = () => {
-    const targetDriver = fullDriverData || driver;
-    if (!targetDriver?.dockets || targetDriver.dockets.length === 0) {
+    const dockets = fullDriver?.dockets;
+    if (!dockets || dockets.length === 0) {
       notifyError('No dockets assigned to this driver.');
       return;
     }
-    const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
+    const docketIds = dockets.map((d) => d.id).join(',');
     window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
