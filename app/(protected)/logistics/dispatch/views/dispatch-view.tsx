@@ -704,6 +704,27 @@ export function DispatchView({
     setUtilisationFocus(null);
   };
 
+  const handleUtilisationLoadSizeChange = (loadSize: number) => {
+    if (viewType !== 'trucks' || !selectedDocketId || loadSize <= 0) return;
+
+    setUtilisationFocus((prev) => {
+      if (prev?.docketId !== selectedDocketId) return prev;
+      return { docketId: selectedDocketId, loadSize };
+    });
+
+    setDockets((prev) =>
+      prev.map((d) => {
+        if (String(d.id) !== selectedDocketId) return d;
+        return {
+          ...d,
+          plannedLoadSize: loadSize,
+          actualLoadSize: loadSize,
+          loadSize,
+        };
+      }),
+    );
+  };
+
   const handleUnassign = () => {
     if (selectedDocketId) {
       setPendingUnassignDocketId(selectedDocketId);
@@ -963,6 +984,7 @@ export function DispatchView({
                 onClose={handleCloseDetailsPanel}
                 onUnassign={handleUnassign}
                 isDispatchView={true}
+                onUtilisationLoadSizeChange={handleUtilisationLoadSizeChange}
               />
             </div>
           )}
