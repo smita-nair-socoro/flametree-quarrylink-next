@@ -375,7 +375,6 @@ export interface DispatchAssignedDocket {
   pickUpState: string;
   deliverySuburb: string;
   productDensity: number;
-  productEstimatedVolume?: number;
   deliveryState: string;
   productSellUom: string;
   truckSellQty: number;
@@ -398,7 +397,6 @@ export interface DispatchUnassignedDocket {
   pickUpSuburb: string;
   pickUpState: string;
   productDensity: number;
-  productEstimatedVolume?: number;
   deliverySuburb: string;
   deliveryState: string;
   productSellUom: string;

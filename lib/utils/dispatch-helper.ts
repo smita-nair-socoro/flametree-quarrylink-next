@@ -49,7 +49,6 @@ export function mapUnassignedDocketDtoToBoardRow(
     deliverySuburb: d.deliveryAddress?.city || '',
     deliveryState: d.deliveryAddress?.state || '',
     productDensity: d.jobItem?.product?.densityTonnagePerM3 || 0,
-    productEstimatedVolume: d.productEstimatedVolume ?? 0,
     productSellUom: d.jobItem?.productSellUom || '',
     truckSellQty: d.jobItem?.truckSellQty ?? 0,
     truckSellUom: d.jobItem?.truckSellUom ?? '',
@@ -77,36 +76,6 @@ export function loadVolumeM3FromProductSellUom(
     return loadSize / 50 / d;
   }
   return loadSize;
-}
-
-type DocketVolumeInput = {
-  actualLoadSize?: number;
-  plannedLoadSize?: number;
-  productSellUom?: string;
-  productDensity?: number;
-  productEstimatedVolume?: number;
-};
-
-/** Prefer stored m³ estimate (scaled to current load) over density conversion. */
-export function resolveDocketVolumeM3(docket: DocketVolumeInput): number {
-  const loadSize = docket.actualLoadSize || docket.plannedLoadSize || 0;
-  const referenceLoad = docket.plannedLoadSize || loadSize;
-  const estimated = docket.productEstimatedVolume;
-
-  if (
-    estimated != null &&
-    estimated > 0 &&
-    referenceLoad > 0 &&
-    loadSize > 0
-  ) {
-    return (estimated / referenceLoad) * loadSize;
-  }
-
-  return loadVolumeM3FromProductSellUom(
-    loadSize,
-    docket.productSellUom || 'TN',
-    docket.productDensity || 1,
-  );
 }
 
 /** Display truck fill % without rounding sub-1% values down to 0. */

@@ -15,8 +15,8 @@ import {
   formatDispatchTruckFillPct,
   formatTruckMaxCapacityLabel,
   isGenericDispatchTruck,
+  loadVolumeM3FromProductSellUom,
   maxLoadInProductSellUom,
-  resolveDocketVolumeM3,
 } from '@/lib/utils/dispatch-helper';
 import type {
   DispatchTruckResource,
@@ -142,7 +142,11 @@ export function AssignTruckDriverModal({
   const needsVolumeAdjust = useCallback(
     (truckRef: DispatchBoardTruckRef | null) => {
       if (!docket || !truckRef || isGenericDispatchTruck(truckRef)) return false;
-      const docketVol = resolveDocketVolumeM3(docket);
+      const docketVol = loadVolumeM3FromProductSellUom(
+        docket.actualLoadSize || docket.plannedLoadSize || 0,
+        docket.productSellUom || 'TN',
+        docket.productDensity || 1,
+      );
       const truckVol = truckRef.tankVolumeM3 || 0;
       return truckVol > 0 && docketVol > truckVol;
     },
@@ -291,7 +295,11 @@ export function AssignTruckDriverModal({
 
   const trucksWithStats = useMemo(() => {
     if (!driver?.trucks || !docket) return [];
-    const docketVol = resolveDocketVolumeM3(docket);
+    const docketVol = loadVolumeM3FromProductSellUom(
+      docket.actualLoadSize || docket.plannedLoadSize || 0,
+      docket.productSellUom || 'TN',
+      docket.productDensity || 1,
+    );
 
     return driver.trucks
       .map((t) => {
