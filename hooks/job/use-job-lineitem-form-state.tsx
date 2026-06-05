@@ -93,9 +93,9 @@ export function useJobLineItemFormState({
     return (
       isEditing &&
       selectedJob?.jobStatus === JOB_STATUS.COMPLETED &&
-      jobLineItemData?.product?.isDeleted === true
+      jobLineItemData?.product?.deleted === true
     );
-  }, [isEditing, selectedJob?.jobStatus, jobLineItemData?.product?.isDeleted]);
+  }, [isEditing, selectedJob?.jobStatus, jobLineItemData?.product?.deleted]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const jobId = jobLineItemData?.jobId ?? selectedJob?.id ?? 0;
