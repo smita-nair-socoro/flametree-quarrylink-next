@@ -82,6 +82,7 @@ export default function JobLineItemForm({
     handleDeleteDeliveryAddress,
     productDetails,
     isSubmitting,
+    isProductDeletedOnCompletedJob,
   } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
@@ -438,7 +439,7 @@ export default function JobLineItemForm({
                           <Input
                             className="w-full"
                             {...field}
-                            disabled={jobStatus === JOB_STATUS.CANCELLED}
+                            disabled={jobStatus === JOB_STATUS.CANCELLED || isProductDeletedOnCompletedJob}
                             isNumber
                             allowDecimal
                             maxDecimals={2}
@@ -446,6 +447,11 @@ export default function JobLineItemForm({
                           />
                         </FormControl>
                         <FormMessage />
+                        {isProductDeletedOnCompletedJob && (
+                          <p className="text-sm font-medium text-destructive">
+                            This product has been deleted and the quantity cannot be increased.
+                          </p>
+                        )}
                       </FormItem>
                     )}
                   />

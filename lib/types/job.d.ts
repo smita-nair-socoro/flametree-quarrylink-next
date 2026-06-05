@@ -116,6 +116,7 @@ export interface JobItem {
     densityTonnagePerM3: number;
     productDescription: string;
     isActive: boolean;
+    isDeleted?: boolean;
     version: number;
   };
   quarrySupplierId: number;

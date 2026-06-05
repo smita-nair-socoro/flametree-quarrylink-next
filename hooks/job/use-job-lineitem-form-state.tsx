@@ -89,6 +89,14 @@ export function useJobLineItemFormState({
 
   const isReadOnly = (isEditing && !canEdit) || isDocketLinked || selectedJob?.jobStatus === JOB_STATUS.CANCELLED;
 
+  const isProductDeletedOnCompletedJob = React.useMemo(() => {
+    return (
+      isEditing &&
+      selectedJob?.jobStatus === JOB_STATUS.COMPLETED &&
+      jobLineItemData?.product?.isDeleted === true
+    );
+  }, [isEditing, selectedJob?.jobStatus, jobLineItemData?.product?.isDeleted]);
+
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const jobId = jobLineItemData?.jobId ?? selectedJob?.id ?? 0;
   const { data: jobWithItems } = useQuery({
@@ -1141,5 +1149,6 @@ export function useJobLineItemFormState({
     handleDeleteDeliveryAddress,
     productDetails: productDetailsQuery.data,
     isSubmitting,
+    isProductDeletedOnCompletedJob,
   };
 }
