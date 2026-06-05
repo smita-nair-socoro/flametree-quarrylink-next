@@ -12,6 +12,7 @@ export interface Product {
   material: MaterialType;
   materialId: number;
   densityTonnagePerM3: number;
+  needDensityOverride?: boolean; // If true, the density will be overridden by the supplier's density
   productDescription: string;
   baseUnit: BASE_UNIT;
   measureUnit: MEASURE_UNIT[];
@@ -40,6 +41,7 @@ export interface LinkedProductMaterialProduct {
   productCode: string;
   materialId: number;
   densityTonnagePerM3: number;
+  needDensityOverride?: boolean; // If true, the density will be overridden by the supplier's density
   productDescription: string;
   isActive: boolean;
   version: number;
