@@ -11,6 +11,7 @@ export const NewQuotationLineItemFormSchema = z
     productId: z.coerce.number().min(1, { message: 'Required' }),
     quarrySupplierId: z.coerce.number().min(1, { message: 'Required' }),
     supplierProductName: z.string().nonempty({ message: 'Required' }),
+    densityTonnagePerM3: z.coerce.number().min(0).optional(),
     productCostUom: z.string().nonempty({ message: 'Required' }),
     productCostQty: z.coerce.number().optional(),
     productCostPrice: z.coerce.number().positive({ message: 'Must be greater than 0' }),
@@ -33,6 +34,17 @@ export const NewQuotationLineItemFormSchema = z
     grossProfit: z.coerce.number().optional(),
   })
   .superRefine((values, ctx) => {
+    if (
+      values.quarrySupplierId >= 1 &&
+      (values.densityTonnagePerM3 ?? 0) <= 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['densityTonnagePerM3'],
+        message: 'Must be greater than 0',
+      });
+    }
+
     if (values.quoteItemType === QUOTE_ITEM_TYPE.COLLECTION) return;
 
     if (!values.truckType) {

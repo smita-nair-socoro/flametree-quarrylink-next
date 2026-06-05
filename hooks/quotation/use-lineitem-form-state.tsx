@@ -108,6 +108,9 @@ export function useLineItemFormState({
       supplierProductName: isEditing
         ? (selectedLineItem?.supplierProductName ?? '')
         : '',
+      densityTonnagePerM3: isEditing
+        ? (selectedLineItem?.densityTonnagePerM3 ?? 0)
+        : 0,
       productCostUom: isEditing ? (selectedLineItem?.productCostUom ?? '') : '',
       productCostQty: isEditing ? (selectedLineItem?.productCostQty ?? 0) : 0,
       productCostPrice: isEditing
@@ -349,6 +352,7 @@ export function useLineItemFormState({
       const opts = { shouldDirty: false } as const;
       form.setValue('quarrySupplierId', 0, opts);
       form.setValue('supplierProductName', '', opts);
+      form.setValue('densityTonnagePerM3', 0, opts);
       form.setValue('productCostUom', '', opts);
       form.setValue('productCostQty', 0, opts);
       form.setValue('productCostPrice', 0, opts);
@@ -439,11 +443,19 @@ export function useLineItemFormState({
     isCollectionQuote,
   ]);
 
-  // Populate supplierProductName from product details response
+  // Populate supplierProductName and density from selected quarry supplier product
   React.useEffect(() => {
     const currentProductId = Number(form.getValues('productId') || 0);
     const currentQuarryId = Number(form.getValues('quarrySupplierId') || 0);
     const details = productDetailsQuery.data;
+
+    if (!isEditing && (!currentProductId || !currentQuarryId)) {
+      form.setValue('densityTonnagePerM3', 0, {
+        shouldDirty: false,
+        shouldValidate: false,
+      });
+    }
+
     if (
       !details ||
       !currentProductId ||
@@ -468,7 +480,17 @@ export function useLineItemFormState({
         shouldDirty: false,
       });
     }
-  }, [quarryId, selectedProductId, productDetailsQuery.data, form]);
+
+    if (!isEditing) {
+      const qspDensity = Number(matched?.densityTonnagePerM3 ?? 0);
+      const productDensity = Number(details.densityTonnagePerM3 ?? 0);
+      const resolvedDensity = qspDensity > 0 ? qspDensity : productDensity;
+      form.setValue('densityTonnagePerM3', resolvedDensity, {
+        shouldDirty: false,
+        shouldValidate: true,
+      });
+    }
+  }, [quarryId, selectedProductId, productDetailsQuery.data, form, isEditing]);
 
   // Static options
   const truckTypeOptions: SelectOption[] = React.useMemo(
@@ -525,6 +547,7 @@ export function useLineItemFormState({
   const productCostUom = form.watch('productCostUom');
   const productSellUom = form.watch('productSellUom');
   const productSellQty = form.watch('productSellQty');
+  const densityTonnagePerM3 = form.watch('densityTonnagePerM3');
 
   // Helper conversion functions (reusable)
   const toTn = React.useCallback(
@@ -565,7 +588,7 @@ export function useLineItemFormState({
 
   // Auto-calculate product cost quantity based on sell quantity/UOM and density
   React.useEffect(() => {
-    const density = Number(productDetailsQuery.data?.densityTonnagePerM3 || 0);
+    const density = Number(densityTonnagePerM3 || 0);
     const from = form.getValues('productSellUom') || '';
     const to = form.getValues('productCostUom') || '';
     const qty = Number(form.getValues('productSellQty') || 0);
@@ -604,7 +627,7 @@ export function useLineItemFormState({
     productSellQty,
     productSellUom,
     productCostUom,
-    productDetailsQuery.data?.densityTonnagePerM3,
+    densityTonnagePerM3,
     form,
     toTn,
     fromTn,
@@ -817,7 +840,7 @@ export function useLineItemFormState({
 
   // Auto-calculate truck sell qty when UOM is TN, M3, BULKA, or KG_20
   React.useEffect(() => {
-    const density = Number(productDetailsQuery.data?.densityTonnagePerM3 || 0);
+    const density = Number(densityTonnagePerM3 || 0);
     const productSellQty = Number(form.getValues('productSellQty') || 0);
     const productSellUom = form.getValues('productSellUom') || '';
     const currentTruckSellUom = form.getValues('truckSellUom') || '';
@@ -849,7 +872,7 @@ export function useLineItemFormState({
     productSellQty,
     productSellUom,
     truckSellUom,
-    productDetailsQuery.data?.densityTonnagePerM3,
+    densityTonnagePerM3,
     form,
     toTn,
     fromTn,
@@ -857,7 +880,7 @@ export function useLineItemFormState({
 
   // Auto-calculate truck cost qty when UOM is TN, M3, BULKA, or KG_20
   React.useEffect(() => {
-    const density = Number(productDetailsQuery.data?.densityTonnagePerM3 || 0);
+    const density = Number(densityTonnagePerM3 || 0);
     const productSellQty = Number(form.getValues('productSellQty') || 0);
     const productSellUom = form.getValues('productSellUom') || '';
     const currentTruckCostUom = form.getValues('truckCostUom') || '';
@@ -889,7 +912,7 @@ export function useLineItemFormState({
     productSellQty,
     productSellUom,
     truckCostUom,
-    productDetailsQuery.data?.densityTonnagePerM3,
+    densityTonnagePerM3,
     form,
     toTn,
     fromTn,
@@ -1037,6 +1060,7 @@ export function useLineItemFormState({
         (quarryOptions.find((q) => q.value === values.quarrySupplierId)
           ?.label as string) || '',
       supplierProductName: values.supplierProductName,
+      densityTonnagePerM3: values.densityTonnagePerM3,
       productCostUom: values.productCostUom,
       productCostQty: values.productCostQty,
       productCostPrice: dollarsToCents(values.productCostPrice),
@@ -1127,6 +1151,5 @@ export function useLineItemFormState({
       updateQuoteItem.isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
-    productDetails: productDetailsQuery.data,
   };
 }

@@ -12,6 +12,7 @@ import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import {
   buildDispatchOperationalLoadUpdate,
   formatDispatchProductSellUomLabel,
+  formatDispatchTruckFillPct,
   formatTruckMaxCapacityLabel,
   isGenericDispatchTruck,
   loadVolumeM3FromProductSellUom,
@@ -489,7 +490,11 @@ export function AssignTruckDriverModal({
                 <p className="text-gray-500 text-sm mt-1">
                   {viewType === 'trucks' && truck ? (
                     <>
-                      {docket.docketNumber} → {truck.licensePlate}
+                      Choose which driver to use for{' '}
+                      <span className="font-semibold text-gray-900">
+                        {truck.licensePlate}
+                      </span>{' '}
+                      on this trip.
                     </>
                   ) : viewType === 'drivers' && driver ? (
                     <>
@@ -507,31 +512,36 @@ export function AssignTruckDriverModal({
             {docket && viewType === 'trucks' && truck && (
               <div className="flex flex-col">
                 <div className="px-6 pb-6">
-                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 mb-1">Load</span>
-                      <span className="font-bold text-gray-900">
-                        {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-                        {docket.productSellUom === 'M3'
-                          ? 'm³'
-                          : docket.productSellUom === 'KG_20'
-                            ? 'x 20kg'
-                            : docket.productSellUom || 'TN'}
-                      </span>
+                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
+                        <ClipboardList className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-gray-900 text-[15px]">
+                          {docket.docketNumber}
+                        </span>
+                        <span className="text-gray-500 text-sm">
+                          {docket.customerName || 'Unknown Customer'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 mb-1">
-                        Truck limits
+                    <div className="flex flex-col items-end">
+                      <span className="text-[10px] font-bold text-gray-500 tracking-wider">
+                        LOAD
                       </span>
-                      <span className="font-bold text-gray-900">
-                        6 m³ / 8 TN
-                      </span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm text-gray-500 mb-1">
-                        Trip fill
-                      </span>
-                      <span className="font-bold text-gray-900">75%</span>
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-bold text-xl text-gray-900">
+                          {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
+                        </span>
+                        <span className="font-bold text-gray-900">
+                          {docket.productSellUom === 'M3'
+                            ? 'm³'
+                            : docket.productSellUom === 'KG_20'
+                              ? 'x 20kg'
+                              : docket.productSellUom || 'TN'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -553,9 +563,6 @@ export function AssignTruckDriverModal({
                       >
                         <span className="font-bold text-gray-900 text-[15px]">
                           {d.driverName}
-                        </span>
-                        <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-bold rounded-md">
-                          AVAILABLE
                         </span>
                       </div>
                     ))}
@@ -679,8 +686,8 @@ export function AssignTruckDriverModal({
                                 </span>
                               ) : (
                                 <span className="text-xs font-medium text-green-700 mt-0.5">
-                                  This load: {Math.round(t.fillPct)}% of the
-                                  tighter truck limit (body or payload)
+                                  This load utilises {formatDispatchTruckFillPct(t.fillPct)}% of the
+                                  truck's capacity
                                 </span>
                               )}
                             </div>

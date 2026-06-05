@@ -78,6 +78,16 @@ export function loadVolumeM3FromProductSellUom(
   return loadSize;
 }
 
+/** Display truck fill % without rounding sub-1% values down to 0. */
+export function formatDispatchTruckFillPct(fillPct: number): string {
+  if (!Number.isFinite(fillPct) || fillPct <= 0) return '0';
+  if (fillPct < 10) {
+    const formatted = fillPct.toFixed(1);
+    return formatted.endsWith('.0') ? formatted.slice(0, -2) : formatted;
+  }
+  return String(Math.round(fillPct));
+}
+
 /** Max product sell qty that fits in a truck body volume (m³). */
 export function maxLoadInProductSellUom(
   truckVolumeM3: number,
