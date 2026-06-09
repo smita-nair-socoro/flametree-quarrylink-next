@@ -28,7 +28,6 @@ import {
 } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { centsToDollars } from '@/lib/utils/currency';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';

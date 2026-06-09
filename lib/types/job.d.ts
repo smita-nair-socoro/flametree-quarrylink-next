@@ -71,6 +71,7 @@ export interface JobLineItem {
   productName: string;
   quarryName: string;
   supplierProductName: string;
+  densityTonnagePerM3: number;
   productCostUom: string;
   productCostQty: number;
   productCostPrice: number;
@@ -122,6 +123,8 @@ export interface JobItem {
   quarrySupplierId: number;
   quarrySupplier: Partial<QuarrySupplier>;
   quarrySupplierName: string;
+  densityTonnagePerM3: number;
+
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;

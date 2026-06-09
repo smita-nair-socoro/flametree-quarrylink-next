@@ -25,6 +25,8 @@ import {
   ChecklistReportModal,
   CHECKLIST_TYPE,
 } from '@/components/checklist-report-modal';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { notifyError } from '@/lib/toast';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -70,6 +72,8 @@ interface DocketDetailsPanelProps {
   onClose: () => void;
   onUnassign: () => void;
   isDispatchView?: boolean;
+  /** Dispatch trucks view: refresh utilisation sort after load size save */
+  onUtilisationLoadSizeChange?: (loadSize: number) => void;
 }
 
 export function DocketDetailsPanel({
@@ -77,6 +81,7 @@ export function DocketDetailsPanel({
   onClose,
   onUnassign,
   isDispatchView = false,
+  onUtilisationLoadSizeChange,
 }: DocketDetailsPanelProps) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
@@ -180,13 +185,17 @@ export function DocketDetailsPanel({
     }
 
     payload.deliveryDistanceQuantity = deliveryDistanceQuantity;
-    console.log(payload);
 
     operationalUpdateMutation.mutate(
       { id: docketId, data: payload },
       {
-        onSuccess: () => toast.success('Load size updated successfully'),
-        onError: () => toast.error('Failed to update load size'),
+        onSuccess: () => {
+          if (isDispatchView && onUtilisationLoadSizeChange && val > 0) {
+            onUtilisationLoadSizeChange(val);
+          }
+          toast.success('Load size updated successfully');
+        },
+        onError: (error) => notifyError(extractErrorMessage(error)),
       },
     );
   };
@@ -794,7 +803,7 @@ export function DocketDetailsPanel({
               <User className="w-4 h-4" /> Unassign from trip
             </button>
           )}
-          <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center cursor-pointer">
+          <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center cursor-pointer" onClick={() => actions.duplicate()}>
             Duplicate
           </button>
         </div>
