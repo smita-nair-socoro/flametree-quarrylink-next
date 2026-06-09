@@ -5,10 +5,10 @@ import type { ChecklistSubmitRequest } from '../types/checklist-submission';
 import { notifyError } from '../toast';
 import { extractErrorMessage } from '../utils/error-message-helper';
 
-export const TruckChecklistTemplateQueryOptions = () =>
+export const TruckChecklistTemplateQueryOptions = (truckType?: string) =>
   queryOptions({
-    queryKey: ChecklistKeys.truckTemplate(),
-    queryFn: () => APIClient.checklists.getTruckTemplate(),
+    queryKey: ChecklistKeys.truckTemplate(truckType),
+    queryFn: () => APIClient.checklists.getTruckTemplate(truckType),
     staleTime: 5 * 60 * 1000,
   });
 

@@ -4,10 +4,7 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DriverAppAssignedDocketsQueryOptions } from '@/lib/api/driver-app';
-import {
-  DriverChecklistTemplateQueryOptions,
-  TruckChecklistTemplateQueryOptions,
-} from '@/lib/api/checklist';
+import { DriverChecklistTemplateQueryOptions } from '@/lib/api/checklist';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
 import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt-drawer';
@@ -34,6 +31,9 @@ export default function DriversAppPage() {
   const [checklistTruckId, setChecklistTruckId] = useState<
     number | undefined
   >();
+  const [checklistTruckType, setChecklistTruckType] = useState<
+    string | undefined
+  >();
   const [pendingDocketId, setPendingDocketId] = useState<number | null>(null);
   const [vehicleInspectionDoneSignal, setVehicleInspectionDoneSignal] =
     useState(0);
@@ -48,21 +48,13 @@ export default function DriversAppPage() {
   const setDriverTemplate = useChecklistTemplateStore(
     (s) => s.setDriverTemplate,
   );
-  const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
   const { data: driverTemplate } = useQuery(
     DriverChecklistTemplateQueryOptions(),
-  );
-  const { data: truckTemplate } = useQuery(
-    TruckChecklistTemplateQueryOptions(),
   );
 
   React.useEffect(() => {
     if (driverTemplate) setDriverTemplate(driverTemplate);
   }, [driverTemplate, setDriverTemplate]);
-
-  React.useEffect(() => {
-    if (truckTemplate) setTruckTemplate(truckTemplate);
-  }, [truckTemplate, setTruckTemplate]);
 
   const setIsDailyChecklistRequired = useDriverChecklistStore(
     (s) => s.setIsDailyChecklistRequired,
@@ -197,11 +189,13 @@ export default function DriversAppPage() {
                   truckLicensePlate,
                   docketId,
                   truckId,
+                  truckType,
                 ) => {
                   setChecklistType(type);
                   setChecklistTruckLicensePlate(truckLicensePlate);
                   setChecklistDocketId(docketId);
                   setChecklistTruckId(truckId);
+                  setChecklistTruckType(truckType);
                   if (type === 'pre-start' && docketId != null) {
                     setPendingDocketId(docketId);
                   }
@@ -303,6 +297,7 @@ export default function DriversAppPage() {
         driverName={driverData?.driverName}
         driverId={driverData?.id}
         truckId={checklistTruckId}
+        truckType={checklistTruckType}
         docketId={checklistDocketId}
         onCompleteExternally={() => {
           setIsChecklistPromptOpen(false);

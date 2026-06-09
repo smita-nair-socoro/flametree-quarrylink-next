@@ -62,6 +62,7 @@ interface DocketsTabProps {
     truckLicensePlate?: string,
     docketId?: number,
     truckId?: number,
+    truckType?: string,
   ) => void;
   pendingDocketId?: number | null;
   onPendingDocketConsumed?: () => void;
@@ -548,6 +549,7 @@ export default function DocketsTab({
                             selectedDocket.truck?.licensePlate,
                             selectedDocket.id,
                             selectedDocket.truckId,
+                            selectedDocket.truckType,
                           );
                         }}
                       >
