@@ -1,0 +1,36 @@
+Hi {recipientFirstName},
+
+{primaryMessage}
+
+Quote Number: {quoteNumber}
+Customer: {customerName}
+Project: {projectName}
+Total Value: ${totalValue} ex GST
+{actionedByLabel}: {actionedByName}
+{actionDateLabel}: {actionDate}
+Reason: {declineReason}
+Note: {declineNote}
+
+{nextStepMessage}
+
+Account Manager:
+{accountManagerName}
+{accountManagerEmail}
+
+View Quote Details:
+{quoteUrl}
+
+{footerReason}
+
+Business Details:
+{BusinessName}
+ABN: {TenantABN}
+
+Office Address:
+{TenantAddress}
+
+Business Contact:
+{TenantPhone}
+{TenantEmail}
+
+© 2026 {BusinessName}. All rights reserved.
