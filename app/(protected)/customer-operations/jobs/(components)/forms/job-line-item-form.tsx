@@ -447,11 +447,6 @@ export default function JobLineItemForm({
                           />
                         </FormControl>
                         <FormMessage />
-                        {isProductDeletedOnCompletedJob && (
-                          <p className="text-sm font-medium text-destructive">
-                            This product has been deleted and the quantity cannot be increased.
-                          </p>
-                        )}
                       </FormItem>
                     )}
                   />
@@ -516,6 +511,11 @@ export default function JobLineItemForm({
                       )}
                   </div>
                 </div>
+                {isProductDeletedOnCompletedJob && (
+                  <p className="text-sm font-medium text-destructive">
+                    This product has been deleted and the quantity cannot be increased.
+                  </p>
+                )}
                 {/* Conversion Info Box */}
               </div>
 
