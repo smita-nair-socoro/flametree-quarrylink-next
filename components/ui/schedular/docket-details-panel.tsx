@@ -27,7 +27,6 @@ import {
 } from '@/components/checklist-report-modal';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError } from '@/lib/toast';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,

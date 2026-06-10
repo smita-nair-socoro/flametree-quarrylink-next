@@ -10,6 +10,7 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { DispatchView } from './views/dispatch-view';
 import { DispatchMobileProvider, useDispatchMobile } from './mobile/dispatch-mobile-context';
@@ -86,11 +87,12 @@ export default function DispatchPage() {
     return (
       <DispatchMobileProvider date={selectedDate}>
         <div className="flex h-dvh max-h-dvh w-full flex-col overflow-hidden bg-white">
-          <div className="flex h-[70px] shrink-0 items-center border-b border-gray-200 bg-white px-4">
+          <div className="flex h-[70px] shrink-0 items-center gap-2 border-b border-gray-200 bg-white px-4">
+            <SidebarTrigger className="shrink-0" />
             <DeliveriesDateNav
               date={selectedDate}
               onDateChange={setSelectedDate}
-              className="w-full"
+              className="min-w-0 flex-1"
             />
           </div>
           <MobileDispatchTabs />

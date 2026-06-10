@@ -1,27 +1,20 @@
 'use client';
 
 import * as React from 'react';
+import { format } from 'date-fns';
 import {
   Clock,
   FileText,
-  ListFilter,
   Search,
-  SlidersHorizontal,
   Truck,
   User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Spinner } from '@/components/ui/spinner';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import {
+  dayBucketMs,
   formatDispatchProductSellUomLabel,
   formatTimeRange,
   matchesUnassignedSearch,
@@ -29,31 +22,96 @@ import {
   parseCollectionStartMs,
 } from '@/lib/utils/dispatch-helper';
 import { useDispatchMobile } from '../dispatch-mobile-context';
-
-type SortKey = 'time' | 'size' | 'customer';
+import {
+  hasActiveQueueFilters,
+  QueueFiltersDrawer,
+  QueueFiltersTriggerButton,
+  type QueueFilterState,
+} from './queue-filters-drawer';
+import {
+  QueueSortDrawer,
+  QueueSortTriggerButton,
+  type QueueSortKey,
+  type QueueSortOrder,
+} from './queue-sort-drawer';
 
 export function UnassignedDockets() {
   const {
+    date,
     unassignedForDay,
+    allUnassignedDockets,
     isLoadingTrucks,
     isLoadingDrivers,
+    queueDateScope,
+    setQueueDateScope,
+    isLoadingAllUnassignedDockets,
     openAssignTruck,
     openAssignDriver,
     openDetails,
   } = useDispatchMobile();
 
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [sortBy, setSortBy] = React.useState<SortKey>('time');
+  const [sortBy, setSortBy] = React.useState<QueueSortKey>('time');
+  const [sortOrder, setSortOrder] = React.useState<QueueSortOrder>('asc');
+  const [customerNames, setCustomerNames] = React.useState<string[]>([]);
+  const [sortOpen, setSortOpen] = React.useState(false);
+  const [filtersOpen, setFiltersOpen] = React.useState(false);
 
-  const isLoading = isLoadingTrucks || isLoadingDrivers;
+  const queueFilter: QueueFilterState = {
+    dateScope: queueDateScope,
+    customerNames,
+  };
+
+  const handleQueueFilterChange = (next: QueueFilterState) => {
+    setQueueDateScope(next.dateScope);
+    setCustomerNames(next.customerNames);
+  };
+
+  const isLoading =
+    isLoadingTrucks ||
+    isLoadingDrivers ||
+    (queueDateScope === 'all_dates' && isLoadingAllUnassignedDockets);
+
+  const scopeDockets =
+    queueDateScope === 'this_day' ? unassignedForDay : allUnassignedDockets;
+
+  const customerOptions = React.useMemo(() => {
+    const names = new Set<string>();
+    for (const d of scopeDockets) {
+      if (d.customerName) names.add(d.customerName);
+    }
+    return [...names].sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: 'base' }),
+    );
+  }, [scopeDockets]);
 
   const visibleDockets = React.useMemo(() => {
-    const filtered = unassignedForDay.filter((d) =>
-      matchesUnassignedSearch(d, searchQuery),
-    );
+    const filtered = scopeDockets.filter((d) => {
+      if (!matchesUnassignedSearch(d, searchQuery)) return false;
+      if (
+        customerNames.length > 0 &&
+        (!d.customerName ||
+          !customerNames.includes(d.customerName))
+      ) {
+        return false;
+      }
+      return true;
+    });
+
     const list = [...filtered];
+    const direction = sortOrder === 'asc' ? 1 : -1;
+
     list.sort((a, b) => {
       let cmp = 0;
+      if (
+        queueDateScope === 'all_dates' &&
+        sortBy === 'customer'
+      ) {
+        cmp =
+          dayBucketMs(a.deliveryCollectionStartTime) -
+          dayBucketMs(b.deliveryCollectionStartTime);
+        if (cmp !== 0) return cmp * direction;
+      }
       switch (sortBy) {
         case 'time':
           cmp =
@@ -71,36 +129,49 @@ export function UnassignedDockets() {
           );
           break;
       }
-      if (cmp !== 0) return cmp;
+      if (cmp !== 0) return cmp * direction;
       return String(a.docketNumber).localeCompare(String(b.docketNumber));
     });
     return list;
-  }, [unassignedForDay, searchQuery, sortBy]);
+  }, [
+    scopeDockets,
+    searchQuery,
+    customerNames,
+    queueDateScope,
+    sortBy,
+    sortOrder,
+  ]);
+
+  const filtersActive = hasActiveQueueFilters(queueFilter);
 
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-end gap-2">
-        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortKey)}>
-          <SelectTrigger className="h-9 w-[110px] rounded-lg border-gray-200 text-sm">
-            <ListFilter className="mr-1 h-4 w-4 text-gray-500" />
-            <SelectValue placeholder="Sort" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="time">Time</SelectItem>
-            <SelectItem value="size">Size</SelectItem>
-            <SelectItem value="customer">Customer</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 rounded-lg border-gray-200 text-sm font-medium"
-        >
-          <SlidersHorizontal className="mr-1.5 h-4 w-4" />
-          Filters
-        </Button>
+        <QueueSortTriggerButton onClick={() => setSortOpen(true)} />
+        <QueueFiltersTriggerButton
+          active={filtersActive}
+          onClick={() => setFiltersOpen(true)}
+        />
       </div>
+
+      <QueueSortDrawer
+        open={sortOpen}
+        onOpenChange={setSortOpen}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortByChange={setSortBy}
+        onSortOrderChange={setSortOrder}
+      />
+
+      <QueueFiltersDrawer
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        filter={queueFilter}
+        onFilterChange={handleQueueFilterChange}
+        customerOptions={customerOptions}
+        boardDate={date}
+        isDateScopeLoading={isLoadingAllUnassignedDockets}
+      />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -112,13 +183,24 @@ export function UnassignedDockets() {
         />
       </div>
 
+      {queueDateScope === 'all_dates' ? (
+        <p className="text-xs text-[#64748B]">
+          Showing unassigned jobs across all dates. Sorted by date when sorting
+          by customer; assigning schedules on{' '}
+          <span className="font-semibold text-[#0F172A]">
+            {format(date, 'd MMM yyyy')}
+          </span>
+          .
+        </p>
+      ) : null}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-16">
           <Spinner size="medium" />
         </div>
       ) : visibleDockets.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-200 bg-white py-12 text-center text-sm text-muted-foreground">
-          No unassigned dockets for this day.
+          No unassigned dockets match your filters.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -138,6 +220,15 @@ export function UnassignedDockets() {
                   <span className="text-sm font-semibold text-[#8E51FF]">
                     {docket.docketNumber}
                   </span>
+                  {queueDateScope === 'all_dates' &&
+                  docket.deliveryCollectionDate ? (
+                    <span className="rounded-md border border-[#E9D5FF] bg-[#FAF5FF] px-2 py-0.5 text-xs font-semibold text-[#6D28D9]">
+                      {format(
+                        new Date(docket.deliveryCollectionDate),
+                        'd MMM yyyy',
+                      )}
+                    </span>
+                  ) : null}
                 </div>
                 <h3 className="mt-2 text-lg font-bold text-[#0F172A]">
                   {docket.customerName || 'Unknown customer'}

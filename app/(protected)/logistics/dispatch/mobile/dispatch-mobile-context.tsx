@@ -35,11 +35,14 @@ import {
   mapUnassignedDocketDtoToBoardRow,
   assignmentDateDisplayForUnassign,
   resolveUnassignAssignmentLabels,
+  sortDispatchDriverList,
+  sortDispatchTruckList,
 } from '@/lib/utils/dispatch-helper';
 import {
   MobileAssignPickerDrawer,
   type MobileAssignSlot,
 } from './mobile-assign-picker-drawer';
+import type { QueueDateScope } from './queue/queue-filters-drawer';
 
 type AssignModalData = {
   docketId: string;
@@ -87,6 +90,7 @@ type DispatchMobileContextValue = {
   truckResources: TruckResource[];
   driverResources: TruckResource[];
   unassignedForDay: DispatchDocket[];
+  allUnassignedDockets: DispatchDocket[];
   unassignedCount: number;
   truckAssignedDockets: DispatchDocket[];
   driverAssignedDockets: DispatchDocket[];
@@ -95,6 +99,9 @@ type DispatchMobileContextValue = {
   openDetails: (docketId: string) => void;
   requestUnassign: (docketId: string) => void;
   openMove: (docketId: string, mode: 'truck' | 'driver') => void;
+  queueDateScope: QueueDateScope;
+  setQueueDateScope: (scope: QueueDateScope) => void;
+  isLoadingAllUnassignedDockets: boolean;
 };
 
 const DispatchMobileContext = React.createContext<
@@ -151,6 +158,12 @@ export function DispatchMobileProvider({
   const [pendingUnassignDocketId, setPendingUnassignDocketId] = React.useState<
     string | null
   >(null);
+  const [queueDateScope, setQueueDateScopeState] =
+    React.useState<QueueDateScope>('this_day');
+
+  const setQueueDateScope = React.useCallback((scope: QueueDateScope) => {
+    setQueueDateScopeState(scope);
+  }, []);
 
   const start = React.useMemo(() => startOfDay(date).toISOString(), [date]);
   const end = React.useMemo(() => endOfDay(date).toISOString(), [date]);
@@ -161,7 +174,15 @@ export function DispatchMobileProvider({
   const { data: driversData, isLoading: isLoadingDrivers } = useQuery(
     SchedulerDriversQueryOptions(start, end),
   );
-  const { data: allDocketsData } = useQuery(DocketsListQueryOptions());
+  const {
+    data: allDocketsData,
+    isLoading: isLoadingAllUnassignedDockets,
+    isFetching: isFetchingAllUnassignedDockets,
+  } = useQuery({
+    ...DocketsListQueryOptions(),
+    enabled: queueDateScope === 'all_dates',
+    staleTime: 0,
+  });
 
   const assignMutation = useAssignDocket();
   const unassignMutation = useUnassignDocket();
@@ -213,7 +234,7 @@ export function DispatchMobileProvider({
   }, [trucksData, driversData, allDocketsData]);
 
   const truckResources: TruckResource[] = React.useMemo(() => {
-    return (trucksData?.resources || []).map((r) => {
+    const mapped = (trucksData?.resources || []).map((r) => {
       if (isDispatchTruckResource(r)) {
         return {
           id: String(r.id),
@@ -239,10 +260,11 @@ export function DispatchMobileProvider({
         businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
       };
     });
+    return sortDispatchTruckList(mapped);
   }, [trucksData]);
 
   const driverResources: TruckResource[] = React.useMemo(() => {
-    return (driversData?.resources || []).map((r) => {
+    const mapped = (driversData?.resources || []).map((r) => {
       if (isDispatchDriverResource(r)) {
         return {
           id: String(r.id),
@@ -266,16 +288,19 @@ export function DispatchMobileProvider({
         businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
       };
     });
+    return sortDispatchDriverList(mapped);
   }, [driversData]);
+
+  const allUnassignedDockets = React.useMemo(
+    () =>
+      dockets.filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED),
+    [dockets],
+  );
 
   const unassignedForDay = React.useMemo(
     () =>
-      dockets.filter(
-        (d) =>
-          d.docketStatus === DOCKET_STATUS.UNASSIGNED &&
-          isDocketOnSelectedLocalDay(d, date),
-      ),
-    [dockets, date],
+      allUnassignedDockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
+    [allUnassignedDockets, date],
   );
 
   const truckAssignedDockets = React.useMemo(() => {
@@ -558,6 +583,7 @@ export function DispatchMobileProvider({
     truckResources,
     driverResources,
     unassignedForDay,
+    allUnassignedDockets,
     unassignedCount: unassignedForDay.length,
     truckAssignedDockets,
     driverAssignedDockets,
@@ -566,6 +592,11 @@ export function DispatchMobileProvider({
     openDetails: (docketId) => setSelectedDocketId(docketId),
     requestUnassign: (docketId) => setPendingUnassignDocketId(docketId),
     openMove: (docketId, mode) => openResourcePicker(docketId, mode),
+    queueDateScope,
+    setQueueDateScope,
+    isLoadingAllUnassignedDockets:
+      queueDateScope === 'all_dates' &&
+      (isLoadingAllUnassignedDockets || isFetchingAllUnassignedDockets),
   };
 
   return (

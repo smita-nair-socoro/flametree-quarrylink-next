@@ -463,6 +463,63 @@ export function isGenericDispatchTruckName(name?: string): boolean {
   return (name ?? '').toLowerCase().includes('generic');
 }
 
+export function sortTruckResourcesAlphabeticalGenericLast(
+  list: TruckResource[],
+): TruckResource[] {
+  return [...list].sort((a, b) => {
+    const genericA = isGenericDispatchTruckName(a.name);
+    const genericB = isGenericDispatchTruckName(b.name);
+    if (genericA !== genericB) return genericA ? 1 : -1;
+    return (a.name || '').localeCompare(b.name || '', undefined, {
+      sensitivity: 'base',
+    });
+  });
+}
+
+function sortDispatchResourcesAlphabetical(
+  list: TruckResource[],
+): TruckResource[] {
+  return [...list].sort((a, b) =>
+    (a.name || '').localeCompare(b.name || '', undefined, {
+      sensitivity: 'base',
+    }),
+  );
+}
+
+function sortDispatchResourcesByBusinessType(
+  resources: TruckResource[],
+  sortWithinGroup: (list: TruckResource[]) => TruckResource[],
+): TruckResource[] {
+  const internal = resources.filter(
+    (r) => r.businessType === TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  const subcontractor = resources.filter(
+    (r) => r.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  return [
+    ...sortWithinGroup(internal),
+    ...sortWithinGroup(subcontractor),
+  ];
+}
+
+/** Flat truck list: INTERNAL (alpha, generic last) then subcontractor (alpha, generic last). */
+export function sortDispatchTruckList(trucks: TruckResource[]): TruckResource[] {
+  return sortDispatchResourcesByBusinessType(
+    trucks,
+    sortTruckResourcesAlphabeticalGenericLast,
+  );
+}
+
+/** Flat driver list: INTERNAL (alpha) then subcontractor (alpha). */
+export function sortDispatchDriverList(
+  drivers: TruckResource[],
+): TruckResource[] {
+  return sortDispatchResourcesByBusinessType(
+    drivers,
+    sortDispatchResourcesAlphabetical,
+  );
+}
+
 /** Default truck column order when utilisation sorting is off. */
 export function sortDispatchBoardTruckColumns(
   trucks: TruckResource[],
@@ -474,17 +531,7 @@ export function sortDispatchBoardTruckColumns(
     (t) => t.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
   );
 
-  const sortWithinFleetGroup = (list: TruckResource[]) =>
-    [...list].sort((a, b) => {
-      const genericA = isGenericDispatchTruckName(a.name);
-      const genericB = isGenericDispatchTruckName(b.name);
-      if (genericA !== genericB) return genericA ? 1 : -1;
-      return (a.name || '').localeCompare(b.name || '', undefined, {
-        sensitivity: 'base',
-      });
-    });
-
-  const sortedInternal = sortWithinFleetGroup(internal);
+  const sortedInternal = sortTruckResourcesAlphabeticalGenericLast(internal);
 
   const byHaulier = new Map<string, TruckResource[]>();
   for (const t of external) {
@@ -496,7 +543,9 @@ export function sortDispatchBoardTruckColumns(
 
   const sortedExternal = [...byHaulier.keys()]
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-    .flatMap((key) => sortWithinFleetGroup(byHaulier.get(key)!));
+    .flatMap((key) =>
+      sortTruckResourcesAlphabeticalGenericLast(byHaulier.get(key)!),
+    );
 
   return [...sortedInternal, ...sortedExternal];
 }

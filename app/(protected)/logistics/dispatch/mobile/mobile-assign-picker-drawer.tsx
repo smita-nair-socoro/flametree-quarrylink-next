@@ -357,7 +357,6 @@ export function MobileAssignPickerDrawer({
                           <TableBadges
                             names={[t.truckBusinessType || 'INTERNAL']}
                           />
-
                         </div>
                         <p className="text-sm text-[#64748B]">
                           {t.truckVol} m³
