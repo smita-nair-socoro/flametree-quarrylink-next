@@ -111,15 +111,29 @@ export default function ProtectedLayout({
   return (
     <SidebarProvider>
       {!isDriversApp && <AppSidebar />}
-      <SidebarInset className="flex flex-col min-w-0">
+      <SidebarInset className="flex min-h-0 min-w-0 flex-col">
         {!isDriversApp && !isDeliveries && (
           <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
             <SidebarTrigger className="md:hidden" />
           </header>
         )}
-        <div className="flex-1 overflow-auto bg-[#F9FAFB]">
-          <div className="h-full overflow-auto">{children}</div>
+        <div
+          className={
+            isDeliveries
+              ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F9FAFB]'
+              : 'flex-1 overflow-auto bg-[#F9FAFB]'
+          }
+        >
+          <div
+            className={
+              isDeliveries
+                ? 'flex h-full min-h-0 flex-col overflow-hidden'
+                : 'h-full overflow-auto'
+            }
+          >
+            {children}
+          </div>
         </div>
       </SidebarInset>
     </SidebarProvider>

@@ -92,7 +92,7 @@ export function DeliveriesDateNav({
     <Popover open={open} onOpenChange={setOpen}>
       <div
         className={cn(
-          'flex w-[276px] items-stretch overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm',
+          'flex items-stretch overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm',
           className,
         )}
       >
