@@ -549,7 +549,7 @@ export default function DocketsTab({
                             selectedDocket.truck?.licensePlate,
                             selectedDocket.id,
                             selectedDocket.truckId,
-                            selectedDocket.truckType,
+                            selectedDocket.truck?.truckType,
                           );
                         }}
                       >
