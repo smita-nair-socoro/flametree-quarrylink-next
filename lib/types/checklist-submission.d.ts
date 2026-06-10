@@ -39,6 +39,7 @@ export interface ChecklistSubmitRequest {
   docketId?: number;
   confirmed: boolean;
   snapshotJson?: string;
+  additionalNotes?: string;
   answers: ChecklistSubmitAnswerRequest[];
   submittedAt: string;
 }

@@ -53,7 +53,7 @@ export default function TruckInspectionChecklist({
     );
   }
 
-  const handleSubmit = async (answers: BaseChecklistAnswer[]) => {
+  const handleSubmit = async (answers: BaseChecklistAnswer[], additionalNotes: string) => {
     if (!template) return;
     const failOnAnswerMap = new Map(questions.map((q) => [Number(q.id), q.failOnAnswer]));
 
@@ -83,6 +83,7 @@ export default function TruckInspectionChecklist({
         docketId,
         confirmed: false,
         submittedAt: new Date().toISOString(),
+        additionalNotes: additionalNotes.trim() || undefined,
         answers: mappedAnswers,
       },
       photos,
