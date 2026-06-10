@@ -4,6 +4,7 @@ import { BaseChecklist, Question, BaseChecklistAnswer } from './base-checklist';
 import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
 import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
+import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 
@@ -12,6 +13,7 @@ export default function TruckInspectionChecklist({
   onBack,
   truckLicensePlate,
   truckId,
+  truckType,
   driverId,
   docketId,
 }: {
@@ -19,6 +21,7 @@ export default function TruckInspectionChecklist({
   onBack?: () => void;
   truckLicensePlate?: string;
   truckId: number;
+  truckType?: TRUCK_TYPE;
   driverId?: number;
   docketId?: number;
 }) {
@@ -79,6 +82,7 @@ export default function TruckInspectionChecklist({
         templateId: template.id,
         checklistType: CHECKLIST_TYPE.TRUCK,
         truckId,
+        truckType,
         driverId,
         docketId,
         confirmed: false,
