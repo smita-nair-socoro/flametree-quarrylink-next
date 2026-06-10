@@ -36,7 +36,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
 import {
-  TruckByIdQueryOptions,
   useAssignDriversToTruck,
   useUnassignDriverFromTruck,
   useDeactivateTruck,
@@ -92,13 +91,10 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const transitioningRef = React.useRef(false);
 
   const haulierId = truckData?.haulier?.id ?? truckData?.haulierId ?? 0;
-  const { data: fullTruckData } = useQuery({
-    ...TruckByIdQueryOptions(truckData?.id ?? 0),
-    enabled: !!truckData?.id,
+  const { data: availableDriversData } = useQuery({
+    ...HaulierDriversQueryOptions(haulierId),
+    enabled: !!haulierId && activeDialog === 'assignDriver',
   });
-  const { data: availableDriversData } = useQuery(
-    HaulierDriversQueryOptions(haulierId),
-  );
   const assignedDriverIds = (truckData?.drivers ?? []).map((d) => d.id).filter((id): id is number => id != null);
   const allDrivers = availableDriversData?.drivers ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
@@ -107,11 +103,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const reactivateTruck = useReactivateTruck();
   const deleteTruck = useDeleteTruck();
 
-  const assignedDrivers: string[] = (
-    fullTruckData?.drivers ??
-    truckData?.drivers ??
-    []
-  ).map((driver) => driver.driverName);
+  const assignedDrivers: string[] = (truckData?.drivers ?? []).map(
+    (driver) => driver.driverName,
+  );
 
   const handleDeactivate = async () => {
     if (!truckData?.id) return;

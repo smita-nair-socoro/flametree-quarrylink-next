@@ -1,6 +1,5 @@
 'use client';
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { MoreHorizontal, Eye, PowerOff, Power, Delete, FileText } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import { TruckDTO } from '@/lib/types/truck';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { normalizeTruckStatus, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
+import { useQueryClient } from '@tanstack/react-query';
 import { notifyError } from '@/lib/toast';
 
 interface TruckTableActionsProps {
@@ -24,26 +24,29 @@ interface TruckTableActionsProps {
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useTruckActions(truck);
-
-  const { data: truckWithDockets } = useQuery({
-    ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
-    enabled: !!truck?.id,
-  });
+  const queryClient = useQueryClient();
 
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();
   };
 
-  const handleLinkedDockets = () => {
+  const handleLinkedDockets = async () => {
     setDropdownOpen(false);
-    const dockets = truckWithDockets?.dockets ?? [];
-    if (dockets.length === 0) {
-      notifyError('No dockets assigned to this truck.');
-      return;
+    try {
+      const data = await queryClient.fetchQuery(
+        TruckWithDocketsQueryOptions(truck.id!),
+      );
+      const dockets = data?.dockets ?? [];
+      if (dockets.length === 0) {
+        notifyError('No dockets assigned to this truck.');
+        return;
+      }
+      const docketIds = dockets.map((d) => d.id).join(',');
+      window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
+    } catch {
+      notifyError('Failed to load truck dockets.');
     }
-    const docketIds = dockets.map((d) => d.id).join(',');
-    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   const handleDeactivate = () => {

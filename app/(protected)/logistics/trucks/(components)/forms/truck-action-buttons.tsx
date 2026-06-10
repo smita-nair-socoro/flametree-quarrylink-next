@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -29,20 +29,23 @@ interface TruckActionButtonsProps {
 
 export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
   const { actions, confirmDialogs } = useTruckActions(truck);
+  const queryClient = useQueryClient();
 
-  const { data: truckWithDockets } = useQuery({
-    ...TruckWithDocketsQueryOptions(truck?.id ?? 0),
-    enabled: !!truck?.id,
-  });
-
-  const handleLinkedDockets = () => {
-    const dockets = truckWithDockets?.dockets ?? [];
-    if (dockets.length === 0) {
-      notifyError('No dockets assigned to this truck.');
-      return;
+  const handleLinkedDockets = async () => {
+    try {
+      const data = await queryClient.fetchQuery(
+        TruckWithDocketsQueryOptions(truck!.id!),
+      );
+      const dockets = data?.dockets ?? [];
+      if (dockets.length === 0) {
+        notifyError('No dockets assigned to this truck.');
+        return;
+      }
+      const docketIds = dockets.map((d) => d.id).join(',');
+      window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
+    } catch {
+      notifyError('Failed to load truck dockets.');
     }
-    const docketIds = dockets.map((d) => d.id).join(',');
-    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   if (!truck || !truck.id) {

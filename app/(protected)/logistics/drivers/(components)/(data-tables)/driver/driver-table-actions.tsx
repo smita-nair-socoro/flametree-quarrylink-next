@@ -21,6 +21,8 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { useDriverActions } from '@/hooks/use-driver-actions';
 import { useResendUserInvitation } from '@/lib/api/user';
+import { DriverByIdQueryOptions } from '@/lib/api/driver';
+import { useQueryClient } from '@tanstack/react-query';
 import { notifySuccess, notifyError } from '@/lib/toast';
 
 interface DriverTableActionsProps {
@@ -36,18 +38,25 @@ export function DriverTableActions({
   userSub,
 }: DriverTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog, fullDriverData } = useDriverActions(driver);
+  const { actions, confirmDialogs, viewDialog } = useDriverActions(driver);
+  const queryClient = useQueryClient();
   const resendInvitationMutation = useResendUserInvitation();
 
-  const handleAssignedDockets = () => {
+  const handleAssignedDockets = async () => {
     setDropdownOpen(false);
-    const targetDriver = fullDriverData || driver;
-    if (!targetDriver?.dockets || targetDriver.dockets.length === 0) {
-      notifyError('No dockets assigned to this driver.');
-      return;
+    try {
+      const fullDriver = await queryClient.fetchQuery(
+        DriverByIdQueryOptions(driver.id!),
+      );
+      if (!fullDriver.dockets || fullDriver.dockets.length === 0) {
+        notifyError('No dockets assigned to this driver.');
+        return;
+      }
+      const docketIds = fullDriver.dockets.map((d) => d.id).join(',');
+      window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
+    } catch {
+      notifyError('Failed to load driver dockets.');
     }
-    const docketIds = targetDriver.dockets.map((d) => d.id).join(',');
-    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
   };
 
   const handleView = () => {
