@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/drawer';
 import { useSubmitChecklist, TruckChecklistTemplateQueryOptions } from '@/lib/api/checklist';
 import { CHECKLIST_TYPE } from '@/lib/types/checklist-template-enums';
+import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useQuery } from '@tanstack/react-query';
 
@@ -138,6 +139,7 @@ export function ChecklistPromptDrawer({
             <TruckInspectionChecklist
               truckLicensePlate={truckLicensePlate}
               truckId={truckId ?? 0}
+              truckType={truckType as TRUCK_TYPE | undefined}
               driverId={driverId}
               docketId={docketId}
               onSubmit={() => {
