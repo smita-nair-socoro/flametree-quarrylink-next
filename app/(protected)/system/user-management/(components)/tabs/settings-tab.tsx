@@ -19,7 +19,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { ChangePasswordSchema } from './schemas/change-password-schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -28,7 +27,6 @@ import { useQuery } from '@tanstack/react-query';
 import {
   UserDetailQueryOptions,
   useUpdateUser,
-  useChangePassword,
 } from '@/lib/api/user';
 import {
   extractErrorMessage,
@@ -47,9 +45,6 @@ export default function SettingsTab() {
 
   // Use update user mutation
   const updateUserMutation = useUpdateUser();
-
-  // Use change password mutation
-  const changePasswordMutation = useChangePassword();
 
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
@@ -72,15 +67,6 @@ export default function SettingsTab() {
       });
     }
   }, [currentUser, settingsForm]);
-
-  const changePasswordForm = useForm<z.infer<typeof ChangePasswordSchema>>({
-    resolver: zodResolver(ChangePasswordSchema),
-    defaultValues: {
-      current_password: '',
-      new_password: '',
-      confirm_password: '',
-    },
-  });
 
   const getInitials = (fullName: string) => {
     if (!fullName || fullName.trim() === '') return 'NA';
@@ -165,41 +151,6 @@ export default function SettingsTab() {
   function onErrorPersonalInformation(errors: unknown) {
     console.error('Personal Information validation errors:', errors);
     notifyError('Update Failed');
-  }
-
-  async function onSubmitChangePassword(
-    values: z.infer<typeof ChangePasswordSchema>
-  ) {
-    if (!currentUser?.sub) {
-      notifyError('User not found');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-
-      // Call the API to change password
-      await changePasswordMutation.mutateAsync({
-        oldPassword: values.current_password,
-        newPassword: values.new_password,
-      });
-
-      notifySuccess('Password Changed');
-      changePasswordForm.reset();
-    } catch (error) {
-      console.error('Error changing password:', error);
-      notifyError('Password Change Failed', {
-        description: extractErrorMessage(error),
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
-  // Handle Change Password form validation errors
-  function onErrorChangePassword(errors: unknown) {
-    console.error('Change Password validation errors:', errors);
-    notifyError('Please fix the validation errors before submitting.');
   }
 
   // Show loading state while fetching user
@@ -330,102 +281,6 @@ export default function SettingsTab() {
                   }}
                 >
                   {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-
-        {/* Change Password */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-medium -mb-3">
-              Change Password
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Form {...changePasswordForm}>
-              <form
-                id="change-password-form"
-                className="w-full flex flex-col p-1"
-                onSubmit={changePasswordForm.handleSubmit(
-                  onSubmitChangePassword,
-                  onErrorChangePassword
-                )}
-              >
-                <FormField
-                  control={changePasswordForm.control}
-                  name="current_password"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Current Password*</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          className="w-full"
-                          placeholder="Enter Current Password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={changePasswordForm.control}
-                  name="new_password"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>New Password*</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          className="w-full"
-                          placeholder="Enter New Password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={changePasswordForm.control}
-                  name="confirm_password"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Confirm Password*</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="password"
-                          className="w-full"
-                          placeholder="Enter Confirm Password"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="text-sm text-muted-foreground mt-1 mb-1">
-                  <div className="font-medium mb-1">Password Requirements:</div>
-                  <ul className="list-disc list-inside space-y-1 text-xs">
-                    <li>At least 8 characters long</li>
-                    <li>Contains uppercase and lowercase letters</li>
-                    <li>Contains at least one number</li>
-                    <li>Contains at least one special character (@$!%*?&)</li>
-                  </ul>
-                </div>
-
-                <Button
-                  type="submit"
-                  className="w-full sm:w-fit mt-4 cursor-pointer"
-                  disabled={isSubmitting}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  {isSubmitting ? 'Updating Password...' : 'Update Password'}
                 </Button>
               </form>
             </Form>
