@@ -1,5 +1,6 @@
 import { CHECKLIST_TYPE, ANSWER_VALUE } from './checklist-template-enums';
 import { CHECKLIST_STATUS } from './checklist-enums';
+import { TRUCK_TYPE } from './truck-enums';
 
 export interface ChecklistSubmissionAnswer {
   questionId: number;
@@ -39,6 +40,7 @@ export interface ChecklistSubmitRequest {
   docketId?: number;
   confirmed: boolean;
   snapshotJson?: string;
+  truckType?: TRUCK_TYPE;
   answers: ChecklistSubmitAnswerRequest[];
   submittedAt: string;
 }
