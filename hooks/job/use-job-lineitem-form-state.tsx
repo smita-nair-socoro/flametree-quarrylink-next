@@ -82,19 +82,21 @@ export function useJobLineItemFormState({
   });
 
   const isDocketLinked = React.useMemo(() => {
-    return Boolean(jobLineItemData?.allocatedQuantity && jobLineItemData.allocatedQuantity > 0);
+    return Boolean(
+      jobLineItemData?.allocatedQuantity &&
+      jobLineItemData.allocatedQuantity > 0,
+    );
   }, [jobLineItemData]);
 
   const selectedJob = useSelectedJob();
 
-  const isReadOnly = (isEditing && !canEdit) || isDocketLinked || selectedJob?.jobStatus === JOB_STATUS.CANCELLED;
+  const isReadOnly =
+    (isEditing && !canEdit) ||
+    isDocketLinked ||
+    selectedJob?.jobStatus === JOB_STATUS.CANCELLED;
 
   const isProductDeletedOnCompletedJob = React.useMemo(() => {
-    return (
-      isEditing &&
-      selectedJob?.jobStatus === JOB_STATUS.COMPLETED &&
-      jobLineItemData?.product?.deleted === true
-    );
+    return isEditing && jobLineItemData?.product?.deleted === true;
   }, [isEditing, selectedJob?.jobStatus, jobLineItemData?.product?.deleted]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -109,7 +111,7 @@ export function useJobLineItemFormState({
       type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
       address: isEditing
         ? (jobLineItemData?.customerDeliveryAddress?.address
-          ?.formattedAddress ?? '')
+            ?.formattedAddress ?? '')
         : '',
       productId: isEditing ? (jobLineItemData?.productId ?? 0) : 0,
       quarrySupplierId: isEditing
@@ -117,7 +119,9 @@ export function useJobLineItemFormState({
         : 0,
       supplierProductName: '', // Not present in jobItems, will be populated by effect
       productCostUom: isEditing ? (jobLineItemData?.productCostUom ?? '') : '',
-      densityTonnagePerM3: isEditing ? (jobLineItemData?.densityTonnagePerM3 ?? 0) : 0,
+      densityTonnagePerM3: isEditing
+        ? (jobLineItemData?.densityTonnagePerM3 ?? 0)
+        : 0,
       productCostQty: isEditing ? (jobLineItemData?.productCostQty ?? 0) : 0,
       productCostPrice: isEditing
         ? centsToDollarsNum(jobLineItemData?.productCostPrice || 0)
@@ -1063,18 +1067,18 @@ export function useJobLineItemFormState({
       | undefined =
       addressPayload && customerId
         ? {
-          ...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
-            ? { id: jobLineItemData.customerDeliveryAddress.id }
-            : {}),
-          customerId,
-          addressId:
-            isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
-              ? jobLineItemData.customerDeliveryAddress.addressId
-              : mappedAddress?.id,
-          address: addressPayload,
-          inUse: true,
-          lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
-        }
+            ...(isEditing && jobLineItemData?.customerDeliveryAddress?.id
+              ? { id: jobLineItemData.customerDeliveryAddress.id }
+              : {}),
+            customerId,
+            addressId:
+              isEditing && jobLineItemData?.customerDeliveryAddress?.addressId
+                ? jobLineItemData.customerDeliveryAddress.addressId
+                : mappedAddress?.id,
+            address: addressPayload,
+            inUse: true,
+            lastUsedAt: jobLineItemData?.customerDeliveryAddress?.lastUsedAt,
+          }
         : undefined;
 
     const payload: Partial<JobItem> = {
