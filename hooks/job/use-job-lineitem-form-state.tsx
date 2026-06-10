@@ -97,7 +97,7 @@ export function useJobLineItemFormState({
 
   const isProductDeletedOnCompletedJob = React.useMemo(() => {
     return isEditing && jobLineItemData?.product?.deleted === true;
-  }, [isEditing, selectedJob?.jobStatus, jobLineItemData?.product?.deleted]);
+  }, [isEditing, jobLineItemData?.product?.deleted]);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const jobId = jobLineItemData?.jobId ?? selectedJob?.id ?? 0;

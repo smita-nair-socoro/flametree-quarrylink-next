@@ -34,7 +34,9 @@ import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useQuery } from '@tanstack/react-query';
-import { AccountManagersListQueryOptions } from '@/lib/api/user';
+// import { AccountManagersListQueryOptions } from '@/lib/api/user';
+// TODO: Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
+import { UsersListQueryOptions } from '@/lib/api/user';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -92,7 +94,16 @@ export default function CustomerForm({
   });
 
   // Fetch account managers
-  const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
+  // const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
+  // TODO: Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
+  const { data: allUsers = [] } = useQuery(UsersListQueryOptions());
+  const users = React.useMemo(
+    () =>
+      allUsers.filter(
+        (user) => !user.groups.some((group) => group.toLowerCase().includes('driver')),
+      ),
+    [allUsers],
+  );
   const accountManagerOptions = React.useMemo(
     () =>
       users

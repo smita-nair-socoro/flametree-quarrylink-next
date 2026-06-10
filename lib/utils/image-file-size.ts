@@ -1,6 +1,6 @@
 import { notifyError } from '@/lib/toast';
 
-const DEFAULT_MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const DEFAULT_MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8MB
 
 export function acceptImageFile(
   file: File | undefined,
