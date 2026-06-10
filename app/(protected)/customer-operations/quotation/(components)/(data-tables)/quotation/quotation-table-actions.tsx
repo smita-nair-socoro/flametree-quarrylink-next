@@ -34,9 +34,6 @@ export function QuotationTableActions({
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
-  const subscriptionPlan = useSubscriptionPlan();
-  const canConvertToJob = subscriptionPlan !== 'ESSENTIALS';
-
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
 
@@ -63,10 +60,7 @@ export function QuotationTableActions({
       {confirmDialogs}
       {viewDialog}
       {duplicateDialog}
-      <DropdownMenu
-        open={dropdownOpen}
-        onOpenChange={setDropdownOpen}
-      >
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -135,15 +129,13 @@ export function QuotationTableActions({
                 Decline
               </DropdownMenuItem>
 
-              {canConvertToJob && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleConvertToJob}>
-                    <Briefcase className="h-4 w-4 mr-2" />
-                    Convert to Job
-                  </DropdownMenuItem>
-                </>
-              )}
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleConvertToJob}>
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  Convert to Job
+                </DropdownMenuItem>
+              </>
             </>
           )}
 

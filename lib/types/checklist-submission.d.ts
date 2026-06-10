@@ -40,6 +40,7 @@ export interface ChecklistSubmitRequest {
   docketId?: number;
   confirmed: boolean;
   snapshotJson?: string;
+  additionalNotes?: string;
   truckType?: TRUCK_TYPE;
   answers: ChecklistSubmitAnswerRequest[];
   submittedAt: string;
