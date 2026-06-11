@@ -46,6 +46,7 @@ import {
   toLocalDateTime,
   formatLocalDateTime,
   appendUtcSuffix,
+  parseCalendarDate,
 } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
@@ -98,6 +99,8 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
+
+const DOCKET_TIME_WINDOW_HOURS = Array.from({ length: 20 }, (_, i) => i + 4);
 
 interface FormProps {
   id?: number;
@@ -741,7 +744,7 @@ export default function DocketForm({
   }
 
   const deliveryDate = selectedDocket?.deliveryCollectionDate
-    ? new Date(selectedDocket.deliveryCollectionDate)
+    ? parseCalendarDate(selectedDocket.deliveryCollectionDate)
     : null;
   const newStart = docketForm.watch('deliveryCollectionStartTime');
   const newEnd = docketForm.watch('deliveryCollectionEndTime');
@@ -1508,8 +1511,8 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  const hour = String(i).padStart(2, '0');
+                                {DOCKET_TIME_WINDOW_HOURS.map((hourNum) => {
+                                  const hour = String(hourNum).padStart(2, '0');
                                   return (
                                     <SelectItem key={hour} value={`${hour}:00`}>
                                       {hour}:00
@@ -1545,8 +1548,8 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  const hour = String(i).padStart(2, '0');
+                                {DOCKET_TIME_WINDOW_HOURS.map((hourNum) => {
+                                  const hour = String(hourNum).padStart(2, '0');
                                   return (
                                     <SelectItem key={hour} value={`${hour}:00`}>
                                       {hour}:00

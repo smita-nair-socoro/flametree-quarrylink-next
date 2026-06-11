@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { AddressType } from '@/lib/types/address';
-import { GetTodaysDate, parseAsUTC } from '@/lib/utils/date';
+import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
 import { useQuery } from '@tanstack/react-query';
@@ -123,7 +123,7 @@ const getSafeDeliveryDate = (dateString?: string) => {
   const todayDate = GetTodaysDate();
   if (!dateString) return todayDate;
 
-  const jobDate = new Date(dateString);
+  const jobDate = parseCalendarDate(dateString);
   return jobDate < todayDate ? todayDate : jobDate;
 };
 
@@ -162,7 +162,7 @@ const mapDocketToFormValues = (
   purchaseOrder: docket.purchaseOrder ?? '',
   productEstimatedVolume: docket.productEstimatedVolume ?? 0,
   deliveryCollectionDate: docket.deliveryCollectionDate
-    ? parseAsUTC(docket.deliveryCollectionDate as unknown as string)
+    ? parseCalendarDate(docket.deliveryCollectionDate as unknown as string)
     : GetTodaysDate(),
   deliveryCollectionStartTime: formatTimeString(
     docket.deliveryCollectionStartTime,
