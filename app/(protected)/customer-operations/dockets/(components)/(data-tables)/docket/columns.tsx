@@ -88,7 +88,13 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
           : row.original.docketStatus;
       if (status === 'INVOICED') {
         if (row.original.invoiceStatus === 'FAILED') {
-          return <TableBadges names={[status]} visibleCount={1} icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />} />;
+          return (
+            <TableBadges
+              names={[status]}
+              visibleCount={1}
+              icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />}
+            />
+          );
         }
       }
       return <TableBadges names={[status]} visibleCount={1} />;
@@ -97,13 +103,18 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'customer',
-    accessorFn: (row) => row.job?.customerDto?.businessName || row.job?.customerDto?.individualContactName,
+    accessorFn: (row) =>
+      row.job?.customerDto?.businessName ||
+      row.job?.customerDto?.individualContactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
       const customer = row.original.job?.customerDto;
-      const customerName = customer?.customerType === CUSTOMER_TYPE.BUSINESS ? customer?.businessName : customer?.individualContactName;
+      const customerName =
+        customer?.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer?.businessName
+          : customer?.individualContactName;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -147,22 +158,25 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       );
     },
     cell: ({ row }) => {
-      const deliveryDate =
-        row.original.deliveredAt || row.original.deliveryCollectionDate;
+      const deliveryDate = row.original.deliveryCollectionDate;
+      console.log('[docket-columns] deliveryDate', deliveryDate);
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
   },
   {
     id: 'loadSize',
-    accessorFn: (row) =>
-      row.actualLoadSize ?? row.plannedLoadSize,
+    accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },
     cell: ({ row }) => {
       let loadSize: number = 0;
-      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
+      if (
+        row.original.docketStatus !== 'UNASSIGNED' &&
+        row.original.docketStatus !== 'PENDING' &&
+        row.original.docketStatus !== 'ASSIGNED'
+      ) {
         loadSize = row.original.actualLoadSize || 0;
       } else {
         loadSize = row.original.plannedLoadSize || 0;
