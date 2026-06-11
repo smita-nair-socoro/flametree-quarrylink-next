@@ -1,6 +1,6 @@
 import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
-import { toLocalDateTime } from './date';
+import { formatCalendarDate, toLocalDateTime } from './date';
 import { centsToDollars } from './currency';
 import { formatPhoneNumber } from './phone-helper';
 
@@ -72,7 +72,7 @@ export const transformFormDataToQuoteDto = (
     phone: formatPhoneNumber(formData.phone as string) || '',
     projectName: formData.projectName as string,
     quoteStatus: QUOTE_STATUS.DRAFT,
-    expiryDate: toLocalDateTime(expiryDate),
+    expiryDate: `${formatCalendarDate(expiryDate, 'yyyy-MM-dd')}T00:00:00.000`,
     accountManagerSub: additionalData.accountManagerSub,
     accountManagerName: additionalData.accountManagerName,
     version: 1,
@@ -80,7 +80,7 @@ export const transformFormDataToQuoteDto = (
   };
 
   if (deliveryDate) {
-    transformed.deliveryStartDate = toLocalDateTime(deliveryDate);
+    transformed.deliveryStartDate = `${formatCalendarDate(deliveryDate, 'yyyy-MM-dd')}T00:00:00.000`;
   }
 
   const windowStart = combineDateAndTime(
