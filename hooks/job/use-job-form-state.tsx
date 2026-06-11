@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { parseISO } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
@@ -22,7 +21,7 @@ import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
-import { formatLocalDate } from '@/lib/utils/date';
+import { formatCalendarDate, parseCalendarDate } from '@/lib/utils/date';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { addNewRecordId } from '@/lib/utils';
@@ -152,7 +151,7 @@ export function useJobFormState({
     const currentValues = jobForm.getValues();
 
     const deliveryDate = jobDetails.estimatedStartDate
-      ? parseISO(jobDetails.estimatedStartDate)
+      ? parseCalendarDate(jobDetails.estimatedStartDate)
       : currentValues.deliveryStartDate;
 
     const apiStartWindow = formatJobTimeString(jobDetails.startTimeWindow);
@@ -270,7 +269,10 @@ export function useJobFormState({
   const onSubmit = React.useCallback(
     async (values: JobFormValues) => {
       try {
-        const dateStr = formatLocalDate(values.deliveryStartDate, 'yyyy-MM-dd');
+        const dateStr = formatCalendarDate(
+          values.deliveryStartDate,
+          'yyyy-MM-dd',
+        );
 
         const selectedCustomer = customers.find(
           (customer) => customer.id === values.customerId,
