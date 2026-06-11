@@ -12,6 +12,7 @@ import {
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TriangleAlert } from 'lucide-react';
+import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -96,12 +97,13 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'customer',
-    accessorFn: (row) => row.customerContactName,
+    accessorFn: (row) => row.job?.customerDto?.businessName || row.job?.customerDto?.individualContactName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerContactName;
+      const customer = row.original.job?.customerDto;
+      const customerName = customer?.customerType === CUSTOMER_TYPE.BUSINESS ? customer?.businessName : customer?.individualContactName;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

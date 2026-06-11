@@ -866,6 +866,7 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      status?: string;
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -888,6 +889,7 @@ export const APIClient = {
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
+          status: params?.status,
         },
       });
       return response;

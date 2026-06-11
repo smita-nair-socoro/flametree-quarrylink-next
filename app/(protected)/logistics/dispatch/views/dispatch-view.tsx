@@ -959,6 +959,9 @@ export function DispatchView({
             <UnassignedDockets
               date={date}
               dockets={unassignedDocketsForBoard}
+              assignedDocketIds={dockets
+                .filter((d) => d.docketStatus !== DOCKET_STATUS.UNASSIGNED)
+                .map((d) => String(d.id))}
               isLoading={isLoading}
               selectedDocketId={selectedDocketId}
               onSelectDocket={handleSelectUnassignedDocket}
