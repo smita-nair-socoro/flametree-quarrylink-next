@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
-import { useSubscriptionPlan } from '@/app/stores/client-store';
 
 interface QuotationTableActionsProps {
   quotation: Quotation;

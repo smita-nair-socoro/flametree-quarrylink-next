@@ -39,10 +39,16 @@ export const DocketStatisticsQueryOptions = () => {
   });
 };
 
-export const DocketsListQueryOptions = (params?: {
+export type DocketsListParams = {
   page?: number;
+  pageSize?: number;
   size?: number;
-}) =>
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+export const DocketsListQueryOptions = (params?: DocketsListParams) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
     queryFn: () => APIClient.dockets.getAll(params),
