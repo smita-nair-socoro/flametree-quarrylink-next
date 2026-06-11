@@ -1,6 +1,13 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, PowerOff, Power, Delete, FileText } from 'lucide-react';
+import {
+  MoreHorizontal,
+  Eye,
+  PowerOff,
+  Power,
+  Delete,
+  // FileText,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,9 +20,9 @@ import {
 import { TruckDTO } from '@/lib/types/truck';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { normalizeTruckStatus, TRUCK_STATUS } from '@/lib/types/truck-enums';
-import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
-import { useQueryClient } from '@tanstack/react-query';
-import { notifyError } from '@/lib/toast';
+// import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
+// import { useQueryClient } from '@tanstack/react-query';
+// import { notifyError } from '@/lib/toast';
 
 interface TruckTableActionsProps {
   truck: TruckDTO;
@@ -24,30 +31,33 @@ interface TruckTableActionsProps {
 export function TruckTableActions({ truck }: TruckTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useTruckActions(truck);
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();
   };
 
-  const handleLinkedDockets = async () => {
-    setDropdownOpen(false);
-    try {
-      const data = await queryClient.fetchQuery(
-        TruckWithDocketsQueryOptions(truck.id!),
-      );
-      const dockets = data?.dockets ?? [];
-      if (dockets.length === 0) {
-        notifyError('No dockets assigned to this truck.');
-        return;
-      }
-      const docketIds = dockets.map((d) => d.id).join(',');
-      window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
-    } catch {
-      notifyError('Failed to load truck dockets.');
-    }
-  };
+  // const handleLinkedDockets = async () => {
+  //   setDropdownOpen(false);
+  //   try {
+  //     const data = await queryClient.fetchQuery(
+  //       TruckWithDocketsQueryOptions(truck.id!),
+  //     );
+  //     const dockets = data?.dockets ?? [];
+  //     if (dockets.length === 0) {
+  //       notifyError('No dockets assigned to this truck.');
+  //       return;
+  //     }
+  //     const docketIds = dockets.map((d) => d.id).join(',');
+  //     window.open(
+  //       `/customer-operations/dockets/?docketId=${docketIds}`,
+  //       '_blank',
+  //     );
+  //   } catch {
+  //     notifyError('Failed to load truck dockets.');
+  //   }
+  // };
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
@@ -80,11 +90,11 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {/* <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleLinkedDockets}>
             <FileText className="h-4 w-4 mr-2" />
             Linked Dockets
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
           {status === TRUCK_STATUS.DEACTIVATED && (
             <>
               <DropdownMenuSeparator />
