@@ -1,28 +1,34 @@
 'use client';
 
+import { useState } from 'react';
+import { FileText, Truck } from 'lucide-react';
+
 import { PermissionMatrix } from './roles/permission-matrix';
-import { UpgradeFeaturesCard } from './roles/upgrade-features-card';
+import {
+  EmailNotificationGroups,
+  type NotificationGroup,
+} from './roles/email-notification-groups';
+import {
+  ManageGroupDialog,
+  type GroupMember,
+} from './roles/manage-group-dialog';
 
 const roles = [
   { name: 'Super Admin', isAdmin: true },
-  { name: 'Admin', isAdmin: false },
-  { name: 'Account Manager', isAdmin: false },
-  { name: 'Operations', isAdmin: false },
+  { name: 'Admin', isAdmin: true },
   { name: 'User', isAdmin: false },
   { name: 'Driver', isAdmin: false },
 ];
 
 const sections = [
   {
-    sectionName: 'QuarryLink Core — 3,000 dockets / month',
+    sectionName: 'QuarryLink Core Modules',
     modules: [
       {
-        name: 'Billing & subscription',
+        name: 'Billing & Subscription',
         permissions: {
           super_admin: true,
           admin: false,
-          account_manager: false,
-          operations: false,
           user: false,
           driver: false,
         },
@@ -32,8 +38,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: false,
-          operations: false,
           user: false,
           driver: false,
         },
@@ -43,8 +47,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: true,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -54,8 +56,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: true,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -65,19 +65,15 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: true,
-          operations: true,
           user: true,
           driver: false,
         },
       },
       {
-        name: 'Quotes',
+        name: 'Quotations',
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: true,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -87,8 +83,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: true,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -98,8 +92,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: false,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -109,8 +101,6 @@ const sections = [
         permissions: {
           super_admin: true,
           admin: true,
-          account_manager: false,
-          operations: true,
           user: true,
           driver: false,
         },
@@ -118,81 +108,150 @@ const sections = [
       {
         name: 'Driver App',
         permissions: {
-          super_admin: true,
-          admin: true,
-          account_manager: false,
-          operations: true,
+          super_admin: false,
+          admin: false,
           user: false,
           driver: true,
         },
       },
     ],
   },
+];
+
+const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
   {
-    sectionName: 'Active add-ons on your subscription',
-    modules: [
-      {
-        name: 'Loader / Weighbridge Integration',
-        permissions: {
-          super_admin: true,
-          admin: true,
-          account_manager: false,
-          operations: true,
-          user: true,
-          driver: false,
-        },
-      },
-      {
-        name: 'Reports & Dashboard',
-        permissions: {
-          super_admin: true,
-          admin: true,
-          account_manager: true,
-          operations: true,
-          user: true,
-          driver: false,
-        },
-      },
-      {
-        name: 'Stockpile Management',
-        permissions: {
-          super_admin: true,
-          admin: true,
-          account_manager: false,
-          operations: true,
-          user: true,
-          driver: false,
-        },
-      },
+    name: 'Operations',
+    icon: Truck,
+    description:
+      'Receives operational notifications about deliveries, drivers, jobs, and logistics.',
+    emailTypes: [
+      'Driver assignment changes',
+      'Delivery status updates',
+      'Job scheduling alerts',
+      'Fleet dispatch notifications',
+      'Docket completion alerts',
+    ],
+  },
+  {
+    name: 'Account Manager',
+    icon: FileText,
+    description:
+      'Receives commercial notifications about quotes, customers, and sales activity.',
+    emailTypes: [
+      'New quote requests',
+      'Quote approval notifications',
+      'Customer status changes',
+      'Pricing updates',
+      'Sales activity summaries',
     ],
   },
 ];
 
+// Dummy current members until the notification group API is available
+const initialGroupMembers: Record<string, GroupMember[]> = {
+  Operations: [
+    {
+      id: 'sarah.chen@quarrydemo.com',
+      name: 'Sarah Chen',
+      email: 'sarah.chen@quarrydemo.com',
+      role: 'Admin',
+    },
+    {
+      id: 'mike.j@quarrydemo.com',
+      name: 'Mike Johnson',
+      email: 'mike.j@quarrydemo.com',
+      role: 'User',
+    },
+    {
+      id: 'lisa.w@quarrydemo.com',
+      name: 'Lisa Wong',
+      email: 'lisa.w@quarrydemo.com',
+      role: 'User',
+    },
+  ],
+  'Account Manager': [
+    {
+      id: 'emma.d@quarrydemo.com',
+      name: 'Emma Davis',
+      email: 'emma.d@quarrydemo.com',
+      role: 'Admin',
+    },
+    {
+      id: 'james.w@quarrydemo.com',
+      name: 'James Wilson',
+      email: 'james.w@quarrydemo.com',
+      role: 'User',
+    },
+  ],
+};
+
 export default function RolesTab() {
+  const [groupMembers, setGroupMembers] =
+    useState<Record<string, GroupMember[]>>(initialGroupMembers);
+  const [managedGroupName, setManagedGroupName] = useState<string | null>(null);
+
+  const notificationGroups: NotificationGroup[] = groupDefinitions.map(
+    (group) => ({
+      ...group,
+      memberCount: groupMembers[group.name]?.length ?? 0,
+    }),
+  );
+
+  const managedGroup =
+    notificationGroups.find((group) => group.name === managedGroupName) ?? null;
+
+  const handleAddMembers = (added: GroupMember[]) => {
+    if (!managedGroupName) return;
+    setGroupMembers((prev) => ({
+      ...prev,
+      [managedGroupName]: [...(prev[managedGroupName] ?? []), ...added],
+    }));
+  };
+
+  const handleRemoveMember = (member: GroupMember) => {
+    if (!managedGroupName) return;
+    setGroupMembers((prev) => ({
+      ...prev,
+      [managedGroupName]: (prev[managedGroupName] ?? []).filter(
+        (m) => m.id !== member.id,
+      ),
+    }));
+  };
+
   return (
     <div className="py-3 space-y-3">
       <div>
         <h2 className="text-2xl font-semibold mb-2">Roles & Permissions</h2>
         <p className="text-muted-foreground text-[13px]">
-          Module access for each role is based on what&apos;s included in your
-          subscription.
+          Manage permission roles and email notification groups for your team.
         </p>
       </div>
 
       <PermissionMatrix
-        description="Who can use each module on your current subscription. ✓ means access in the web app or Driver App as applicable."
+        description="Access levels for each permission role across QuarryLink Core modules. ✓ means full access in the web app or Driver App as applicable."
         roles={roles}
         sections={sections}
-        footerNote="Billing and subscription settings stay Super Admin only. Drivers are limited to the Driver App row unless your organisation assigns additional roles."
+        footerNote="Super Admins have full access including billing and subscription settings. Admins can manage users and operational data. Users have access to day-to-day operations. Drivers are limited to the Driver App for their assigned deliveries."
       />
 
-      <UpgradeFeaturesCard
-        title="Change docket volume or add-ons"
-        description="Use the pricing calculator or Billing in QuarryLink when you need to adjust your plan."
-        buttonText="View pricing"
-        onUpgrade={() => {
-          console.log('View pricing clicked');
+      <EmailNotificationGroups
+        description="Allocate team members to notification groups based on their operational responsibilities. These groups control which transactional emails users receive from the system."
+        groups={notificationGroups}
+        footerNote="Note: Only Super Admins and Admins can manage notification group membership. Changes take effect immediately and will apply to the next email sent. Group membership does not affect system permissions or access levels."
+        onManage={(groupName) => {
+          setManagedGroupName(groupName);
         }}
+      />
+
+      <ManageGroupDialog
+        group={managedGroup}
+        members={managedGroupName ? (groupMembers[managedGroupName] ?? []) : []}
+        open={managedGroup !== null}
+        onOpenChange={(open) => {
+          if (!open) setManagedGroupName(null);
+        }}
+        onAddMembers={handleAddMembers}
+        onRemoveMember={handleRemoveMember}
       />
     </div>
   );
