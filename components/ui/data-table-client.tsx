@@ -116,6 +116,7 @@ interface DataTableProps<TData, TValue> {
   onPaginationChange?: (page: number, pageSize: number) => void; // Callback for server-side pagination
   externalPageIndex?: number; // Controlled page index from parent
   externalPageSize?: number; // Controlled page size from parent
+  onSearchChange?: (search: string) => void; // Callback for server-side search (debounced)
 }
 
 export type FacetDefinition = {
@@ -178,6 +179,7 @@ export function DataTableClient<TData, TValue>({
   onPaginationChange,
   externalPageIndex,
   externalPageSize,
+  onSearchChange,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -333,13 +335,8 @@ export function DataTableClient<TData, TValue>({
     return loadFromStorage('globalFilter', defaultGlobalFilter);
   });
 
-  // Search loading state
-  const [searchQuery, setSearchQuery] = useState<string>(() => {
-    if (isMobile) return defaultGlobalFilter;
-    return loadFromStorage('globalFilter', defaultGlobalFilter);
-  });
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const isSearching = searchQuery !== debouncedSearchQuery;
+  const debouncedGlobalFilter = useDebounce(globalFilter, 300);
+  const isSearching = globalFilter !== debouncedGlobalFilter;
 
   // Filter loading state
   const [activeColumnFilters, setActiveColumnFilters] =
@@ -387,12 +384,11 @@ export function DataTableClient<TData, TValue>({
     }
   }, [drawerOpen, columnFilters]);
 
-  // Update globalFilter when debounced search query changes
   useEffect(() => {
-    setGlobalFilter((current) =>
-      current === debouncedSearchQuery ? current : debouncedSearchQuery,
-    );
-  }, [debouncedSearchQuery]);
+    if (onSearchChange) {
+      onSearchChange(debouncedGlobalFilter);
+    }
+  }, [debouncedGlobalFilter, onSearchChange]);
 
   // Update columnFilters when debounced filters change
   useEffect(() => {
@@ -459,7 +455,6 @@ export function DataTableClient<TData, TValue>({
       setColumnFilters(defaultColumnFilters);
       setActiveColumnFilters(defaultColumnFilters);
       setGlobalFilter(defaultGlobalFilter);
-      setSearchQuery(defaultGlobalFilter);
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
@@ -625,6 +620,7 @@ export function DataTableClient<TData, TValue>({
     enableRowPinning: true,
 
     manualPagination: !!onPaginationChange,
+    manualFiltering: !!onSearchChange,
     pageCount: totalPages,
     rowCount: totalElements,
 
