@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -46,6 +47,7 @@ export type DocketsListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
+  status?: string;
 };
 
 export const DocketsListQueryOptions = (params?: DocketsListParams) =>
@@ -53,6 +55,27 @@ export const DocketsListQueryOptions = (params?: DocketsListParams) =>
     queryKey: [...DocketKeys.list(), params],
     queryFn: () => APIClient.dockets.getAll(params),
     placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const DocketsInfiniteListQueryOptions = (
+  params: Omit<DocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.list(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getAll({
+        ...params,
+        page: pageParam,
+        pageSize: params.pageSize ?? 10,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (Array.isArray(lastPage)) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage >= lastPage.totalPages) return undefined;
+      return nextPage;
+    },
     staleTime: 5_000,
   });
 
