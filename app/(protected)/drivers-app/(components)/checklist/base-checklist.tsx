@@ -211,7 +211,7 @@ interface BaseChecklistProps {
   needPhotoAndDetails?: boolean;
   maxPhotoSize?: number;
   submitButtonText: string;
-  onSubmit?: (answers: BaseChecklistAnswer[]) => void;
+  onSubmit?: (answers: BaseChecklistAnswer[], additionalNotes: string) => void;
 }
 
 export function BaseChecklist({
@@ -398,7 +398,7 @@ export function BaseChecklist({
                   notes: notes[q.id] || undefined,
                   image: images[q.id] ?? null,
                 }));
-              onSubmit?.(formatted);
+              onSubmit?.(formatted, additionalNotes);
             }}
           >
             {submitButtonText}

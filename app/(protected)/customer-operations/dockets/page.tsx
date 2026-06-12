@@ -39,8 +39,9 @@ export default function DocketsPage() {
     DocketStatisticsQueryOptions(),
   );
 
-  // const [pageIndex, setPageIndex] = React.useState(0);
-  // const [pageSize, setPageSize] = React.useState(10);
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [search, setSearch] = React.useState('');
 
   const {
     data: allDockets,
@@ -48,8 +49,11 @@ export default function DocketsPage() {
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    // ...DocketsListQueryOptions({ page: pageIndex, pageSize }),
-    ...DocketsListQueryOptions(),
+    ...DocketsListQueryOptions({
+      page: pageIndex,
+      pageSize,
+      search: search.trim() || undefined,
+    }),
     enabled: !linkedJobId,
   });
 
@@ -67,9 +71,27 @@ export default function DocketsPage() {
     })) as DocketDTO[];
   }, [dockets]);
 
-  // If not using client-side pagination, grab pagination info from backend payload
-  // const totalElements = !Array.isArray(dockets) && dockets?.totalElements ? dockets.totalElements : items.length;
-  // const totalPages = !Array.isArray(dockets) && dockets?.totalPages ? dockets.totalPages : 1;
+  const totalElements =
+    !Array.isArray(dockets) && dockets?.totalElements != null
+      ? dockets.totalElements
+      : items.length;
+  const totalPages =
+    !Array.isArray(dockets) && dockets?.totalPages != null
+      ? dockets.totalPages
+      : Math.max(1, Math.ceil(totalElements / pageSize));
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
 
   const statsCards: StatsCardData[] = [
     {
@@ -180,7 +202,7 @@ export default function DocketsPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading ? (
+        {isLoading && !allDockets ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
@@ -240,14 +262,12 @@ export default function DocketsPage() {
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
                   defaultSorting={[{ id: 'docketNumber', desc: false }]}
-                // totalElements={totalElements}
-                // totalPages={totalPages}
-                // externalPageIndex={pageIndex}
-                // externalPageSize={pageSize}
-                // onPaginationChange={(newPage, newSize) => {
-                //   setPageIndex(newPage);
-                //   setPageSize(newSize);
-                // }}
+                  totalElements={totalElements}
+                  totalPages={totalPages}
+                  externalPageIndex={pageIndex}
+                  externalPageSize={pageSize}
+                  onPaginationChange={handlePaginationChange}
+                  onSearchChange={handleSearchChange}
                 />
               );
             })()}

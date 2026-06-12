@@ -8,13 +8,11 @@ import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/d
 import { useDriverStore } from '@/app/stores/driver-store';
 import { Ban, TriangleAlert, CircleAlert, ArrowLeftRight } from 'lucide-react';
 import {
-  DriverByIdQueryOptions,
   useDeleteDriver,
   useDeactivateDriver,
   useReactivateDriver,
   useUnassignTruckFromDriver,
 } from '@/lib/api/driver';
-import { useQuery } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { DriverActionButtons } from '@/app/(protected)/logistics/drivers/(components)/forms/driver-action-buttons';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -422,11 +420,6 @@ export function useDriverActions(
   const [viewOpen, setViewOpen] = React.useState(false);
   const selectedDriver = useDriverStore((state) => state.selectedDriver);
 
-  const { data: fullDriverData } = useQuery({
-    ...DriverByIdQueryOptions(driverId ?? 0),
-    enabled: !!driverId,
-  });
-
   const deleteDriverMutation = useDeleteDriver();
   const deactivateDriverMutation = useDeactivateDriver();
   const reactivateDriverMutation = useReactivateDriver();
@@ -467,7 +460,7 @@ export function useDriverActions(
   const dialogConfigs = React.useMemo(
     () =>
       getDialogConfigs(
-        fullDriverData ?? driverData ?? null,
+        driverData ?? null,
         selectedAction || undefined,
         activeDocketIds,
         selectedTruck,
@@ -476,7 +469,6 @@ export function useDriverActions(
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       driverData,
-      fullDriverData,
       selectedAction,
       cannotDeactivateDocketIds,
       cannotDeleteDocketIds,
@@ -570,7 +562,7 @@ export function useDriverActions(
       const response = await unassignTruckMutation.mutateAsync({
         driverId,
         data: {
-          version: (fullDriverData ?? driverData)?.version ?? 0,
+          version: driverData?.version ?? 0,
           truckId: truck.id,
         },
       });
@@ -710,6 +702,5 @@ export function useDriverActions(
     actions,
     confirmDialogs,
     viewDialog,
-    fullDriverData,
   };
 }

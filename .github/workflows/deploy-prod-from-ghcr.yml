@@ -175,17 +175,29 @@ jobs:
       - name: Upload static site files to S3
         run: |
           set -euo pipefail
-          aws s3 sync site/ "s3://${{ secrets.S3_BUCKET_NAME }}/" --delete
+
+          BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+
+          # Deploy site but preserve old Next.js chunks
+          aws s3 sync site/ "$BUCKET/" \
+            --delete \
+            --exclude "_next/static/*"
+
+          # Upload new chunks
+          if [ -d "site/_next/static" ]; then
+            aws s3 sync site/_next/static/ "$BUCKET/_next/static/"
+          fi
 
       - name: Create CloudFront invalidation
         run: |
           set -euo pipefail
-          if [ "${INVALIDATE_ALL}" = "true" ]; then
-            PATHS='/*'
-          else
-            PATHS='/config.json /index.html'
-          fi
 
-          aws cloudfront create-invalidation \
-            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
-            --paths ${PATHS}
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+              --paths "/*"
+          else
+            aws cloudfront create-invalidation \
+              --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+              --paths "/config.json" "/index.html"
+          fi

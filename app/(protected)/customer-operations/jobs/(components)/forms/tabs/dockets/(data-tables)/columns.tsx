@@ -56,10 +56,19 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return <div>Status</div>;
     },
     cell: ({ row }) => {
-      const docketStatus = row.original.docketStatus === 'READY_FOR_COLLECTION' ? 'READY' : row.original.docketStatus;
+      const docketStatus =
+        row.original.docketStatus === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : row.original.docketStatus;
       if (docketStatus === 'INVOICED') {
         if (row.original.invoiceStatus === 'FAILED') {
-          return <TableBadges names={[docketStatus]} visibleCount={1} icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />} />;
+          return (
+            <TableBadges
+              names={[docketStatus]}
+              visibleCount={1}
+              icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />}
+            />
+          );
         }
       }
       return <TableBadges names={[docketStatus]} visibleCount={1} />;
@@ -80,8 +89,7 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'loadSize',
-    accessorFn: (row) =>
-      row.actualLoadSize ?? row.plannedLoadSize,
+    accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
     header: () => {
       return <div>QTY</div>;
     },
@@ -93,7 +101,7 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       const formattedLoadSize =
         productSellUom === 'TN'
           ? `${formattedQty} TN`
-          : productSellUom === 'M3'
+          : productSellUom === 'M3' || productSellUom === 'm3'
             ? `${formattedQty} m³`
             : productSellUom === 'KG_20'
               ? `${formattedQty} x 20kg`

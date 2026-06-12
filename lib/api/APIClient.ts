@@ -861,11 +861,17 @@ export const APIClient = {
       }),
     getAll: async (params?: {
       page?: number;
+      pageSize?: number;
       size?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      status?: string;
     }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -876,10 +882,14 @@ export const APIClient = {
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
-          size: params?.size?.toString() || '1000',
-          search: params?.search,
+          pageSize: pageSize?.toString(),
+          size: isPaginated
+            ? pageSize?.toString() ?? '10'
+            : params?.size?.toString() ?? '1000',
+          search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
+          status: params?.status,
         },
       });
       return response;

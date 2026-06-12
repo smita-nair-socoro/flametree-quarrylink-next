@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  infiniteQueryOptions,
   queryOptions,
   useMutation,
   useQueryClient,
@@ -39,14 +40,54 @@ export const DocketStatisticsQueryOptions = () => {
   });
 };
 
-export const DocketsListQueryOptions = (params?: {
+export type DocketsListParams = {
+  /** 0-based page index from UI tables (converted to 1-based for the API). */
   page?: number;
+  pageSize?: number;
   size?: number;
-}) =>
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  status?: string;
+};
+
+/** Dockets API pagination is 1-based (page 1 = first page). */
+function toApiPage(page: number): number {
+  return page + 1;
+}
+
+export const DocketsListQueryOptions = (params?: DocketsListParams) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
-    queryFn: () => APIClient.dockets.getAll(params),
+    queryFn: () =>
+      APIClient.dockets.getAll({
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const DocketsInfiniteListQueryOptions = (
+  params: Omit<DocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.list(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getAll({
+        ...params,
+        page: pageParam,
+        pageSize: params.pageSize ?? 10,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (Array.isArray(lastPage)) return undefined;
+      const content = lastPage.content ?? [];
+      if (content.length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > lastPage.totalPages) return undefined;
+      return nextPage;
+    },
     staleTime: 5_000,
   });
 

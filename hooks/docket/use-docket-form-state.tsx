@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { AddressType } from '@/lib/types/address';
-import { GetTodaysDate, parseAsUTC } from '@/lib/utils/date';
+import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
 import { useQuery } from '@tanstack/react-query';
@@ -123,7 +123,7 @@ const getSafeDeliveryDate = (dateString?: string) => {
   const todayDate = GetTodaysDate();
   if (!dateString) return todayDate;
 
-  const jobDate = new Date(dateString);
+  const jobDate = parseCalendarDate(dateString);
   return jobDate < todayDate ? todayDate : jobDate;
 };
 
@@ -162,7 +162,7 @@ const mapDocketToFormValues = (
   purchaseOrder: docket.purchaseOrder ?? '',
   productEstimatedVolume: docket.productEstimatedVolume ?? 0,
   deliveryCollectionDate: docket.deliveryCollectionDate
-    ? parseAsUTC(docket.deliveryCollectionDate as unknown as string)
+    ? parseCalendarDate(docket.deliveryCollectionDate as unknown as string)
     : GetTodaysDate(),
   deliveryCollectionStartTime: formatTimeString(
     docket.deliveryCollectionStartTime,
@@ -242,9 +242,9 @@ export function useDocketFormState({
     defaultValues: initialDocket
       ? mapDocketToFormValues(initialDocket)
       : {
-        ...EMPTY_DOCKET_FORM_VALUES,
-        jobId: isJobLocked && jobId ? jobId : 0,
-      },
+          ...EMPTY_DOCKET_FORM_VALUES,
+          jobId: isJobLocked && jobId ? jobId : 0,
+        },
   });
 
   const [pickUpAddress, setPickUpAddress] =
@@ -506,7 +506,8 @@ export function useDocketFormState({
       productUom:
         selectedJobLineItem?.productSellUom === 'TN'
           ? 'TN'
-          : selectedJobLineItem?.productSellUom === 'M3'
+          : selectedJobLineItem?.productSellUom === 'M3' ||
+              selectedJobLineItem?.productSellUom === 'm3'
             ? 'm3'
             : selectedJobLineItem?.productSellUom === 'BULKA'
               ? 'Bulka'
@@ -523,7 +524,8 @@ export function useDocketFormState({
       truckUom:
         selectedJobLineItem?.truckSellUom === 'TN'
           ? 'TN'
-          : selectedJobLineItem?.truckSellUom === 'M3'
+          : selectedJobLineItem?.truckSellUom === 'M3' ||
+              selectedJobLineItem?.truckSellUom === 'm3'
             ? 'm3'
             : selectedJobLineItem?.truckSellUom === 'BULKA'
               ? 'Bulka'
@@ -597,8 +599,6 @@ export function useDocketFormState({
     if (details.truckType) {
       docketForm.setValue('truckType', details.truckType);
     }
-
-
   }, [
     docketForm.watch('jobLineItemId'),
     isEditing,
@@ -608,7 +608,9 @@ export function useDocketFormState({
 
   React.useEffect(() => {
     const currentJobLineItemId = docketForm.getValues('jobLineItemId');
-    const lineItem = jobLineItems.find((item) => item.id === currentJobLineItemId);
+    const lineItem = jobLineItems.find(
+      (item) => item.id === currentJobLineItemId,
+    );
     docketForm.setValue('jobLineItemType', lineItem?.jobItemType ?? '');
   }, [docketForm.watch('jobLineItemId'), jobLineItems, docketForm]);
 
@@ -633,9 +635,9 @@ export function useDocketFormState({
     const currentStatus = selectedDocket?.docketStatus;
     const effectiveLoadSize =
       isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+      currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+      currentStatus !== DOCKET_STATUS.ASSIGNED &&
+      currentStatus !== DOCKET_STATUS.PENDING
         ? actualLoadSize || 0
         : loadSize || 0;
 

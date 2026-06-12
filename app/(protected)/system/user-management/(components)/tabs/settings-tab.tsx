@@ -19,7 +19,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Input } from '@/components/ui/input';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { ChangePasswordSchema } from './schemas/change-password-schema';
+// import { ChangePasswordSchema } from './schemas/change-password-schema';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -28,7 +28,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   UserDetailQueryOptions,
   useUpdateUser,
-  useChangePassword,
+  // useChangePassword,
 } from '@/lib/api/user';
 import {
   extractErrorMessage,
@@ -49,7 +49,7 @@ export default function SettingsTab() {
   const updateUserMutation = useUpdateUser();
 
   // Use change password mutation
-  const changePasswordMutation = useChangePassword();
+  // const changePasswordMutation = useChangePassword();
 
   const settingsForm = useForm<z.infer<typeof PersonalInformationSchema>>({
     resolver: zodResolver(PersonalInformationSchema),
@@ -73,14 +73,14 @@ export default function SettingsTab() {
     }
   }, [currentUser, settingsForm]);
 
-  const changePasswordForm = useForm<z.infer<typeof ChangePasswordSchema>>({
-    resolver: zodResolver(ChangePasswordSchema),
-    defaultValues: {
-      current_password: '',
-      new_password: '',
-      confirm_password: '',
-    },
-  });
+  // const changePasswordForm = useForm<z.infer<typeof ChangePasswordSchema>>({
+  //   resolver: zodResolver(ChangePasswordSchema),
+  //   defaultValues: {
+  //     current_password: '',
+  //     new_password: '',
+  //     confirm_password: '',
+  //   },
+  // });
 
   const getInitials = (fullName: string) => {
     if (!fullName || fullName.trim() === '') return 'NA';
@@ -167,40 +167,40 @@ export default function SettingsTab() {
     notifyError('Update Failed');
   }
 
-  async function onSubmitChangePassword(
-    values: z.infer<typeof ChangePasswordSchema>
-  ) {
-    if (!currentUser?.sub) {
-      notifyError('User not found');
-      return;
-    }
+  // async function onSubmitChangePassword(
+  //   values: z.infer<typeof ChangePasswordSchema>
+  // ) {
+  //   if (!currentUser?.sub) {
+  //     notifyError('User not found');
+  //     return;
+  //   }
 
-    try {
-      setIsSubmitting(true);
+  //   try {
+  //     setIsSubmitting(true);
 
-      // Call the API to change password
-      await changePasswordMutation.mutateAsync({
-        oldPassword: values.current_password,
-        newPassword: values.new_password,
-      });
+  //     // Call the API to change password
+  //     await changePasswordMutation.mutateAsync({
+  //       oldPassword: values.current_password,
+  //       newPassword: values.new_password,
+  //     });
 
-      notifySuccess('Password Changed');
-      changePasswordForm.reset();
-    } catch (error) {
-      console.error('Error changing password:', error);
-      notifyError('Password Change Failed', {
-        description: extractErrorMessage(error),
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+  //     notifySuccess('Password Changed');
+  //     changePasswordForm.reset();
+  //   } catch (error) {
+  //     console.error('Error changing password:', error);
+  //     notifyError('Password Change Failed', {
+  //       description: extractErrorMessage(error),
+  //     });
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // }
 
-  // Handle Change Password form validation errors
-  function onErrorChangePassword(errors: unknown) {
-    console.error('Change Password validation errors:', errors);
-    notifyError('Please fix the validation errors before submitting.');
-  }
+  // // Handle Change Password form validation errors
+  // function onErrorChangePassword(errors: unknown) {
+  //   console.error('Change Password validation errors:', errors);
+  //   notifyError('Please fix the validation errors before submitting.');
+  // }
 
   // Show loading state while fetching user
   if (isLoadingUser) {
@@ -337,7 +337,7 @@ export default function SettingsTab() {
         </Card>
 
         {/* Change Password */}
-        <Card>
+        {/* <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-medium -mb-3">
               Change Password
@@ -430,7 +430,7 @@ export default function SettingsTab() {
               </form>
             </Form>
           </CardContent>
-        </Card>
+        </Card> */}
       </div>
     </div>
   );
