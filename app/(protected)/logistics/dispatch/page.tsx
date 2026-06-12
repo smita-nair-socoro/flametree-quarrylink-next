@@ -11,7 +11,7 @@ import {
   TabsTrigger,
 } from '@/components/ui/tabs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { DispatchView } from './views/dispatch-view';
 import { DispatchMobileProvider, useDispatchMobile } from './mobile/dispatch-mobile-context';
 import { UnassignedDockets } from './mobile/queue/unassigned-dockets';
@@ -81,7 +81,7 @@ export default function DispatchPage() {
     'trucks',
   );
 
-  const isDesktop = useMediaQuery('(min-width: 777px)');
+  const isDesktop = !useIsMobile();
 
   if (!isDesktop) {
     return (
@@ -108,7 +108,6 @@ export default function DispatchPage() {
           <DeliveriesDateNav
             date={selectedDate}
             onDateChange={setSelectedDate}
-            className="w-[276px]"
           />
           <DeliveriesResourceToggle
             value={resourceView}
