@@ -37,7 +37,7 @@ import { Spinner } from '@/components/ui/spinner';
 import {
   buildDispatchAssignmentWindows,
 } from '@/lib/utils/dispatch-helper';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 
 type AssignStep = 'select' | 'checking' | 'conflict' | 'adjust';
@@ -77,7 +77,7 @@ export function AssignTruckDriverModal({
   const [conflicts, setConflicts] = useState<ConflictingDocket[]>([]);
   const conflictHandledRef = useRef(false);
 
-  const isDesktop = useMediaQuery('(min-width: 777px)');
+  const isDesktop = !useIsMobile();
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
 
@@ -535,7 +535,7 @@ export function AssignTruckDriverModal({
                         </span>
                       </div>
                     </div>
-                    <div className={cn("flex flex-col items-end", isDesktop ? 'items-end' : 'items-center')}>
+                    <div className={cn("flex flex-col", isDesktop ? 'items-end' : 'items-center')}>
                       <span className="text-[10px] font-bold text-gray-500 tracking-wider">
                         LOAD
                       </span>
@@ -600,7 +600,7 @@ export function AssignTruckDriverModal({
             {docket && viewType === 'drivers' && driver && (
               <div className="flex flex-col">
                 <div className="px-6 pb-6">
-                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between max-md:flex-row flex-col gap-4">
+                  <div className={cn("bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex justify-between", isDesktop ? 'flex-row' : 'flex-col gap-4')}>
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                         <ClipboardList className="w-5 h-5 text-purple-600" />
