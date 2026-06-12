@@ -364,7 +364,10 @@ export function buildDispatchAssignmentWindows(
   assignmentDate: Date,
   slotTime: string,
   durationHours: number = 2,
+  endSlotTime?: string,
 ): {
+  startWindow: Date;
+  endWindow: Date;
   deliveryCollectionDate: string;
   deliveryStartWindow: string;
   deliveryEndWindow: string;
@@ -373,8 +376,20 @@ export function buildDispatchAssignmentWindows(
   const startWindow = new Date(assignmentDate);
   startWindow.setHours(hours, minutes, 0, 0);
 
-  let endWindow = new Date(startWindow);
-  endWindow.setHours(startWindow.getHours() + durationHours);
+  let endWindow: Date;
+  if (endSlotTime) {
+    const [endHours, endMinutes] = endSlotTime.split(':').map(Number);
+    endWindow = new Date(assignmentDate);
+    endWindow.setHours(endHours, endMinutes, 0, 0);
+  } else {
+    endWindow = new Date(startWindow);
+    endWindow.setHours(startWindow.getHours() + durationHours);
+  }
+
+  if (endWindow <= startWindow) {
+    endWindow = new Date(startWindow);
+    endWindow.setHours(startWindow.getHours() + durationHours);
+  }
 
   if (
     endWindow.getDate() !== startWindow.getDate() ||
@@ -390,10 +405,29 @@ export function buildDispatchAssignmentWindows(
   const dateIso = `${startIso.split('T')[0]}T00:00:00.000`;
 
   return {
+    startWindow,
+    endWindow,
     deliveryCollectionDate: appendUtcSuffix(dateIso),
     deliveryStartWindow: appendUtcSuffix(startIso),
     deliveryEndWindow: appendUtcSuffix(endIso),
   };
+}
+
+/** Stripe accent per docket status — hues match the board cards and the status-colors legend. */
+const DISPATCH_STATUS_STRIPE_CLASSES: Record<string, string> = {
+  [DOCKET_STATUS.ASSIGNED]: 'bg-cyan-400',
+  [DOCKET_STATUS.IN_TRANSIT]: 'bg-indigo-500',
+  [DOCKET_STATUS.STOPPED]: 'bg-orange-400',
+  [DOCKET_STATUS.ARRIVED]: 'bg-yellow-400',
+  [DOCKET_STATUS.DELIVERED]: 'bg-green-500',
+  [DOCKET_STATUS.INVOICED]: 'bg-purple-400',
+  [DOCKET_STATUS.CASH_SALE]: 'bg-yellow-400',
+  [DOCKET_STATUS.CANCELLED]: 'bg-red-400',
+  [DOCKET_STATUS.VOIDED]: 'bg-red-400',
+};
+
+export function getDispatchStatusStripeClass(status?: string): string {
+  return (status && DISPATCH_STATUS_STRIPE_CLASSES[status]) || 'bg-gray-300';
 }
 
 export function formatDispatchConflictDetail(d: ConflictingDocket): string {
@@ -496,14 +530,13 @@ function sortDispatchResourcesByBusinessType(
   const subcontractor = resources.filter(
     (r) => r.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
   );
-  return [
-    ...sortWithinGroup(internal),
-    ...sortWithinGroup(subcontractor),
-  ];
+  return [...sortWithinGroup(internal), ...sortWithinGroup(subcontractor)];
 }
 
 /** Flat truck list: INTERNAL (alpha, generic last) then subcontractor (alpha, generic last). */
-export function sortDispatchTruckList(trucks: TruckResource[]): TruckResource[] {
+export function sortDispatchTruckList(
+  trucks: TruckResource[],
+): TruckResource[] {
   return sortDispatchResourcesByBusinessType(
     trucks,
     sortTruckResourcesAlphabeticalGenericLast,
