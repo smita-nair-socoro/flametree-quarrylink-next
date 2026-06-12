@@ -24,6 +24,7 @@ import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal'
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
 import { Drawer, DrawerContent } from '@/components/ui/drawer';
 import {
+  buildDispatchAssignmentWindows,
   DispatchDocket,
   formatCargoLineForUnassign,
   formatLocalISO,
@@ -174,15 +175,8 @@ export function DispatchMobileProvider({
   const { data: driversData, isLoading: isLoadingDrivers } = useQuery(
     SchedulerDriversQueryOptions(start, end),
   );
-  const {
-    data: allDocketsData,
-    isLoading: isLoadingAllUnassignedDockets,
-    isFetching: isFetchingAllUnassignedDockets,
-  } = useQuery({
-    ...DocketsListQueryOptions(),
-    enabled: queueDateScope === 'all_dates',
-    staleTime: 0,
-  });
+  const { data: allDocketsData, isLoading: isLoadingAllUnassignedDockets } =
+    useQuery(DocketsListQueryOptions());
 
   const assignMutation = useAssignDocket();
   const unassignMutation = useUnassignDocket();
@@ -381,27 +375,12 @@ export function DispatchMobileProvider({
     const plannedLoad =
       adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
-    const [hours, minutes] = time.split(':').map(Number);
-    const startWindow = new Date(assignmentDate);
-    startWindow.setHours(hours, minutes, 0, 0);
-
-    const [endHours, endMinutes] = endTime.split(':').map(Number);
-    let endWindow = new Date(assignmentDate);
-    endWindow.setHours(endHours, endMinutes, 0, 0);
-
-    if (endWindow <= startWindow) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(startWindow.getHours() + 2);
-    }
-
-    if (
-      endWindow.getDate() !== startWindow.getDate() ||
-      endWindow.getMonth() !== startWindow.getMonth() ||
-      endWindow.getFullYear() !== startWindow.getFullYear()
-    ) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(23, 59, 59, 999);
-    }
+    const { startWindow, endWindow } = buildDispatchAssignmentWindows(
+      assignmentDate,
+      time,
+      2,
+      endTime,
+    );
 
     let driverId: number | undefined;
     let truckId: number | undefined;
@@ -478,10 +457,12 @@ export function DispatchMobileProvider({
     return {
       docketNumber: pendingUnassignDocket.docketNumber,
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
-      destination:
-        pendingUnassignDocket.deliverySuburb +
-        ', ' +
-        pendingUnassignDocket.deliveryState || '',
+      destination: [
+        pendingUnassignDocket.deliverySuburb,
+        pendingUnassignDocket.deliveryState,
+      ]
+        .filter(Boolean)
+        .join(', '),
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -594,9 +575,7 @@ export function DispatchMobileProvider({
     openMove: (docketId, mode) => openResourcePicker(docketId, mode),
     queueDateScope,
     setQueueDateScope,
-    isLoadingAllUnassignedDockets:
-      queueDateScope === 'all_dates' &&
-      (isLoadingAllUnassignedDockets || isFetchingAllUnassignedDockets),
+    isLoadingAllUnassignedDockets,
   };
 
   return (

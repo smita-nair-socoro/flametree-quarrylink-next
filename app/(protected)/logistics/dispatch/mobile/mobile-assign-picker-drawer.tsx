@@ -147,6 +147,10 @@ export function MobileAssignPickerDrawer({
   const [endTime, setEndTime] = React.useState('11:00');
   const [dateOpen, setDateOpen] = React.useState(false);
 
+  // Key the reset on the docket id, not the docket object: background
+  // refetches rebuild the dockets list with new identities, and resetting
+  // then would clobber the user's picked date/time while the drawer is open.
+  const docketId = docket?.id ?? null;
   React.useEffect(() => {
     if (!open || !docket) return;
     setAssignmentDate(boardDate);
@@ -154,7 +158,8 @@ export function MobileAssignPickerDrawer({
       formatTime(docket.deliveryCollectionStartTime) || '09:00';
     setStartTime(start);
     setEndTime(defaultEndTime(start, docket));
-  }, [open, docket, boardDate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, docketId, boardDate]);
 
   const handleStartTimeChange = (value: string) => {
     setStartTime(value);
