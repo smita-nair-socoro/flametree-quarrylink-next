@@ -68,9 +68,7 @@ export function UnassignedDockets() {
   };
 
   const isLoading =
-    isLoadingTrucks ||
-    isLoadingDrivers ||
-    (queueDateScope === 'all_dates' && isLoadingAllUnassignedDockets);
+    isLoadingTrucks || isLoadingDrivers || isLoadingAllUnassignedDockets;
 
   const scopeDockets =
     queueDateScope === 'this_day' ? unassignedForDay : allUnassignedDockets;
@@ -224,7 +222,7 @@ export function UnassignedDockets() {
                   docket.deliveryCollectionDate ? (
                     <span className="rounded-md border border-[#E9D5FF] bg-[#FAF5FF] px-2 py-0.5 text-xs font-semibold text-[#6D28D9]">
                       {format(
-                        new Date(docket.deliveryCollectionDate),
+                        new Date(docket.deliveryCollectionDate.replace('Z', '')),
                         'd MMM yyyy',
                       )}
                     </span>

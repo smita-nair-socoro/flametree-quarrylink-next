@@ -13,6 +13,7 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   formatDispatchProductSellUomLabel,
   formatTimeRange,
+  getDispatchStatusStripeClass,
 } from '@/lib/utils/dispatch-helper';
 import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import type { TruckResource } from '@/lib/types/truck';
@@ -26,23 +27,6 @@ import {
   hasActiveAssignedFilters,
   type AssignedFilterState,
 } from './assigned-filters-drawer';
-
-function getDispatchStatusStripeClass(status?: string) {
-  switch (status) {
-    case 'ASSIGNED':
-      return 'bg-cyan-400';
-    case 'IN_TRANSIT':
-      return 'bg-indigo-500';
-    case 'DELIVERED':
-      return 'bg-green-500';
-    case 'ARRIVED':
-      return 'bg-yellow-400';
-    case 'STOPPED':
-      return 'bg-orange-400';
-    default:
-      return 'bg-gray-300';
-  }
-}
 
 function resourceStats(
   assignedDockets: DispatchDocket[],
