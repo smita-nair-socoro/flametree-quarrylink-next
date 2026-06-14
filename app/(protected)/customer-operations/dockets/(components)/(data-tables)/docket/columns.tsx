@@ -186,7 +186,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const formattedLoadSize =
         productUom === 'TN'
           ? `${formattedQty} TN`
-          : productUom === 'M3'
+          : productUom === 'M3' || productUom === 'm3'
             ? `${formattedQty} m³`
             : productUom === 'KG_20'
               ? `${formattedQty} x 20kg`

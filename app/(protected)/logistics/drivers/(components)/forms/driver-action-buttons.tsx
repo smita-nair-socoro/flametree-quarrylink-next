@@ -12,14 +12,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MoreHorizontal,
-  FileText,
+  // FileText,
   RefreshCw,
   PowerOff,
   Power,
   Trash2,
 } from 'lucide-react';
 import { useDriverActions } from '@/hooks/use-driver-actions';
-import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
+// import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { UsersListQueryOptions, useResendUserInvitation } from '@/lib/api/user';
@@ -30,11 +30,17 @@ interface DriverActionButtonsProps {
   onDelete?: () => void;
 }
 
-export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsProps) {
+export function DriverActionButtons({
+  driver,
+  onDelete,
+}: DriverActionButtonsProps) {
   const { actions, confirmDialogs } = useDriverActions(driver, {
     onDeleteSuccess: onDelete,
   });
-  const { driverData: fullDriver } = useDriverFormState(driver?.id, !!driver?.id);
+  // const { driverData: fullDriver } = useDriverFormState(
+  //   driver?.id,
+  //   !!driver?.id,
+  // );
 
   // TEMP: Resolve userSub by matching driver.emailAddress → User.email.
   // Users list is already cached from the drivers page query (React Query dedup).
@@ -65,15 +71,18 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
     }
   };
 
-  const handleAssignedDockets = () => {
-    const dockets = fullDriver?.dockets;
-    if (!dockets || dockets.length === 0) {
-      notifyError('No dockets assigned to this driver.');
-      return;
-    }
-    const docketIds = dockets.map((d) => d.id).join(',');
-    window.open(`/customer-operations/dockets/?docketId=${docketIds}`, '_blank');
-  };
+  // const handleAssignedDockets = () => {
+  //   const dockets = fullDriver?.dockets;
+  //   if (!dockets || dockets.length === 0) {
+  //     notifyError('No dockets assigned to this driver.');
+  //     return;
+  //   }
+  //   const docketIds = dockets.map((d) => d.id).join(',');
+  //   window.open(
+  //     `/customer-operations/dockets/?docketId=${docketIds}`,
+  //     '_blank',
+  //   );
+  // };
 
   if (!driver || !driver.id) {
     return null;
@@ -85,7 +94,7 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        <Button
+        {/* <Button
           variant="ghost"
           size="sm"
           onClick={handleAssignedDockets}
@@ -93,7 +102,7 @@ export function DriverActionButtons({ driver, onDelete }: DriverActionButtonsPro
         >
           <FileText className="h-4 w-4 mr-2" />
           Assigned Dockets
-        </Button>
+        </Button> */}
 
         {status !== DRIVER_STATUS.ON_DUTY && (
           <DropdownMenu>
