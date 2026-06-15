@@ -43,6 +43,7 @@ import {
   SubscriptionsAndInvoices,
   TenantDetails,
   TenantCompleteDetails,
+  TenantInternalDetails,
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
@@ -1311,6 +1312,12 @@ export const APIClient = {
       appClient.Get<TenantCompleteDetails>(
         `/socoro/quarrylink/api/tenant/tenant-complete-details`,
       ),
+    getTenantInternalDetails: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Get<TenantInternalDetails>(
+        `/socoro/quarrylink/tenant-fusion/api/tenants/internal/${tenantId}`,
+      );
+    },
     uploadLogo: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);

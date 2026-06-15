@@ -12,8 +12,10 @@ import {
 import { Loader2 } from 'lucide-react';
 
 import { UserDetailQueryOptions } from '@/lib/api/user';
+import { TenantInternalDetailsQueryOptions } from '@/lib/api/tenant';
 import { useQuery } from '@tanstack/react-query';
 import { useUserStore } from '@/app/stores/user-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 export default function ProtectedLayout({
   children,
@@ -29,6 +31,11 @@ export default function ProtectedLayout({
     UserDetailQueryOptions(userId),
   );
 
+  const { data: tenantDetails } = useQuery({
+    ...TenantInternalDetailsQueryOptions(),
+    enabled: auth.isAuthenticated,
+  });
+
   React.useEffect(() => {
     if (currentUser) {
       useUserStore.getState().setUser(currentUser);
@@ -36,6 +43,12 @@ export default function ProtectedLayout({
       useUserStore.getState().setUserGroups(currentUser.groups ?? []);
     }
   }, [currentUser]);
+
+  React.useEffect(() => {
+    if (tenantDetails) {
+      useTenantStore.getState().setTenantDetails(tenantDetails);
+    }
+  }, [tenantDetails]);
 
   const isDriversApp = pathname?.startsWith('/drivers-app');
   const isDeliveries =

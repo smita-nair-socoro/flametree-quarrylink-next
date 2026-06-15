@@ -95,6 +95,29 @@ export interface TenantCompleteDetails {
   subscriptionAndInvoices: SubscriptionsAndInvoices;
 }
 
+export interface TenantInternalDetails {
+  id: number;
+  tenantId: string;
+  tenantName: string;
+  contactName?: string;
+  businessName?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  abn?: string;
+  /** ISO 4217 currency code, e.g. "AUD", "NZD", "USD". Backfilled to "AUD". */
+  currency?: string;
+  website?: string;
+  accountingSoftware?: string;
+  tenantStatus?: string;
+  provisioningStatus?: string;
+  /** Tax rate as a percentage, e.g. 10. Backfilled to 10. */
+  taxAmount?: number;
+  /** Tax label, e.g. "GST". Backfilled to "GST". */
+  taxType?: string;
+  timeZoneId?: string;
+}
+
 export interface TenantLogoUploadResponse {
   s3Key: string;
 }

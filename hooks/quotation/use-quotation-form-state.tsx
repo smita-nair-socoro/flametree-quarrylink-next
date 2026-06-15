@@ -19,6 +19,7 @@ export function useQuotationFormState(
   isEditing: boolean,
   quotationForm: UseFormReturn<any>,
   taxPercentage?: number,
+  currencyCode?: string,
 ) {
   // ===== DATA FETCHING =====
   const {
@@ -55,14 +56,14 @@ export function useQuotationFormState(
   // ===== PRICING CALCULATIONS =====
   const pricingBreakdown = React.useMemo(() => {
     if (!isEditing || !currentQuotation) {
-      return calculateQuotationPricing(null, undefined, taxPercentage);
+      return calculateQuotationPricing(null, currencyCode, taxPercentage);
     }
     return calculateQuotationPricing(
       currentQuotation.quoteItems,
-      undefined,
+      currencyCode,
       taxPercentage,
     );
-  }, [isEditing, currentQuotation, taxPercentage]);
+  }, [isEditing, currentQuotation, taxPercentage, currencyCode]);
 
   // ===== CUSTOMER AUTO-FILL =====
   const customerId = quotationForm.watch('customerId');

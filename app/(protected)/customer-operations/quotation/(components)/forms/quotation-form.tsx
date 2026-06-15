@@ -115,6 +115,7 @@ export default function QuotationForm({
     isEditing,
     quotationForm,
     taxPercentage,
+    currencyCode,
   );
 
   // Update form values when API data loads
