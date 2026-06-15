@@ -19,7 +19,8 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
-import { docketColumns } from './(components)/(data-tables)/docket/columns';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -29,6 +30,8 @@ export default function DocketsPage() {
   const searchParams = useSearchParams();
   const linkedJobIdParam = searchParams.get('linkedJobId');
   const linkedJobNumberParam = searchParams.get('linkedJobNumber');
+
+  const { currencyCode } = useTenantCurrencyTax();
 
   const linkedJobId = React.useMemo(() => {
     const parsed = Number(linkedJobIdParam);
@@ -257,7 +260,7 @@ export default function DocketsPage() {
                   key={tableId}
                   tableId={tableId}
                   data={filteredItems ?? []}
-                  columns={docketColumns}
+                  columns={getDocketColumns(currencyCode)}
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}

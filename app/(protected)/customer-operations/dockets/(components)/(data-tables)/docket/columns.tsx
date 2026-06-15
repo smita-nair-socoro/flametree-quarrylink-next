@@ -13,8 +13,14 @@ import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TriangleAlert } from 'lucide-react';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import {
+  DEFAULT_CURRENCY_CODE,
+  formatCurrency,
+} from '@/lib/utils/currency-tax-helper';
 
-export const docketColumns: ColumnDef<DocketDTO>[] = [
+export const getDocketColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+): ColumnDef<DocketDTO>[] => [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -222,10 +228,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     cell: ({ row }) => {
       const cents = parseFloat(row.original.totalInvoiceAmount.toString());
       const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: 'AUD',
-      }).format(dollars);
+      const formatted = formatCurrency(dollars, currencyCode);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

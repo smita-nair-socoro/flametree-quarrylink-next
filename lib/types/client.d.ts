@@ -82,6 +82,12 @@ export interface TenantDetails {
   tenantInitials?: string;
   businessName?: string;
   email: string;
+  /** ISO 4217 currency code (lowercase), e.g. "aud", "nzd", "usd". Backfilled to "aud". */
+  currency?: string;
+  /** Tax rate as a percentage, e.g. 10. Backfilled to 10. */
+  taxAmount?: number;
+  /** Tax label, e.g. "GST". Backfilled to "GST". */
+  taxType?: string;
 }
 
 export interface TenantCompleteDetails {
