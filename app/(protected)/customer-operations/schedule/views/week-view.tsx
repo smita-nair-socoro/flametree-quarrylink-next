@@ -84,7 +84,7 @@ function getChipColor(status: DOCKET_STATUS) {
 }
 
 function formatSellUomLabel(uom: string | undefined): string {
-  if (uom === 'M3') return 'm³';
+  if (uom === 'M3' || uom === 'm3') return 'm³';
   if (uom === 'KG_20') return '× 20kg';
   return uom || '';
 }

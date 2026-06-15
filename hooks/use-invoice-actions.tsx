@@ -159,12 +159,12 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {formatNumberThousandSeparator(
                               docket.actualLoadSize ||
-                                docket.plannedLoadSize ||
-                                0,
+                              docket.plannedLoadSize ||
+                              0,
                             )}{' '}
                             {docket.jobItem?.productSellUom === 'TN'
                               ? 'TN'
-                              : docket.jobItem?.productSellUom === 'M3'
+                              : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                                 ? 'm³'
                                 : docket.jobItem?.productSellUom === 'KG_20'
                                   ? 'x 20kg'
@@ -175,9 +175,9 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {docket.deliveryCollectionDate
                               ? formatDate(
-                                  docket.deliveryCollectionDate,
-                                  'MMM dd, yyyy',
-                                )
+                                docket.deliveryCollectionDate,
+                                'MMM dd, yyyy',
+                              )
                               : '-'}
                           </td>
                         </tr>

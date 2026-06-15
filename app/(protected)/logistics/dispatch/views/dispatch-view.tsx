@@ -44,6 +44,7 @@ import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
   DispatchDocket,
   mapUnassignedDocketDtoToBoardRow,
+  mergeDispatchUnassignedDockets,
   isDispatchTruckResource,
   isDispatchDriverResource,
   truckMatchesFleetFilters,
@@ -207,7 +208,11 @@ export function DispatchView({
         }),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
-      const unassigned = globalUnassigned.filter((u) => !assignedIds.has(u.id));
+      const unassigned = mergeDispatchUnassignedDockets(
+        trucksData.unassignedDockets ?? [],
+        globalUnassigned,
+        assignedIds,
+      );
       newDockets = [...assigned, ...unassigned];
     } else if (viewType === 'drivers' && driversData) {
       const assigned = (driversData.resources || []).flatMap((r) =>
@@ -234,7 +239,11 @@ export function DispatchView({
         }),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
-      const unassigned = globalUnassigned.filter((u) => !assignedIds.has(u.id));
+      const unassigned = mergeDispatchUnassignedDockets(
+        driversData.unassignedDockets ?? [],
+        globalUnassigned,
+        assignedIds,
+      );
       newDockets = [...assigned, ...unassigned];
     }
 

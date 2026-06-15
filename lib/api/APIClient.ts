@@ -884,8 +884,8 @@ export const APIClient = {
           page: params?.page?.toString(),
           pageSize: pageSize?.toString(),
           size: isPaginated
-            ? pageSize?.toString() ?? '10'
-            : params?.size?.toString() ?? '1000',
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
@@ -894,7 +894,18 @@ export const APIClient = {
       });
       return response;
     },
-    getByJobId: async (jobId: number) => {
+    getByJobId: async (
+      jobId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -902,7 +913,14 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
+        queryString: {
+          page: params?.page?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+        },
+      });
       return response;
     },
     getById: (id: number) => {
@@ -1089,8 +1107,12 @@ export const APIClient = {
     },
     pause: (
       id: number,
-      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
-      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
+      deliveryPauseStrategy:
+        | 'STOP_ALL_DELIVERY_DOCKETS'
+        | 'ALLOW_DRIVERS_TO_COMPLETE',
+      collectionPauseStrategy:
+        | 'STOP_ACTIVE_COLLECTION_DOCKETS'
+        | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
     ) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
         body: { deliveryPauseStrategy, collectionPauseStrategy },

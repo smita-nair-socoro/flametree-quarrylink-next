@@ -27,6 +27,7 @@ import {
   normalizedLoadM3ForSort,
   matchesUnassignedSearch,
   mapUnassignedDocketDtoToBoardRow,
+  isDocketOnSelectedLocalDay,
 } from '@/lib/utils/dispatch-helper';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -88,7 +89,7 @@ function DraggableDocketCard({
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
             {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-            {docket.productSellUom === 'M3'
+            {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
                 ? 'x 20kg'
@@ -157,7 +158,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
             {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-            {docket.productSellUom === 'M3'
+            {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
                 ? 'x 20kg'
@@ -270,16 +271,11 @@ export default function UnassignedDockets({
 
   const thisDayUnassigned = React.useMemo(
     () =>
-      dockets.filter((d) => {
-        if (d.docketStatus !== DOCKET_STATUS.UNASSIGNED) return false;
-        if (!d.deliveryCollectionDate) return false;
-        const docketDate = new Date(d.deliveryCollectionDate);
-        return (
-          docketDate.getFullYear() === date.getFullYear() &&
-          docketDate.getMonth() === date.getMonth() &&
-          docketDate.getDate() === date.getDate()
-        );
-      }),
+      dockets.filter(
+        (d) =>
+          d.docketStatus === DOCKET_STATUS.UNASSIGNED &&
+          isDocketOnSelectedLocalDay(d, date),
+      ),
     [dockets, date],
   );
 
@@ -294,8 +290,8 @@ export default function UnassignedDockets({
       activeTab === 'all_dates'
         ? unassignedDockets
         : unassignedDockets.filter((d) =>
-            matchesUnassignedSearch(d, searchQuery),
-          );
+          matchesUnassignedSearch(d, searchQuery),
+        );
 
     // All dates: preserve API page order so infinite scroll appends at the bottom.
     if (activeTab === 'all_dates') {

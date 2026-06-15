@@ -99,7 +99,7 @@ function DocketChip({
           {formatNumberThousandSeparator(
             docket.actualLoadSize || docket.plannedLoadSize,
           )}{' '}
-          {docket.productSellUom === 'M3'
+          {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
             ? 'm³'
             : docket.productSellUom === 'KG_20'
               ? 'x 20kg'
@@ -312,13 +312,12 @@ export function ScheduleMonthView({
                       onDateChange(day);
                     }}
                     className={`p-2 flex flex-col rounded-xl border cursor-pointer transition-colors
-                    ${
-                      isSelectedDate
+                    ${isSelectedDate
                         ? 'ring-1 ring-purple-400 border-purple-400 bg-purple-200/10 z-10'
                         : !isCurrentMonth
                           ? 'bg-gray-50/40 border-gray-100'
                           : 'bg-white border-gray-200 shadow-sm'
-                    }
+                      }
                     ${dayDockets.length > 0 ? 'min-h-[150px]' : 'min-h-[100px]'}`}
                   >
                     <div className="flex flex-col mb-3">
@@ -342,7 +341,7 @@ export function ScheduleMonthView({
                                   .filter(
                                     (d) =>
                                       d.docketStatus ===
-                                        DOCKET_STATUS.IN_TRANSIT ||
+                                      DOCKET_STATUS.IN_TRANSIT ||
                                       d.docketStatus === DOCKET_STATUS.ARRIVED,
                                   )
                                   .map((d) => d.driverName)

@@ -535,7 +535,7 @@ export function AssignTruckDriverModal({
                           {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         </span>
                         <span className="font-bold text-gray-900">
-                          {docket.productSellUom === 'M3'
+                          {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
                             ? 'm³'
                             : docket.productSellUom === 'KG_20'
                               ? 'x 20kg'
@@ -612,7 +612,7 @@ export function AssignTruckDriverModal({
                           {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
                         </span>
                         <span className="font-bold text-gray-900">
-                          {docket.productSellUom === 'M3'
+                          {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
                             ? 'm³'
                             : docket.productSellUom === 'KG_20'
                               ? 'x 20kg'
