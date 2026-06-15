@@ -58,6 +58,37 @@ export function mapUnassignedDocketDtoToBoardRow(
   };
 }
 
+export function mapSchedulerUnassignedToBoardRow(
+  d: DispatchUnassignedDocket,
+): DispatchUnassignedDocket & DispatchDocketUiFields {
+  return {
+    ...d,
+    loadSize: d.loadSize ?? d.actualLoadSize ?? d.plannedLoadSize ?? 0,
+    uiAssignedTruckId: null,
+    uiAssignedTime: null,
+  };
+}
+
+/** Scheduler day-scoped unassigned rows take precedence over the global dockets list. */
+export function mergeDispatchUnassignedDockets(
+  schedulerUnassigned: DispatchUnassignedDocket[],
+  globalUnassigned: Array<DispatchUnassignedDocket & DispatchDocketUiFields>,
+  assignedIds: Set<number>,
+): DispatchDocket[] {
+  const byId = new Map<number, DispatchDocket>();
+
+  for (const u of globalUnassigned) {
+    if (!assignedIds.has(u.id)) byId.set(u.id, u);
+  }
+  for (const u of schedulerUnassigned) {
+    if (!assignedIds.has(u.id)) {
+      byId.set(u.id, mapSchedulerUnassignedToBoardRow(u));
+    }
+  }
+
+  return Array.from(byId.values());
+}
+
 /** Product sell qty → equivalent body volume (m³). */
 export function loadVolumeM3FromProductSellUom(
   loadSize: number,

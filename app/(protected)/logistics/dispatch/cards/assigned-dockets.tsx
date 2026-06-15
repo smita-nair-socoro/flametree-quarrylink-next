@@ -226,11 +226,10 @@ function DroppableSlot({
   return (
     <div
       ref={setNodeRef}
-      className={`min-h-0 h-full p-1.5 transition-colors ${
-        isOver
+      className={`min-h-0 h-full p-1.5 transition-colors ${isOver
           ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
           : 'bg-transparent'
-      }`}
+        }`}
     >
       {children}
     </div>
@@ -464,11 +463,11 @@ function DocketCard({
     endBoundaryHour >= GRID_SPAN_HOURS - 1e-6
       ? '00:00'
       : TIME_SLOTS[
-          Math.min(
-            Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
-            TIME_SLOTS.length - 1,
-          )
-        ];
+      Math.min(
+        Math.max(0, Math.ceil(endBoundaryHour - 1e-6) - 1),
+        TIME_SLOTS.length - 1,
+      )
+      ];
 
   return (
     <div
@@ -501,7 +500,7 @@ function DocketCard({
                 {formatNumberThousandSeparator(
                   docket.actualLoadSize || docket.plannedLoadSize,
                 )}{' '}
-                {docket.productSellUom === 'M3'
+                {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
                   ? 'm³'
                   : docket.productSellUom === 'KG_20'
                     ? 'x 20kg'
@@ -588,48 +587,48 @@ export default function AssignedDockets({
   const sortedTrucks = React.useMemo(() => {
     if (utilisationFocus && viewType === 'trucks' && focusLoadSize > 0) {
       return [...trucks].sort((a, b) => {
-      const capA = a.capacity || 0;
-      const capB = b.capacity || 0;
-      const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
-      const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
+        const capA = a.capacity || 0;
+        const capB = b.capacity || 0;
+        const pctA = capA > 0 ? (focusLoadSize / capA) * 100 : 0;
+        const pctB = capB > 0 ? (focusLoadSize / capB) * 100 : 0;
 
-      const isGenericA =
-        pctA === 0 || isGenericDispatchTruckName(a.name);
-      const isGenericB =
-        pctB === 0 || isGenericDispatchTruckName(b.name);
+        const isGenericA =
+          pctA === 0 || isGenericDispatchTruckName(a.name);
+        const isGenericB =
+          pctB === 0 || isGenericDispatchTruckName(b.name);
 
-      const isValidA = !isGenericA && pctA > 0 && pctA <= 100;
-      const isValidB = !isGenericB && pctB > 0 && pctB <= 100;
+        const isValidA = !isGenericA && pctA > 0 && pctA <= 100;
+        const isValidB = !isGenericB && pctB > 0 && pctB <= 100;
 
-      const isExceedA = !isGenericA && pctA > 100;
-      const isExceedB = !isGenericB && pctB > 100;
+        const isExceedA = !isGenericA && pctA > 100;
+        const isExceedB = !isGenericB && pctB > 100;
 
-      // 1. Valid fits (<= 100%) come first
-      if (isValidA && !isValidB) return -1;
-      if (!isValidA && isValidB) return 1;
+        // 1. Valid fits (<= 100%) come first
+        if (isValidA && !isValidB) return -1;
+        if (!isValidA && isValidB) return 1;
 
-      // 2. If both are valid, sort descending (closest to 100% first)
-      if (isValidA && isValidB) {
-        return pctB - pctA;
-      }
+        // 2. If both are valid, sort descending (closest to 100% first)
+        if (isValidA && isValidB) {
+          return pctB - pctA;
+        }
 
-      // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
-      if (isGenericA && !isGenericB) return -1;
-      if (!isGenericA && isGenericB) return 1;
+        // 3. Generic trucks (Open Capacity) go next (between under capacity and exceeds limit)
+        if (isGenericA && !isGenericB) return -1;
+        if (!isGenericA && isGenericB) return 1;
 
-      if (isGenericA && isGenericB) return 0;
+        if (isGenericA && isGenericB) return 0;
 
-      // 4. Exceeded fits (> 100%) come last
-      if (isExceedA && !isExceedB) return -1;
-      if (!isExceedA && isExceedB) return 1;
+        // 4. Exceeded fits (> 100%) come last
+        if (isExceedA && !isExceedB) return -1;
+        if (!isExceedA && isExceedB) return 1;
 
-      // 5. If both exceed, sort ascending (least exceeded first)
-      if (isExceedA && isExceedB) {
-        return pctA - pctB;
-      }
+        // 5. If both exceed, sort ascending (least exceeded first)
+        if (isExceedA && isExceedB) {
+          return pctA - pctB;
+        }
 
-      return 0;
-    });
+        return 0;
+      });
     }
 
     if (viewType === 'trucks') {
@@ -750,9 +749,8 @@ export default function AssignedDockets({
     return (
       <div
         key={truck.id}
-        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${
-          isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
-        }`}
+        className={`bg-white border border-[#E2E8F0] rounded-xl flex flex-col overflow-hidden shadow-sm shrink-0 transition-all duration-300 h-full ${isExpanded ? 'w-full flex-1' : 'min-w-[400px] flex-1'
+          }`}
       >
         {/* Header */}
         <div className="p-4 border-b border-[#E2E8F0] bg-white flex flex-col gap-3 shrink-0">
