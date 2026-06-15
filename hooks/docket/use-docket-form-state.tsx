@@ -16,6 +16,7 @@ import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/currency-tax-helper';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 
 const formatTimeString = (dateString?: string | null) => {
@@ -88,6 +89,7 @@ type UseDocketFormStateProps = {
   isQuickDocket?: boolean;
   jobId?: number;
   onDirtyChange?: (isDirty: boolean) => void;
+  taxPercentage?: number;
 };
 
 type SelectedJobPrefill = {
@@ -222,6 +224,7 @@ export function useDocketFormState({
   isQuickDocket = true,
   jobId,
   onDirtyChange,
+  taxPercentage = DEFAULT_TAX_PERCENTAGE,
 }: UseDocketFormStateProps) {
   const isEditing = Boolean(id);
 
@@ -665,7 +668,7 @@ export function useDocketFormState({
     );
 
     const subtotal = roundToTwoDecimals(productSell + truckSell);
-    const gst = roundToTwoDecimals(subtotal * 0.1);
+    const gst = roundToTwoDecimals(subtotal * (taxPercentage / 100));
     const total = roundToTwoDecimals(subtotal + gst);
 
     return {
@@ -683,6 +686,7 @@ export function useDocketFormState({
     jobLineItemId,
     isEditing,
     selectedDocket?.docketStatus,
+    taxPercentage,
   ]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(

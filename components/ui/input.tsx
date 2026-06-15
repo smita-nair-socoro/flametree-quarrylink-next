@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { getCurrencyLocale } from '@/lib/utils/currency-tax-helper';
 
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
@@ -9,6 +10,7 @@ interface ExtendedInputProps extends React.ComponentProps<'input'> {
   minDecimals?: number;
   suffix?: React.ReactNode;
   suffixPositionClassName?: string;
+  currencyCode?: string;
 }
 
 function Input({
@@ -27,6 +29,7 @@ function Input({
   inputMode,
   pattern,
   suffixPositionClassName = '',
+  currencyCode,
   ...props
 }: ExtendedInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
@@ -43,13 +46,22 @@ function Input({
     }
     const num = Number(value);
     if (isNaN(num)) return value;
+    const locale = getCurrencyLocale(currencyCode);
     return allowDecimal
-      ? num.toLocaleString('en-AU', {
+      ? num.toLocaleString(locale, {
         minimumFractionDigits: minDecimals ?? 0,
         maximumFractionDigits: maxDecimals ?? 10,
       })
-      : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
-  }, [isNumber, isFocused, value, allowDecimal, maxDecimals, minDecimals]);
+      : num.toLocaleString(locale, { maximumFractionDigits: 0 });
+  }, [
+    isNumber,
+    isFocused,
+    value,
+    allowDecimal,
+    maxDecimals,
+    minDecimals,
+    currencyCode,
+  ]);
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
