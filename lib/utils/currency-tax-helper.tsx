@@ -10,7 +10,7 @@ import { useTenantStore } from '@/app/stores/tenant-store';
  * tenants are backfilled with AUD / GST / 10%, which is why these are the
  * fallback defaults below.
  */
-export const DEFAULT_CURRENCY_CODE = 'JPY';
+export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
 

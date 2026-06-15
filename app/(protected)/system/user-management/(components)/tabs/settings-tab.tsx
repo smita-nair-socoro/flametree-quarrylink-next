@@ -30,10 +30,42 @@ import {
   useUpdateUser,
   // useChangePassword,
 } from '@/lib/api/user';
+import { TenantInternalDetailsQueryOptions } from '@/lib/api/tenant';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { Info } from 'lucide-react';
+
+const DEFAULT_TIMEZONE = 'Australia/Sydney';
+
+/** Currency code -> display name, e.g. "AUD" -> "Australian Dollar". */
+function getCurrencyName(currencyCode: string): string {
+  try {
+    return (
+      new Intl.DisplayNames(['en'], { type: 'currency' }).of(currencyCode) ||
+      currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+/** IANA timezone id -> "Australia/Sydney (UTC+10:00)". */
+function getTimezoneLabel(timeZoneId: string): string {
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timeZoneId,
+      timeZoneName: 'longOffset',
+    }).formatToParts(new Date());
+    const offset =
+      parts.find((part) => part.type === 'timeZoneName')?.value || '';
+    return `${timeZoneId} (${offset.replace('GMT', 'UTC')})`;
+  } catch {
+    return timeZoneId;
+  }
+}
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -47,6 +79,14 @@ export default function SettingsTab() {
 
   // Use update user mutation
   const updateUserMutation = useUpdateUser();
+
+  // Fetch tenant (workspace) settings - currency, tax, timezone
+  const { data: tenantDetails } = useQuery(TenantInternalDetailsQueryOptions());
+  const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
+  const currencyName = getCurrencyName(currencyCode);
+  const timezoneLabel = getTimezoneLabel(
+    tenantDetails?.timeZoneId || DEFAULT_TIMEZONE
+  );
 
   // Use change password mutation
   // const changePasswordMutation = useChangePassword();
@@ -333,6 +373,51 @@ export default function SettingsTab() {
                 </Button>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        {/* Workspace Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-medium -mb-3">
+              Workspace Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label>Currency</Label>
+                <Input className="w-full" value={currencyCode} disabled />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Currency Name</Label>
+                <Input className="w-full" value={currencyName} disabled />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Tax Rate</Label>
+                <Input
+                  className="w-full"
+                  value={`${taxPercentage}%`}
+                  disabled
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Tax Label</Label>
+                <Input className="w-full" value={taxLabel} disabled />
+              </div>
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <Label>Timezone</Label>
+                <Input className="w-full" value={timezoneLabel} disabled />
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5F3FF] px-4 py-3 text-sm text-[#7C3AED]">
+              <Info className="h-4 w-4 flex-shrink-0" />
+              <span>
+                These values are configured by QuarryLink support team and
+                cannot be changed here.
+              </span>
+            </div>
           </CardContent>
         </Card>
 
