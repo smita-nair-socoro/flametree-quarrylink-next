@@ -21,7 +21,6 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
