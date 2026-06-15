@@ -104,8 +104,11 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'customer',
     accessorFn: (row) =>
-      row.job?.customerDto?.businessName ||
-      row.job?.customerDto?.individualContactName,
+      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
+        ? row.job?.customerDto?.businessName || 'N/A'
+        : row.job?.customerDto?.individualContactName ||
+          row.job?.customerDto?.contactName ||
+          'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -113,8 +116,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const customer = row.original.job?.customerDto;
       const customerName =
         customer?.customerType === CUSTOMER_TYPE.BUSINESS
-          ? customer?.businessName
-          : customer?.individualContactName;
+          ? customer?.businessName || 'N/A'
+          : customer?.individualContactName || customer?.contactName || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
