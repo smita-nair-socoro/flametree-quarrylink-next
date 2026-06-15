@@ -19,20 +19,17 @@ export function roundToTwoDecimals(num: number): number {
   return Number(Math.trunc(Number(num + 'e2')) + 'e-2');
 }
 
-export function centsToDollars(cents: number, currencyCode?: string): string {
+export function centsToDollars(cents: number): string {
   const dollars = cents / 100;
-  return formatDollars(dollars, currencyCode);
+  return formatDollars(dollars);
 }
 
-export function formatDollars(
-  dollars: number | string,
-  currencyCode?: string,
-): string {
+export function formatDollars(dollars: number | string): string {
   const amount = typeof dollars === 'string' ? parseFloat(dollars) : dollars;
   if (isNaN(amount)) {
     return 'N/A';
   }
-  return amount.toLocaleString(getCurrencyLocale(currencyCode), {
+  return amount.toLocaleString(getCurrencyLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

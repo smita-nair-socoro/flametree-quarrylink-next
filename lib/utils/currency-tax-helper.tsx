@@ -15,34 +15,25 @@ export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
 
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  AUD: '$',
-  NZD: '$',
-  USD: '$',
-  GBP: '£',
-  EUR: '€',
-};
-
-const CURRENCY_LOCALES: Record<string, string> = {
-  AUD: 'en-AU',
-  NZD: 'en-NZ',
-  USD: 'en-US',
-  GBP: 'en-GB',
-  EUR: 'en-IE',
-};
+const FIXED_LOCALE = 'en-AU';
 
 /** Symbol for a given ISO currency code, e.g. "AUD" -> "$". */
 export function getCurrencySymbol(
   currencyCode: string = DEFAULT_CURRENCY_CODE,
 ): string {
-  return CURRENCY_SYMBOLS[currencyCode.toUpperCase()] ?? '$';
+  const code = currencyCode.toUpperCase();
+  const parts = new Intl.NumberFormat(FIXED_LOCALE, {
+    style: 'currency',
+    currency: code,
+    currencyDisplay: 'narrowSymbol',
+  }).formatToParts(0);
+
+  return parts.find((part) => part.type === 'currency')?.value ?? code;
 }
 
-/** Locale used to format a given ISO currency code. */
-export function getCurrencyLocale(
-  currencyCode: string = DEFAULT_CURRENCY_CODE,
-): string {
-  return CURRENCY_LOCALES[currencyCode.toUpperCase()] ?? 'en-AU';
+/** Locale used to format currency amounts. */
+export function getCurrencyLocale(): string {
+  return FIXED_LOCALE;
 }
 
 /** Formats a dollar amount (not cents) as a localized currency string. */
@@ -50,7 +41,7 @@ export function formatCurrency(
   amount: number,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
 ): string {
-  return new Intl.NumberFormat(getCurrencyLocale(currencyCode), {
+  return new Intl.NumberFormat(getCurrencyLocale(), {
     style: 'currency',
     currency: currencyCode,
   }).format(amount);

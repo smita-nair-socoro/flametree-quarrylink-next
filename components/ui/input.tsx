@@ -10,7 +10,6 @@ interface ExtendedInputProps extends React.ComponentProps<'input'> {
   minDecimals?: number;
   suffix?: React.ReactNode;
   suffixPositionClassName?: string;
-  currencyCode?: string;
 }
 
 function Input({
@@ -29,7 +28,6 @@ function Input({
   inputMode,
   pattern,
   suffixPositionClassName = '',
-  currencyCode,
   ...props
 }: ExtendedInputProps) {
   const [isFocused, setIsFocused] = React.useState(false);
@@ -46,22 +44,14 @@ function Input({
     }
     const num = Number(value);
     if (isNaN(num)) return value;
-    const locale = getCurrencyLocale(currencyCode);
+    const locale = getCurrencyLocale();
     return allowDecimal
       ? num.toLocaleString(locale, {
         minimumFractionDigits: minDecimals ?? 0,
         maximumFractionDigits: maxDecimals ?? 10,
       })
       : num.toLocaleString(locale, { maximumFractionDigits: 0 });
-  }, [
-    isNumber,
-    isFocused,
-    value,
-    allowDecimal,
-    maxDecimals,
-    minDecimals,
-    currencyCode,
-  ]);
+  }, [isNumber, isFocused, value, allowDecimal, maxDecimals, minDecimals]);
 
   const handleChange = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
