@@ -1,7 +1,6 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 /**
  * Centralized currency & tax (GST) display helpers.
@@ -11,7 +10,7 @@ import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
  * tenants are backfilled with AUD / GST / 10%, which is why these are the
  * fallback defaults below.
  */
-export const DEFAULT_CURRENCY_CODE = 'AUD';
+export const DEFAULT_CURRENCY_CODE = 'JPY';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
 
@@ -44,6 +43,7 @@ export function formatCurrency(
   return new Intl.NumberFormat(getCurrencyLocale(), {
     style: 'currency',
     currency: currencyCode,
+    currencyDisplay: 'narrowSymbol',
   }).format(amount);
 }
 
@@ -91,17 +91,19 @@ export interface TenantCurrencyTax {
 
 /**
  * Reads the tenant's currency_code/tax_label/tax_percentage from the tenant
- * details API, falling back to AUD/GST/10% for tenants without these fields.
+ * store (populated on login), falling back to AUD/GST/10% for tenants
+ * without these fields.
  */
 export function useTenantCurrencyTax(): TenantCurrencyTax {
-  const { data } = useQuery(TenantCompleteDetailsQueryOptions());
-  const tenantDetails = data?.tenantDetails;
+  const {
+    currencyCode: storeCurrencyCode,
+    taxLabel: storeTaxLabel,
+    taxPercentage: storeTaxPercentage,
+  } = useTenantStore();
 
-  const currencyCode = (
-    tenantDetails?.currency || DEFAULT_CURRENCY_CODE
-  ).toUpperCase();
-  const taxLabel = tenantDetails?.taxType || DEFAULT_TAX_LABEL;
-  const taxPercentage = tenantDetails?.taxAmount ?? DEFAULT_TAX_PERCENTAGE;
+  const currencyCode = (storeCurrencyCode || DEFAULT_CURRENCY_CODE).toUpperCase();
+  const taxLabel = storeTaxLabel || DEFAULT_TAX_LABEL;
+  const taxPercentage = storeTaxPercentage ?? DEFAULT_TAX_PERCENTAGE;
 
   return {
     currencyCode,
