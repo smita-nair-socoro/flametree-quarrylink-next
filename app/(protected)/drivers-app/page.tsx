@@ -70,16 +70,22 @@ export default function DriversAppPage() {
     (s) => s.isDailyChecklistRequired,
   );
 
-  React.useEffect(() => {
-    const checklist = driverData?.latestDriverChecklist;
-    if (!checklist) {
-      setIsDailyChecklistRequired(true);
-      return;
-    }
+  // Resolved daily-checklist requirement, derived synchronously from the loaded
+  // driver data. `undefined` means it's not known yet (data still loading) — callers
+  // must wait rather than fall back to the store's pessimistic `true` default.
+  const dailyChecklistRequired = React.useMemo<boolean | undefined>(() => {
+    if (driverData === undefined) return undefined;
+    const checklist = driverData.latestDriverChecklist;
+    if (!checklist) return true;
     const todayUTC = new Date().toISOString().split('T')[0];
-    const checklistDateUTC = checklist.checklistDate.split('T')[0];
-    setIsDailyChecklistRequired(todayUTC !== checklistDateUTC);
-  }, [driverData, setIsDailyChecklistRequired]);
+    return todayUTC !== checklist.checklistDate.split('T')[0];
+  }, [driverData]);
+
+  React.useEffect(() => {
+    if (dailyChecklistRequired !== undefined) {
+      setIsDailyChecklistRequired(dailyChecklistRequired);
+    }
+  }, [dailyChecklistRequired, setIsDailyChecklistRequired]);
 
   const handleLogout = async () => {
     try {
@@ -189,6 +195,7 @@ export default function DriversAppPage() {
               <DocketsTab
                 dockets={dockets}
                 autoOpenDocketId={autoOpenDocketId}
+                dailyChecklistRequired={dailyChecklistRequired}
                 pendingDocketId={pendingDocketId}
                 onPendingDocketConsumed={() => setPendingDocketId(null)}
                 vehicleInspectionDoneSignal={vehicleInspectionDoneSignal}
