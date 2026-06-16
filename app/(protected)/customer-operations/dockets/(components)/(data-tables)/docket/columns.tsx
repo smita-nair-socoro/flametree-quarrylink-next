@@ -103,12 +103,15 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'customer',
-    accessorFn: (row) =>
-      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
-        ? row.job?.customerDto?.businessName || 'N/A'
-        : row.job?.customerDto?.individualContactName ||
-        row.job?.customerDto?.contactName ||
-        'N/A',
+    accessorFn: (row) => {
+      const customer = row.job?.customerDto;
+      if (!customer?.id) return '';
+      const customerName =
+        customer.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer.businessName || 'N/A'
+          : customer.individualContactName || customer.contactName || 'N/A';
+      return `${customer.id}|${customerName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -133,7 +136,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product?.id,
+    accessorFn: (row) => {
+      const product = row.jobItem?.product;
+      if (!product?.id) return '';
+      const productName = product.productName || 'N/A';
+      return `${product.id}|${productName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },

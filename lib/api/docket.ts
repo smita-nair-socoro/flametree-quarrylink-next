@@ -49,6 +49,9 @@ export type DocketsListParams = {
   sortBy?: string;
   sortOrder?: string;
   status?: string;
+  type?: string;
+  customerId?: number;
+  productId?: number;
 };
 
 const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
@@ -76,6 +79,43 @@ export function toDocketApiSortParams(
   return {
     sortBy: DOCKET_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
     sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
+function getFacetFilterValues(
+  filters: { id: string; value: unknown }[],
+  columnId: string,
+): string[] {
+  const filter = filters.find((f) => f.id === columnId);
+  if (!filter || !Array.isArray(filter.value)) return [];
+  return filter.value.map((v) => String(v));
+}
+
+export function toDocketApiFilterParams(
+  filters: { id: string; value: unknown }[],
+): Pick<DocketsListParams, 'status' | 'type' | 'customerId' | 'productId'> {
+  const statusValues = getFacetFilterValues(filters, 'status');
+  const typeValues = getFacetFilterValues(filters, 'docketType');
+  const customerValues = getFacetFilterValues(filters, 'customer');
+  const productValues = getFacetFilterValues(filters, 'product');
+
+  const customerIdRaw = customerValues[0];
+  const customerId =
+    customerIdRaw && Number.isFinite(Number(customerIdRaw))
+      ? Number(customerIdRaw)
+      : undefined;
+
+  const productIdRaw = productValues[0];
+  const productId =
+    productIdRaw && Number.isFinite(Number(productIdRaw))
+      ? Number(productIdRaw)
+      : undefined;
+
+  return {
+    status: statusValues.length ? statusValues.join(',') : undefined,
+    type: typeValues.length ? typeValues.join(',') : undefined,
+    customerId,
+    productId,
   };
 }
 

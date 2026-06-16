@@ -867,6 +867,9 @@ export const APIClient = {
       sortBy?: string;
       sortOrder?: string;
       status?: string;
+      type?: string;
+      customerId?: number;
+      productId?: number;
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -890,6 +893,9 @@ export const APIClient = {
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
           status: params?.status,
+          type: params?.type,
+          customerId: params?.customerId?.toString(),
+          productId: params?.productId?.toString(),
         },
       });
       return response;
