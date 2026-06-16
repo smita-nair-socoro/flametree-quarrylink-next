@@ -8,6 +8,10 @@ import {
 } from '@/components/ui/schedular/deliveries-toolbar-toggles';
 import { ScheduleMonthView } from './views/month-view';
 import { ScheduleWeekView } from './views/week-view';
+import {
+  DEFAULT_DISPATCH_BOARD_FILTER,
+  type DispatchBoardFilterState,
+} from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 
 export default function DeliveriesPage() {
   const [selectedDate, setSelectedDate] = React.useState(() =>
@@ -17,6 +21,12 @@ export default function DeliveriesPage() {
     'trucks',
   );
   const [periodView, setPeriodView] = React.useState<'week' | 'month'>('week');
+  const [boardFilter, setBoardFilter] =
+    React.useState<DispatchBoardFilterState>(DEFAULT_DISPATCH_BOARD_FILTER);
+
+  React.useEffect(() => {
+    setBoardFilter(DEFAULT_DISPATCH_BOARD_FILTER);
+  }, [resourceView, periodView]);
 
   return (
     <div className="flex h-full min-h-0 w-full min-w-0 flex-col bg-[#F9FAFB]">
@@ -42,9 +52,16 @@ export default function DeliveriesPage() {
             <ScheduleMonthView
               date={selectedDate}
               onDateChange={setSelectedDate}
+              filter={boardFilter}
+              onFilterChange={setBoardFilter}
             />
           ) : (
-            <ScheduleWeekView date={selectedDate} viewType={resourceView} />
+            <ScheduleWeekView
+              date={selectedDate}
+              viewType={resourceView}
+              filter={boardFilter}
+              onFilterChange={setBoardFilter}
+            />
           )}
         </main>
       </div>
