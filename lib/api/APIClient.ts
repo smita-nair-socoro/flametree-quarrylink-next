@@ -49,6 +49,10 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
+import {
+  MyobConnectResponseDTO,
+  MyobStatusResponseDTO,
+} from '../types/myob';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -1327,6 +1331,26 @@ export const APIClient = {
       const tenantId = await getTenantId();
       return appClient.Get<XeroStatusResponseDTO>(
         `/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+        { omitTenantHeaders: true },
+      );
+    },
+  },
+
+  myob: {
+    connect: async (userEmail: string) => {
+      const tenantId = await getTenantId();
+      return appClient.Post<MyobConnectResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-business/internal/connect`,
+        {
+          body: { tenantId, userEmail },
+          omitTenantHeaders: true,
+        },
+      );
+    },
+    getStatus: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Get<MyobStatusResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-business/internal/${tenantId}/status`,
         { omitTenantHeaders: true },
       );
     },
