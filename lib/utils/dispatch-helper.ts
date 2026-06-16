@@ -1,7 +1,6 @@
 import { format, startOfDay } from 'date-fns';
 import { appendUtcSuffix } from '@/lib/utils/date';
 import type { ConflictingDocket } from '@/lib/types/docket';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 import type {
@@ -291,9 +290,159 @@ export function matchesBoardJobFilter(
   jobStatuses: string[],
 ): boolean {
   if (jobStatuses.length === 0) {
-    return d.docketStatus !== DOCKET_STATUS.UNASSIGNED;
+    return true;
   }
   return jobStatuses.includes(String(d.docketStatus));
+}
+
+export type SchedulerFilterOption = {
+  id: string;
+  label: string;
+};
+
+export function buildSchedulerFilterCustomerOptions(
+  viewType: 'trucks' | 'drivers',
+  trucksData?: DispatchDocketDTO | null,
+  driversData?: DispatchDocketDTO | null,
+): string[] {
+  const names = new Set<string>();
+
+  if (viewType === 'trucks' && trucksData?.resources) {
+    for (const r of trucksData.resources) {
+      if (isDispatchTruckResource(r)) {
+        for (const d of r.dockets || []) {
+          if (d.customerName) names.add(d.customerName);
+        }
+      }
+    }
+    for (const d of trucksData.unassignedDockets || []) {
+      if (d.customerName) names.add(d.customerName);
+    }
+  } else if (viewType === 'drivers' && driversData?.resources) {
+    for (const r of driversData.resources) {
+      if (isDispatchDriverResource(r)) {
+        for (const d of r.dockets || []) {
+          if (d.customerName) names.add(d.customerName);
+        }
+      }
+    }
+    for (const d of driversData.unassignedDockets || []) {
+      if (d.customerName) names.add(d.customerName);
+    }
+  }
+
+  return Array.from(names).sort();
+}
+
+export function isDocketInScheduleDateRange(
+  d: { deliveryCollectionDate?: string },
+  rangeStart: Date,
+  rangeEnd: Date,
+): boolean {
+  if (!d.deliveryCollectionDate) return false;
+  const localTimeStr = d.deliveryCollectionDate.includes('T')
+    ? d.deliveryCollectionDate.replace('Z', '')
+    : d.deliveryCollectionDate;
+  const day = startOfDay(new Date(localTimeStr));
+  const start = startOfDay(rangeStart);
+  const end = startOfDay(rangeEnd);
+  return day >= start && day <= end;
+}
+
+/** Customers with at least one docket on the schedule in the given date range. */
+export function buildScheduleCustomerOptionsFromDockets(
+  dockets: { customerName?: string; deliveryCollectionDate?: string }[],
+  rangeStart: Date,
+  rangeEnd: Date,
+): string[] {
+  const names = new Set<string>();
+  for (const d of dockets) {
+    if (
+      d.customerName &&
+      isDocketInScheduleDateRange(d, rangeStart, rangeEnd)
+    ) {
+      names.add(d.customerName);
+    }
+  }
+  return Array.from(names).sort();
+}
+
+export function buildSchedulerFilterDriverOptions(
+  driversData?: DispatchDocketDTO | null,
+): SchedulerFilterOption[] {
+  if (!driversData?.resources) return [];
+  return driversData.resources.filter(isDispatchDriverResource).map((r) => ({
+    id: String(r.id),
+    label: r.driverName,
+  }));
+}
+
+export function buildSchedulerFilterTruckOptions(
+  trucksData?: DispatchDocketDTO | null,
+): SchedulerFilterOption[] {
+  if (!trucksData?.resources) return [];
+  return trucksData.resources.filter(isDispatchTruckResource).map((r) => ({
+    id: String(r.id),
+    label: r.licensePlate,
+  }));
+}
+
+export function buildSchedulerFilterHaulierOptions(
+  trucksData?: DispatchDocketDTO | null,
+): SchedulerFilterOption[] {
+  if (!trucksData?.resources) return [];
+  const byId = new Map<number, string>();
+  for (const r of trucksData.resources) {
+    if (!isDispatchTruckResource(r)) continue;
+    for (const d of r.drivers || []) {
+      const h = d.haulier;
+      if (h?.id != null && h.haulierName) {
+        byId.set(h.id, h.haulierName);
+      }
+    }
+  }
+  return [...byId.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .map(([id, label]) => ({ id: String(id), label }));
+}
+
+export function docketMatchesScheduleJobFilters(
+  d: DispatchBoardDocketRow,
+  filter: DispatchBoardFilterState,
+): boolean {
+  if (!matchesBoardJobFilter(d as DispatchDocket, filter.jobStatuses)) {
+    return false;
+  }
+  if (filter.customerNames.length === 0) return true;
+  return !!d.customerName && filter.customerNames.includes(d.customerName);
+}
+
+export function hasActiveScheduleFleetFilters(
+  filter: DispatchBoardFilterState,
+): boolean {
+  return (
+    filter.truckIds.length > 0 ||
+    filter.haulierIds.length > 0 ||
+    filter.truckBusinessTypes.length > 0 ||
+    filter.driverStatuses.length > 0
+  );
+}
+
+export function docketPassesScheduleFleetFilters(
+  docketId: number,
+  trucksData: DispatchDocketDTO | undefined | null,
+  filter: DispatchBoardFilterState,
+): boolean {
+  if (!hasActiveScheduleFleetFilters(filter)) return true;
+  if (!trucksData?.resources) return false;
+
+  for (const r of trucksData.resources) {
+    if (!isDispatchTruckResource(r)) continue;
+    if (!(r.dockets || []).some((d) => d.id === docketId)) continue;
+    return truckMatchesFleetFilters(r, filter);
+  }
+
+  return false;
 }
 
 export function formatCargoLineForUnassign(d: DispatchDocket): string {

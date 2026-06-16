@@ -147,6 +147,12 @@ export const XeroKeys = {
   connect: () => [...XeroKeys.all, 'connect'] as const,
   status: () => [...XeroKeys.all, 'status'] as const,
 };
+
+export const MyobKeys = {
+  all: ['myob'] as const,
+  connect: () => [...MyobKeys.all, 'connect'] as const,
+  status: () => [...MyobKeys.all, 'status'] as const,
+};
 export const SchedulerKeys = {
   all: ['scheduler'] as const,
   trucks: (start: string, end: string) =>

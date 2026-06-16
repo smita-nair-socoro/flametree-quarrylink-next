@@ -31,7 +31,7 @@ export default function DocketsPage() {
   const linkedJobIdParam = searchParams.get('linkedJobId');
   const linkedJobNumberParam = searchParams.get('linkedJobNumber');
 
-  const { currencyCode } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
 
   const linkedJobId = React.useMemo(() => {
     const parsed = Number(linkedJobIdParam);
@@ -260,7 +260,7 @@ export default function DocketsPage() {
                   key={tableId}
                   tableId={tableId}
                   data={filteredItems ?? []}
-                  columns={getDocketColumns(currencyCode)}
+                  columns={getDocketColumns(currencyCode, taxLabel)}
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
