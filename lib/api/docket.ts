@@ -51,6 +51,34 @@ export type DocketsListParams = {
   status?: string;
 };
 
+const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
+  docketNumber: 'docketNumber',
+  docketType: 'jobItemType',
+  jobReference: 'jobReference',
+  customer: 'customer',
+  product: 'product',
+  deliveryDate: 'deliveryCollectionDate',
+  loadSize: 'plannedLoadSize',
+  totalInvoice: 'totalInvoiceAmount',
+};
+
+export function toDocketApiSortParams(
+  sorting: {
+    id: string;
+    desc: boolean;
+  }[],
+): Pick<DocketsListParams, 'sortBy' | 'sortOrder'> {
+  const sort = sorting[0];
+  if (!sort) {
+    return { sortBy: 'docketNumber', sortOrder: 'asc' };
+  }
+
+  return {
+    sortBy: DOCKET_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+    sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
 /** Dockets API pagination is 1-based (page 1 = first page). */
 function toApiPage(page: number): number {
   return page + 1;

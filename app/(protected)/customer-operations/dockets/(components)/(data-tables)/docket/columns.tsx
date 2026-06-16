@@ -39,8 +39,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'docketType',
     accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Type" />;
+    header: () => {
+      return <div>Type</div>;
     },
     cell: ({ row }) => {
       return (
@@ -107,8 +107,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
         ? row.job?.customerDto?.businessName || 'N/A'
         : row.job?.customerDto?.individualContactName ||
-          row.job?.customerDto?.contactName ||
-          'N/A',
+        row.job?.customerDto?.contactName ||
+        'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -133,7 +133,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product?.productName,
+    accessorFn: (row) => row.jobItem.product?.id,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
@@ -162,7 +162,6 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const deliveryDate = row.original.deliveryCollectionDate;
-      console.log('[docket-columns] deliveryDate', deliveryDate);
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
