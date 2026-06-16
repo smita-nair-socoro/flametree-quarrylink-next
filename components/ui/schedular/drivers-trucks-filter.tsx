@@ -18,7 +18,6 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 
 const STATUS_OPTIONS = [
-  'All (Except Unassigned)',
   'Assigned',
   'In-Transit',
   'Delivered',
@@ -58,9 +57,7 @@ export function DriversTrucksFilter({
 }: {
   viewType: 'drivers' | 'trucks';
 }) {
-  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([
-    'All (Except Unassigned)',
-  ]);
+  const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
   const [selectedDrivers, setSelectedDrivers] = React.useState<string[]>([]);
   const [selectedDriverStatuses, setSelectedDriverStatuses] = React.useState<
     string[]

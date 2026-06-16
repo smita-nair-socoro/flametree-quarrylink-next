@@ -20,14 +20,22 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 
-export const JOB_STATUS_FILTER_ALL = '__ALL_EXCEPT_UNASSIGNED__';
-
-const JOB_STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: JOB_STATUS_FILTER_ALL, label: 'All (Except Unassigned)' },
+export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
+  value: string;
+  label: string;
+}[] = [
   { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
   { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
   { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
   { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
+];
+
+export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {
+  value: string;
+  label: string;
+}[] = [
+  { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
+  ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
 ];
 
 const DRIVER_STATUS_OPTIONS: { value: DRIVER_STATUS; label: string }[] = [
@@ -79,6 +87,7 @@ type Props = {
   isLoadingResources?: boolean;
   filter: DispatchBoardFilterState;
   onFilterChange: (next: DispatchBoardFilterState) => void;
+  jobStatusOptions?: { value: string; label: string }[];
 };
 
 export function DispatchDriversTrucksFilter({
@@ -90,16 +99,13 @@ export function DispatchDriversTrucksFilter({
   isLoadingResources,
   filter,
   onFilterChange,
+  jobStatusOptions = DEFAULT_JOB_STATUS_FILTER_OPTIONS,
 }: Props) {
   const setFilter = (patch: Partial<DispatchBoardFilterState>) => {
     onFilterChange({ ...filter, ...patch });
   };
 
   const toggleJobStatus = (status: string) => {
-    if (status === JOB_STATUS_FILTER_ALL) {
-      setFilter({ jobStatuses: [] });
-      return;
-    }
     setFilter({
       jobStatuses: filter.jobStatuses.includes(status)
         ? filter.jobStatuses.filter((s) => s !== status)
@@ -159,11 +165,9 @@ export function DispatchDriversTrucksFilter({
     onFilterChange({ ...DEFAULT_DISPATCH_BOARD_FILTER });
   };
 
-  const isAllJobStatus = filter.jobStatuses.length === 0;
-  const jobStatusLabel = isAllJobStatus
-    ? 'All (Except Unassigned)'
-    : filter.jobStatuses.length === 1
-      ? JOB_STATUS_OPTIONS.find((o) => o.value === filter.jobStatuses[0])?.label
+  const jobStatusLabel =
+    filter.jobStatuses.length === 1
+      ? jobStatusOptions.find((o) => o.value === filter.jobStatuses[0])?.label
       : `${filter.jobStatuses.length} selected`;
 
   return (
@@ -178,15 +182,15 @@ export function DispatchDriversTrucksFilter({
             <PopoverTrigger asChild>
               <button
                 type="button"
-                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${!isAllJobStatus ? 'border-gray-300' : 'border-gray-200'}`}
+                className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.jobStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
               >
                 <Plus className="w-4 h-4 text-gray-500" />
                 <span
-                  className={`font-medium text-gray-700 ${!isAllJobStatus ? 'mr-1' : ''}`}
+                  className={`font-medium text-gray-700 ${filter.jobStatuses.length > 0 ? 'mr-1' : ''}`}
                 >
                   Status
                 </span>
-                {!isAllJobStatus && (
+                {filter.jobStatuses.length > 0 && (
                   <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[180px] truncate">
                     {jobStatusLabel}
                   </span>
@@ -197,11 +201,8 @@ export function DispatchDriversTrucksFilter({
               <Command>
                 <CommandList>
                   <CommandGroup>
-                    {JOB_STATUS_OPTIONS.map((opt) => {
-                      const isChecked =
-                        opt.value === JOB_STATUS_FILTER_ALL
-                          ? isAllJobStatus
-                          : filter.jobStatuses.includes(opt.value);
+                    {jobStatusOptions.map((opt) => {
+                      const isChecked = filter.jobStatuses.includes(opt.value);
                       return (
                         <CommandItem
                           key={opt.value}
