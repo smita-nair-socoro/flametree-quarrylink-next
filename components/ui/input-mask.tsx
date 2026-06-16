@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 
 interface InputMaskProps extends Omit<
   React.ComponentProps<typeof Input>,
@@ -283,33 +284,37 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       ...props
     },
     ref,
-  ) => (
-    <InputMask
-      {...props}
-      ref={ref}
-      type="currency"
-      thousandSeparator={thousandSeparator}
-      decimalPlaces={decimalPlaces}
-      allowNegative={allowNegative}
-      placeholder={placeholder}
-      prefix={<span className="text-md">$</span>}
-      suffix={
-        unit === 'm3'
-          ? '/m³'
-          : unit === 'TN'
-            ? '/t'
-            : unit === 'Bags'
-              ? '/Bag'
-              : unit === 'HOURLY'
-                ? '/Hour'
-                : unit === 'LOAD'
-                  ? '/Load'
-                  : unit === 'KM'
-                    ? '/km'
-                    : undefined
-      }
-    />
-  ),
+  ) => {
+    const { currencySymbol } = useTenantCurrencyTax();
+
+    return (
+      <InputMask
+        {...props}
+        ref={ref}
+        type="currency"
+        thousandSeparator={thousandSeparator}
+        decimalPlaces={decimalPlaces}
+        allowNegative={allowNegative}
+        placeholder={placeholder}
+        prefix={<span className="text-md">{currencySymbol}</span>}
+        suffix={
+          unit === 'm3'
+            ? '/m³'
+            : unit === 'TN'
+              ? '/t'
+              : unit === 'Bags'
+                ? '/Bag'
+                : unit === 'HOURLY'
+                  ? '/Hour'
+                  : unit === 'LOAD'
+                    ? '/Load'
+                    : unit === 'KM'
+                      ? '/km'
+                      : undefined
+        }
+      />
+    );
+  },
 );
 
 CurrencyInput.displayName = 'CurrencyInput';

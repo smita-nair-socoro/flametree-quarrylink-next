@@ -5,6 +5,12 @@ import { ColumnDef } from '@tanstack/react-table';
 // import { TableTwoDataInOneCell } from '@/components/table-two-data-in-one-cell';
 import { SupplierTableActions } from '@/app/(protected)/inventory/products/(components)/(data-tables)/supplier/supplier-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
 import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   Tooltip,
@@ -16,6 +22,8 @@ import { cn } from '@/lib/utils';
 // Allow passing the parent productId so actions can call detail APIs correctly
 export const supplierColumns = (
   productId?: number,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
 ): ColumnDef<
   QuarrySupplierProduct & { quarry_supplier?: { id: number } }
 >[] => [
@@ -77,7 +85,7 @@ export const supplierColumns = (
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>(ex-GST)</p>
+              <p>{getExTaxLabel(taxLabel)}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -85,7 +93,12 @@ export const supplierColumns = (
     },
     cell: ({ row }) => {
       const costPrice = row.original.perTnCostPrice || 0;
-      return <div>${centsToDollars(costPrice)}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {centsToDollars(costPrice)}
+        </div>
+      );
     },
     meta: 'Cost Price per TN',
   },
@@ -101,7 +114,7 @@ export const supplierColumns = (
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>(ex-GST)</p>
+              <p>{getExTaxLabel(taxLabel)}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -109,7 +122,12 @@ export const supplierColumns = (
     },
     cell: ({ row }) => {
       const sellPrice = row.original.perTnSellPrice || 0;
-      return <div>${centsToDollars(sellPrice)}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {centsToDollars(sellPrice)}
+        </div>
+      );
     },
     meta: 'Sell Price per TN',
   },

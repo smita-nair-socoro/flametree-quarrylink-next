@@ -3,6 +3,10 @@
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  getCurrencySymbol,
+} from '@/lib/utils/currency-tax-helper';
 import { Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -14,34 +18,37 @@ import {
 export interface MobileTruckRateComparisonCardProps {
   supplier: QuarriesWithProduct;
   isLowestTnRate: boolean;
+  currencyCode?: string;
 }
 
 export function MobileTruckRateComparisonCard({
   supplier,
   isLowestTnRate,
+  currencyCode = DEFAULT_CURRENCY_CODE,
 }: MobileTruckRateComparisonCardProps) {
   const name = supplier.quarrySupplier?.name || 'Unknown';
+  const currencySymbol = getCurrencySymbol(currencyCode);
 
   const tnRate = supplier.availableForTruckRateTn
-    ? `$${supplier.tnTruckRate ? centsToDollars(supplier.tnTruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.tnTruckRate ? centsToDollars(supplier.tnTruckRate) : '0.00'}`
     : 'N/A';
   const m3Rate = supplier.availableForTruckRateM3
-    ? `$${supplier.m3TruckRate ? centsToDollars(supplier.m3TruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.m3TruckRate ? centsToDollars(supplier.m3TruckRate) : '0.00'}`
     : 'N/A';
   const kgRate = supplier.availableForTruckRate20kg
-    ? `$${supplier.kg20TruckRate ? centsToDollars(supplier.kg20TruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.kg20TruckRate ? centsToDollars(supplier.kg20TruckRate) : '0.00'}`
     : 'N/A';
   const bulkaRate = supplier.availableForTruckRateBulka
-    ? `$${supplier.bulkaTruckRate ? centsToDollars(supplier.bulkaTruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.bulkaTruckRate ? centsToDollars(supplier.bulkaTruckRate) : '0.00'}`
     : 'N/A';
   const hourlyRate = supplier.availableForTruckRateHour
-    ? `$${supplier.hourlyTruckRate ? centsToDollars(supplier.hourlyTruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.hourlyTruckRate ? centsToDollars(supplier.hourlyTruckRate) : '0.00'}`
     : 'N/A';
   const loadRate = supplier.availableForTruckRateLoad
-    ? `$${supplier.loadTruckRate ? centsToDollars(supplier.loadTruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.loadTruckRate ? centsToDollars(supplier.loadTruckRate) : '0.00'}`
     : 'N/A';
   const distanceRate = supplier.availableForTruckRateKm
-    ? `$${supplier.kmTruckRate ? centsToDollars(supplier.kmTruckRate) : '0.00'}`
+    ? `${currencySymbol}${supplier.kmTruckRate ? centsToDollars(supplier.kmTruckRate) : '0.00'}`
     : 'N/A';
 
   return (

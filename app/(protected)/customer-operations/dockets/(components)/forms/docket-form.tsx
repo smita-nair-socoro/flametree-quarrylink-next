@@ -60,6 +60,7 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   getDeliveryDistanceQuantity,
@@ -128,6 +129,8 @@ export default function DocketForm({
   initialDocket,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel } =
+    useTenantCurrencyTax();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [previewImage, setPreviewImage] = React.useState<{
     src: string;
@@ -182,6 +185,7 @@ export default function DocketForm({
     isQuickDocket,
     jobId,
     onDirtyChange,
+    taxPercentage,
   });
 
   const combineDateAndTime = (
@@ -2004,7 +2008,7 @@ export default function DocketForm({
                   <div>
                     <span>Product Sell</span>
                     <span>
-                      $
+                      {currencySymbol}
                       {formatNumberThousandSeparator(
                         pricingBreakdown.productSell,
                       )}
@@ -2014,7 +2018,7 @@ export default function DocketForm({
                     <div>
                       <span>Truck Sell</span>
                       <span>
-                        $
+                        {currencySymbol}
                         {formatNumberThousandSeparator(
                           pricingBreakdown.truckSell,
                         )}
@@ -2022,22 +2026,22 @@ export default function DocketForm({
                     </div>
                   )}
                   <div className="pt-2 border-t border-dashed border-purple-300">
-                    <span>Subtotal (ex-GST)</span>
+                    <span>Subtotal {exTaxLabel}</span>
                     <span>
-                      $
+                      {currencySymbol}
                       {formatNumberThousandSeparator(pricingBreakdown.subtotal)}
                     </span>
                   </div>
                   <div>
-                    <span>GST (10%)</span>
+                    <span>{taxRateLabel}</span>
                     <span>
-                      ${formatNumberThousandSeparator(pricingBreakdown.gst)}
+                      {currencySymbol}{formatNumberThousandSeparator(pricingBreakdown.gst)}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-dashed border-purple-300">
                     <span className="font-bold text-lg">Total Invoice</span>
                     <span className="font-bold text-lg">
-                      ${formatNumberThousandSeparator(pricingBreakdown.total)}
+                      {currencySymbol}{formatNumberThousandSeparator(pricingBreakdown.total)}
                     </span>
                   </div>
                 </div>

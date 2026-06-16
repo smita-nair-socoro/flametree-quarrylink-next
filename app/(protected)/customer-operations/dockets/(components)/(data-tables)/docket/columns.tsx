@@ -11,10 +11,19 @@ import {
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { TriangleAlert } from 'lucide-react';
+import { HelpCircle, TriangleAlert } from 'lucide-react';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  formatCurrency,
+  getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
 
-export const docketColumns: ColumnDef<DocketDTO>[] = [
+export const getDocketColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<DocketDTO>[] => [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -216,16 +225,33 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title="Total Invoice" />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Total Invoice{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getExTaxLabel(taxLabel)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
       );
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.totalInvoiceAmount.toString());
       const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: 'AUD',
-      }).format(dollars);
+      const formatted = formatCurrency(dollars, currencyCode);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
