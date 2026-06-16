@@ -11,7 +11,7 @@ import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
 import { FileText, Calendar, LogOut, StopCircleIcon, Info } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/app/stores/user-store';
@@ -41,6 +41,13 @@ export default function DriversAppPage() {
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Deep link support: /drivers-app/?docketId=123 (e.g. "View Delivery" email links)
+  // opens the matching docket, going through the daily-checklist gate first if needed.
+  const docketIdParam = searchParams.get('docketId');
+  const autoOpenDocketId =
+    docketIdParam && /^\d+$/.test(docketIdParam) ? Number(docketIdParam) : null;
 
   const { data: driverData } = useQuery(DriverAppAssignedDocketsQueryOptions());
   const dockets = driverData?.dockets ?? [];
@@ -181,6 +188,7 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
+                autoOpenDocketId={autoOpenDocketId}
                 pendingDocketId={pendingDocketId}
                 onPendingDocketConsumed={() => setPendingDocketId(null)}
                 vehicleInspectionDoneSignal={vehicleInspectionDoneSignal}

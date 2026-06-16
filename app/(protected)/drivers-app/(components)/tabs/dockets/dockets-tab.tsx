@@ -67,6 +67,8 @@ interface DocketsTabProps {
   pendingDocketId?: number | null;
   onPendingDocketConsumed?: () => void;
   vehicleInspectionDoneSignal?: number;
+  /** Docket id from a deep link (e.g. email "View Delivery"); opened once on load. */
+  autoOpenDocketId?: number | null;
 }
 
 type ActionType =
@@ -82,6 +84,7 @@ export default function DocketsTab({
   pendingDocketId,
   onPendingDocketConsumed,
   vehicleInspectionDoneSignal,
+  autoOpenDocketId,
 }: DocketsTabProps) {
   const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -190,6 +193,18 @@ export default function DocketsTab({
     setSelectedDocket(docket);
     setIsDrawerOpen(true);
   };
+
+  // Deep link: open the requested docket once it's loaded. Reuses openDocketDetails
+  // so the daily-checklist gate runs first when required, then the docket drawer opens.
+  const autoOpenHandledRef = React.useRef(false);
+  React.useEffect(() => {
+    if (autoOpenDocketId == null || autoOpenHandledRef.current) return;
+    const docket = dockets.find((d) => d.id === autoOpenDocketId);
+    if (!docket) return;
+    autoOpenHandledRef.current = true;
+    openDocketDetails(docket);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenDocketId, dockets]);
 
   const renderDocketCard = (docket: DocketDTO, isActive: boolean = false) => {
     return (
