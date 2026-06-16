@@ -14,9 +14,11 @@ import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
+import { BADGE_COLORS } from '@/lib/utils';
 
 const formatTimeString = (dateString?: string | null) => {
   if (!dateString) return '';
@@ -268,10 +270,17 @@ export function useDocketFormState({
 
   const allJobs = React.useMemo(
     () =>
-      jobsList.map((job) => ({
-        label: `${job.jobNumber} - ${job.projectName}`,
-        value: job.id,
-      })),
+      jobsList.map((job) => {
+        const isPaused = job.jobStatus === JOB_STATUS.PAUSED;
+        return {
+          label: `${job.jobNumber} - ${job.projectName}`,
+          value: job.id,
+          disabled: isPaused,
+          badge: isPaused
+            ? { label: 'Paused', className: BADGE_COLORS.PAUSED }
+            : undefined,
+        };
+      }),
     [jobsList],
   );
 
