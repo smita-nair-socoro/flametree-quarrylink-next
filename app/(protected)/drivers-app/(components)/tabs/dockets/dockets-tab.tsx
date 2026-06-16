@@ -62,6 +62,7 @@ interface DocketsTabProps {
     truckLicensePlate?: string,
     docketId?: number,
     truckId?: number,
+    truckType?: string,
   ) => void;
   pendingDocketId?: number | null;
   onPendingDocketConsumed?: () => void;
@@ -235,7 +236,7 @@ export default function DocketsTab({
               {docketSizes[docket.id] ?? docket.actualLoadSize ?? docket.plannedLoadSize}{' '}
               {docket.jobItem?.productSellUom === 'TN'
                 ? 'TN'
-                : docket.jobItem?.productSellUom === 'M3'
+                : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                   ? 'm³'
                   : docket.jobItem?.productSellUom === 'BULKA'
                     ? 'Bulka'
@@ -412,7 +413,7 @@ export default function DocketsTab({
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
                             : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
-                          {selectedDocket.jobItem?.productSellUom === 'M3'
+                          {selectedDocket.jobItem?.productSellUom === 'M3' || selectedDocket.jobItem?.productSellUom === 'm3'
                             ? 'm³'
                             : selectedDocket.jobItem?.productSellUom === 'KG_20'
                               ? 'x 20kg'
@@ -548,6 +549,7 @@ export default function DocketsTab({
                             selectedDocket.truck?.licensePlate,
                             selectedDocket.id,
                             selectedDocket.truckId,
+                            selectedDocket.truck?.truckType,
                           );
                         }}
                       >
@@ -653,7 +655,7 @@ export default function DocketsTab({
                 {updateValue || '0'}
               </span>
               <span className="text-[24px] text-[#64748B] font-medium">
-                {selectedDocket?.jobItem?.productSellUom === 'M3'
+                {selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
                   ? 'm³'
                   : selectedDocket?.jobItem?.productSellUom === 'KG_20'
                     ? 'x 20kg'
@@ -669,7 +671,7 @@ export default function DocketsTab({
                   selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize}
                 {
-                  selectedDocket?.jobItem?.productSellUom === 'M3'
+                  selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
                     ? 'm³'
                     : selectedDocket?.jobItem?.productSellUom === 'KG_20'
                       ? 'x 20kg'

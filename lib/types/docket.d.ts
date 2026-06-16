@@ -204,6 +204,7 @@ export interface DocketDTO {
     };
     quarrySupplierId: number;
     quarrySupplierName?: string;
+    densityTonnagePerM3?: number;
     quarrySupplier?: Partial<QuarrySupplier>;
     totalQuantityRequired: number;
     allocatedQuantity: number;

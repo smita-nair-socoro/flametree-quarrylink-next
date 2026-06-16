@@ -34,7 +34,6 @@ import { useQuery } from '@tanstack/react-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   extractErrorMessage,
-  extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
 import {
@@ -43,7 +42,7 @@ import {
   useUpdateProduct,
 } from '@/lib/api/product';
 import { MaterialsListQueryOptions } from '@/lib/api/material';
-import { ProductDetails } from '@/lib/types/product';
+import { Product, ProductDetails } from '@/lib/types/product';
 import { Separator } from '@/components/ui/separator';
 import { AuditInformation } from '@/components/audit-information';
 
@@ -55,6 +54,9 @@ interface FormProps {
   onCancel?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
+
+type ProductFormValues = z.infer<typeof NewProductFormSchema>;
+type DensityOverrideChoice = 'keep' | 'override';
 
 import {
   useProductFormState,
@@ -74,7 +76,10 @@ export default function ProductForm({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
-
+  const [isDensityModalOpen, setIsDensityModalOpen] = React.useState(false);
+  const [densityOverrideChoice, setDensityOverrideChoice] =
+    React.useState<DensityOverrideChoice>('override');
+  const pendingSubmitValuesRef = React.useRef<ProductFormValues | null>(null);
   // Create flow steps (only used when creating a new product)
   const [createStep, setCreateStep] = React.useState<1 | 2>(1);
 
@@ -157,13 +162,9 @@ export default function ProductForm({
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
 
-  async function onSubmit(values: z.infer<typeof NewProductFormSchema>) {
-    console.log('Product Form Values:', values);
-
-    setIsSubmitting(true);
-
-    try {
-      const payload = {
+  const buildProductPayload = React.useCallback(
+    (values: ProductFormValues, needDensityOverride?: boolean): Partial<Product> => {
+      const payload: Partial<Product> = {
         productName: values.product_name,
         productCode: values.product_code,
         materialId: values.material_id,
@@ -173,77 +174,100 @@ export default function ProductForm({
         version: selectedProduct?.version || 0,
       };
 
-      // Convert to camelCase as API expects camelCase keys
-      if (isEditing && id) {
-        // Update existing product
-        await updateProduct.mutateAsync({
-          id: id,
-          data: { ...payload, id },
-        });
-        console.log('Product updated successfully!');
+      if (needDensityOverride !== undefined) {
+        payload.needDensityOverride = needDensityOverride;
+      }
 
-        // Clear dirty state in parent dialog, then close
+      return payload;
+    },
+    [selectedProduct?.version],
+  );
+
+  const submitProductUpdate = React.useCallback(
+    async (values: ProductFormValues, needDensityOverride?: boolean) => {
+      if (!id) return;
+
+      setIsSubmitting(true);
+      try {
+        await updateProduct.mutateAsync({
+          id,
+          data: { ...buildProductPayload(values, needDensityOverride), id },
+        });
         onSaved?.();
         onSuccess?.();
-      } else {
-        // Create new product
-        const createdProduct = await createProduct.mutateAsync(payload);
-        console.log('Product created successfully!', createdProduct);
-
-        // Add the new record ID to sessionStorage for highlighting
-        if (createdProduct && typeof createdProduct.id === 'number') {
-          addNewRecordId('product_main_data_table', createdProduct.id);
-        }
-
-        // Store the created product ID and mark as just created
-        if (
-          createdProduct &&
-          typeof createdProduct === 'object' &&
-          'id' in createdProduct
-        ) {
-          setCreatedProductId(createdProduct.id as number);
-          setProductJustCreated(true);
-          notifySuccess(
-            'Product created successfully. You can now add suppliers.',
-          );
-          setCreateStep(2);
-          console.log('Product ID stored:', createdProduct.id);
-        }
-
-        // Don't close the form - let user add suppliers
-        // Form will stay open with the "Add Supplier" button enabled
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      } finally {
+        notifySuccess('Product updated successfully.');
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      console.error(
-        `Error ${isEditing ? 'updating' : 'creating'} product:`,
-        error,
-      );
-      // Extract normalized error response and message
-      const err = extractErrorResponse(error);
-      const extractedMessage = extractErrorMessage(error);
-      const codeStr = err?.code ? String(err.code) : undefined;
-      const messageFromErr = err?.message || extractedMessage;
-      console.log('messageFromErr', messageFromErr);
+    },
+    [id, updateProduct, buildProductPayload, onSaved, onSuccess],
+  );
 
-      // Duplicate product code (HTTP 409) — match the product_code in backend message
-      const duplicateKeyPhrase = `[ERROR: duplicate key value violates unique constraint "uq_product_code_ci"`;
-      const isDuplicateProductCode =
-        codeStr === '409' &&
-        typeof messageFromErr === 'string' &&
-        messageFromErr.includes(duplicateKeyPhrase);
+  const handleDensityModalConfirm = React.useCallback(() => {
+    const values = pendingSubmitValuesRef.current;
+    if (!values) return;
 
-      if (isDuplicateProductCode) {
-        const msg = `Duplicate product code "${values.product_code}" already exists.`;
-        notifyError(msg);
-        productForm.setError('product_code', { type: 'manual', message: msg });
+    pendingSubmitValuesRef.current = null;
+    void submitProductUpdate(
+      values,
+      densityOverrideChoice === 'override',
+    );
+  }, [densityOverrideChoice, submitProductUpdate]);
+
+  async function onSubmit(values: ProductFormValues) {
+    console.log('Product Form Values:', values);
+
+    if (isEditing && id) {
+      const densityChanged =
+        selectedProduct?.densityTonnagePerM3 !== values.density_tonnage_per_m3;
+
+      if (densityChanged) {
+        pendingSubmitValuesRef.current = values;
+        setDensityOverrideChoice('override');
+        setIsDensityModalOpen(true);
         return;
       }
 
-      // Fallback error using extracted message
-      notifyError(
-        messageFromErr || 'Failed to save product. Please try again.',
-      );
+      await submitProductUpdate(values);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = buildProductPayload(values);
+
+      const createdProduct = await createProduct.mutateAsync(payload);
+      console.log('Product created successfully!', createdProduct);
+
+      // Add the new record ID to sessionStorage for highlighting
+      if (createdProduct && typeof createdProduct.id === 'number') {
+        addNewRecordId('product_main_data_table', createdProduct.id);
+      }
+
+      // Store the created product ID and mark as just created
+      if (
+        createdProduct &&
+        typeof createdProduct === 'object' &&
+        'id' in createdProduct
+      ) {
+        setCreatedProductId(createdProduct.id as number);
+        setProductJustCreated(true);
+        notifySuccess(
+          'Product created successfully. You can now add suppliers.',
+        );
+        setCreateStep(2);
+        console.log('Product ID stored:', createdProduct.id);
+      }
+
+      // Don't close the form - let user add suppliers
+      // Form will stay open with the "Add Supplier" button enabled
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
     } finally {
+      notifySuccess('Product created successfully.');
       setIsSubmitting(false);
     }
   }
@@ -290,8 +314,97 @@ export default function ProductForm({
     );
   }
 
+  const densityOverrideOptions: {
+    value: DensityOverrideChoice;
+    title: string;
+    description: string;
+  }[] = [
+      {
+        value: 'keep',
+        title: 'Keep Original Density Figures',
+        description:
+          'Existing product supplier records will retain their current density values',
+      },
+      {
+        value: 'override',
+        title: 'Override Product Supplier Density Figures',
+        description:
+          'Update all attached product supplier records with the new density value',
+      },
+    ];
+
   return (
     <div className="w-full relative">
+      <ActionDialog
+        open={isDensityModalOpen}
+        onOpenChangeAction={(open) => {
+          setIsDensityModalOpen(open);
+          if (!open) {
+            pendingSubmitValuesRef.current = null;
+          }
+        }}
+        customWidth="w-[560px]"
+        title="Density Change Notice"
+        description={
+          <p className="text-sm text-[#6A7282] leading-relaxed">
+            This will not change the density of the product in pre-existing jobs
+            or quotes. However, you can choose how to handle attached product
+            supplier records:
+          </p>
+        }
+        content={
+          <div
+            className="flex flex-col gap-3"
+            role="radiogroup"
+            aria-label="Product supplier density handling"
+          >
+            {densityOverrideOptions.map((option) => {
+              const isSelected = densityOverrideChoice === option.value;
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  onClick={() => setDensityOverrideChoice(option.value)}
+                  className={cn(
+                    'flex w-full cursor-pointer items-center gap-3 rounded-xl border p-4 text-left transition-colors',
+                    isSelected
+                      ? 'border-[#7C3AED] bg-[#F5F3FF]'
+                      : 'border-[#E5E7EB] bg-white hover:border-[#C4B5FD]',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'flex size-4 shrink-0 items-center justify-center rounded-full border-2',
+                      isSelected ? 'border-[#7C3AED]' : 'border-[#D1D5DB]',
+                    )}
+                    aria-hidden
+                  >
+                    {isSelected && (
+                      <span className="size-2 rounded-full bg-[#7C3AED]" />
+                    )}
+                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold text-[#101828]">
+                      {option.title}
+                    </span>
+                    <span className="text-sm text-[#6A7282] leading-relaxed">
+                      {option.description}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        }
+        cancelText="Cancel"
+        confirmText="Confirm"
+        confirmCustomColor="#7C3AED"
+        buttonContainerClass="flex flex-row justify-end gap-2"
+        onConfirmAction={handleDensityModalConfirm}
+      />
+
       {/* Loading Overlay */}
       {isSubmitting && (
         <div
@@ -382,6 +495,7 @@ export default function ProductForm({
                         <Input
                           className="w-full"
                           placeholder="Enter Product Name"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -401,6 +515,7 @@ export default function ProductForm({
                         <Input
                           className="w-full"
                           placeholder="Enter Product Code"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -418,6 +533,7 @@ export default function ProductForm({
                   placeholder="Select Material Type"
                   showSearch={true}
                   className="col-span-1"
+                  disabled={productJustCreated}
                 />
 
                 {/* Density (TN/m³) */}
@@ -433,7 +549,11 @@ export default function ProductForm({
                           placeholder="Enter Density Tonnage per m3"
                           isNumber
                           allowDecimal
+                          minDecimals={2}
+                          maxDecimals={2}
+                          suffix="TN/m³"
                           {...field}
+                          disabled={productJustCreated}
                         />
                       </FormControl>
                       <FormMessage />
@@ -454,6 +574,7 @@ export default function ProductForm({
                         <Textarea
                           className="w-full"
                           placeholder="Enter Product Description"
+                          disabled={productJustCreated}
                           {...field}
                         />
                       </FormControl>
@@ -578,7 +699,14 @@ export default function ProductForm({
                     >
                       <SupplierForm
                         productId={activeProductId ?? undefined}
-                        existingQuarryIds={selectedProduct?.quarrySupplierProducts?.map((q) => q.quarrySupplierId) ?? []}
+                        existingQuarryIds={
+                          selectedProduct?.quarrySupplierProducts?.map(
+                            (q) => q.quarrySupplierId,
+                          ) ?? []
+                        }
+                        defaultProductDensity={
+                          selectedProduct?.densityTonnagePerM3 || 0
+                        }
                       />
                     </FormDialog>
                   )}

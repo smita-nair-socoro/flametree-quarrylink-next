@@ -34,7 +34,7 @@ export interface CustomerDTO {
   contactPersonLastName?: string;
   contactPersonEmail?: string;
   contactPersonPhone?: string;
-
+  contactName?: string;
   abn?: string;
   acn?: string;
   vatNumber?: string;

@@ -80,8 +80,8 @@ export default function JobLineItemForm({
     isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
-    productDetails,
     isSubmitting,
+    isProductDeletedOnCompletedJob,
   } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
@@ -330,7 +330,7 @@ export default function JobLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={isReadOnly}
+                disabled={isReadOnly || isEditing}
               />
 
               <FormSelect
@@ -343,7 +343,7 @@ export default function JobLineItemForm({
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={!selectedProductId || isReadOnly}
+                disabled={!selectedProductId || isReadOnly || isEditing}
               />
 
               {isCollection && (
@@ -396,6 +396,29 @@ export default function JobLineItemForm({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={jobLineItemForm.control}
+                name="densityTonnagePerM3"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>Product Density (TN/m³)*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        {...field}
+                        value={field.value === 0 ? '' : field.value}
+                        suffix="TN/m³"
+                        disabled
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
 
             {/* Pricing */}
@@ -438,7 +461,10 @@ export default function JobLineItemForm({
                           <Input
                             className="w-full"
                             {...field}
-                            disabled={jobStatus === JOB_STATUS.CANCELLED}
+                            disabled={
+                              jobStatus === JOB_STATUS.CANCELLED ||
+                              isProductDeletedOnCompletedJob
+                            }
                             isNumber
                             allowDecimal
                             maxDecimals={2}
@@ -481,14 +507,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productSellUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productSellUom') ===
-                                  'M3'
+                                    'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productSellUom') ===
-                                    'KG_20'
+                                      'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                      'productSellUom',
-                                    ) === 'BULKA'
+                                          'productSellUom',
+                                        ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -499,17 +525,23 @@ export default function JobLineItemForm({
                     )}
                   />
                   <div className="col-span-3 -mt-3 mb-3">
-                    {productDetails?.densityTonnagePerM3 &&
-                      productDetails.densityTonnagePerM3 > 0 && (
-                        <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
-                          <div className="text-sm text-purple-900">
-                            The conversion is using the product density of{' '}
-                            {productDetails.densityTonnagePerM3} TN/m³.
-                          </div>
+                    {(jobLineItemForm.watch('densityTonnagePerM3') ?? 0) >
+                      0 && (
+                      <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
+                        <div className="text-sm text-purple-900">
+                          The conversion is using the product density of{' '}
+                          {jobLineItemForm.watch('densityTonnagePerM3')} TN/m³.
                         </div>
-                      )}
+                      </div>
+                    )}
                   </div>
                 </div>
+                {isProductDeletedOnCompletedJob && (
+                  <p className="text-sm font-medium text-destructive">
+                    This product has been deleted and the quantity cannot be
+                    increased.
+                  </p>
+                )}
                 {/* Conversion Info Box */}
               </div>
 
@@ -587,14 +619,14 @@ export default function JobLineItemForm({
                               jobLineItemForm.watch('productCostUom') === 'TN'
                                 ? 'TN'
                                 : jobLineItemForm.watch('productCostUom') ===
-                                  'M3'
+                                    'M3'
                                   ? 'm3'
                                   : jobLineItemForm.watch('productCostUom') ===
-                                    'KG_20'
+                                      'KG_20'
                                     ? 'Bags'
                                     : jobLineItemForm.watch(
-                                      'productCostUom',
-                                    ) === 'BULKA'
+                                          'productCostUom',
+                                        ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -609,20 +641,20 @@ export default function JobLineItemForm({
 
               {pricingBreakdown.totalProductCostPrice >
                 pricingBreakdown.totalProductSellPrice && (
-                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
-                    <div className="flex items-start gap-2">
-                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                      <div className="flex-1 text-sm">
-                        <p className="font-semibold">Review Product Pricing</p>
-                        <p className="text-[#364153]">
-                          This line item will generate a loss based on current
-                          costs. If this is expected, you can continue. Otherwise,
-                          adjust the price to restore profitability.
-                        </p>
-                      </div>
+                <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
+                  <div className="flex items-start gap-2">
+                    <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold">Review Product Pricing</p>
+                      <p className="text-[#364153]">
+                        This line item will generate a loss based on current
+                        costs. If this is expected, you can continue. Otherwise,
+                        adjust the price to restore profitability.
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
             </div>
 
             {/* Truck Configuration */}
@@ -729,18 +761,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckSellUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckSellUom') ===
-                                    'M3'
+                                      'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckSellUom') ===
-                                      'HOURLY'
+                                        'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                        'truckSellUom',
-                                      ) === 'LOAD'
+                                            'truckSellUom',
+                                          ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                          'truckSellUom',
-                                        ) === 'KM'
+                                              'truckSellUom',
+                                            ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -844,18 +876,18 @@ export default function JobLineItemForm({
                                 jobLineItemForm.watch('truckCostUom') === 'TN'
                                   ? 'TN'
                                   : jobLineItemForm.watch('truckCostUom') ===
-                                    'M3'
+                                      'M3'
                                     ? 'm3'
                                     : jobLineItemForm.watch('truckCostUom') ===
-                                      'HOURLY'
+                                        'HOURLY'
                                       ? 'HOURLY'
                                       : jobLineItemForm.watch(
-                                        'truckCostUom',
-                                      ) === 'LOAD'
+                                            'truckCostUom',
+                                          ) === 'LOAD'
                                         ? 'LOAD'
                                         : jobLineItemForm.watch(
-                                          'truckCostUom',
-                                        ) === 'KM'
+                                              'truckCostUom',
+                                            ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -870,20 +902,20 @@ export default function JobLineItemForm({
 
                 {pricingBreakdown.totalTruckCostPrice >
                   pricingBreakdown.totalTruckSellPrice && (
-                    <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
-                      <div className="flex items-start gap-2">
-                        <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                        <div className="flex-1 text-sm">
-                          <p className="font-semibold">Review Truck Pricing</p>
-                          <p className="text-[#364153]">
-                            The truck configuration will generate a loss based on
-                            current costs. If this is expected, you can continue.
-                            Otherwise, adjust the price to restore profitability.
-                          </p>
-                        </div>
+                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold">Review Truck Pricing</p>
+                        <p className="text-[#364153]">
+                          The truck configuration will generate a loss based on
+                          current costs. If this is expected, you can continue.
+                          Otherwise, adjust the price to restore profitability.
+                        </p>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             )}
 

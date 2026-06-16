@@ -24,11 +24,11 @@ interface ActionDialogProps {
   cancelActionNeeded?: boolean;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -78,10 +78,10 @@ export function ActionDialog({
     () =>
       confirmCustomColor
         ? {
-            backgroundColor: confirmCustomColor,
-            borderColor: confirmCustomColor,
-            color: 'white',
-          }
+          backgroundColor: confirmCustomColor,
+          borderColor: confirmCustomColor,
+          color: 'white',
+        }
         : undefined,
     [confirmCustomColor],
   );
@@ -148,7 +148,7 @@ export function ActionDialog({
               onClick={() => onOpenChangeAction(false)}
               className={cn(
                 !confirmActionNeeded && !cancelButtonClass && 'md:col-span-2',
-                cancelButtonClass,
+                cancelButtonClass, 'cursor-pointer',
               )}
             >
               {cancelText}
@@ -158,7 +158,7 @@ export function ActionDialog({
           {confirmActionNeeded && (
             <Button
               variant={confirmCustomColor ? undefined : confirmVariant}
-              className={cn(confirmCustomClass)}
+              className={cn(confirmCustomClass, 'cursor-pointer')}
               style={customButtonStyle}
               disabled={confirmDisabled}
               onClick={() => {

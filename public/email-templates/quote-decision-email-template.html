@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Docket Cancelled — QuarryLink</title>
+    <title>{emailTitle}</title>
     <style>
       body {
         margin: 0;
         padding: 0;
         background-color: #f3f4f6;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial,
-          sans-serif;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
       }
       .container {
         max-width: 600px;
@@ -36,8 +36,6 @@
         height: 40px;
         object-fit: contain;
         margin-right: 12px;
-        vertical-align: middle;
-        display: inline-block;
       }
       .navbar-logo-initial {
         width: 40px;
@@ -52,9 +50,10 @@
         color: #000000;
         background-color: #ffffff;
         margin-right: 12px;
-        vertical-align: middle;
       }
-      .hidden-logo {
+      .hidden-logo,
+      .hidden-row,
+      .hidden-block {
         display: none;
       }
       .navbar-title {
@@ -82,26 +81,6 @@
         line-height: 1.6;
         color: #374151;
         margin-bottom: 20px;
-      }
-      .button-container {
-        margin: 30px 0;
-        text-align: center;
-      }
-      .btn-primary {
-        display: inline-block;
-        padding: 12px 24px;
-        border-radius: 6px;
-        background-color: #7c3aed;
-        color: #ffffff !important;
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .btn-other {
-        background-color: #000000;
-        color: #ffffff !important;
-      }
-      .border-other {
-        border-left: 4px solid #000000 !important;
       }
       .block-details {
         background-color: #f9fafb;
@@ -132,6 +111,26 @@
       .contact-info strong {
         color: #111827;
         font-weight: 600;
+      }
+      .button-container {
+        margin: 30px 0;
+        text-align: center;
+      }
+      .btn-primary {
+        display: inline-block;
+        padding: 12px 24px;
+        border-radius: 6px;
+        background-color: #7c3aed;
+        color: #ffffff !important;
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .btn-other {
+        background-color: #000000;
+        color: #ffffff !important;
+      }
+      .border-other {
+        border-left: 4px solid #000000 !important;
       }
       .card-footer {
         margin-top: 20px;
@@ -226,31 +225,55 @@
         <div class="navbar-logo-initial {logoInitialClass}">{logoInitials}</div>
         <div class="navbar-title {titleColorClass}">{BusinessName}</div>
       </div>
+
       <div class="card">
-        <div class="header">Hi {RecipientName},</div>
+        <div class="header">Hi {recipientFirstName},</div>
+
         <div class="content">
-          <p>A docket has been <strong>Cancelled</strong>.</p>
+          <p>{primaryMessage}</p>
         </div>
+
         <div class="block-details {BorderColorClass}">
-          <p><strong>Docket Number:</strong> {DocketNumber}</p>
-          <p><strong>Customer:</strong> {CustomerName}</p>
-        </div>
-        <div class="block-details {BorderColorClass}">
-          <p><strong>Cancellation Reason:</strong> {CancellationReason}</p>
-          <p><strong>Cancellation Notes:</strong> {CancellationNotes}</p>
-        </div>
-        <div class="button-container">
-          <a href="{DocketUrl}" class="btn-primary {ButtonColorClass}"
-            >View Docket</a
-          >
-        </div>
-        <div class="card-footer">
-          <p>
-            You're receiving this notification because you're associated with
-            this docket on QuarryLink.
+          <p><strong>Quote Number:</strong> {quoteNumber}</p>
+          <p class="{customerRowClass}">
+            <strong>Customer:</strong> {customerName}
+          </p>
+          <p><strong>Project:</strong> {projectName}</p>
+          <p><strong>Total Value:</strong> ${totalValue} ex GST</p>
+          <p class="{actionedByRowClass}">
+            <strong>{actionedByLabel}:</strong> {actionedByName}
+          </p>
+          <p class="{actionDateRowClass}">
+            <strong>{actionDateLabel}:</strong> {actionDate}
+          </p>
+          <p class="{declineReasonClass}">
+            <strong>Reason:</strong> {declineReason}
+          </p>
+          <p class="{declineNoteClass}">
+            <strong>Note:</strong> {declineNote}
           </p>
         </div>
+
+        <div class="content {nextStepClass}">
+          <p>{nextStepMessage}</p>
+        </div>
+
+        <div class="contact-info {BorderColorClass} {contactBlockClass}">
+          <p><strong>{accountManagerName}</strong></p>
+          <p>{accountManagerEmail}</p>
+        </div>
+
+        <div class="button-container {buttonBlockClass}">
+          <a href="{quoteUrl}" class="btn-primary {buttonColorClass}">
+            View Quote Details
+          </a>
+        </div>
+
+        <div class="card-footer">
+          <p>{footerReason}</p>
+        </div>
       </div>
+
       <div class="info-footer">
         <div class="footer-row">
           <div class="footer-column-left">
@@ -260,25 +283,29 @@
             <div>{BusinessName}</div>
             <div>ABN: {TenantABN}</div>
           </div>
+
           <div class="footer-column-center">
             <div style="font-weight: 600; margin-bottom: 6px">
               Office Address
             </div>
             <div>{TenantAddress}</div>
           </div>
+
           <div class="footer-column-right">
             <div style="font-weight: 600; margin-bottom: 6px">
               Business Contact
             </div>
             <div>{TenantPhone}</div>
             <div>
-              <a href="mailto:{TenantEmail}" class="footer-link"
-                >{TenantEmail}</a
-              >
+              <a href="mailto:{TenantEmail}" class="footer-link">
+                {TenantEmail}
+              </a>
             </div>
           </div>
         </div>
+
         <div class="border-top"></div>
+
         <p class="footer-copyright">
           © 2026 {BusinessName}. All rights reserved.
         </p>

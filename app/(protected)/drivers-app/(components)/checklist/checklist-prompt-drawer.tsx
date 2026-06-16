@@ -10,9 +10,11 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer';
-import { useSubmitChecklist } from '@/lib/api/checklist';
+import { useSubmitChecklist, TruckChecklistTemplateQueryOptions } from '@/lib/api/checklist';
 import { CHECKLIST_TYPE } from '@/lib/types/checklist-template-enums';
+import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { useQuery } from '@tanstack/react-query';
 
 import DriverPreStartChecklist from './driver-pre-start-checklist';
 import TruckInspectionChecklist from './truck-inspection-checklist';
@@ -29,6 +31,7 @@ interface ChecklistPromptDrawerProps {
   driverName?: string;
   driverId?: number;
   truckId?: number;
+  truckType?: string;
   docketId?: number;
 }
 
@@ -42,15 +45,26 @@ export function ChecklistPromptDrawer({
   driverName,
   driverId,
   truckId,
+  truckType,
   docketId,
 }: ChecklistPromptDrawerProps) {
   const [isChecklistOpen, setIsChecklistOpen] = React.useState(false);
   const isPreStart = type === 'pre-start';
 
   const driverTemplate = useChecklistTemplateStore((s) => s.driverTemplate);
-  const truckTemplate = useChecklistTemplateStore((s) => s.truckTemplate);
-  const template = isPreStart ? driverTemplate : truckTemplate;
+  const setTruckTemplate = useChecklistTemplateStore((s) => s.setTruckTemplate);
+  const truckTemplateFromStore = useChecklistTemplateStore((s) => s.truckTemplate);
+  const template = isPreStart ? driverTemplate : truckTemplateFromStore;
   const submitChecklist = useSubmitChecklist();
+
+  const { data: fetchedTruckTemplate } = useQuery({
+    ...TruckChecklistTemplateQueryOptions(truckType),
+    enabled: open && !isPreStart,
+  });
+
+  React.useEffect(() => {
+    if (fetchedTruckTemplate) setTruckTemplate(fetchedTruckTemplate);
+  }, [fetchedTruckTemplate, setTruckTemplate]);
 
   const handleCompleteExternally = async () => {
     if (!template) return;
@@ -125,6 +139,7 @@ export function ChecklistPromptDrawer({
             <TruckInspectionChecklist
               truckLicensePlate={truckLicensePlate}
               truckId={truckId ?? 0}
+              truckType={truckType as TRUCK_TYPE | undefined}
               driverId={driverId}
               docketId={docketId}
               onSubmit={() => {

@@ -28,6 +28,47 @@ export function parseAsUTC(dateString: string): Date {
 }
 
 /**
+ * Parse a backend date/datetime as a calendar date at local midnight.
+ * Uses only the YYYY-MM-DD portion so timezone does not shift the displayed day.
+ * Use for date-only fields like deliveryCollectionDate.
+ */
+export function parseCalendarDate(dateString: string): Date {
+  const match = dateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) {
+    throw new Error(`Invalid calendar date string: ${dateString}`);
+  }
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  return new Date(year, month - 1, day);
+}
+
+/**
+ * Format a backend date/datetime using only the YYYY-MM-DD portion.
+ * Ignores any time component so the displayed calendar day is not shifted by timezone.
+ */
+export function formatCalendarDate(
+  dateString: string | Date | null | undefined,
+  formatPattern: string = 'dd MMM yyyy',
+): string {
+  if (!dateString) return '—';
+
+  try {
+    const date =
+      typeof dateString === 'string'
+        ? parseCalendarDate(dateString)
+        : new Date(
+            dateString.getFullYear(),
+            dateString.getMonth(),
+            dateString.getDate(),
+          );
+    return format(date, formatPattern);
+  } catch {
+    return '—';
+  }
+}
+
+/**
  * Append 'Z' (UTC) to a backend datetime string that lacks timezone info.
  * Use when sending datetime strings back to APIs that require timezone context.
  *

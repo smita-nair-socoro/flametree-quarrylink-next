@@ -22,6 +22,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
+import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
@@ -158,12 +159,12 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {formatNumberThousandSeparator(
                               docket.actualLoadSize ||
-                                docket.plannedLoadSize ||
-                                0,
+                              docket.plannedLoadSize ||
+                              0,
                             )}{' '}
                             {docket.jobItem?.productSellUom === 'TN'
                               ? 'TN'
-                              : docket.jobItem?.productSellUom === 'M3'
+                              : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                                 ? 'm³'
                                 : docket.jobItem?.productSellUom === 'KG_20'
                                   ? 'x 20kg'
@@ -174,9 +175,9 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {docket.deliveryCollectionDate
                               ? formatDate(
-                                  docket.deliveryCollectionDate,
-                                  'MMM dd, yyyy',
-                                )
+                                docket.deliveryCollectionDate,
+                                'MMM dd, yyyy',
+                              )
                               : '-'}
                           </td>
                         </tr>
@@ -197,15 +198,17 @@ export function InvoiceDetailsDialog() {
               </div>
             </div>
 
-            <div className="flex justify-end border-t border-gray-100 bg-gray-50/50 px-6 py-4">
-              <Button
-                variant="outline"
-                className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
-                onClick={handleDownload}
-              >
-                Download PDF
-              </Button>
-            </div>
+            {invoice.status !== INVOICE_STATUS.FAILED && (
+              <div className="flex justify-end border-t border-gray-100 bg-gray-50/50 px-6 py-4">
+                <Button
+                  variant="outline"
+                  className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
+                  onClick={handleDownload}
+                >
+                  Download PDF
+                </Button>
+              </div>
+            )}
           </>
         )}
       </DialogContent>

@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { AlertTriangle, Info } from 'lucide-react';
-import { format, isPast, parseISO } from 'date-fns';
+import { format } from 'date-fns';
+import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketDTO } from '@/lib/types/docket';
 import { DatePicker } from '@/components/date-picker';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -117,8 +118,12 @@ export function DuplicateDocketContent({
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
-  const originalDate = originalDateString ? parseISO(originalDateString) : null;
-  const isDateInPast = originalDate ? isPast(originalDate) : false;
+  const originalDate = originalDateString
+    ? parseCalendarDate(originalDateString)
+    : null;
+  const isDateInPast = originalDate
+    ? originalDate < GetTodaysDate()
+    : false;
   const originalDateFormatted = originalDate
     ? format(originalDate, 'MMMM do, yyyy')
     : null;

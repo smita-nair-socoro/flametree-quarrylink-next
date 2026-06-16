@@ -10,6 +10,9 @@ const Base = z.object({
     .min(1, { message: 'Product Name must be at least 1 character' })
     .max(100, { message: "Product Name can't be more than 100 characters" }),
   supplier_product_code: z.string().nonempty({ message: 'Required' }),
+  density_tonnage_per_m3: z.coerce
+    .number()
+    .positive({ message: 'Density must be greater than 0' }),
 
   cost_price_tn: z.coerce.number().optional(),
   sell_price_tn: z.coerce.number().optional(),
@@ -92,7 +95,7 @@ export const NewSupplierFormSchema = Base.superRefine((data, ctx) => {
   ] as const;
 
   const hasAnyTruckRateAvailable = truckUnits.some(
-    (unit) => data[`available_truck_${unit}`] === true
+    (unit) => data[`available_truck_${unit}`] === true,
   );
 
   if (!hasAnyTruckRateAvailable) {

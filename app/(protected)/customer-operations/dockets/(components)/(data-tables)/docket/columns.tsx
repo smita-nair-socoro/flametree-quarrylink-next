@@ -12,6 +12,7 @@ import {
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TriangleAlert } from 'lucide-react';
+import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 
 export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
@@ -87,7 +88,13 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
           : row.original.docketStatus;
       if (status === 'INVOICED') {
         if (row.original.invoiceStatus === 'FAILED') {
-          return <TableBadges names={[status]} visibleCount={1} icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />} />;
+          return (
+            <TableBadges
+              names={[status]}
+              visibleCount={1}
+              icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />}
+            />
+          );
         }
       }
       return <TableBadges names={[status]} visibleCount={1} />;
@@ -96,12 +103,21 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'customer',
-    accessorFn: (row) => row.customerContactName,
+    accessorFn: (row) =>
+      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
+        ? row.job?.customerDto?.businessName || 'N/A'
+        : row.job?.customerDto?.individualContactName ||
+          row.job?.customerDto?.contactName ||
+          'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
     cell: ({ row }) => {
-      const customerName = row.original.customerContactName;
+      const customer = row.original.job?.customerDto;
+      const customerName =
+        customer?.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer?.businessName || 'N/A'
+          : customer?.individualContactName || customer?.contactName || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -145,22 +161,25 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       );
     },
     cell: ({ row }) => {
-      const deliveryDate =
-        row.original.deliveredAt || row.original.deliveryCollectionDate;
+      const deliveryDate = row.original.deliveryCollectionDate;
+      console.log('[docket-columns] deliveryDate', deliveryDate);
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
   },
   {
     id: 'loadSize',
-    accessorFn: (row) =>
-      row.actualLoadSize ?? row.plannedLoadSize,
+    accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Quantity" />;
     },
     cell: ({ row }) => {
       let loadSize: number = 0;
-      if (row.original.docketStatus !== "UNASSIGNED" && row.original.docketStatus !== "PENDING" && row.original.docketStatus !== "ASSIGNED") {
+      if (
+        row.original.docketStatus !== 'UNASSIGNED' &&
+        row.original.docketStatus !== 'PENDING' &&
+        row.original.docketStatus !== 'ASSIGNED'
+      ) {
         loadSize = row.original.actualLoadSize || 0;
       } else {
         loadSize = row.original.plannedLoadSize || 0;
@@ -170,7 +189,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const formattedLoadSize =
         productUom === 'TN'
           ? `${formattedQty} TN`
-          : productUom === 'M3'
+          : productUom === 'M3' || productUom === 'm3'
             ? `${formattedQty} m³`
             : productUom === 'KG_20'
               ? `${formattedQty} x 20kg`

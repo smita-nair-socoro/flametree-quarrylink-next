@@ -21,11 +21,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -61,7 +61,7 @@ const getDialogConfigs = (
   const productUom =
     lineItemData?.productSellUom === 'KG_20'
       ? 'x 20kg'
-      : lineItemData?.productSellUom === 'M3'
+      : lineItemData?.productSellUom === 'M3' || lineItemData?.productSellUom === 'm3'
         ? 'm³'
         : lineItemData?.productSellUom;
 

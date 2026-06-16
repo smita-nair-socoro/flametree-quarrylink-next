@@ -37,7 +37,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
 const allRolesOptions: readonly FormSelectOption[] = [
-  { label: 'User', value: Role.USER },
+  // { label: 'User', value: Role.USER },
   { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
