@@ -24,6 +24,7 @@ import {
   MobileTruckRateList,
 } from './truck-rate-columns';
 import { Separator } from 'react-aria-components';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -51,6 +52,7 @@ export function CompareSupplierTable({
   const [sortCost, setSortCost] = React.useState<'asc' | 'desc'>('asc');
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isPricingTab = activeTab !== 'Truck Rates';
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
 
   const tnMeta = React.useMemo(() => computePricingMeta(data, 'tn'), [data]);
   const m3Meta = React.useMemo(() => computePricingMeta(data, 'm3'), [data]);
@@ -66,24 +68,24 @@ export function CompareSupplierTable({
   }, [data]);
 
   const tnColumns = React.useMemo(
-    () => createPricingColumns('tn', tnMeta),
-    [tnMeta],
+    () => createPricingColumns('tn', tnMeta, currencyCode, taxLabel),
+    [tnMeta, currencyCode, taxLabel],
   );
   const m3Columns = React.useMemo(
-    () => createPricingColumns('m3', m3Meta),
-    [m3Meta],
+    () => createPricingColumns('m3', m3Meta, currencyCode, taxLabel),
+    [m3Meta, currencyCode, taxLabel],
   );
   const kgColumns = React.useMemo(
-    () => createPricingColumns('kg', kgMeta),
-    [kgMeta],
+    () => createPricingColumns('kg', kgMeta, currencyCode, taxLabel),
+    [kgMeta, currencyCode, taxLabel],
   );
   const bulkaColumns = React.useMemo(
-    () => createPricingColumns('bulka', bulkaMeta),
-    [bulkaMeta],
+    () => createPricingColumns('bulka', bulkaMeta, currencyCode, taxLabel),
+    [bulkaMeta, currencyCode, taxLabel],
   );
   const truckColumns = React.useMemo(
-    () => createTruckRateColumns(lowestTn),
-    [lowestTn],
+    () => createTruckRateColumns(lowestTn, currencyCode, taxLabel),
+    [lowestTn, currencyCode, taxLabel],
   );
 
   // Desktop: Tab component handles both nav + content together
@@ -202,6 +204,7 @@ export function CompareSupplierTable({
             bestMargin={tnMeta.bestMargin}
             availableOnly={availableOnly}
             sortCost={sortCost}
+            currencyCode={currencyCode}
           />
         );
       case 'm³ Pricing':
@@ -213,6 +216,7 @@ export function CompareSupplierTable({
             bestMargin={m3Meta.bestMargin}
             availableOnly={availableOnly}
             sortCost={sortCost}
+            currencyCode={currencyCode}
           />
         );
       case '20kg Pricing':
@@ -224,6 +228,7 @@ export function CompareSupplierTable({
             bestMargin={kgMeta.bestMargin}
             availableOnly={availableOnly}
             sortCost={sortCost}
+            currencyCode={currencyCode}
           />
         );
       case 'Bulka Pricing':
@@ -235,10 +240,17 @@ export function CompareSupplierTable({
             bestMargin={bulkaMeta.bestMargin}
             availableOnly={availableOnly}
             sortCost={sortCost}
+            currencyCode={currencyCode}
           />
         );
       case 'Truck Rates':
-        return <MobileTruckRateList data={data} lowestTn={lowestTn} />;
+        return (
+          <MobileTruckRateList
+            data={data}
+            lowestTn={lowestTn}
+            currencyCode={currencyCode}
+          />
+        );
       default:
         return null;
     }
@@ -252,6 +264,7 @@ export function CompareSupplierTable({
     lowestTn,
     availableOnly,
     sortCost,
+    currencyCode,
   ]);
 
   return (

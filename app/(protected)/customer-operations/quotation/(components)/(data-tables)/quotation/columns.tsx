@@ -8,13 +8,22 @@ import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
 import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
+import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 
-export const quotationColumns: ColumnDef<Quotation>[] = [
+export const getQuotationColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<Quotation>[] => [
   {
     id: 'quote_number',
     accessorFn: (row) => row.quoteNumber,
@@ -72,7 +81,7 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
                 </span>
               </TooltipTrigger>
               <TooltipContent>
-                <p>(ex-GST)</p>
+                <p>{getExTaxLabel(taxLabel)}</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -83,7 +92,12 @@ export const quotationColumns: ColumnDef<Quotation>[] = [
       const total_sell_price = row.original.totalSellPrice
         ? centsToDollars(row.original.totalSellPrice)
         : '0';
-      return <div>${total_sell_price}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {total_sell_price}
+        </div>
+      );
     },
     meta: 'Total Price',
   },

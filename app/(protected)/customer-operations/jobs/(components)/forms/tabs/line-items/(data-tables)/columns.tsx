@@ -3,6 +3,13 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { JobItem } from '@/lib/types/job';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+	DEFAULT_CURRENCY_CODE,
+	DEFAULT_TAX_LABEL,
+	DEFAULT_TAX_PERCENTAGE,
+	getCurrencySymbol,
+	getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
@@ -13,7 +20,11 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 
-export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
+export const getJobLineItemsColumns = (
+	currencyCode: string = DEFAULT_CURRENCY_CODE,
+	taxLabel: string = DEFAULT_TAX_LABEL,
+	taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
+): ColumnDef<JobItem>[] => [
 	{
 		id: 'productName',
 		accessorFn: (row) => row.product?.productName,
@@ -97,7 +108,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 							<HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
 						</TooltipTrigger>
 						<TooltipContent>
-							<p>(ex-GST)</p>
+							<p>{getExTaxLabel(taxLabel)}</p>
 						</TooltipContent>
 					</Tooltip>
 				</div>
@@ -106,7 +117,12 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		cell: ({ row }) => {
 			const total =
 				(row.original.totalProductCostPrice ?? 0) + (row.original.totalTruckCostPrice ?? 0);
-			return <div>${centsToDollars(total)}</div>;
+			return (
+				<div>
+					{getCurrencySymbol(currencyCode)}
+					{centsToDollars(total)}
+				</div>
+			);
 		},
 		meta: 'Total Cost Price',
 	},
@@ -122,7 +138,7 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 							<HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
 						</TooltipTrigger>
 						<TooltipContent>
-							<p>(ex-GST)</p>
+							<p>{getExTaxLabel(taxLabel)}</p>
 						</TooltipContent>
 					</Tooltip>
 				</div>
@@ -131,7 +147,12 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 		cell: ({ row }) => {
 			const total =
 				(row.original.totalProductSellPrice ?? 0) + (row.original.totalTruckSellPrice ?? 0);
-			return <div>${centsToDollars(total)}</div>;
+			return (
+				<div>
+					{getCurrencySymbol(currencyCode)}
+					{centsToDollars(total)}
+				</div>
+			);
 		},
 		meta: 'Total Sell Price',
 	},
@@ -204,13 +225,13 @@ export const jobLineItemsColumns: ColumnDef<JobItem>[] = [
 			const totalCost = (row.totalProductCostPrice || 0) + (row.jobItemType === 'COLLECTION' ? 0 : (row.totalTruckCostPrice || 0));
 			const totalSell = (row.totalProductSellPrice || 0) + (row.jobItemType === 'COLLECTION' ? 0 : (row.totalTruckSellPrice || 0));
 
-			// Calculate GST (assuming prices are ex-GST)
-			const gstRate = 0.1;
-			const totalCostIncGst = totalCost * (1 + gstRate);
-			const totalSellIncGst = totalSell * (1 + gstRate);
+			// Calculate tax (assuming prices are ex-tax)
+			const taxRate = taxPercentage / 100;
+			const totalCostIncTax = totalCost * (1 + taxRate);
+			const totalSellIncTax = totalSell * (1 + taxRate);
 
-			const grossProfitCents = totalSellIncGst - totalCostIncGst;
-			const grossProfitPercentage = totalSellIncGst > 0 ? (grossProfitCents / totalSellIncGst) * 100 : 0;
+			const grossProfitCents = totalSellIncTax - totalCostIncTax;
+			const grossProfitPercentage = totalSellIncTax > 0 ? (grossProfitCents / totalSellIncTax) * 100 : 0;
 
 			return grossProfitPercentage;
 		},

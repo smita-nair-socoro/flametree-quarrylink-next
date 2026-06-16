@@ -10,10 +10,19 @@ import {
 import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { HelpCircle } from 'lucide-react';
 
-export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
+export const getCreateInvoiceColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<DocketDTO>[] => [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -120,36 +129,27 @@ export const createInvoiceColumns: ColumnDef<DocketDTO>[] = [
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>(ex-GST)</p>
+              <p>{getExTaxLabel(taxLabel)}</p>
             </TooltipContent>
           </Tooltip>
         </div>
       );
     },
     cell: ({ row }) => {
-      const formatted = centsToDollars(row.original.totalInvoiceAmount);
+      const formatted = `${getCurrencySymbol(currencyCode)}${centsToDollars(row.original.totalInvoiceAmount)}`;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
             <div className="py-2 font-medium w-36 max-w-36 truncate">
-              ${formatted}
+              {formatted}
             </div>
           </TooltipTrigger>
           <TooltipContent variant="white">
-            <p>${formatted}</p>
+            <p>{formatted}</p>
           </TooltipContent>
         </Tooltip>
       );
     },
     meta: 'Total Invoice Price',
   },
-  // {
-  //   id: 'actions',
-  //   header: () => {
-  //     return <div></div>;
-  //   },
-  //   cell: () => {
-  //     return <div></div>;
-  //   },
-  // },
 ];

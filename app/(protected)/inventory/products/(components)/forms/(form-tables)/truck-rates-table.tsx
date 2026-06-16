@@ -9,16 +9,24 @@ import {
   CellConfig,
   FormTableRow,
 } from '@/components/ui/form-table';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 
 interface TruckRatesTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;
 }
 
 export function TruckRatesTable({ control }: TruckRatesTableProps) {
+  const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
+
   // Headers configuration
   const headers: FormTableHeader[] = [
     { key: 'rate_type', label: 'Rate Type', className: 'w-30' },
-    { key: 'rate', label: 'Rate ($)', className: 'w-30', tooltip: '(ex-GST)' },
+    {
+      key: 'rate',
+      label: `Rate (${currencySymbol})`,
+      className: 'w-30',
+      tooltip: exTaxLabel,
+    },
     { key: 'unit', label: 'Unit', className: 'w-25' },
     {
       key: 'available',
