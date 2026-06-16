@@ -37,6 +37,21 @@ export interface FormSelectOption {
    * This is the value that will be written to the form state.
    */
   value: string | number;
+
+  /**
+   * Whether this option is disabled and cannot be selected.
+   * @default false
+   */
+  disabled?: boolean;
+
+  /**
+   * Optional badge displayed next to the option label,
+   * e.g. to indicate a status such as "Paused".
+   */
+  badge?: {
+    label: string;
+    className?: string;
+  };
 }
 
 /**
@@ -218,14 +233,29 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       <CommandItem
                         key={opt.value}
                         value={`${opt.label} __${String(opt.value)}`}
+                        disabled={opt.disabled}
                         onSelect={() => {
+                          if (opt.disabled) return;
                           field.onChange(opt.value);
                           onChange?.(String(opt.value));
                           setOpen(false);
                         }}
-                        className="cursor-pointer"
+                        className={cn(
+                          'cursor-pointer',
+                          opt.disabled && 'cursor-not-allowed text-muted-foreground'
+                        )}
                       >
                         <span className="flex-1">{opt.label}</span>
+                        {opt.badge && (
+                          <span
+                            className={cn(
+                              'ml-2 rounded-full border px-2 py-0.5 text-xs font-medium',
+                              opt.badge.className
+                            )}
+                          >
+                            {opt.badge.label}
+                          </span>
+                        )}
                         <Check
                           className={cn(
                             'ml-auto h-4 w-4',
