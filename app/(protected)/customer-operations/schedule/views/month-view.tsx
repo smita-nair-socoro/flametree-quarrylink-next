@@ -26,7 +26,18 @@ import {
   DispatchBoardDocketRow,
   DispatchTruckResource,
 } from '@/lib/types/docket';
-import { ScheduleFilter } from './schedule-filter';
+import {
+  DispatchDriversTrucksFilter,
+  SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS,
+  type DispatchBoardFilterState,
+} from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
+import {
+  buildScheduleCustomerOptionsFromDockets,
+  buildSchedulerFilterHaulierOptions,
+  buildSchedulerFilterTruckOptions,
+  docketMatchesScheduleJobFilters,
+  docketPassesScheduleFleetFilters,
+} from '@/lib/utils/dispatch-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 type MonthViewDocket = DispatchBoardDocketRow & {
@@ -123,9 +134,13 @@ function DocketChip({
 export function ScheduleMonthView({
   date,
   onDateChange,
+  filter,
+  onFilterChange,
 }: {
   date: Date;
   onDateChange: (date: Date) => void;
+  filter: DispatchBoardFilterState;
+  onFilterChange: (next: DispatchBoardFilterState) => void;
 }) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
@@ -144,7 +159,7 @@ export function ScheduleMonthView({
   const startIso = startDate.toISOString();
   const endIso = endDate.toISOString();
 
-  const { data: trucksData } = useQuery(
+  const { data: trucksData, isLoading: isLoadingTrucks } = useQuery(
     SchedulerTrucksQueryOptions(startIso, endIso),
   );
 
@@ -167,9 +182,17 @@ export function ScheduleMonthView({
     return [...assigned, ...unassigned];
   }, [trucksData]);
 
+  const filteredDockets = useMemo(() => {
+    return dockets.filter(
+      (d) =>
+        docketMatchesScheduleJobFilters(d, filter) &&
+        docketPassesScheduleFleetFilters(d.id, trucksData, filter),
+    );
+  }, [dockets, filter, trucksData]);
+
   const docketsByDate = useMemo(() => {
     const grouped: Record<string, MonthViewDocket[]> = {};
-    dockets.forEach((docket) => {
+    filteredDockets.forEach((docket) => {
       if (!docket.deliveryCollectionDate) return;
       // Format as YYYY-MM-DD for grouping
       const localTimeStr = docket.deliveryCollectionDate.includes('T')
@@ -180,17 +203,26 @@ export function ScheduleMonthView({
       grouped[dateKey].push(docket);
     });
     return grouped;
-  }, [dockets]);
+  }, [filteredDockets]);
 
-  const customerNames = useMemo(() => {
-    const names = dockets
-      .map((d) => d.customerName)
-      .filter(Boolean) as string[];
-    return Array.from(new Set(names)).sort();
-  }, [dockets]);
+  const filterCustomerOptions = useMemo(
+    () =>
+      buildScheduleCustomerOptionsFromDockets(dockets, startDate, endDate),
+    [dockets, startDate, endDate],
+  );
+
+  const filterTruckOptions = useMemo(
+    () => buildSchedulerFilterTruckOptions(trucksData),
+    [trucksData],
+  );
+
+  const filterHaulierOptions = useMemo(
+    () => buildSchedulerFilterHaulierOptions(trucksData),
+    [trucksData],
+  );
 
   const headerStats = useMemo(() => {
-    const assignedDockets = dockets.filter(
+    const assignedDockets = filteredDockets.filter(
       (d) => d.docketStatus === DOCKET_STATUS.ASSIGNED,
     );
     const trucksBooked = new Set(
@@ -200,7 +232,7 @@ export function ScheduleMonthView({
     ).size;
 
     const onTripDriverNames = new Set<string>();
-    for (const d of dockets) {
+    for (const d of filteredDockets) {
       if (
         d.docketStatus === DOCKET_STATUS.IN_TRANSIT ||
         d.docketStatus === DOCKET_STATUS.ARRIVED
@@ -213,7 +245,7 @@ export function ScheduleMonthView({
       trucksBooked,
       driversOnTrips: onTripDriverNames.size,
     };
-  }, [dockets]);
+  }, [filteredDockets]);
 
   const dateFormat = 'd';
   const days = eachDayOfInterval({
@@ -224,7 +256,7 @@ export function ScheduleMonthView({
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
   const selectedDocket = selectedDocketId
-    ? dockets.find((d) => d.id === selectedDocketId)
+    ? filteredDockets.find((d) => d.id === selectedDocketId)
     : null;
 
   const handleUnassign = () => {
@@ -235,7 +267,17 @@ export function ScheduleMonthView({
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
-      <ScheduleFilter viewType="trucks" customers={customerNames} />
+      <DispatchDriversTrucksFilter
+        viewType="trucks"
+        driverOptions={[]}
+        truckOptions={filterTruckOptions}
+        haulierOptions={filterHaulierOptions}
+        customerOptions={filterCustomerOptions}
+        isLoadingResources={isLoadingTrucks}
+        filter={filter}
+        onFilterChange={onFilterChange}
+        jobStatusOptions={SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS}
+      />
       {/* Fixed top bar */}
       <div className="border-b pl-6 py-2.5 bg-white shrink-0">
         <div className="flex items-center gap-3">
