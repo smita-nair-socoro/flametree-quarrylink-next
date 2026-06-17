@@ -1,3 +1,5 @@
+import { getCurrencyLocale } from './currency-tax-helper';
+
 /**
  * Convert a dollar‐amount (string or number) to integer cents.
  * Rounds to the nearest cent.
@@ -27,7 +29,7 @@ export function formatDollars(dollars: number | string): string {
   if (isNaN(amount)) {
     return 'N/A';
   }
-  return amount.toLocaleString('en-AU', {
+  return amount.toLocaleString(getCurrencyLocale(), {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });

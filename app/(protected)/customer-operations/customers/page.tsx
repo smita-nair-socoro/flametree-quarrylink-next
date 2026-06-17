@@ -5,7 +5,7 @@ import { FormDialog } from '@/components/form-dialog';
 import CustomerForm from './(components)/forms/customer-form';
 import { CustomerDTO } from '@/lib/types/customer';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from '@/lib/types/customer-enums';
-import { customerColumns } from './(components)/(data-tables)/customer/columns';
+import { getCustomerColumns } from './(components)/(data-tables)/customer/columns';
 import {
   Users,
   UserCheck,
@@ -27,6 +27,7 @@ import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
 
@@ -39,6 +40,7 @@ import { TableBadges } from '@/components/table-badges';
 
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
+  const { currencyCode } = useTenantCurrencyTax();
 
   // Use React Query to fetch customers data
   const {
@@ -224,7 +226,7 @@ export default function CustomersPage() {
             <DataTableClient
               tableId="customer_main_data_table"
               data={items ?? []}
-              columns={customerColumns}
+              columns={getCustomerColumns(currencyCode)}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search customers..."
               onRowClick={handleRowClick}

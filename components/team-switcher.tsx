@@ -2,10 +2,7 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  TenantCompleteDetailsQueryOptions,
-  TenantLogoQueryOptions,
-} from '@/lib/api/tenant';
+import { TenantLogoQueryOptions } from '@/lib/api/tenant';
 
 import {
   SidebarMenu,
@@ -43,19 +40,16 @@ export function TeamSwitcher({
     setForceUpdate((prev) => prev + 1);
   }, [state, openMobile, isMobileDevice]);
   const {
-    data: tenantCompleteDetails,
+    data: tenantLogo,
     isLoading,
     isFetching,
-  } = useQuery(TenantCompleteDetailsQueryOptions());
+  } = useQuery(TenantLogoQueryOptions());
 
-  const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
-
-  const isPending = isLoading || (isFetching && !tenantCompleteDetails);
+  const isPending = isLoading || (isFetching && !tenantLogo);
 
   const logoUrl = tenantLogo?.logoPublicS3Url;
 
-  const tenantName =
-    tenantCompleteDetails?.tenantDetails?.tenantName ?? client?.name;
+  const tenantName = tenantLogo?.tenantBusinessName ?? client?.name;
 
   const tenantInitials = React.useMemo(() => {
     const base = tenantName?.trim() ?? '';

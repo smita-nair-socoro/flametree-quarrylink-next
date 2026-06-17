@@ -7,12 +7,13 @@ import { DocketDTO } from '@/lib/types/docket';
 import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
 import { DataTableClient } from '@/components/ui/data-table-client';
 // import { Spinner } from '@/components/ui/spinner';
-import { createInvoiceColumns } from '../(data-tables)/create-invoice-columns';
+import { getCreateInvoiceColumns } from '../(data-tables)/create-invoice-columns';
 import { Truck, PackageOpen } from 'lucide-react';
 import { Tab } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 import { InvoiceActions } from '../../../invoice-actions';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 
 interface FormProps {
   jobId: number;
@@ -22,6 +23,7 @@ export default function InvoiceForm({
   jobId,
 }: FormProps) {
 
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const [activeTab, setActiveTab] = React.useState<'all' | 'delivery' | 'collection'>('all');
 
   const { data: dockets = [] } = useQuery(DocketsByJobIdQueryOptions(jobId));
@@ -163,7 +165,7 @@ export default function InvoiceForm({
       <DataTableClient
         isShowHideColumns={false}
         key={activeTab}
-        columns={createInvoiceColumns}
+        columns={getCreateInvoiceColumns(currencyCode, taxLabel)}
         data={items}
         defaultSorting={[{ id: 'docketNumber', desc: false }]}
         enableRowSelection={true}

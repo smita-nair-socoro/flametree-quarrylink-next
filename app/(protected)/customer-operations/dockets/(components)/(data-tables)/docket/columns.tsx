@@ -11,10 +11,19 @@ import {
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { TriangleAlert } from 'lucide-react';
+import { HelpCircle, TriangleAlert } from 'lucide-react';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  formatCurrency,
+  getExTaxLabel,
+} from '@/lib/utils/currency-tax-helper';
 
-export const docketColumns: ColumnDef<DocketDTO>[] = [
+export const getDocketColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<DocketDTO>[] => [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -104,8 +113,11 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'customer',
     accessorFn: (row) =>
-      row.job?.customerDto?.businessName ||
-      row.job?.customerDto?.individualContactName,
+      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
+        ? row.job?.customerDto?.businessName || 'N/A'
+        : row.job?.customerDto?.individualContactName ||
+          row.job?.customerDto?.contactName ||
+          'N/A',
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -113,8 +125,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const customer = row.original.job?.customerDto;
       const customerName =
         customer?.customerType === CUSTOMER_TYPE.BUSINESS
-          ? customer?.businessName
-          : customer?.individualContactName;
+          ? customer?.businessName || 'N/A'
+          : customer?.individualContactName || customer?.contactName || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -186,7 +198,7 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
       const formattedLoadSize =
         productUom === 'TN'
           ? `${formattedQty} TN`
-          : productUom === 'M3'
+          : productUom === 'M3' || productUom === 'm3'
             ? `${formattedQty} m³`
             : productUom === 'KG_20'
               ? `${formattedQty} x 20kg`
@@ -213,16 +225,33 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title="Total Invoice" />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Total Invoice{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getExTaxLabel(taxLabel)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
       );
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.totalInvoiceAmount.toString());
       const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: 'AUD',
-      }).format(dollars);
+      const formatted = formatCurrency(dollars, currencyCode);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

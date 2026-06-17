@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   format,
   startOfWeek,
@@ -27,7 +27,21 @@ import {
   DispatchTruckResource,
   DispatchDriverResource,
 } from '@/lib/types/docket';
-import { ScheduleFilter } from './schedule-filter';
+import {
+  DispatchDriversTrucksFilter,
+  type DispatchBoardFilterState,
+} from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
+import {
+  buildScheduleCustomerOptionsFromDockets,
+  buildSchedulerFilterDriverOptions,
+  buildSchedulerFilterHaulierOptions,
+  buildSchedulerFilterTruckOptions,
+  docketMatchesScheduleJobFilters,
+  driverRowMatchesFilters,
+  isDispatchDriverResource,
+  isDispatchTruckResource,
+  truckMatchesFleetFilters,
+} from '@/lib/utils/dispatch-helper';
 import { Button } from '@/components/ui/button';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TableBadges } from '@/components/table-badges';
@@ -84,7 +98,7 @@ function getChipColor(status: DOCKET_STATUS) {
 }
 
 function formatSellUomLabel(uom: string | undefined): string {
-  if (uom === 'M3') return 'm³';
+  if (uom === 'M3' || uom === 'm3') return 'm³';
   if (uom === 'KG_20') return '× 20kg';
   return uom || '';
 }
@@ -164,9 +178,13 @@ const VISIBLE_DOCKETS_PER_CELL = 3;
 export function ScheduleWeekView({
   date,
   viewType,
+  filter,
+  onFilterChange,
 }: {
   date: Date;
   viewType: ViewType;
+  filter: DispatchBoardFilterState;
+  onFilterChange: (next: DispatchBoardFilterState) => void;
 }) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
@@ -178,15 +196,18 @@ export function ScheduleWeekView({
   const startIso = startDate.toISOString();
   const endIso = endDate.toISOString();
 
-  const { data: trucksData } = useQuery({
+  const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(startIso, endIso),
     enabled: viewType === 'trucks',
   });
 
-  const { data: driversData } = useQuery({
+  const { data: driversData, isLoading: isLoadingDrivers } = useQuery({
     ...SchedulerDriversQueryOptions(startIso, endIso),
     enabled: viewType === 'drivers',
   });
+
+  const isLoadingResources =
+    viewType === 'trucks' ? isLoadingTrucks : isLoadingDrivers;
 
   const resources: ResourceRow[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
@@ -237,18 +258,76 @@ export function ScheduleWeekView({
     return [];
   }, [trucksData, driversData, viewType]);
 
-  const allDockets = useMemo(() => {
-    return resources.flatMap((r) => r.dockets);
-  }, [resources]);
+  const filterCustomerOptions = useMemo(() => {
+    const weekDockets = resources.flatMap((r) => r.dockets);
+    return buildScheduleCustomerOptionsFromDockets(
+      weekDockets,
+      startDate,
+      endDate,
+    );
+  }, [resources, startDate, endDate]);
 
-  const customerNames = useMemo(() => {
-    const names = allDockets
-      .map((d) => d.customerName)
-      .filter(Boolean) as string[];
-    console.log(names);
-    console.log(allDockets);
-    return Array.from(new Set(names)).sort();
-  }, [allDockets]);
+  useEffect(() => {
+    const allowed = new Set(filterCustomerOptions);
+    const nextNames = filter.customerNames.filter((n) => allowed.has(n));
+    if (nextNames.length !== filter.customerNames.length) {
+      onFilterChange({ ...filter, customerNames: nextNames });
+    }
+    // Only re-run when the available customer list changes (e.g. week navigation).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filterCustomerOptions]);
+
+  const filterDriverOptions = useMemo(
+    () => buildSchedulerFilterDriverOptions(driversData),
+    [driversData],
+  );
+
+  const filterTruckOptions = useMemo(
+    () => buildSchedulerFilterTruckOptions(trucksData),
+    [trucksData],
+  );
+
+  const filterHaulierOptions = useMemo(
+    () => buildSchedulerFilterHaulierOptions(trucksData),
+    [trucksData],
+  );
+
+  const filteredResources = useMemo(() => {
+    let result = resources.map((r) => ({
+      ...r,
+      dockets: r.dockets.filter((d) =>
+        docketMatchesScheduleJobFilters(d, filter),
+      ),
+    }));
+
+    if (viewType === 'trucks' && trucksData?.resources) {
+      const allowedTruckIds = new Set(
+        trucksData.resources
+          .filter(isDispatchTruckResource)
+          .filter((r) => truckMatchesFleetFilters(r, filter))
+          .map((r) => String(r.id)),
+      );
+      result = result.filter((r) => allowedTruckIds.has(r.id));
+    } else if (viewType === 'drivers' && driversData?.resources) {
+      const allowedDriverIds = new Set(
+        driversData.resources
+          .filter(isDispatchDriverResource)
+          .filter((r) => driverRowMatchesFilters(r, filter))
+          .map((r) => String(r.id)),
+      );
+      result = result.filter((r) => allowedDriverIds.has(r.id));
+    }
+
+    if (filter.jobStatuses.length > 0 || filter.customerNames.length > 0) {
+      result = result.filter((r) => r.dockets.length > 0);
+    }
+
+    return result;
+  }, [resources, viewType, trucksData, driversData, filter]);
+
+  const allDockets = useMemo(() => {
+    return filteredResources.flatMap((r) => r.dockets);
+  }, [filteredResources]);
 
   const headerStats = useMemo(() => {
     const assignedDockets = allDockets.filter(
@@ -291,7 +370,16 @@ export function ScheduleWeekView({
 
   return (
     <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
-      <ScheduleFilter viewType={viewType} customers={customerNames} />
+      <DispatchDriversTrucksFilter
+        viewType={viewType}
+        driverOptions={filterDriverOptions}
+        truckOptions={filterTruckOptions}
+        haulierOptions={filterHaulierOptions}
+        customerOptions={filterCustomerOptions}
+        isLoadingResources={isLoadingResources}
+        filter={filter}
+        onFilterChange={onFilterChange}
+      />
       <div className="border-b border-[#E2E8F0] pl-6 py-2.5 bg-white shrink-0">
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-[12px] font-medium text-[#64748B]">
@@ -363,7 +451,7 @@ export function ScheduleWeekView({
             </div>
 
             <div className="flex flex-col min-w-0">
-              {resources.map((resource) => (
+              {filteredResources.map((resource) => (
                 <div
                   key={resource.id}
                   className="grid border-b border-[#E2E8F0] last:border-b-0 bg-white"
@@ -468,7 +556,7 @@ export function ScheduleWeekView({
                 </div>
               ))}
 
-              {resources.length === 0 && (
+              {filteredResources.length === 0 && (
                 <div className="p-10 text-center text-[#64748B] text-sm border-t border-[#E2E8F0]">
                   No {viewType} found for this week.
                 </div>

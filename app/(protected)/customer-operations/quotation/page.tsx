@@ -15,7 +15,7 @@ import {
   Hash,
   User,
 } from 'lucide-react';
-import { quotationColumns } from './(components)/(data-tables)/quotation/columns';
+import { getQuotationColumns } from './(components)/(data-tables)/quotation/columns';
 import { FormDialog } from '@/components/form-dialog';
 import { Quotation, QuotationDTO } from '@/lib/types/quotation';
 import QuotationForm from './(components)/forms/quotation-form';
@@ -28,6 +28,7 @@ import {
 } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
@@ -40,6 +41,7 @@ import { parseISO, format } from 'date-fns';
 export default function QuotationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { currencyCode, currencySymbol, taxLabel } = useTenantCurrencyTax();
   // Use React Query to fetch quotations data
   const {
     data: quotationsData,
@@ -179,8 +181,8 @@ export default function QuotationsPage() {
   // Mobile card renderer
   const renderQuotationCard = React.useCallback((quotation: Quotation) => {
     const formattedTotal = quotation.totalSellPrice
-      ? `$${centsToDollars(quotation.totalSellPrice)}`
-      : '$0.00';
+      ? `${currencySymbol}${centsToDollars(quotation.totalSellPrice)}`
+      : `${currencySymbol}0.00`;
     const expiryDate = quotation.expiryDate || '-';
 
     const date = parseISO(expiryDate);
@@ -227,7 +229,7 @@ export default function QuotationsPage() {
         ]}
       />
     );
-  }, []);
+  }, [currencySymbol]);
 
   // const handleRowSelectionChange = (selected: Quotation[]) => {
   //   setSelectedQuotations(selected);
@@ -305,7 +307,7 @@ export default function QuotationsPage() {
                   : 'quotation_main_data_table'
               }
               data={filteredItems ?? []}
-              columns={quotationColumns}
+              columns={getQuotationColumns(currencyCode, taxLabel)}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}

@@ -46,7 +46,6 @@ import {
   toLocalDateTime,
   formatLocalDateTime,
   appendUtcSuffix,
-  parseCalendarDate,
 } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
@@ -61,8 +60,12 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { getDeliveryDistanceQuantity, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
+import {
+  getDeliveryDistanceQuantity,
+  convertTruckVolumeToProductUom,
+} from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
@@ -100,8 +103,6 @@ const truckTypeOptions: FormSelectOption[] = [
   { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
 ];
 
-const DOCKET_TIME_WINDOW_HOURS = Array.from({ length: 20 }, (_, i) => i + 4);
-
 interface FormProps {
   id?: number;
   onCancel?: () => void;
@@ -128,6 +129,8 @@ export default function DocketForm({
   initialDocket,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel } =
+    useTenantCurrencyTax();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [previewImage, setPreviewImage] = React.useState<{
     src: string;
@@ -152,7 +155,9 @@ export default function DocketForm({
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
-  const [pendingRetry, setPendingRetry] = React.useState<(() => Promise<void>) | null>(null);
+  const [pendingRetry, setPendingRetry] = React.useState<
+    (() => Promise<void>) | null
+  >(null);
   const {
     docketForm,
     isEditing,
@@ -180,6 +185,7 @@ export default function DocketForm({
     isQuickDocket,
     jobId,
     onDirtyChange,
+    taxPercentage,
   });
 
   const combineDateAndTime = (
@@ -211,24 +217,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-      currentStatus === DOCKET_STATUS.ASSIGNED ||
-      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.STOPPED ||
-      currentStatus === DOCKET_STATUS.ARRIVED
+        currentStatus === DOCKET_STATUS.ASSIGNED ||
+        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+        currentStatus === DOCKET_STATUS.STOPPED ||
+        currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-      currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY);
+        currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-      currentStatus === DOCKET_STATUS.ARRIVED ||
-      currentStatus === DOCKET_STATUS.DELIVERED ||
-      currentStatus === DOCKET_STATUS.STOPPED
+        currentStatus === DOCKET_STATUS.ARRIVED ||
+        currentStatus === DOCKET_STATUS.DELIVERED ||
+        currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-      currentStatus === DOCKET_STATUS.READY ||
-      currentStatus === DOCKET_STATUS.COLLECTED);
+        currentStatus === DOCKET_STATUS.READY ||
+        currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -283,7 +289,10 @@ export default function DocketForm({
         : actionLabel === 'cancelled'
           ? CANCEL_REASON_LABELS
           : VOID_REASON_LABELS;
-    const reason = labelMap[rawReasonKey] || rawReasonKey.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) || 'N/A';
+    const reason =
+      labelMap[rawReasonKey] ||
+      rawReasonKey.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) ||
+      'N/A';
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">
@@ -329,8 +338,11 @@ export default function DocketForm({
     const formatEventTime = (isoString: string) => {
       try {
         const date = new Date(isoString);
-        const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-        return isToday ? `${format(date, 'hh:mm a')} Today` : format(date, 'hh:mm a, d MMM');
+        const isToday =
+          format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+        return isToday
+          ? `${format(date, 'hh:mm a')} Today`
+          : format(date, 'hh:mm a, d MMM');
       } catch {
         return '—';
       }
@@ -342,34 +354,41 @@ export default function DocketForm({
           <span className="text-sm text-[#713F12] underline">
             Arrived at: {formatEventTime(selectedDocket.arrivedAt)}
           </span>
-          {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
-            <a
-              href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
-            >
-              Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
-            </a>
-          )}
+          {selectedDocket.arrivalLatitude != null &&
+            selectedDocket.arrivalLongitude != null && (
+              <a
+                href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+              >
+                Lat {selectedDocket.arrivalLatitude} | Long{' '}
+                {selectedDocket.arrivalLongitude}
+              </a>
+            )}
         </div>
       );
     }
 
     if (
-      (status === DOCKET_STATUS.DELIVERED || status === DOCKET_STATUS.INVOICED) &&
+      (status === DOCKET_STATUS.DELIVERED ||
+        status === DOCKET_STATUS.INVOICED) &&
       selectedDocket.deliveredAt
     ) {
       let timeOnSite: string | null = null;
       if (selectedDocket.arrivedAt) {
         const diff = Math.floor(
-          (new Date(selectedDocket.deliveredAt).getTime() - new Date(selectedDocket.arrivedAt).getTime()) / 1000,
+          (new Date(selectedDocket.deliveredAt).getTime() -
+            new Date(selectedDocket.arrivedAt).getTime()) /
+            1000,
         );
         if (diff >= 0) {
           const h = Math.floor(diff / 3600);
           const m = Math.floor((diff % 3600) / 60);
           const s = diff % 60;
-          timeOnSite = [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+          timeOnSite = [h, m, s]
+            .map((v) => String(v).padStart(2, '0'))
+            .join(':');
         }
       }
 
@@ -379,16 +398,18 @@ export default function DocketForm({
             <span className="text-sm text-[#14532D] underline">
               Delivered at: {formatEventTime(selectedDocket.deliveredAt)}
             </span>
-            {selectedDocket.arrivalLatitude != null && selectedDocket.arrivalLongitude != null && (
-              <a
-                href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
-              >
-                Lat {selectedDocket.arrivalLatitude} | Long {selectedDocket.arrivalLongitude}
-              </a>
-            )}
+            {selectedDocket.arrivalLatitude != null &&
+              selectedDocket.arrivalLongitude != null && (
+                <a
+                  href={`https://www.google.com/maps?q=${selectedDocket.arrivalLatitude},${selectedDocket.arrivalLongitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-xs text-[#3B82F6] underline bg-[#F5F5F5] px-2.5 py-1 rounded-full w-fit hover:opacity-80 transition-opacity"
+                >
+                  Lat {selectedDocket.arrivalLatitude} | Long{' '}
+                  {selectedDocket.arrivalLongitude}
+                </a>
+              )}
           </div>
           {timeOnSite && (
             <div className="flex flex-col items-center justify-center border-2 border-[#65A30D] bg-[#F9FFEB] rounded-lg px-[14px] py-[3px] min-w-[130px] shrink-0 self-stretch">
@@ -519,9 +540,13 @@ export default function DocketForm({
 
     const assignedPayload = {
       deliveryCollectionDate: values.deliveryCollectionDate
-        ? appendUtcSuffix(format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"))
+        ? appendUtcSuffix(
+            format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
+          )
         : undefined,
-      deliveryStartWindow: startDateTime ? appendUtcSuffix(startDateTime) : undefined,
+      deliveryStartWindow: startDateTime
+        ? appendUtcSuffix(startDateTime)
+        : undefined,
       deliveryEndWindow: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
       plannedLoadSize: values.plannedLoadSize,
       actualLoadSize: values.plannedLoadSize,
@@ -535,9 +560,15 @@ export default function DocketForm({
       setIsSubmitting(true);
       const result = await operationalUpdateDocket.mutateAsync({
         id: selectedDocket!.id,
-        data: { ...assignedPayload, checkWindowTimeConflict: windowFieldsChanged },
+        data: {
+          ...assignedPayload,
+          checkWindowTimeConflict: windowFieldsChanged,
+        },
       });
-      if (result.conflictingDocketIds && result.conflictingDocketIds.length > 0) {
+      if (
+        result.conflictingDocketIds &&
+        result.conflictingDocketIds.length > 0
+      ) {
         setPendingRetry(() => async () => {
           await operationalUpdateDocket.mutateAsync({
             id: selectedDocket!.id,
@@ -584,18 +615,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-          currentStatus !== DOCKET_STATUS.ASSIGNED &&
-          currentStatus !== DOCKET_STATUS.PENDING
+        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+        currentStatus !== DOCKET_STATUS.ASSIGNED &&
+        currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -681,18 +712,18 @@ export default function DocketForm({
           ? undefined
           : deliveryAddress.googlePlaceId
             ? {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            }
+                googlePlaceId: deliveryAddress.googlePlaceId,
+                formattedAddress: deliveryAddress.formattedAddress,
+                streetDetailsPrimary: deliveryAddress.address1,
+                streetDetailsOptional: deliveryAddress.address2,
+                city: deliveryAddress.city,
+                suburb: deliveryAddress.city,
+                state: deliveryAddress.region,
+                postcode: deliveryAddress.postalCode,
+                country: deliveryAddress.country,
+                latitude: deliveryAddress.lat,
+                longitude: deliveryAddress.lng,
+              }
             : undefined,
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
@@ -744,7 +775,7 @@ export default function DocketForm({
   }
 
   const deliveryDate = selectedDocket?.deliveryCollectionDate
-    ? parseCalendarDate(selectedDocket.deliveryCollectionDate)
+    ? new Date(selectedDocket.deliveryCollectionDate)
     : null;
   const newStart = docketForm.watch('deliveryCollectionStartTime');
   const newEnd = docketForm.watch('deliveryCollectionEndTime');
@@ -800,16 +831,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                    <>
-                      {' '}
-                      ·{' '}
-                      {formatNumberThousandSeparator(
-                        selectedDocket?.actualLoadSize ??
+                  <>
+                    {' '}
+                    ·{' '}
+                    {formatNumberThousandSeparator(
+                      selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                      )}{' '}
-                      {selectedDocket?.jobItem?.productSellUom}
-                    </>
-                  )}
+                    )}{' '}
+                    {selectedDocket?.jobItem?.productSellUom}
+                  </>
+                )}
               </span>
             </div>
           </div>
@@ -971,7 +1002,6 @@ export default function DocketForm({
                         />
                       </FormControl>
                     </FormItem>
-
                   </div>
                   {(() => {
                     const jobLineItemId = docketForm.watch('jobLineItemId');
@@ -980,14 +1010,15 @@ export default function DocketForm({
                     // const truckQtyOverflows =
                     //   isDelivery && needTruckQty && canActualLoadSize;
 
-                    const truckVolumeM3 = selectedDocket?.truck?.tankVolumeM3 ?? null;
+                    const truckVolumeM3 =
+                      selectedDocket?.truck?.tankVolumeM3 ?? null;
                     const truckCapacityInProductUom =
                       truckVolumeM3 != null
                         ? convertTruckVolumeToProductUom(
-                          truckVolumeM3,
-                          details.productUom,
-                          details.densityTonnagePerM3 || 1,
-                        )
+                            truckVolumeM3,
+                            details.productUom,
+                            details.densityTonnagePerM3 || 1,
+                          )
                         : null;
                     const isGenericTruck =
                       selectedDocket?.truck?.licensePlate
@@ -1099,16 +1130,19 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                              productMax,
-                                              truckCapacityInProductUom,
-                                            )
+                                                productMax,
+                                                truckCapacityInProductUom,
+                                              )
                                             : productMax;
                                         const val = parseFloat(e.target.value);
-                                        const uomNorm = details.productUom?.toLowerCase();
+                                        const uomNorm =
+                                          details.productUom?.toLowerCase();
                                         const uomText =
-                                          uomNorm === '20kg' || uomNorm === 'kg_20'
+                                          uomNorm === '20kg' ||
+                                          uomNorm === 'kg_20'
                                             ? 'x 20kg'
-                                            : uomNorm === 'm3' || uomNorm === 'bulka'
+                                            : uomNorm === 'm3' ||
+                                                uomNorm === 'bulka'
                                               ? 'm³'
                                               : uomNorm === 'tn'
                                                 ? 'TN'
@@ -1120,7 +1154,9 @@ export default function DocketForm({
                                             amount: maxLimit,
                                             uom: uomText,
                                             productMax,
-                                            truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            truckCapacity:
+                                              truckCapacityInProductUom ??
+                                              undefined,
                                             overProductMax: val > productMax,
                                             isGenericTruck,
                                           });
@@ -1167,16 +1203,19 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                              productMax,
-                                              truckCapacityInProductUom,
-                                            )
+                                                productMax,
+                                                truckCapacityInProductUom,
+                                              )
                                             : productMax;
                                         const val = parseFloat(e.target.value);
-                                        const uomNorm = details.productUom?.toLowerCase();
+                                        const uomNorm =
+                                          details.productUom?.toLowerCase();
                                         const uomText =
-                                          uomNorm === '20kg' || uomNorm === 'kg_20'
+                                          uomNorm === '20kg' ||
+                                          uomNorm === 'kg_20'
                                             ? 'x 20kg'
-                                            : uomNorm === 'm3' || uomNorm === 'bulka'
+                                            : uomNorm === 'm3' ||
+                                                uomNorm === 'bulka'
                                               ? 'm³'
                                               : uomNorm === 'tn'
                                                 ? 'TN'
@@ -1188,7 +1227,9 @@ export default function DocketForm({
                                             amount: maxLimit,
                                             uom: uomText,
                                             productMax,
-                                            truckCapacity: truckCapacityInProductUom ?? undefined,
+                                            truckCapacity:
+                                              truckCapacityInProductUom ??
+                                              undefined,
                                             overProductMax: val > productMax,
                                             isGenericTruck,
                                           });
@@ -1240,13 +1281,13 @@ export default function DocketForm({
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
                         {adjustedAlert.isGenericTruck &&
-                          adjustedAlert.productMax != null &&
-                          adjustedAlert.overProductMax
+                        adjustedAlert.productMax != null &&
+                        adjustedAlert.overProductMax
                           ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry up to ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                           : adjustedAlert.truckCapacity != null &&
-                            adjustedAlert.productMax != null &&
-                            adjustedAlert.truckCapacity <
-                            adjustedAlert.productMax
+                              adjustedAlert.productMax != null &&
+                              adjustedAlert.truckCapacity <
+                                adjustedAlert.productMax
                             ? adjustedAlert.overProductMax
                               ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                               : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
@@ -1290,12 +1331,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                            (isEditing &&
+                              (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                              ? docketForm.watch('actualLoadSize') || 0
-                              : docketForm.watch('plannedLoadSize') || 0),
+                                ? docketForm.watch('actualLoadSize') || 0
+                                : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUom === '20kg'
                             ? 'x 20kg'
@@ -1310,7 +1351,11 @@ export default function DocketForm({
                         if (vol == null) return null;
                         const d = selectedJobLineItemDetails();
                         const density = d.densityTonnagePerM3 || 1;
-                        const cap = convertTruckVolumeToProductUom(vol, d.productUom, density);
+                        const cap = convertTruckVolumeToProductUom(
+                          vol,
+                          d.productUom,
+                          density,
+                        );
                         const isGenericTruck =
                           selectedDocket?.truck?.licensePlate
                             ?.toUpperCase()
@@ -1338,7 +1383,8 @@ export default function DocketForm({
                               </span>
                               {!isM3 && !isGenericTruck && (
                                 <span className="text-xs text-muted-foreground/70">
-                                  {calcLabel} = {formatNumberThousandSeparator(cap)} {uomText}
+                                  {calcLabel} ={' '}
+                                  {formatNumberThousandSeparator(cap)} {uomText}
                                 </span>
                               )}
                               {isGenericTruck && (
@@ -1348,7 +1394,11 @@ export default function DocketForm({
                               )}
                             </div>
                             <span className="text-sm font-medium">
-                              {isGenericTruck ? <Infinity className="w-5 h-5" /> : `${formatNumberThousandSeparator(cap)} ${uomText} total`}
+                              {isGenericTruck ? (
+                                <Infinity className="w-5 h-5" />
+                              ) : (
+                                `${formatNumberThousandSeparator(cap)} ${uomText} total`
+                              )}
                             </span>
                           </div>
                         );
@@ -1511,8 +1561,8 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {DOCKET_TIME_WINDOW_HOURS.map((hourNum) => {
-                                  const hour = String(hourNum).padStart(2, '0');
+                                {Array.from({ length: 24 }, (_, i) => {
+                                  const hour = String(i).padStart(2, '0');
                                   return (
                                     <SelectItem key={hour} value={`${hour}:00`}>
                                       {hour}:00
@@ -1548,8 +1598,8 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {DOCKET_TIME_WINDOW_HOURS.map((hourNum) => {
-                                  const hour = String(hourNum).padStart(2, '0');
+                                {Array.from({ length: 24 }, (_, i) => {
+                                  const hour = String(i).padStart(2, '0');
                                   return (
                                     <SelectItem key={hour} value={`${hour}:00`}>
                                       {hour}:00
@@ -1691,21 +1741,26 @@ export default function DocketForm({
               {/* Checklist Section */}
               {(() => {
                 const driverChecklist =
-                  selectedDocket?.hasTodayDriverPreStart && selectedDocket?.driverChecklistSubmissionId
+                  selectedDocket?.hasTodayDriverPreStart &&
+                  selectedDocket?.driverChecklistSubmissionId
                     ? selectedDocket?.driverChecklistSubmission
                     : null;
                 const truckChecklist =
-                  selectedDocket?.hasTodayTruckInspectionByCurrentDriver && selectedDocket?.truckChecklistSubmissionId
+                  selectedDocket?.hasTodayTruckInspectionByCurrentDriver &&
+                  selectedDocket?.truckChecklistSubmissionId
                     ? selectedDocket?.truckChecklistSubmission
                     : null;
 
-                if (!isEditing || (!driverChecklist && !truckChecklist)) return null;
+                if (!isEditing || (!driverChecklist && !truckChecklist))
+                  return null;
 
                 return (
                   <div
                     className={cn(
                       'grid gap-4',
-                      driverChecklist && truckChecklist ? 'grid-cols-2' : 'grid-cols-1',
+                      driverChecklist && truckChecklist
+                        ? 'grid-cols-2'
+                        : 'grid-cols-1',
                     )}
                   >
                     {driverChecklist && (
@@ -1713,7 +1768,9 @@ export default function DocketForm({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5 text-[#6A7282]" />
-                            <span className="text-base font-bold">Pre-Start Checklist</span>
+                            <span className="text-base font-bold">
+                              Pre-Start Checklist
+                            </span>
                           </div>
                           {driverChecklist.checklistStatus !== 'CONFIRMED' && (
                             <Button
@@ -1730,7 +1787,9 @@ export default function DocketForm({
                           )}
                         </div>
                         {driverChecklist.checklistStatus && (
-                          <TableBadges names={driverChecklist.checklistStatus} />
+                          <TableBadges
+                            names={driverChecklist.checklistStatus}
+                          />
                         )}
                       </div>
                     )}
@@ -1739,7 +1798,9 @@ export default function DocketForm({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <FileText className="w-5 h-5 text-[#6A7282]" />
-                            <span className="text-base font-bold">Truck Inspection</span>
+                            <span className="text-base font-bold">
+                              Truck Inspection
+                            </span>
                           </div>
                           {truckChecklist.checklistStatus !== 'CONFIRMED' && (
                             <Button
@@ -1947,7 +2008,7 @@ export default function DocketForm({
                   <div>
                     <span>Product Sell</span>
                     <span>
-                      $
+                      {currencySymbol}
                       {formatNumberThousandSeparator(
                         pricingBreakdown.productSell,
                       )}
@@ -1957,7 +2018,7 @@ export default function DocketForm({
                     <div>
                       <span>Truck Sell</span>
                       <span>
-                        $
+                        {currencySymbol}
                         {formatNumberThousandSeparator(
                           pricingBreakdown.truckSell,
                         )}
@@ -1965,22 +2026,22 @@ export default function DocketForm({
                     </div>
                   )}
                   <div className="pt-2 border-t border-dashed border-purple-300">
-                    <span>Subtotal (ex-GST)</span>
+                    <span>Subtotal {exTaxLabel}</span>
                     <span>
-                      $
+                      {currencySymbol}
                       {formatNumberThousandSeparator(pricingBreakdown.subtotal)}
                     </span>
                   </div>
                   <div>
-                    <span>GST (10%)</span>
+                    <span>{taxRateLabel}</span>
                     <span>
-                      ${formatNumberThousandSeparator(pricingBreakdown.gst)}
+                      {currencySymbol}{formatNumberThousandSeparator(pricingBreakdown.gst)}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-dashed border-purple-300">
                     <span className="font-bold text-lg">Total Invoice</span>
                     <span className="font-bold text-lg">
-                      ${formatNumberThousandSeparator(pricingBreakdown.total)}
+                      {currencySymbol}{formatNumberThousandSeparator(pricingBreakdown.total)}
                     </span>
                   </div>
                 </div>

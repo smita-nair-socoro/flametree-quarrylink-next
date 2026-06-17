@@ -16,6 +16,7 @@ import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { DocketsInfiniteListQueryOptions } from '@/lib/api/docket';
+import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useDebounce } from '@/hooks/use-debounce';
 import {
@@ -23,14 +24,29 @@ import {
   formatTimeRange,
   formatDate,
   parseCollectionStartMs,
-  dayBucketMs,
   normalizedLoadM3ForSort,
   matchesUnassignedSearch,
   mapUnassignedDocketDtoToBoardRow,
+  isDocketOnSelectedLocalDay,
 } from '@/lib/utils/dispatch-helper';
 import { Spinner } from '@/components/ui/spinner';
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
+
+/** Server sort for infinite scroll — must match list order so new pages append at the end. */
+function getAllDatesApiSortParams(sortBy: UnassignedSortKey): {
+  sortBy: string;
+  sortOrder: 'asc';
+} {
+  switch (sortBy) {
+    case 'time':
+      return { sortBy: 'deliveryCollectionStartTime', sortOrder: 'asc' };
+    case 'size':
+      return { sortBy: 'plannedLoadSize', sortOrder: 'asc' };
+    case 'customer':
+      return { sortBy: 'customerName', sortOrder: 'asc' };
+  }
+}
 
 function DraggableDocketCard({
   docket,
@@ -73,7 +89,7 @@ function DraggableDocketCard({
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
             {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-            {docket.productSellUom === 'M3'
+            {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
                 ? 'x 20kg'
@@ -142,7 +158,7 @@ export function DocketCardOverlay({ docket }: { docket: DispatchDocket }) {
           </span>
           <span className="px-2 py-0.5 rounded-full border border-[#FDE68A] text-[12px] font-semibold text-[#7b3805] bg-yellow-50 whitespace-nowrap">
             {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-            {docket.productSellUom === 'M3'
+            {docket.productSellUom === 'M3' || docket.productSellUom === 'm3'
               ? 'm³'
               : docket.productSellUom === 'KG_20'
                 ? 'x 20kg'
@@ -229,15 +245,25 @@ export default function UnassignedDockets({
       pageSize: 10,
       search: debouncedSearch.trim() || undefined,
       status: DOCKET_STATUS.UNASSIGNED,
+      ...getAllDatesApiSortParams(sortBy),
     }),
     enabled: activeTab === 'all_dates',
   });
 
   const allDatesUnassigned = React.useMemo(() => {
     const pages = allDatesPages?.pages ?? [];
-    const raw = pages.flatMap((page) =>
-      Array.isArray(page) ? page : (page.content ?? []),
-    );
+    const seenIds = new Set<number>();
+    const raw: DocketDTO[] = [];
+
+    for (const page of pages) {
+      const items = Array.isArray(page) ? page : (page.content ?? []);
+      for (const docket of items) {
+        if (seenIds.has(docket.id)) continue;
+        seenIds.add(docket.id);
+        raw.push(docket);
+      }
+    }
+
     return raw
       .filter((d) => !assignedIdsSet.has(String(d.id)))
       .map(mapUnassignedDocketDtoToBoardRow);
@@ -245,16 +271,11 @@ export default function UnassignedDockets({
 
   const thisDayUnassigned = React.useMemo(
     () =>
-      dockets.filter((d) => {
-        if (d.docketStatus !== DOCKET_STATUS.UNASSIGNED) return false;
-        if (!d.deliveryCollectionDate) return false;
-        const docketDate = new Date(d.deliveryCollectionDate);
-        return (
-          docketDate.getFullYear() === date.getFullYear() &&
-          docketDate.getMonth() === date.getMonth() &&
-          docketDate.getDate() === date.getDate()
-        );
-      }),
+      dockets.filter(
+        (d) =>
+          d.docketStatus === DOCKET_STATUS.UNASSIGNED &&
+          isDocketOnSelectedLocalDay(d, date),
+      ),
     [dockets, date],
   );
 
@@ -264,51 +285,22 @@ export default function UnassignedDockets({
   const isQueueLoading =
     activeTab === 'all_dates' ? isAllDatesLoading : isLoading;
 
-  React.useEffect(() => {
-    if (activeTab !== 'all_dates') return;
-    const root = scrollContainerRef.current;
-    const target = loadMoreRef.current;
-    if (!root || !target) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (
-          entries[0]?.isIntersecting &&
-          hasNextPage &&
-          !isFetchingNextPage
-        ) {
-          fetchNextPage();
-        }
-      },
-      { root, rootMargin: '120px', threshold: 0 },
-    );
-
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [
-    activeTab,
-    hasNextPage,
-    isFetchingNextPage,
-    fetchNextPage,
-    unassignedDockets.length,
-  ]);
-
   const visibleUnassignedDockets = React.useMemo(() => {
     const filtered =
       activeTab === 'all_dates'
         ? unassignedDockets
         : unassignedDockets.filter((d) =>
-            matchesUnassignedSearch(d, searchQuery),
-          );
+          matchesUnassignedSearch(d, searchQuery),
+        );
+
+    // All dates: preserve API page order so infinite scroll appends at the bottom.
+    if (activeTab === 'all_dates') {
+      return filtered;
+    }
+
     const list = [...filtered];
     list.sort((a, b) => {
       let cmp = 0;
-      if (activeTab === 'all_dates' && sortBy === 'customer') {
-        cmp =
-          dayBucketMs(a.deliveryCollectionStartTime) -
-          dayBucketMs(b.deliveryCollectionStartTime);
-        if (cmp !== 0) return cmp;
-      }
       switch (sortBy) {
         case 'time':
           cmp =
@@ -333,6 +325,40 @@ export default function UnassignedDockets({
     });
     return list;
   }, [unassignedDockets, sortBy, activeTab, searchQuery]);
+
+  const hasNextPageRef = React.useRef(hasNextPage);
+  const isFetchingNextPageRef = React.useRef(false);
+  hasNextPageRef.current = hasNextPage;
+
+  React.useEffect(() => {
+    if (!isFetchingNextPage) {
+      isFetchingNextPageRef.current = false;
+    }
+  }, [isFetchingNextPage]);
+
+  React.useEffect(() => {
+    if (activeTab !== 'all_dates' || isAllDatesLoading) return;
+    const root = scrollContainerRef.current;
+    const target = loadMoreRef.current;
+    if (!root || !target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0]?.isIntersecting &&
+          hasNextPageRef.current &&
+          !isFetchingNextPageRef.current
+        ) {
+          isFetchingNextPageRef.current = true;
+          fetchNextPage();
+        }
+      },
+      { root, rootMargin: '120px', threshold: 0 },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [activeTab, isAllDatesLoading, fetchNextPage]);
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: 'unassigned-queue',
