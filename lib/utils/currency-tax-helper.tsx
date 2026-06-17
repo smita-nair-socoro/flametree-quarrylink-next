@@ -101,7 +101,9 @@ export function useTenantCurrencyTax(): TenantCurrencyTax {
     taxPercentage: storeTaxPercentage,
   } = useTenantStore();
 
-  const currencyCode = (storeCurrencyCode || DEFAULT_CURRENCY_CODE).toUpperCase();
+  const currencyCode = (
+    storeCurrencyCode || DEFAULT_CURRENCY_CODE
+  ).toUpperCase();
   const taxLabel = storeTaxLabel || DEFAULT_TAX_LABEL;
   const taxPercentage = storeTaxPercentage ?? DEFAULT_TAX_PERCENTAGE;
 

@@ -66,6 +66,7 @@ function getTimezoneLabel(timeZoneId: string): string {
     return timeZoneId;
   }
 }
+import { getInitials } from '@/lib/utils/user-helper';
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -85,7 +86,7 @@ export default function SettingsTab() {
   const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
   const currencyName = getCurrencyName(currencyCode);
   const timezoneLabel = getTimezoneLabel(
-    tenantDetails?.timeZoneId || DEFAULT_TIMEZONE
+    tenantDetails?.timeZoneId || DEFAULT_TIMEZONE,
   );
 
   // Use change password mutation
@@ -122,19 +123,10 @@ export default function SettingsTab() {
   //   },
   // });
 
-  const getInitials = (fullName: string) => {
-    if (!fullName || fullName.trim() === '') return 'NA';
-    return fullName
-      .split(' ')
-      .map((name) => name[0]?.toUpperCase() || '')
-      .join('')
-      .slice(0, 2);
-  };
-
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   async function onSubmitPersonalInformation(
-    values: z.infer<typeof PersonalInformationSchema>
+    values: z.infer<typeof PersonalInformationSchema>,
   ) {
     if (!currentUser?.sub) {
       notifyError('User not found');
@@ -259,7 +251,7 @@ export default function SettingsTab() {
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -286,11 +278,11 @@ export default function SettingsTab() {
                 id="update-personal-information-form"
                 className={cn(
                   'p-1 w-full flex flex-col',
-                  isSubmitting && 'pointer-events-none'
+                  isSubmitting && 'pointer-events-none',
                 )}
                 onSubmit={settingsForm.handleSubmit(
                   onSubmitPersonalInformation,
-                  onErrorPersonalInformation
+                  onErrorPersonalInformation,
                 )}
               >
                 <div className="flex flex-col">
@@ -298,7 +290,7 @@ export default function SettingsTab() {
                   <div className="flex justify-start gap-2">
                     <div className="w-20 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center flex-shrink-0">
                       <span className="text-xl text-[#2563EB] font-medium">
-                        {getInitials(currentUser?.name || '')}
+                        {getInitials(currentUser?.name, currentUser?.email)}
                       </span>
                     </div>
                     <FormField

@@ -21,6 +21,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { getRelativeTime, formatLocalDate } from '@/lib/utils/date';
+import { getInitials } from '@/lib/utils/user-helper';
 import { EditClientUserFormSchema } from './schemas/client-user-form-schema';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -211,7 +212,7 @@ export function EditClientUserForm({
         >
           <Avatar className="size-14 bg-[#DBEAFE] text-lg font-semibold text-[#2563EB]">
             <AvatarFallback className="text-base font-semibold">
-              {getInitials(fullName)}
+              {getInitials(fullName, initialData.email)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-1 flex-col gap-1">
@@ -432,15 +433,6 @@ export function EditClientUserForm({
   );
 }
 
-function getInitials(name: string | undefined): string {
-  if (!name) return '?';
-  const initials = name
-    .split(' ')
-    .filter(Boolean)
-    .map((part) => part[0]?.toUpperCase() ?? '')
-    .join('');
-  return initials.slice(0, 2) || '?';
-}
 
 function normalizeStatus(status: string | undefined | null): StatusValue {
   if (status === 'INACTIVE') return 'INACTIVE';
