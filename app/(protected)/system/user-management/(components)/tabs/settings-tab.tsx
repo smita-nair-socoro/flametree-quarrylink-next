@@ -34,6 +34,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { getInitials } from '@/lib/utils/user-helper';
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -81,15 +82,6 @@ export default function SettingsTab() {
   //     confirm_password: '',
   //   },
   // });
-
-  const getInitials = (fullName: string) => {
-    if (!fullName || fullName.trim() === '') return 'NA';
-    return fullName
-      .split(' ')
-      .map((name) => name[0]?.toUpperCase() || '')
-      .join('')
-      .slice(0, 2);
-  };
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -258,7 +250,7 @@ export default function SettingsTab() {
                   <div className="flex justify-start gap-2">
                     <div className="w-20 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center flex-shrink-0">
                       <span className="text-xl text-[#2563EB] font-medium">
-                        {getInitials(currentUser?.name || '')}
+                        {getInitials(currentUser?.name, currentUser?.email)}
                       </span>
                     </div>
                     <FormField
