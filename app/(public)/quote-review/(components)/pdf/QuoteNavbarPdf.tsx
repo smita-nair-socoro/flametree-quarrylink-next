@@ -3,6 +3,7 @@ import { View, Text, Image } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
+import { getInitials } from '@/lib/utils/user-helper';
 
 export interface QuoteNavbarPdfProps {
   quoteNumber: string;
@@ -15,14 +16,6 @@ export interface QuoteNavbarPdfProps {
   logoError?: boolean;
 }
 
-// Helper function to get initials from tenant name
-const getInitials = (tenantName: string): string => {
-  return tenantName
-    .split(' ')
-    .slice(0, 2)
-    .map((word) => word.charAt(0).toUpperCase())
-    .join('');
-};
 
 // Status badge colors mapping - matches BADGE_COLORS in lib/utils
 const getStatusBadgeStyle = (status: string) => {
