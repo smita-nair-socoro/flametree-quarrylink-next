@@ -10,9 +10,12 @@ import { useQuery } from '@tanstack/react-query';
 import {
   DocketsListQueryOptions,
   DocketStatisticsQueryOptions,
+  toDocketApiFilterParams,
+  toDocketApiSortParams,
 } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 import {
   DataTableClient,
@@ -45,10 +48,25 @@ export default function DocketsPage() {
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'docketNumber', desc: false },
+  ]);
+
+  const apiSortParams = React.useMemo(
+    () => toDocketApiSortParams(sorting),
+    [sorting],
+  );
+
+  const apiFilterParams = React.useMemo(
+    () => toDocketApiFilterParams(facetFilters),
+    [facetFilters],
+  );
 
   const {
     data: allDockets,
     isLoading: isAllDocketsLoading,
+    isFetching: isAllDocketsFetching,
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
@@ -56,6 +74,8 @@ export default function DocketsPage() {
       page: pageIndex,
       pageSize,
       search: search.trim() || undefined,
+      ...apiSortParams,
+      ...apiFilterParams,
     }),
     enabled: !linkedJobId,
   });
@@ -85,6 +105,28 @@ export default function DocketsPage() {
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const facetFiltersKeyRef = React.useRef('[]');
+  const handleFacetFiltersChange = React.useCallback(
+    (filters: ColumnFiltersState) => {
+      const serialized = JSON.stringify(filters);
+      if (facetFiltersKeyRef.current !== serialized) {
+        facetFiltersKeyRef.current = serialized;
+        setPageIndex(0);
+      }
+      setFacetFilters(filters);
+    },
+    [],
+  );
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0
+        ? newSorting
+        : [{ id: 'docketNumber', desc: false }],
+    );
     setPageIndex(0);
   }, []);
 
@@ -269,8 +311,12 @@ export default function DocketsPage() {
                   totalPages={totalPages}
                   externalPageIndex={pageIndex}
                   externalPageSize={pageSize}
+                  externalSorting={sorting}
                   onPaginationChange={handlePaginationChange}
                   onSearchChange={handleSearchChange}
+                  onFacetFiltersChange={handleFacetFiltersChange}
+                  onSortingChange={handleSortingChange}
+                  isLoading={isAllDocketsFetching}
                 />
               );
             })()}

@@ -89,6 +89,7 @@ import {
   AccordionTrigger,
 } from './accordion';
 import { Filter, X, Check } from 'lucide-react';
+import { formatNumberThousandSeparatorWithoutDecimal } from '@/lib/utils/number';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -117,6 +118,10 @@ interface DataTableProps<TData, TValue> {
   externalPageIndex?: number; // Controlled page index from parent
   externalPageSize?: number; // Controlled page size from parent
   onSearchChange?: (search: string) => void; // Callback for server-side search (debounced)
+  onFacetFiltersChange?: (filters: ColumnFiltersState) => void; // Callback for server-side facet filters (debounced)
+  onSortingChange?: (sorting: SortingState) => void; // Callback for server-side sorting
+  externalSorting?: SortingState; // Controlled sorting state from parent
+  isLoading?: boolean; // Show loading overlay while server data is fetching
 }
 
 export type FacetDefinition = {
@@ -180,6 +185,10 @@ export function DataTableClient<TData, TValue>({
   externalPageIndex,
   externalPageSize,
   onSearchChange,
+  onFacetFiltersChange,
+  onSortingChange,
+  externalSorting,
+  isLoading = false,
 }: DataTableProps<TData, TValue>) {
   const isMobile = useIsMobile();
 
@@ -321,6 +330,8 @@ export function DataTableClient<TData, TValue>({
   });
 
   const [sorting, setSorting] = useState<SortingState>(() => {
+    if (externalSorting) return externalSorting;
+    if (onSortingChange) return defaultSortingState;
     if (isMobile) return defaultSortingState;
     return loadFromStorage('sorting', defaultSortingState);
   });
@@ -389,6 +400,12 @@ export function DataTableClient<TData, TValue>({
       onSearchChange(debouncedGlobalFilter);
     }
   }, [debouncedGlobalFilter, onSearchChange]);
+
+  useEffect(() => {
+    if (onFacetFiltersChange) {
+      onFacetFiltersChange(debouncedColumnFilters);
+    }
+  }, [debouncedColumnFilters, onFacetFiltersChange]);
 
   // Update columnFilters when debounced filters change
   useEffect(() => {
@@ -468,7 +485,7 @@ export function DataTableClient<TData, TValue>({
         pageSize: externalPageSize ?? old.pageSize,
       };
       const newValue = typeof updater === 'function' ? updater(currentState) : updater;
-      
+
       if (!isMobile) {
         saveToStorage('pagination', newValue);
       }
@@ -482,9 +499,16 @@ export function DataTableClient<TData, TValue>({
 
   const handleSortingChange = (updater: Updater<SortingState>) => {
     setSorting((old) => {
-      const newValue = typeof updater === 'function' ? updater(old) : updater;
-      if (!isMobile) {
+      const currentSorting = externalSorting ?? old;
+      const newValue =
+        typeof updater === 'function' ? updater(currentSorting) : updater;
+
+      if (!onSortingChange && !isMobile) {
         saveToStorage('sorting', newValue);
+      }
+
+      if (onSortingChange) {
+        setTimeout(() => onSortingChange(newValue), 0);
       }
 
       return newValue;
@@ -620,7 +644,8 @@ export function DataTableClient<TData, TValue>({
     enableRowPinning: true,
 
     manualPagination: !!onPaginationChange,
-    manualFiltering: !!onSearchChange,
+    manualFiltering: !!(onSearchChange || onFacetFiltersChange),
+    manualSorting: !!onSortingChange,
     pageCount: totalPages,
     rowCount: totalElements,
 
@@ -645,11 +670,11 @@ export function DataTableClient<TData, TValue>({
       : undefined,
 
     state: {
-      sorting,
+      sorting: externalSorting ?? sorting,
       pagination: {
         pageIndex: externalPageIndex ?? pagination.pageIndex,
-        pageSize: simpleTable 
-          ? (data.length > 0 ? data.length : 10) 
+        pageSize: simpleTable
+          ? (data.length > 0 ? data.length : 10)
           : (externalPageSize ?? pagination.pageSize),
       },
       columnFilters,
@@ -723,18 +748,35 @@ export function DataTableClient<TData, TValue>({
     return () => observer.disconnect();
   }, [isMobile, facetedWithCounts.length, columnFilters.length]);
 
+  function clearAllColumnFilters() {
+    setColumnFilters([]);
+    setTempColumnFilters([]);
+    if (onFacetFiltersChange) {
+      setActiveColumnFilters([]);
+    } else if (!isMobile) {
+      saveToStorage('columnFilters', []);
+    }
+  }
+
   function handleFilterChange(columnId: string, values: string[]) {
-    setColumnFilters((old) => {
+    const updateFilters = (old: ColumnFiltersState) => {
       const others = old.filter((f) => f.id !== columnId);
-      const newFilters = values.length
+      return values.length
         ? [...others, { id: columnId, value: values }]
         : others;
+    };
 
-      if (!isMobile) {
+    setColumnFilters((old) => {
+      const newFilters = updateFilters(old);
+      if (!onFacetFiltersChange && !isMobile) {
         saveToStorage('columnFilters', newFilters);
       }
       return newFilters;
     });
+
+    if (onFacetFiltersChange) {
+      setActiveColumnFilters((old) => updateFilters(old));
+    }
   }
 
   function handleTempFilterChange(columnId: string, values: string[]) {
@@ -754,7 +796,9 @@ export function DataTableClient<TData, TValue>({
 
   function applyTempFilters() {
     setColumnFilters(tempColumnFilters);
-    if (!isMobile) {
+    if (onFacetFiltersChange) {
+      setActiveColumnFilters(tempColumnFilters);
+    } else if (!isMobile) {
       saveToStorage('columnFilters', tempColumnFilters);
     }
     setDrawerOpen(false);
@@ -777,6 +821,12 @@ export function DataTableClient<TData, TValue>({
     }
     return deduped;
   })();
+
+  const loadingOverlay = isLoading ? (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  ) : null;
 
   return (
     <div className="space-y-6 md:space-y-4">
@@ -961,8 +1011,7 @@ export function DataTableClient<TData, TValue>({
                     <Button
                       variant="outline"
                       onClick={() => {
-                        setColumnFilters([]);
-                        setTempColumnFilters([]);
+                        clearAllColumnFilters();
                         setDrawerOpen(false);
                       }}
                       className="w-full mb-4"
@@ -998,10 +1047,7 @@ export function DataTableClient<TData, TValue>({
                     variant="outline"
                     size="sm"
                     className="h-8 border-dashed"
-                    onClick={() => {
-                      setColumnFilters([]);
-                      saveToStorage('columnFilters', []);
-                    }}
+                    onClick={clearAllColumnFilters}
                   >
                     <X size={16} className="mr-2" />
                     Clear All
@@ -1070,10 +1116,7 @@ export function DataTableClient<TData, TValue>({
                   variant="outline"
                   size="sm"
                   className="h-8 border-dashed"
-                  onClick={() => {
-                    setColumnFilters([]);
-                    saveToStorage('columnFilters', []);
-                  }}
+                  onClick={clearAllColumnFilters}
                 >
                   <X size={16} className="mr-2" />
                   Clear All
@@ -1091,7 +1134,7 @@ export function DataTableClient<TData, TValue>({
 
       {/* Mobile Card View */}
       {isMobile && mobileCardRenderer ? (
-        <div className="space-y-3">
+        <div className="relative space-y-3">
           {/* Card list */}
           {(() => {
             const filteredRows = table.getFilteredRowModel().rows;
@@ -1231,11 +1274,12 @@ export function DataTableClient<TData, TValue>({
               </>
             );
           })()}
+          {loadingOverlay}
         </div>
       ) : (
         <>
           {/* Table Container with External Scroll */}
-          <div className="overflow-x-auto">
+          <div className="relative overflow-x-auto">
             <div
               className={cn(
                 simpleTable ? '' : 'rounded-md border pt-2',
@@ -1426,6 +1470,7 @@ export function DataTableClient<TData, TValue>({
                 </TableBody>
               </Table>
             </div>
+            {loadingOverlay}
           </div>
 
           {/* Pagination Controls */}
@@ -1437,7 +1482,7 @@ export function DataTableClient<TData, TValue>({
                     <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                       Total Records:
                       <span className="text-accent-foreground ml-2">
-                        {table.getFilteredRowModel().rows.length}
+                        {formatNumberThousandSeparatorWithoutDecimal(totalElements ?? table.getFilteredRowModel().rows.length)}
                       </span>
                     </p>
 

@@ -48,8 +48,8 @@ export const getDocketColumns = (
   {
     id: 'docketType',
     accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Type" />;
+    header: () => {
+      return <div>Type</div>;
     },
     cell: ({ row }) => {
       return (
@@ -112,12 +112,15 @@ export const getDocketColumns = (
   },
   {
     id: 'customer',
-    accessorFn: (row) =>
-      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
-        ? row.job?.customerDto?.businessName || 'N/A'
-        : row.job?.customerDto?.individualContactName ||
-          row.job?.customerDto?.contactName ||
-          'N/A',
+    accessorFn: (row) => {
+      const customer = row.job?.customerDto;
+      if (!customer?.id) return '';
+      const customerName =
+        customer.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer.businessName || 'N/A'
+          : customer.individualContactName || customer.contactName || 'N/A';
+      return `${customer.id}|${customerName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -142,7 +145,12 @@ export const getDocketColumns = (
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product?.productName,
+    accessorFn: (row) => {
+      const product = row.jobItem?.product;
+      if (!product?.id) return '';
+      const productName = product.productName || 'N/A';
+      return `${product.id}|${productName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
@@ -171,7 +179,6 @@ export const getDocketColumns = (
     },
     cell: ({ row }) => {
       const deliveryDate = row.original.deliveryCollectionDate;
-      console.log('[docket-columns] deliveryDate', deliveryDate);
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
