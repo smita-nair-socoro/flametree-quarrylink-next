@@ -34,6 +34,7 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
 import { formatDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
@@ -58,6 +59,8 @@ export default function JobLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
+    useTenantCurrencyTax();
   const {
     isEditing,
     isReadOnly,
@@ -82,7 +85,7 @@ export default function JobLineItemForm({
     handleDeleteDeliveryAddress,
     isSubmitting,
     isProductDeletedOnCompletedJob,
-  } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved });
+  } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved, taxPercentage });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
@@ -488,7 +491,7 @@ export default function JobLineItemForm({
                               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>(ex-GST)</p>
+                              <p>{exTaxLabel}</p>
                             </TooltipContent>
                           </Tooltip>
                         </FormLabel>
@@ -600,7 +603,7 @@ export default function JobLineItemForm({
                               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>(ex-GST)</p>
+                              <p>{exTaxLabel}</p>
                             </TooltipContent>
                           </Tooltip>
                         </FormLabel>
@@ -742,7 +745,7 @@ export default function JobLineItemForm({
                                 <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>(ex-GST)</p>
+                                <p>{exTaxLabel}</p>
                               </TooltipContent>
                             </Tooltip>
                           </FormLabel>
@@ -857,7 +860,7 @@ export default function JobLineItemForm({
                                 <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>(ex-GST)</p>
+                                <p>{exTaxLabel}</p>
                               </TooltipContent>
                             </Tooltip>
                           </FormLabel>
@@ -942,7 +945,7 @@ export default function JobLineItemForm({
                             <div>
                               <span>Product Cost</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalProductCostPrice,
                                 )}
@@ -952,7 +955,7 @@ export default function JobLineItemForm({
                               <div>
                                 <span>Truck Cost</span>
                                 <span>
-                                  $
+                                  {currencySymbol}
                                   {formatDollars(
                                     pricingBreakdown.totalTruckCostPrice,
                                   )}
@@ -960,18 +963,19 @@ export default function JobLineItemForm({
                               </div>
                             )}
                             <div className={`pt-2 ${separatorBorder}`}>
-                              <span>Subtotal (ex-GST)</span>
+                              <span>Subtotal {exTaxLabel}</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.costSubtotalExGST,
                                 )}
                               </span>
                             </div>
                             <div>
-                              <span>GST (10%)</span>
+                              <span>{taxRateLabel}</span>
                               <span>
-                                ${formatDollars(pricingBreakdown.costGst)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.costGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -979,7 +983,8 @@ export default function JobLineItemForm({
                                 Total Cost
                               </span>
                               <span className="font-bold text-lg">
-                                ${formatDollars(pricingBreakdown.totalCost)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.totalCost)}
                               </span>
                             </div>
                           </div>
@@ -993,7 +998,7 @@ export default function JobLineItemForm({
                             <div>
                               <span>Product Sell</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalProductSellPrice,
                                 )}
@@ -1003,7 +1008,7 @@ export default function JobLineItemForm({
                               <div>
                                 <span>Truck Sell</span>
                                 <span>
-                                  $
+                                  {currencySymbol}
                                   {formatDollars(
                                     pricingBreakdown.totalTruckSellPrice,
                                   )}
@@ -1011,18 +1016,19 @@ export default function JobLineItemForm({
                               </div>
                             )}
                             <div className={`pt-2 ${separatorBorder}`}>
-                              <span>Subtotal (ex-GST)</span>
+                              <span>Subtotal {exTaxLabel}</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.invoiceSubtotalExGST,
                                 )}
                               </span>
                             </div>
                             <div>
-                              <span>GST (10%)</span>
+                              <span>{taxRateLabel}</span>
                               <span>
-                                ${formatDollars(pricingBreakdown.invoiceGst)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.invoiceGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -1030,7 +1036,7 @@ export default function JobLineItemForm({
                                 Total Invoice
                               </span>
                               <span className="font-bold text-lg">
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalInvoiceInclGst,
                                 )}
@@ -1061,10 +1067,7 @@ export default function JobLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          {new Intl.NumberFormat('en-AU', {
-                            style: 'currency',
-                            currency: 'AUD',
-                          }).format(pricingBreakdown.grossProfit)}
+                          {formatCurrency(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

@@ -1,6 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
+import { getCurrencyLocale } from '@/lib/utils/currency-tax-helper';
 
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;
@@ -43,12 +44,13 @@ function Input({
     }
     const num = Number(value);
     if (isNaN(num)) return value;
+    const locale = getCurrencyLocale();
     return allowDecimal
-      ? num.toLocaleString('en-AU', {
+      ? num.toLocaleString(locale, {
         minimumFractionDigits: minDecimals ?? 0,
         maximumFractionDigits: maxDecimals ?? 10,
       })
-      : num.toLocaleString('en-AU', { maximumFractionDigits: 0 });
+      : num.toLocaleString(locale, { maximumFractionDigits: 0 });
   }, [isNumber, isFocused, value, allowDecimal, maxDecimals, minDecimals]);
 
   const handleChange = React.useCallback(

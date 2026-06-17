@@ -40,6 +40,7 @@ import {
   CustomerDeliveryAddress,
 } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/currency-tax-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
@@ -51,6 +52,7 @@ type Props = {
   onCancel?: () => void;
   onSuccess?: () => void;
   onSaved?: () => void;
+  taxPercentage?: number;
 };
 
 type PricingBreakdown = {
@@ -75,6 +77,7 @@ export function useLineItemFormState({
   onCancel,
   onSuccess,
   onSaved,
+  taxPercentage = DEFAULT_TAX_PERCENTAGE,
 }: Props) {
   const isEditing = Boolean(id && id > 0);
   const isReadOnly = isEditing && !canEdit;
@@ -959,12 +962,13 @@ export function useLineItemFormState({
     const costSubtotalExGST = roundToTwoDecimals(
       totalProductCostPrice + totalTruckCostPrice,
     );
-    const costGst = roundToTwoDecimals(costSubtotalExGST * 0.1);
+    const taxRate = taxPercentage / 100;
+    const costGst = roundToTwoDecimals(costSubtotalExGST * taxRate);
     const totalCost = roundToTwoDecimals(costSubtotalExGST + costGst);
     const totalInvoice = roundToTwoDecimals(
       totalProductSellPrice + totalTruckSellPrice,
     );
-    const invoiceGst = roundToTwoDecimals(totalInvoice * 0.1);
+    const invoiceGst = roundToTwoDecimals(totalInvoice * taxRate);
     const totalInvoiceInclGst = roundToTwoDecimals(totalInvoice + invoiceGst);
     // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
     const grossProfit = roundToTwoDecimals(totalInvoiceInclGst - totalCost);
@@ -1004,6 +1008,7 @@ export function useLineItemFormState({
     productSellPrice,
     truckSellQty,
     truckSellPrice,
+    taxPercentage,
     form,
   ]);
 

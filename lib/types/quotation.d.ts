@@ -106,6 +106,36 @@ export interface PublicQuoteLinkResponse {
   tenantLogoDto?: TenantLogoResponse;
 }
 
+/** Quote summary returned after a public approve/decline decision. */
+export interface PublicQuoteDecisionResponse {
+  id: number;
+  quoteNumber: string;
+  customerId: number;
+  customerName: string;
+  phone: string;
+  projectName: string;
+  quoteStatus: QuoteStatus;
+  declineReason?: string;
+  decisionMakerName?: string;
+  customerResponseAt?: string;
+  deliveryStartDate: string | null;
+  expiryDate: string | null;
+  deliveryWindowStart: string | null;
+  deliveryWindowEnd: string | null;
+  totalCostPrice: number;
+  totalSellPrice: number;
+  accountManagerName: string;
+  lineItemsCount: number;
+  inclDeliveryCost: boolean;
+  emailRecipients: string[];
+  version: number;
+  createdBy: string;
+  createdAt: string | null;
+  updatedAt: string;
+  lastModifiedBy: string;
+  deleted: boolean;
+}
+
 export interface QuotationDisplayData {
   inclDeliveryCost: boolean;
   navbar: {

@@ -12,16 +12,18 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { jobColumns } from './(components)/(data-tables)/job/columns';
+import { getJobColumns } from './(components)/(data-tables)/job/columns';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
 import { JobsListQueryOptions, JobStatisticsQueryOptions } from '@/lib/api/job';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const { data: jobs } = useQuery(JobsListQueryOptions());
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
   const items: JobDTO[] = React.useMemo(() => {
@@ -156,7 +158,7 @@ export default function CustomersPage() {
         <DataTableClient
           tableId="job_main_data_table"
           data={filteredItems ?? []}
-          columns={jobColumns}
+          columns={getJobColumns(currencyCode, taxLabel)}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search jobs..."
           defaultSorting={[{ id: 'jobNumber', desc: true }]}
