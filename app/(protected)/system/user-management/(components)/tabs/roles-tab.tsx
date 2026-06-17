@@ -135,6 +135,7 @@ const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
   {
     name: 'Account Manager',
     icon: FileText,
+    manageable: false,
     description:
       'Receives commercial notifications about quotes, customers, and sales activity.',
     emailTypes: [

@@ -22,6 +22,11 @@ import {
   Users,
   type LucideIcon,
 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export interface NotificationGroup {
   name: string;
@@ -29,6 +34,7 @@ export interface NotificationGroup {
   description: string;
   emailTypes: string[];
   memberCount: number;
+  manageable?: boolean;
 }
 
 interface EmailNotificationGroupsProps {
@@ -55,7 +61,14 @@ export function EmailNotificationGroups({
             <h3 className="text-[13px] font-semibold">
               Email Notification Groups
             </h3>
-            <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent variant="white" className="max-w-[260px] text-[12px] leading-relaxed p-3">
+                Notification groups are separate from permission roles. They determine which emails a user receives, not what they can access in the system. Groups are managed in AWS Cognito.
+              </TooltipContent>
+            </Tooltip>
           </div>
           <p className="text-[13px] font-normal text-muted-foreground">
             {description}
@@ -125,15 +138,17 @@ export function EmailNotificationGroups({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 px-2.5 text-[12px] font-medium gap-1.5"
-                      onClick={() => onManage?.(group.name)}
-                    >
-                      <UserCog className="h-3.5 w-3.5" />
-                      Manage
-                    </Button>
+                    {group.manageable !== false && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2.5 text-[12px] font-medium gap-1.5"
+                        onClick={() => onManage?.(group.name)}
+                      >
+                        <UserCog className="h-3.5 w-3.5" />
+                        Manage
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -175,15 +190,17 @@ export function EmailNotificationGroups({
                   </Badge>
                 ))}
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full h-9 text-[13px] font-medium gap-1.5"
-                onClick={() => onManage?.(group.name)}
-              >
-                <UserCog className="h-3.5 w-3.5" />
-                Manage
-              </Button>
+              {group.manageable !== false && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-9 text-[13px] font-medium gap-1.5"
+                  onClick={() => onManage?.(group.name)}
+                >
+                  <UserCog className="h-3.5 w-3.5" />
+                  Manage
+                </Button>
+              )}
             </div>
           ))}
         </div>

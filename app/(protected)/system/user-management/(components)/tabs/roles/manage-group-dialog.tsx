@@ -27,7 +27,6 @@ import {
 import { cn } from '@/lib/utils';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import {
-  getAvatarColor,
   getInitials,
   getRoleLabel,
 } from '@/lib/utils/user-helper';
@@ -49,14 +48,25 @@ interface ManageGroupDialogProps {
   onRemoveMember: (member: GroupMember) => void;
 }
 
-function MemberAvatar({ name }: { name: string }) {
-  const color = getAvatarColor(name);
+function MemberAvatar({
+  name,
+  email,
+  variant = 'current',
+}: {
+  name: string;
+  email?: string;
+  variant?: 'current' | 'add';
+}) {
+  const style =
+    variant === 'current'
+      ? { backgroundColor: '#F5F3FF', color: '#7008E7' }
+      : { backgroundColor: '#F3F4F6', color: '#09090B' };
   return (
     <span
       className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-semibold shrink-0"
-      style={{ backgroundColor: color.bg, color: color.text }}
+      style={style}
     >
-      {getInitials(name)}
+      {getInitials(name, email)}
     </span>
   );
 }
@@ -200,7 +210,7 @@ export function ManageGroupDialog({
                     key={member.id}
                     className="flex items-center gap-3 rounded-lg border border-border p-3"
                   >
-                    <MemberAvatar name={member.name} />
+                    <MemberAvatar name={member.name} email={member.email} />
                     <div className="min-w-0 flex-1">
                       <p className="text-[13px] font-medium truncate">
                         {member.name}
@@ -260,7 +270,7 @@ export function ManageGroupDialog({
                           }
                           className="data-[state=checked]:bg-[#8E51FF] data-[state=checked]:border-[#8E51FF]"
                         />
-                        <MemberAvatar name={user.name} />
+                        <MemberAvatar name={user.name} email={user.email} variant="add" />
                         <div className="min-w-0 flex-1">
                           <p className="text-[13px] font-medium truncate">
                             {user.name}
@@ -340,7 +350,7 @@ export function ManageGroupDialog({
           removeTarget && (
             <div className="space-y-3">
               <div className="flex items-center gap-3 rounded-lg bg-[#F9FAFB] p-3">
-                <MemberAvatar name={removeTarget.name} />
+                <MemberAvatar name={removeTarget.name} email={removeTarget.email} />
                 <div className="min-w-0">
                   <p className="text-[13px] font-medium truncate">
                     {removeTarget.name}

@@ -51,15 +51,30 @@ export function getHighestRole(groups: string[] | undefined): Role {
   return Role.USER;
 }
 
-export function getInitials(name: string | undefined): string {
+export function getInitials(name: string | undefined, email?: string): string {
   if (!name?.trim()) return '?';
-  return (
-    name
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((part) => part[0]?.toUpperCase() ?? '')
-      .join('')
-      .slice(0, 2) || '?'
-  );
+  const trimmed = name.trim();
+
+  // Multiple space-separated words → first letter of first two
+  const words = trimmed.split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    return words.slice(0, 2).map((w) => w[0]?.toUpperCase() ?? '').join('');
+  }
+
+  // Single word: try CamelCase split (e.g. "JayChoi" → "JC")
+  const camelParts = trimmed.split(/(?=[A-Z])/).filter(Boolean);
+  if (camelParts.length >= 2) {
+    return camelParts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('');
+  }
+
+  // Single word, not CamelCase: fall back to email local part split on . - _
+  if (email) {
+    const local = email.split('@')[0] ?? '';
+    const emailParts = local.split(/[.\-_]/).filter(Boolean);
+    if (emailParts.length >= 2) {
+      return emailParts.slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('');
+    }
+  }
+
+  return trimmed[0]?.toUpperCase() ?? '?';
 }
