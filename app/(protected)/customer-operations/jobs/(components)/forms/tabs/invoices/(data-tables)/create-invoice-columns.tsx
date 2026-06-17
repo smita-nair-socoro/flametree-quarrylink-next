@@ -15,7 +15,7 @@ import {
   DEFAULT_TAX_LABEL,
   getCurrencySymbol,
   getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { HelpCircle } from 'lucide-react';
 

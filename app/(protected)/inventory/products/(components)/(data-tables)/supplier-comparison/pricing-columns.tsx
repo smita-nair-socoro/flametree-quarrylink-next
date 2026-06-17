@@ -7,7 +7,7 @@ import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_LABEL,
   getCurrencySymbol,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableBadges } from '@/components/table-badges';

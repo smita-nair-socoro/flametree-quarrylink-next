@@ -39,7 +39,7 @@ import {
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { toAddressPayload } from '@/lib/utils/address-helper';
-import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/currency-tax-helper';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 
 type FormValues = z.infer<typeof NewJobLineItemFormSchema>;
 

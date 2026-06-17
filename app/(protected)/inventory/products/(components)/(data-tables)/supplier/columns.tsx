@@ -10,7 +10,7 @@ import {
   DEFAULT_TAX_LABEL,
   getCurrencySymbol,
   getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { HelpCircle, TrendingDown, TrendingUp } from 'lucide-react';
 import {
   Tooltip,

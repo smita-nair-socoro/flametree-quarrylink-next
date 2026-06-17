@@ -3,7 +3,7 @@ import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_PERCENTAGE,
   formatCurrency,
-} from './currency-tax-helper';
+} from './tenant-config-helper';
 import { JobLineItem, JobItem } from '../types/job';
 
 /**

@@ -18,7 +18,7 @@ import {
   DEFAULT_TAX_LABEL,
   getCurrencySymbol,
   getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 
 export const getJobColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,

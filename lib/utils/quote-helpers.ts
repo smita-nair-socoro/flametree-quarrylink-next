@@ -6,7 +6,7 @@ import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_PERCENTAGE,
   formatCurrency,
-} from './currency-tax-helper';
+} from './tenant-config-helper';
 import { formatPhoneNumber } from './phone-helper';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {

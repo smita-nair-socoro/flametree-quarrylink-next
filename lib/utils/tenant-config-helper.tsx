@@ -13,6 +13,7 @@ import { useTenantStore } from '@/app/stores/tenant-store';
 export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
+export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 
 const FIXED_LOCALE = 'en-AU';
 
@@ -76,6 +77,35 @@ export function getSubscriptionCurrencySymbol(currency?: string): string {
   const code = (currency || '').toUpperCase();
   if (code === 'AUD') return 'A$';
   return '$';
+}
+
+/** Currency code -> display name, e.g. "AUD" -> "Australian Dollar". */
+export function getCurrencyName(currencyCode: string): string {
+  try {
+    return (
+      new Intl.DisplayNames(['en'], { type: 'currency' }).of(currencyCode) ||
+      currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+/** IANA timezone id -> "Australia/Sydney (UTC+10:00)". */
+export function getTimezoneLabel(): string {
+  const timeZoneId = useTenantStore.getState().tenantDetails?.timeZoneId;
+  if (!timeZoneId) return DEFAULT_TIMEZONE;
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timeZoneId,
+      timeZoneName: 'longOffset',
+    }).formatToParts(new Date());
+    const offset =
+      parts.find((part) => part.type === 'timeZoneName')?.value || '';
+    return `${timeZoneId} (${offset.replace('GMT', 'UTC')})`;
+  } catch {
+    return timeZoneId ?? DEFAULT_TIMEZONE;
+  }
 }
 
 export interface TenantCurrencyTax {

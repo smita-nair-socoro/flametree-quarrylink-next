@@ -6,7 +6,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import {
   DEFAULT_CURRENCY_CODE,
   getCurrencySymbol,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {

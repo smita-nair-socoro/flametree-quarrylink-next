@@ -24,7 +24,7 @@ import {
   MobileTruckRateList,
 } from './truck-rate-columns';
 import { Separator } from 'react-aria-components';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

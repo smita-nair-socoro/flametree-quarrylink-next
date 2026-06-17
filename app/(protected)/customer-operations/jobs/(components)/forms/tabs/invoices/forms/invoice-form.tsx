@@ -13,7 +13,7 @@ import { Tab } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 import { InvoiceActions } from '../../../invoice-actions';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   jobId: number;

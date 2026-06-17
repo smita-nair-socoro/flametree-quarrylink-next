@@ -14,7 +14,7 @@ import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
