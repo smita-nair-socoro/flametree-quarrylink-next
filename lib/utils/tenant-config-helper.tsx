@@ -92,7 +92,9 @@ export function getCurrencyName(currencyCode: string): string {
 }
 
 /** IANA timezone id -> "Australia/Sydney (UTC+10:00)". */
-export function getTimezoneLabel(timeZoneId: string): string {
+export function getTimezoneLabel(): string {
+  const timeZoneId = useTenantStore.getState().tenantDetails?.timeZoneId;
+  if (!timeZoneId) return DEFAULT_TIMEZONE;
   try {
     const parts = new Intl.DateTimeFormat('en-US', {
       timeZone: timeZoneId,
@@ -102,7 +104,7 @@ export function getTimezoneLabel(timeZoneId: string): string {
       parts.find((part) => part.type === 'timeZoneName')?.value || '';
     return `${timeZoneId} (${offset.replace('GMT', 'UTC')})`;
   } catch {
-    return timeZoneId;
+    return timeZoneId ?? DEFAULT_TIMEZONE;
   }
 }
 

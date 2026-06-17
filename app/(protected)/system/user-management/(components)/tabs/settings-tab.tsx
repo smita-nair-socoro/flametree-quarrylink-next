@@ -34,14 +34,12 @@ import {
   useTenantCurrencyTax,
   getCurrencyName,
   getTimezoneLabel,
-  DEFAULT_TIMEZONE,
 } from '@/lib/utils/tenant-config-helper';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { Info } from 'lucide-react';
-import { useTenantStore } from '@/app/stores/tenant-store';
 import { getInitials } from '@/lib/utils/user-helper';
 
 export default function SettingsTab() {
@@ -58,12 +56,9 @@ export default function SettingsTab() {
   const updateUserMutation = useUpdateUser();
 
   // Tenant (workspace) settings - currency, tax, timezone
-  const { tenantDetails } = useTenantStore();
   const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
   const currencyName = getCurrencyName(currencyCode);
-  const timezoneLabel = getTimezoneLabel(
-    tenantDetails?.timeZoneId || DEFAULT_TIMEZONE,
-  );
+  const timezoneLabel = getTimezoneLabel();
 
   // Use change password mutation
   // const changePasswordMutation = useChangePassword();
