@@ -9,7 +9,7 @@ import {
 	DEFAULT_TAX_PERCENTAGE,
 	getCurrencySymbol,
 	getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {

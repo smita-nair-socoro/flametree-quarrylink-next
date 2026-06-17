@@ -9,7 +9,7 @@ import {
   CellConfig,
   FormTableRow,
 } from '@/components/ui/form-table';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface TruckRatesTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;

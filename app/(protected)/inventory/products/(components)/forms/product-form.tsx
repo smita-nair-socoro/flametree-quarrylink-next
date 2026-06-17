@@ -21,7 +21,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface InputMaskProps extends Omit<
   React.ComponentProps<typeof Input>,

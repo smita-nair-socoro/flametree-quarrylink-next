@@ -10,7 +10,7 @@ import {
   FormTableRow,
 } from '@/components/ui/form-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface PricingConfigurationTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;

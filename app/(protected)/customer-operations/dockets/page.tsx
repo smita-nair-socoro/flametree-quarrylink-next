@@ -19,7 +19,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';

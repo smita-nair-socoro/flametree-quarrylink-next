@@ -17,7 +17,7 @@ import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
 import { JobsListQueryOptions, JobStatisticsQueryOptions } from '@/lib/api/job';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 
 export default function CustomersPage() {

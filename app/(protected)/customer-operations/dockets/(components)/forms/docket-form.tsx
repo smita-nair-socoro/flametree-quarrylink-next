@@ -60,7 +60,7 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   getDeliveryDistanceQuantity,

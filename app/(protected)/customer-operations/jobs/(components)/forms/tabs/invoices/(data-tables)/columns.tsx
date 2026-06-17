@@ -18,7 +18,7 @@ import {
   DEFAULT_TAX_LABEL,
   formatCurrency,
   getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 
 export const getInvoicesColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,

@@ -30,42 +30,18 @@ import {
   useUpdateUser,
   // useChangePassword,
 } from '@/lib/api/user';
-import { TenantInternalDetailsQueryOptions } from '@/lib/api/tenant';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import {
+  useTenantCurrencyTax,
+  getCurrencyName,
+  getTimezoneLabel,
+  DEFAULT_TIMEZONE,
+} from '@/lib/utils/tenant-config-helper';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { Info } from 'lucide-react';
-
-const DEFAULT_TIMEZONE = 'Australia/Sydney';
-
-/** Currency code -> display name, e.g. "AUD" -> "Australian Dollar". */
-function getCurrencyName(currencyCode: string): string {
-  try {
-    return (
-      new Intl.DisplayNames(['en'], { type: 'currency' }).of(currencyCode) ||
-      currencyCode
-    );
-  } catch {
-    return currencyCode;
-  }
-}
-
-/** IANA timezone id -> "Australia/Sydney (UTC+10:00)". */
-function getTimezoneLabel(timeZoneId: string): string {
-  try {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      timeZone: timeZoneId,
-      timeZoneName: 'longOffset',
-    }).formatToParts(new Date());
-    const offset =
-      parts.find((part) => part.type === 'timeZoneName')?.value || '';
-    return `${timeZoneId} (${offset.replace('GMT', 'UTC')})`;
-  } catch {
-    return timeZoneId;
-  }
-}
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { getInitials } from '@/lib/utils/user-helper';
 
 export default function SettingsTab() {
@@ -81,8 +57,8 @@ export default function SettingsTab() {
   // Use update user mutation
   const updateUserMutation = useUpdateUser();
 
-  // Fetch tenant (workspace) settings - currency, tax, timezone
-  const { data: tenantDetails } = useQuery(TenantInternalDetailsQueryOptions());
+  // Tenant (workspace) settings - currency, tax, timezone
+  const { tenantDetails } = useTenantStore();
   const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
   const currencyName = getCurrencyName(currencyCode);
   const timezoneLabel = getTimezoneLabel(

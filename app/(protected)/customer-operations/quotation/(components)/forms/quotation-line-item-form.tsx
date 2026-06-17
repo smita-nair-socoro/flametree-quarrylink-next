@@ -37,7 +37,7 @@ import { formatLocalDateShort } from '@/lib/utils/date';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;

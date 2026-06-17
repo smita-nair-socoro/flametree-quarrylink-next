@@ -17,7 +17,7 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
-import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/currency-tax-helper';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 import { BADGE_COLORS } from '@/lib/utils';
 

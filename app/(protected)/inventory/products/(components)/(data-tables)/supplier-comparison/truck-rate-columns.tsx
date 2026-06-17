@@ -7,7 +7,7 @@ import {
   DEFAULT_TAX_LABEL,
   getCurrencySymbol,
   getExTaxLabel,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 import { Star } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
