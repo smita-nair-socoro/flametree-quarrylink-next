@@ -76,5 +76,5 @@ export function getInitials(name: string | undefined, email?: string): string {
     }
   }
 
-  return trimmed[0]?.toUpperCase() ?? '?';
+  return trimmed.slice(0, 2).toUpperCase() || '?';
 }
