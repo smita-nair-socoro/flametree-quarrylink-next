@@ -29,11 +29,13 @@ export function ScheduleStatusFiltersDrawer({
   onOpenChange,
   filter,
   onFilterChange,
+  statusOptions = DEFAULT_JOB_STATUS_FILTER_OPTIONS,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   filter: DispatchBoardFilterState;
   onFilterChange: (next: DispatchBoardFilterState) => void;
+  statusOptions?: { value: string; label: string }[];
 }) {
   const handleOpenChange = (next: boolean) => {
     onOpenChange(next);
@@ -66,7 +68,7 @@ export function ScheduleStatusFiltersDrawer({
               Status
             </p>
             <div className="mt-2 flex flex-col gap-2">
-              {DEFAULT_JOB_STATUS_FILTER_OPTIONS.map((option) => {
+              {statusOptions.map((option) => {
                 const selected = filter.jobStatuses.includes(option.value);
                 return (
                   <button

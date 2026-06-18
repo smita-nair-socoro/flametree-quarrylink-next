@@ -27,11 +27,12 @@ export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
 }[] = [
   { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
   { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
-  { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
+  { value: DOCKET_STATUS.STOPPED, label: 'Stopped' },
   { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
+  { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
+  { value: DOCKET_STATUS.INVOICED, label: 'Invoiced' },
   { value: DOCKET_STATUS.CANCELLED, label: 'Cancelled' },
   { value: DOCKET_STATUS.VOIDED, label: 'Voided' },
-  { value: DOCKET_STATUS.INVOICED, label: 'Invoiced' },
 ];
 
 export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {

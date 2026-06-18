@@ -2,13 +2,18 @@
 
 import * as React from 'react';
 import {
+  addMonths,
   eachDayOfInterval,
+  endOfMonth,
   endOfWeek,
   format,
   isSameDay,
+  isSameMonth,
+  startOfMonth,
   startOfWeek,
+  subMonths,
 } from 'date-fns';
-import { MapPin, Truck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MapPin, Truck } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { SchedulerTrucksQueryOptions } from '@/lib/api/scheduler';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
@@ -25,6 +30,7 @@ import {
 } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import {
   docketMatchesScheduleJobFilters,
+  docketPassesScheduleFleetFilters,
   formatTime,
   formatTimeRange,
   getDispatchStatusStripeClass,
@@ -35,8 +41,9 @@ import {
 type AgendaDocket = DispatchBoardDocketRow & {
   driverName?: string;
   truckName?: string;
-  truckId?: string;
 };
+
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'] as const;
 
 function docketOnLocalDay(docket: AgendaDocket, day: Date): boolean {
   if (!docket.deliveryCollectionDate) return false;
@@ -44,6 +51,11 @@ function docketOnLocalDay(docket: AgendaDocket, day: Date): boolean {
     ? docket.deliveryCollectionDate.replace('Z', '')
     : docket.deliveryCollectionDate;
   return isSameDay(new Date(localTimeStr), day);
+}
+
+function formatDayCount(count: number): string {
+  if (count > 9) return '9+';
+  return String(count);
 }
 
 function AgendaDocketCard({
@@ -112,7 +124,7 @@ function AgendaDocketCard({
   );
 }
 
-export function ScheduleMobileWeeklyView({
+export function ScheduleMobileMonthlyView({
   date,
   onDateChange,
   filter,
@@ -127,118 +139,171 @@ export function ScheduleMobileWeeklyView({
     number | undefined
   >(undefined);
 
-  const weekStart = startOfWeek(date, { weekStartsOn: 1 });
-  const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
-  const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
+  const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(monthStart);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+  const calendarDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  });
 
   const { data: trucksData, isLoading } = useQuery(
-    SchedulerTrucksQueryOptions(weekStart.toISOString(), weekEnd.toISOString()),
+    SchedulerTrucksQueryOptions(
+      calendarStart.toISOString(),
+      calendarEnd.toISOString(),
+    ),
   );
 
-  const allWeekDockets = React.useMemo(() => {
-    const rows: AgendaDocket[] = [];
-    for (const resource of trucksData?.resources || []) {
-      if (!isDispatchTruckResource(resource)) continue;
-      const truck = resource as DispatchTruckResource;
-      for (const docket of truck.dockets || []) {
-        rows.push({
+  const allMonthDockets = React.useMemo(() => {
+    if (!trucksData) return [];
+
+    const assigned: AgendaDocket[] = (trucksData.resources || []).flatMap(
+      (r) => {
+        if (!isDispatchTruckResource(r)) return [];
+        const truck = r as DispatchTruckResource;
+        return (truck.dockets || []).map((docket) => ({
           ...docket,
-          truckId: String(truck.id),
           truckName: truck.licensePlate,
           driverName: truck.drivers?.[0]?.driverName,
-        });
-      }
-    }
-    return rows;
+        }));
+      },
+    );
+
+    const unassigned: AgendaDocket[] = (trucksData.unassignedDockets || []).map(
+      (docket) => ({ ...docket }),
+    );
+
+    return [...assigned, ...unassigned];
   }, [trucksData]);
 
-  const filteredWeekDockets = React.useMemo(
+  const filteredMonthDockets = React.useMemo(
     () =>
-      allWeekDockets.filter((docket) =>
-        docketMatchesScheduleJobFilters(docket, filter),
+      allMonthDockets.filter(
+        (docket) =>
+          docketMatchesScheduleJobFilters(docket, filter) &&
+          docketPassesScheduleFleetFilters(docket.id, trucksData, filter),
       ),
-    [allWeekDockets, filter],
+    [allMonthDockets, filter, trucksData],
   );
 
   const docketCountByDay = React.useMemo(() => {
     const counts = new Map<string, number>();
-    for (const day of days) {
+    for (const day of calendarDays) {
       counts.set(
         day.toISOString(),
-        filteredWeekDockets.filter((d) => docketOnLocalDay(d, day)).length,
+        filteredMonthDockets.filter((d) => docketOnLocalDay(d, day)).length,
       );
     }
     return counts;
-  }, [days, filteredWeekDockets]);
+  }, [calendarDays, filteredMonthDockets]);
 
-  const agendaDockets = React.useMemo(() => {
-    return filteredWeekDockets
-      .filter((d) => docketOnLocalDay(d, date))
-      .sort(
-        (a, b) =>
-          parseCollectionStartMs(a.deliveryCollectionStartTime) -
-          parseCollectionStartMs(b.deliveryCollectionStartTime),
-      );
-  }, [filteredWeekDockets, date]);
+  const agendaDockets = React.useMemo(
+    () =>
+      filteredMonthDockets
+        .filter((d) => docketOnLocalDay(d, date))
+        .sort(
+          (a, b) =>
+            parseCollectionStartMs(a.deliveryCollectionStartTime) -
+            parseCollectionStartMs(b.deliveryCollectionStartTime),
+        ),
+    [filteredMonthDockets, date],
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-[#F8FAFC]">
-      <div className="shrink-0 border-b border-gray-200 bg-white px-4 py-3">
-        <div className="grid grid-cols-7 gap-2">
-          {days.map((day) => {
-            const selected = isSameDay(day, date);
-            const count = docketCountByDay.get(day.toISOString()) ?? 0;
-            return (
-              <button
-                key={day.toISOString()}
-                type="button"
-                onClick={() => onDateChange(day)}
-                className={cn(
-                  'flex flex-col items-center rounded-xl border px-1 py-2 transition-colors',
-                  selected
-                    ? 'border-[#8E51FF] bg-[#8E51FF] text-white shadow-sm'
-                    : 'border-gray-200 bg-white text-[#64748B] hover:border-[#C4B5FD]',
-                )}
-              >
-                <span
-                  className={cn(
-                    'text-[10px] font-bold uppercase tracking-wide',
-                    selected ? 'text-white/90' : 'text-[#94A3B8]',
-                  )}
-                >
-                  {format(day, 'EEE')}
-                </span>
-                <span
-                  className={cn(
-                    'mt-0.5 text-lg font-bold leading-none',
-                    selected ? 'text-white' : 'text-[#0F172A]',
-                  )}
-                >
-                  {format(day, 'd')}
-                </span>
-                <span
-                  className={cn(
-                    'mt-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-bold',
-                    selected
-                      ? 'bg-white/20 text-white'
-                      : 'bg-[#F1F5F9] text-[#64748B]',
-                  )}
-                >
-                  {count}
-                </span>
-              </button>
-            );
-          })}
+      <div className="shrink-0 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between px-4 py-3">
+          <button
+            type="button"
+            onClick={() => onDateChange(subMonths(date, 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-[#64748B] hover:bg-gray-50"
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </button>
+          <h2 className="text-base font-bold text-[#0F172A]">
+            {format(monthStart, 'MMMM yyyy')}
+          </h2>
+          <button
+            type="button"
+            onClick={() => onDateChange(addMonths(date, 1))}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-[#64748B] hover:bg-gray-50"
+            aria-label="Next month"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
         </div>
-      </div>
 
-      <div className="shrink-0 border-b border-[#EDE9FE] bg-[#FAF5FF] px-4 py-3">
-        <p className="text-base font-semibold text-[#0F172A]">
-          {format(date, 'EEEE, d MMMM yyyy')}
-        </p>
-        <p className="mt-1 text-xs font-medium text-[#7C3AED]">
-          View only — open Dispatch to assign or move dockets.
-        </p>
+        <div className="border-t border-gray-100 px-4 pb-3 pt-2">
+          <div className="mb-2 grid grid-cols-7 gap-1">
+            {WEEKDAY_LABELS.map((label, index) => (
+              <div
+                key={`${label}-${index}`}
+                className="text-center text-[11px] font-semibold text-[#94A3B8]"
+              >
+                {label}
+              </div>
+            ))}
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((day) => {
+              const selected = isSameDay(day, date);
+              const inMonth = isSameMonth(day, monthStart);
+              const count = docketCountByDay.get(day.toISOString()) ?? 0;
+
+              return (
+                <button
+                  key={day.toISOString()}
+                  type="button"
+                  onClick={() => onDateChange(day)}
+                  className={cn(
+                    'flex min-h-[52px] flex-col items-center rounded-lg border px-0.5 py-1.5 transition-colors',
+                    selected
+                      ? 'border-[#8E51FF] bg-[#8E51FF] text-white shadow-sm'
+                      : inMonth
+                        ? 'border-gray-200 bg-white text-[#0F172A] hover:border-[#C4B5FD]'
+                        : 'border-transparent bg-transparent text-[#CBD5E1] hover:bg-gray-50',
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'text-sm font-bold leading-none',
+                      selected
+                        ? 'text-white'
+                        : inMonth
+                          ? 'text-[#0F172A]'
+                          : 'text-[#CBD5E1]',
+                    )}
+                  >
+                    {format(day, 'd')}
+                  </span>
+                  {count > 0 ? (
+                    <span
+                      className={cn(
+                        'mt-1 text-[10px] font-bold',
+                        selected ? 'text-white/90' : 'text-[#8E51FF]',
+                      )}
+                    >
+                      {formatDayCount(count)}
+                    </span>
+                  ) : (
+                    <span className="mt-1 h-[14px]" aria-hidden />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="border-t border-[#EDE9FE] bg-[#FAF5FF] px-4 py-3">
+          <p className="text-base font-semibold text-[#0F172A]">
+            {format(date, 'EEEE, d MMMM yyyy')}
+          </p>
+          <p className="mt-1 text-xs font-medium text-[#7C3AED]">
+            View only — open Dispatch to assign or move dockets.
+          </p>
+        </div>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
