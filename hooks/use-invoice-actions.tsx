@@ -27,7 +27,7 @@ import {
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
-import { useTenantStore } from '@/app/stores/tenant-store';
+import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
@@ -35,9 +35,7 @@ export function InvoiceDetailsDialog() {
   const open = useInvoiceDetailsDialogStore((s) => s.open);
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
-  const accountingSoftware = useTenantStore(
-    (s) => s.tenantDetails?.accountingSoftware ?? null,
-  );
+  const accSoftware = useAccountingSoftwareLabel();
 
   const { data: invoice, isLoading } = useQuery({
     ...InvoiceByIdQueryOptions(invoiceId as number),
@@ -55,7 +53,7 @@ export function InvoiceDetailsDialog() {
 
     setIsDownloading(true);
     try {
-      if (accountingSoftware === 'XERO') {
+      if (accSoftware === 'Xero') {
         const invoiceUrl = await queryClient.fetchQuery(
           InvoiceUrlQueryOptions(invoiceId),
         );
@@ -65,7 +63,7 @@ export function InvoiceDetailsDialog() {
         return;
       }
 
-      if (accountingSoftware === 'MYOB_BUSINESS') {
+      if (accSoftware === 'MYOB') {
         const invoicePdf = await queryClient.fetchQuery(
           InvoicePdfQueryOptions(invoiceId),
         );
@@ -160,7 +158,7 @@ export function InvoiceDetailsDialog() {
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Xero Status</p>
+                  <p className="text-sm text-gray-500">{accSoftware} Status</p>
                   <TableBadges names={[invoice.status]} visibleCount={1} />
                 </div>
               </div>
