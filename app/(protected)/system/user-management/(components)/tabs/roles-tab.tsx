@@ -235,6 +235,7 @@ export default function RolesTab() {
         footerNote="Super Admins have full access including billing and subscription settings. Admins can manage users and operational data. Users have access to day-to-day operations. Drivers are limited to the Driver App for their assigned deliveries."
       />
 
+      {/* EmailNotificationGroups and ManageGroupDialog hidden until backend support is available
       <EmailNotificationGroups
         description="Allocate team members to notification groups based on their operational responsibilities. These groups control which transactional emails users receive from the system."
         groups={notificationGroups}
@@ -254,6 +255,7 @@ export default function RolesTab() {
         onAddMembers={handleAddMembers}
         onRemoveMember={handleRemoveMember}
       />
+      */}
     </div>
   );
 }
