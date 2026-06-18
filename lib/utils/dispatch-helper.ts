@@ -646,6 +646,23 @@ export function dayBucketMs(iso: string | undefined): number {
   return startOfDay(new Date(ms)).getTime();
 }
 
+export type UnassignedQueueSortKey = 'time' | 'size' | 'customer';
+
+/** Server sort for infinite unassigned list — must match API page order so new pages append at the bottom. */
+export function getUnassignedQueueApiSortParams(sortBy: UnassignedQueueSortKey): {
+  sortBy: string;
+  sortOrder: 'asc';
+} {
+  switch (sortBy) {
+    case 'time':
+      return { sortBy: 'deliveryCollectionStartTime', sortOrder: 'asc' };
+    case 'size':
+      return { sortBy: 'plannedLoadSize', sortOrder: 'asc' };
+    case 'customer':
+      return { sortBy: 'customerName', sortOrder: 'asc' };
+  }
+}
+
 export function normalizedLoadM3ForSort(docket: DispatchDocket): number {
   const density = docket.jobItem?.product?.densityTonnagePerM3;
   const uom = docket.productSellUom;

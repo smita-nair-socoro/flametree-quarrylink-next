@@ -10,7 +10,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { Drawer, DrawerContent } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -207,6 +207,9 @@ export function MobileAssignPickerDrawer({
       <DrawerContent
         className="mt-0 flex h-[100dvh] max-h-[100dvh] flex-col gap-0 overflow-hidden p-0"
       >
+        <DrawerTitle className="sr-only">
+          {mode === 'truck' ? 'Pick a truck' : 'Pick a driver'}
+        </DrawerTitle>
         <div className="shrink-0 bg-[#8E51FF] px-4 pb-5 pt-4 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">

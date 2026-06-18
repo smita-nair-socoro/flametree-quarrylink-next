@@ -2,19 +2,12 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import {
-  Clock,
-  FileText,
-  Search,
-  Truck,
-  User,
-} from 'lucide-react';
+import { Clock, FileText, Search, Truck, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import {
-  dayBucketMs,
   formatDispatchProductSellUomLabel,
   formatTimeRange,
   matchesUnassignedSearch,
@@ -45,10 +38,27 @@ export function UnassignedDockets() {
     queueDateScope,
     setQueueDateScope,
     isLoadingAllUnassignedDockets,
+    hasNextUnassignedPage,
+    isFetchingNextUnassignedPage,
+    fetchNextUnassignedPage,
+    setQueueListSortBy,
     openAssignTruck,
     openAssignDriver,
     openDetails,
   } = useDispatchMobile();
+
+  const loadMoreRef = React.useRef<HTMLDivElement>(null);
+  const isFetchingNextPageRef = React.useRef(false);
+  const hasNextPageRef = React.useRef(hasNextUnassignedPage);
+  const queueDateScopeRef = React.useRef(queueDateScope);
+  hasNextPageRef.current = hasNextUnassignedPage;
+  queueDateScopeRef.current = queueDateScope;
+
+  React.useEffect(() => {
+    if (!isFetchingNextUnassignedPage) {
+      isFetchingNextPageRef.current = false;
+    }
+  }, [isFetchingNextUnassignedPage]);
 
   const [searchQuery, setSearchQuery] = React.useState('');
   const [sortBy, setSortBy] = React.useState<QueueSortKey>('time');
@@ -66,6 +76,12 @@ export function UnassignedDockets() {
     setQueueDateScope(next.dateScope);
     setCustomerNames(next.customerNames);
   };
+
+  React.useEffect(() => {
+    if (queueDateScope === 'all_dates') {
+      setQueueListSortBy(sortBy);
+    }
+  }, [sortBy, queueDateScope, setQueueListSortBy]);
 
   const isLoading =
     isLoadingTrucks || isLoadingDrivers || isLoadingAllUnassignedDockets;
@@ -88,28 +104,23 @@ export function UnassignedDockets() {
       if (!matchesUnassignedSearch(d, searchQuery)) return false;
       if (
         customerNames.length > 0 &&
-        (!d.customerName ||
-          !customerNames.includes(d.customerName))
+        (!d.customerName || !customerNames.includes(d.customerName))
       ) {
         return false;
       }
       return true;
     });
 
+    // All dates: preserve API page order so infinite scroll appends at the bottom.
+    if (queueDateScope === 'all_dates') {
+      return filtered;
+    }
+
     const list = [...filtered];
     const direction = sortOrder === 'asc' ? 1 : -1;
 
     list.sort((a, b) => {
       let cmp = 0;
-      if (
-        queueDateScope === 'all_dates' &&
-        sortBy === 'customer'
-      ) {
-        cmp =
-          dayBucketMs(a.deliveryCollectionStartTime) -
-          dayBucketMs(b.deliveryCollectionStartTime);
-        if (cmp !== 0) return cmp * direction;
-      }
       switch (sortBy) {
         case 'time':
           cmp =
@@ -138,6 +149,34 @@ export function UnassignedDockets() {
     queueDateScope,
     sortBy,
     sortOrder,
+  ]);
+
+  React.useEffect(() => {
+    if (isLoadingAllUnassignedDockets) return;
+    const target = loadMoreRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (queueDateScopeRef.current !== 'all_dates') return;
+        if (
+          entries[0]?.isIntersecting &&
+          hasNextPageRef.current &&
+          !isFetchingNextPageRef.current
+        ) {
+          isFetchingNextPageRef.current = true;
+          fetchNextUnassignedPage();
+        }
+      },
+      { rootMargin: '120px', threshold: 0 },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [
+    isLoadingAllUnassignedDockets,
+    fetchNextUnassignedPage,
+    visibleDockets.length,
   ]);
 
   const filtersActive = hasActiveQueueFilters(queueFilter);
@@ -222,7 +261,9 @@ export function UnassignedDockets() {
                   docket.deliveryCollectionDate ? (
                     <span className="rounded-md border border-[#E9D5FF] bg-[#FAF5FF] px-2 py-0.5 text-xs font-semibold text-[#6D28D9]">
                       {format(
-                        new Date(docket.deliveryCollectionDate.replace('Z', '')),
+                        new Date(
+                          docket.deliveryCollectionDate.replace('Z', ''),
+                        ),
                         'd MMM yyyy',
                       )}
                     </span>
@@ -280,6 +321,11 @@ export function UnassignedDockets() {
               </div>
             );
           })}
+          <div ref={loadMoreRef} className="flex justify-center py-4">
+            {isFetchingNextUnassignedPage ? (
+              <Spinner size="medium" />
+            ) : null}
+          </div>
         </div>
       )}
     </div>
