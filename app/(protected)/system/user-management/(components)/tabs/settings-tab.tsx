@@ -31,9 +31,16 @@ import {
   // useChangePassword,
 } from '@/lib/api/user';
 import {
+  useTenantCurrencyTax,
+  getCurrencyName,
+  getTimezoneLabel,
+} from '@/lib/utils/tenant-config-helper';
+import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { Info } from 'lucide-react';
+import { getInitials } from '@/lib/utils/user-helper';
 
 export default function SettingsTab() {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -47,6 +54,11 @@ export default function SettingsTab() {
 
   // Use update user mutation
   const updateUserMutation = useUpdateUser();
+
+  // Tenant (workspace) settings - currency, tax, timezone
+  const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
+  const currencyName = getCurrencyName(currencyCode);
+  const timezoneLabel = getTimezoneLabel();
 
   // Use change password mutation
   // const changePasswordMutation = useChangePassword();
@@ -82,19 +94,10 @@ export default function SettingsTab() {
   //   },
   // });
 
-  const getInitials = (fullName: string) => {
-    if (!fullName || fullName.trim() === '') return 'NA';
-    return fullName
-      .split(' ')
-      .map((name) => name[0]?.toUpperCase() || '')
-      .join('')
-      .slice(0, 2);
-  };
-
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   async function onSubmitPersonalInformation(
-    values: z.infer<typeof PersonalInformationSchema>
+    values: z.infer<typeof PersonalInformationSchema>,
   ) {
     if (!currentUser?.sub) {
       notifyError('User not found');
@@ -219,7 +222,7 @@ export default function SettingsTab() {
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10'
+            isDesktop ? '' : 'pt-10',
           )}
         >
           <div className="flex flex-col items-center space-y-4 p-8">
@@ -246,11 +249,11 @@ export default function SettingsTab() {
                 id="update-personal-information-form"
                 className={cn(
                   'p-1 w-full flex flex-col',
-                  isSubmitting && 'pointer-events-none'
+                  isSubmitting && 'pointer-events-none',
                 )}
                 onSubmit={settingsForm.handleSubmit(
                   onSubmitPersonalInformation,
-                  onErrorPersonalInformation
+                  onErrorPersonalInformation,
                 )}
               >
                 <div className="flex flex-col">
@@ -258,7 +261,7 @@ export default function SettingsTab() {
                   <div className="flex justify-start gap-2">
                     <div className="w-20 h-20 rounded-full bg-[#DBEAFE] flex items-center justify-center flex-shrink-0">
                       <span className="text-xl text-[#2563EB] font-medium">
-                        {getInitials(currentUser?.name || '')}
+                        {getInitials(currentUser?.name, currentUser?.email)}
                       </span>
                     </div>
                     <FormField
@@ -333,6 +336,51 @@ export default function SettingsTab() {
                 </Button>
               </form>
             </Form>
+          </CardContent>
+        </Card>
+
+        {/* Workspace Settings */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-2xl font-medium -mb-3">
+              Workspace Settings
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <Label>Currency</Label>
+                <Input className="w-full" value={currencyCode} disabled />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Currency Name</Label>
+                <Input className="w-full" value={currencyName} disabled />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Tax Rate</Label>
+                <Input
+                  className="w-full"
+                  value={`${taxPercentage}%`}
+                  disabled
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Tax Label</Label>
+                <Input className="w-full" value={taxLabel} disabled />
+              </div>
+              <div className="flex flex-col gap-2 sm:col-span-2">
+                <Label>Timezone</Label>
+                <Input className="w-full" value={timezoneLabel} disabled />
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5F3FF] px-4 py-3 text-sm text-[#7C3AED]">
+              <Info className="h-4 w-4 flex-shrink-0" />
+              <span>
+                These values are configured by QuarryLink support team and
+                cannot be changed here.
+              </span>
+            </div>
           </CardContent>
         </Card>
 

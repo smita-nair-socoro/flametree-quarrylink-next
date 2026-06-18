@@ -3,6 +3,10 @@
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  getCurrencySymbol,
+} from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { TableBadges } from '@/components/table-badges';
@@ -19,6 +23,7 @@ export interface MobilePricingComparisonCardProps {
   pricingType: PricingComparisonType;
   isLowestCost: boolean;
   isBestMargin: boolean;
+  currencyCode?: string;
 }
 
 function getPricingValues(
@@ -58,12 +63,14 @@ export function MobilePricingComparisonCard({
   pricingType,
   isLowestCost,
   isBestMargin,
+  currencyCode = DEFAULT_CURRENCY_CODE,
 }: MobilePricingComparisonCardProps) {
   const { costPrice, sellPrice, available } = getPricingValues(
     supplier,
     pricingType,
   );
 
+  const currencySymbol = getCurrencySymbol(currencyCode);
   const costDisplay = costPrice ? centsToDollars(costPrice) : '0.00';
   const sellDisplay = sellPrice ? centsToDollars(sellPrice) : '0.00';
   const margin = sellPrice === 0 ? 0 : (sellPrice - costPrice) / sellPrice || 0;
@@ -120,7 +127,7 @@ export function MobilePricingComparisonCard({
               isLowestCost ? 'text-green-600' : 'text-[#101828]',
             )}
           >
-            ${costDisplay}
+            {currencySymbol}{costDisplay}
           </p>
           {isLowestCost && (
             <p className="text-[10px] text-green-600 font-medium mt-0.5">
@@ -133,7 +140,7 @@ export function MobilePricingComparisonCard({
         <div className="px-3">
           <p className="text-[10px] text-gray-500 ">Sell Price</p>
           <p className="text-[16px] font-semibold text-[#101828]">
-            ${sellDisplay}
+            {currencySymbol}{sellDisplay}
           </p>
         </div>
 

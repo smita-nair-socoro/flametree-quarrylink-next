@@ -1,11 +1,14 @@
 import { centsToDollars } from './currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_PERCENTAGE,
+  formatCurrency,
+} from './tenant-config-helper';
 import { JobLineItem, JobItem } from '../types/job';
 
 /**
  * Job pricing breakdown interface
  */
-
-const GST_RATE = 0.1;
 
 export interface JobPricingBreakdown {
   totalProductCostPrice: string | number;
@@ -24,6 +27,8 @@ export interface JobPricingBreakdown {
 
 export const calculateJobPricing = (
   lineItems: (JobLineItem | JobItem)[] | undefined | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
 ): JobPricingBreakdown => {
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
@@ -67,9 +72,10 @@ export const calculateJobPricing = (
   const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
 
   // Convert cents to dollars for display
-  const gstCents = totalInvoiceCents * GST_RATE;
+  const taxRate = taxPercentage / 100;
+  const gstCents = totalInvoiceCents * taxRate;
   const totalInvoiceCentsWithGST = totalInvoiceCents + gstCents;
-  const costGstCents = totalCostCents * GST_RATE;
+  const costGstCents = totalCostCents * taxRate;
   const totalCostCentsWithGST = totalCostCents + costGstCents;
 
   // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
@@ -85,7 +91,7 @@ export const calculateJobPricing = (
     totalTruckCostPrice: centsToDollars(totalTruckCostCents),
     totalProductSellPrice: centsToDollars(totalProductSellCents),
     totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-    grossProfit: new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(grossProfitCents / 100),
+    grossProfit: formatCurrency(grossProfitCents / 100, currencyCode),
     costSubtotalExGST: centsToDollars(totalCostCents),
     costGst: centsToDollars(costGstCents),
     totalCost: centsToDollars(totalCostCentsWithGST),

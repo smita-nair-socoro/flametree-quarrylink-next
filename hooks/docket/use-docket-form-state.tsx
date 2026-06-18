@@ -14,9 +14,12 @@ import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
+import { BADGE_COLORS } from '@/lib/utils';
 
 const formatTimeString = (dateString?: string | null) => {
   if (!dateString) return '';
@@ -88,6 +91,7 @@ type UseDocketFormStateProps = {
   isQuickDocket?: boolean;
   jobId?: number;
   onDirtyChange?: (isDirty: boolean) => void;
+  taxPercentage?: number;
 };
 
 type SelectedJobPrefill = {
@@ -222,6 +226,7 @@ export function useDocketFormState({
   isQuickDocket = true,
   jobId,
   onDirtyChange,
+  taxPercentage = DEFAULT_TAX_PERCENTAGE,
 }: UseDocketFormStateProps) {
   const isEditing = Boolean(id);
 
@@ -268,10 +273,17 @@ export function useDocketFormState({
 
   const allJobs = React.useMemo(
     () =>
-      jobsList.map((job) => ({
-        label: `${job.jobNumber} - ${job.projectName}`,
-        value: job.id,
-      })),
+      jobsList.map((job) => {
+        const isPaused = job.jobStatus === JOB_STATUS.PAUSED;
+        return {
+          label: `${job.jobNumber} - ${job.projectName}`,
+          value: job.id,
+          disabled: isPaused,
+          badge: isPaused
+            ? { label: 'Paused', className: BADGE_COLORS.PAUSED }
+            : undefined,
+        };
+      }),
     [jobsList],
   );
 
@@ -665,7 +677,7 @@ export function useDocketFormState({
     );
 
     const subtotal = roundToTwoDecimals(productSell + truckSell);
-    const gst = roundToTwoDecimals(subtotal * 0.1);
+    const gst = roundToTwoDecimals(subtotal * (taxPercentage / 100));
     const total = roundToTwoDecimals(subtotal + gst);
 
     return {
@@ -683,6 +695,7 @@ export function useDocketFormState({
     jobLineItemId,
     isEditing,
     selectedDocket?.docketStatus,
+    taxPercentage,
   ]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(

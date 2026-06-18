@@ -12,8 +12,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  getCurrencySymbol,
+} from '@/lib/utils/tenant-config-helper';
 
-export const customerColumns: ColumnDef<CustomerDTO>[] = [
+export const getCustomerColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+): ColumnDef<CustomerDTO>[] => [
   {
     id: 'customer_name',
     accessorFn: (row) => {
@@ -132,16 +138,16 @@ export const customerColumns: ColumnDef<CustomerDTO>[] = [
     cell: ({ row }) => {
       if (row.original.paymentType === 'CREDIT') {
         const cents = parseFloat(row.original.creditLimit.toString());
-        const formatted = centsToDollars(cents);
+        const formatted = `${getCurrencySymbol(currencyCode)}${centsToDollars(cents)}`;
         return (
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
               <div className="py-2 font-medium w-36 max-w-36 truncate">
-                ${formatted}
+                {formatted}
               </div>
             </TooltipTrigger>
             <TooltipContent variant="white">
-              <p>${formatted}</p>
+              <p>{formatted}</p>
             </TooltipContent>
           </Tooltip>
         );

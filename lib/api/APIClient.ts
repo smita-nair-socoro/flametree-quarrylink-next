@@ -19,6 +19,7 @@ import {
 } from '../types/quarry';
 import {
   PublicQuoteLinkResponse,
+  PublicQuoteDecisionResponse,
   QuotationDTO,
   QuotationLineItem,
   QuotationReporting,
@@ -43,10 +44,15 @@ import {
   SubscriptionsAndInvoices,
   TenantDetails,
   TenantCompleteDetails,
+  TenantInternalDetails,
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
 import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
+import {
+  MyobConnectResponseDTO,
+  MyobStatusResponseDTO,
+} from '../types/myob';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -159,6 +165,22 @@ export interface HttpConfig {
    * This treats backend datetimes as UTC. Default: true.
    */
   normalizeUtc?: boolean;
+
+  /**
+   * If true, omits the `X-Tenant-ID` and `x-requested-with` headers.
+   * Tenant-fusion service does not allow them, so requests to it must
+   * opt out while still getting this client's auth + error handling.
+   * Default: false.
+   */
+  omitTenantHeaders?: boolean;
+
+  /**
+   * If true, the request is sent without an Authorization header and
+   * without requiring a logged-in user. Use for public endpoints that
+   * must work for unauthenticated visitors (e.g. token-based quote links).
+   * Default: false.
+   */
+  skipAuth?: boolean;
 }
 
 /**
@@ -218,22 +240,28 @@ export async function HttpClient<T = unknown>(
     method: config.method,
     headers: {
       Accept: '*/*',
-      'x-requested-with': 'XMLHttpRequest',
+      // x-requested-with is non-simple and triggers a CORS preflight; skip it for services that don't allow it (see omitTenantHeaders).
+      ...(config.omitTenantHeaders
+        ? {}
+        : { 'x-requested-with': 'XMLHttpRequest' }),
     },
   };
 
-  const authUser = await getUser(); // ✅ Properly awaited
-  const tenantId = await getTenantId();
+  // Public endpoints (e.g. token-based quote links) must work for unauthenticated visitors, so skip the token requirement entirely.
+  if (!config.skipAuth) {
+    const authUser = await getUser(); // ✅ Properly awaited
+    const tenantId = await getTenantId();
 
-  if (authUser?.access_token) {
-    init.headers = {
-      ...init.headers,
-      Authorization: `Bearer ${authUser.access_token}`,
-      // 'id-token': authUser.id_token,
-      'X-Tenant-ID': tenantId || '',
-    };
-  } else {
-    return Promise.reject(new Error('Token expired or invalid.'));
+    if (authUser?.access_token) {
+      init.headers = {
+        ...init.headers,
+        Authorization: `Bearer ${authUser.access_token}`,
+        // X-Tenant-ID is non-simple and triggers a CORS preflight; omit it for tenant-fusion whose CORS policy rejects it.
+        ...(config.omitTenantHeaders ? {} : { 'X-Tenant-ID': tenantId || '' }),
+      };
+    } else {
+      return Promise.reject(new Error('Token expired or invalid.'));
+    }
   }
 
   if (config.body) {
@@ -640,50 +668,17 @@ export const APIClient = {
      * Public quotation retrieval using token from quote email link.
      * This endpoint must remain unauthenticated because customers are not logged in.
      */
-    getByPublicLinkToken: async (token: string) => {
-      const apiBase = baseUrl();
-      if (!apiBase) {
-        throw new Error('Missing API base URL for public quote link request');
-      }
-
-      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link?token=${encodeURIComponent(
-        token,
-      )}`;
-
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Accept: '*/*',
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        throw new Error(
-          `Failed to fetch public quote link: ${response.status} ${response.statusText} ${errorText}`,
-        );
-      }
-
-      const data = (await response.json()) as PublicQuoteLinkResponse;
-      return data;
-    },
-    updatePublicQuoteStatus: async (
+    getByPublicLinkToken: (token: string) =>
+      appClient.Get<PublicQuoteLinkResponse>(
+        `/socoro/quarrylink/api/quote/public/link`,
+        { queryString: { token }, skipAuth: true },
+      ),
+    updatePublicQuoteStatus: (
       status: 'APPROVED' | 'DECLINED',
       token: string,
       declineReason?: string,
       decisionMakerName?: string,
     ) => {
-      const apiBase = baseUrl();
-      if (!apiBase) {
-        throw new Error(
-          'Missing API base URL for public quote status update request',
-        );
-      }
-
-      const url = `${apiBase}/socoro/quarrylink/api/quote/public/link/decision?token=${encodeURIComponent(
-        token,
-      )}`;
-
       const body: {
         status: string;
         declineReason?: string;
@@ -696,28 +691,10 @@ export const APIClient = {
         body.decisionMakerName = decisionMakerName;
       }
 
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          Accept: '*/*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text().catch(() => '');
-        throw new Error(
-          `Failed to update public quote status: ${response.status} ${response.statusText} ${errorText}`,
-        );
-      }
-
-      if (response.status === 204) {
-        return {};
-      }
-
-      const data = await response.json();
-      return data;
+      return appClient.Put<PublicQuoteDecisionResponse>(
+        `/socoro/quarrylink/api/quote/public/link/decision`,
+        { body, queryString: { token }, skipAuth: true },
+      );
     },
     getAll: async (params?: {
       page?: number;
@@ -867,6 +844,9 @@ export const APIClient = {
       sortBy?: string;
       sortOrder?: string;
       status?: string;
+      type?: string;
+      customerId?: number;
+      productId?: number;
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -884,17 +864,31 @@ export const APIClient = {
           page: params?.page?.toString(),
           pageSize: pageSize?.toString(),
           size: isPaginated
-            ? pageSize?.toString() ?? '10'
-            : params?.size?.toString() ?? '1000',
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
           status: params?.status,
+          type: params?.type,
+          customerId: params?.customerId?.toString(),
+          productId: params?.productId?.toString(),
         },
       });
       return response;
     },
-    getByJobId: async (jobId: number) => {
+    getByJobId: async (
+      jobId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
       const response = await appClient.Get<
         | DocketDTO[]
         | {
@@ -902,7 +896,14 @@ export const APIClient = {
             totalElements: number;
             totalPages: number;
           }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`);
+      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
+        queryString: {
+          page: params?.page?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+        },
+      });
       return response;
     },
     getById: (id: number) => {
@@ -1089,8 +1090,12 @@ export const APIClient = {
     },
     pause: (
       id: number,
-      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
-      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
+      deliveryPauseStrategy:
+        | 'STOP_ALL_DELIVERY_DOCKETS'
+        | 'ALLOW_DRIVERS_TO_COMPLETE',
+      collectionPauseStrategy:
+        | 'STOP_ACTIVE_COLLECTION_DOCKETS'
+        | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
     ) =>
       appClient.Put<JobDTO>(`/socoro/quarrylink/api/job/${id}/pause`, {
         body: { deliveryPauseStrategy, collectionPauseStrategy },
@@ -1289,6 +1294,13 @@ export const APIClient = {
       appClient.Get<TenantCompleteDetails>(
         `/socoro/quarrylink/api/tenant/tenant-complete-details`,
       ),
+    getTenantInternalDetails: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Get<TenantInternalDetails>(
+        `/quarrylink/tenant-fusion/api/tenants/internal/${tenantId}`,
+        { omitTenantHeaders: true },
+      );
+    },
     uploadLogo: (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
@@ -1312,44 +1324,41 @@ export const APIClient = {
 
   xero: {
     connect: async (userEmail: string) => {
-      const [tenantId, authUser] = await Promise.all([
-        getTenantId(),
-        getUser(),
-      ]);
-      const response = await fetch(
-        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/connect`,
+      const tenantId = await getTenantId();
+      return appClient.Post<XeroConnectResponseDTO>(
+        `/quarrylink/tenant-fusion/api/xero/internal/connect`,
         {
-          method: 'POST',
-          headers: {
-            Accept: '*/*',
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authUser?.access_token}`,
-          },
-          body: JSON.stringify({ tenantId, userEmail }),
+          body: { tenantId, userEmail },
+          omitTenantHeaders: true,
         },
       );
-      if (!response.ok)
-        throw new Error(`Xero connect failed: ${response.status}`);
-      return response.json() as Promise<XeroConnectResponseDTO>;
     },
     getStatus: async () => {
-      const [tenantId, authUser] = await Promise.all([
-        getTenantId(),
-        getUser(),
-      ]);
-      const response = await fetch(
-        `${baseUrl()}/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+      const tenantId = await getTenantId();
+      return appClient.Get<XeroStatusResponseDTO>(
+        `/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
+        { omitTenantHeaders: true },
+      );
+    },
+  },
+
+  myob: {
+    connect: async (userEmail: string) => {
+      const tenantId = await getTenantId();
+      return appClient.Post<MyobConnectResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-business/internal/connect`,
         {
-          method: 'GET',
-          headers: {
-            Accept: '*/*',
-            Authorization: `Bearer ${authUser?.access_token}`,
-          },
+          body: { tenantId, userEmail },
+          omitTenantHeaders: true,
         },
       );
-      if (!response.ok)
-        throw new Error(`Xero status failed: ${response.status}`);
-      return response.json() as Promise<XeroStatusResponseDTO>;
+    },
+    getStatus: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Get<MyobStatusResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-business/internal/${tenantId}/status`,
+        { omitTenantHeaders: true },
+      );
     },
   },
 

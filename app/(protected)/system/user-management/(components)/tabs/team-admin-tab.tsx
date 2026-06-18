@@ -37,7 +37,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { TeamMemberTableActions } from '../(data-tables)/team-member/team-member-table-actions';
 
 const allRolesOptions: readonly FormSelectOption[] = [
-  // { label: 'User', value: Role.USER },
+  { label: 'User', value: Role.USER },
   { label: 'Admin', value: Role.ADMIN },
   { label: 'Super Admin', value: Role.SUPERADMIN },
 ];
@@ -168,7 +168,7 @@ export default function TeamAdminTab() {
         !isSuperAdmin && isUserSuperAdmin(user.groups)
           ? undefined
           : onViewDetails;
-      const initials = getInitials(user.name || user.email || '');
+      const initials = getInitials(user.name, user.email);
       const color = getAvatarColor(user.name || user.email || '');
       const roleLabel = getRoleLabel(user.groups);
 

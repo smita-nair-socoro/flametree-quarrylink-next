@@ -3,6 +3,12 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
@@ -14,7 +20,10 @@ import {
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 
-export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
+export const getQuotationLineItemColumnsBase = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<QuotationLineItem>[] => [
   {
     id: 'productName',
     accessorFn: (row) => row.productName,
@@ -85,7 +94,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>(ex-GST)</p>
+              <p>{getExTaxLabel(taxLabel)}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -95,7 +104,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       const total =
         (row.original.totalProductCostPrice ?? 0) +
         (row.original.totalTruckCostPrice ?? 0);
-      return <div>${centsToDollars(total)}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {centsToDollars(total)}
+        </div>
+      );
     },
     meta: 'Total Cost Price',
   },
@@ -111,7 +125,7 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
             </TooltipTrigger>
             <TooltipContent>
-              <p>(ex-GST)</p>
+              <p>{getExTaxLabel(taxLabel)}</p>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -121,7 +135,12 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
       const total =
         (row.original.totalProductSellPrice ?? 0) +
         (row.original.totalTruckSellPrice ?? 0);
-      return <div>${centsToDollars(total)}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {centsToDollars(total)}
+        </div>
+      );
     },
     meta: 'Total Sell Price',
   },
@@ -196,12 +215,15 @@ export const quotationLineItemColumns: ColumnDef<QuotationLineItem>[] = [
 
 export function getQuotationLineItemColumns(
   quoteItemType?: QUOTE_ITEM_TYPE | string | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
 ) {
+  const columns = getQuotationLineItemColumnsBase(currencyCode, taxLabel);
   if (
     quoteItemType === QUOTE_ITEM_TYPE.COLLECTION ||
     quoteItemType === 'COLLECTION'
   ) {
-    return quotationLineItemColumns.filter((c) => c.id !== 'truckType');
+    return columns.filter((c) => c.id !== 'truckType');
   }
-  return quotationLineItemColumns;
+  return columns;
 }

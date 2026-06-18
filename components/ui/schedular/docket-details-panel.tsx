@@ -356,7 +356,7 @@ export function DocketDetailsPanel({
                         type="text"
                         key={`planned-${docket.id}`}
                         suffix={
-                          docket.jobItem?.productSellUom === 'M3'
+                          docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                             ? 'm³'
                             : docket.jobItem?.productSellUom === 'KG_20'
                               ? 'x 20kg'
@@ -412,7 +412,7 @@ export function DocketDetailsPanel({
                           type="text"
                           key={`actual-${docket.id}`}
                           suffix={
-                            docket.jobItem?.productSellUom === 'M3'
+                            docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                               ? 'm³'
                               : docket.jobItem?.productSellUom === 'KG_20'
                                 ? 'x 20kg'
@@ -449,7 +449,7 @@ export function DocketDetailsPanel({
                   <span className="text-sm text-gray-500">Quantity</span>
                   <span className="text-sm font-medium text-gray-900">
                     {formatNumberThousandSeparator(docket.actualLoadSize)}{' '}
-                    {docket.jobItem?.productSellUom === 'M3'
+                    {docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                       ? 'm³'
                       : docket.jobItem?.productSellUom === 'KG_20'
                         ? 'x 20kg'
@@ -474,7 +474,7 @@ export function DocketDetailsPanel({
                   </div>
                   <div className="text-md font-bold text-[#0F172A]">
                     {docket.jobItem.totalQuantityRequired?.toFixed(1) || '0.0'}{' '}
-                    {docket.jobItem.productSellUom === 'M3'
+                    {docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
                       ? 'm³'
                       : docket.jobItem?.productSellUom === 'KG_20'
                         ? 'x 20kg'
@@ -491,7 +491,7 @@ export function DocketDetailsPanel({
                   </div>
                   <div className="text-md font-bold text-[#0F172A]">
                     {docket.jobItem.remainingQuantity?.toFixed(1) || '0.0'}{' '}
-                    {docket.jobItem.productSellUom === 'M3'
+                    {docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
                       ? 'm³'
                       : docket.jobItem?.productSellUom === 'KG_20'
                         ? 'x 20kg'
@@ -510,7 +510,7 @@ export function DocketDetailsPanel({
                   {docket.jobItem.deliveredQuantity?.toFixed(1) || '0.0'}{' '}
                   {docket.jobItem.productSellUom === 'TN'
                     ? 'TN'
-                    : docket.jobItem.productSellUom === 'M3'
+                    : docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
                       ? 'm³'
                       : docket.jobItem.productSellUom === 'KG_20'
                         ? 'x 20kg'

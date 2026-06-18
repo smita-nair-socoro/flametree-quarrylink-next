@@ -31,6 +31,14 @@ export const TenantCompleteDetailsQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const TenantInternalDetailsQueryOptions = () =>
+  queryOptions({
+    queryKey: [...TenantKeys.all, 'internal-details'],
+    queryFn: () => APIClient.tenants.getTenantInternalDetails(),
+    placeholderData: keepPreviousData,
+    staleTime: 5 * 60_000,
+  });
+
 export const TenantLogoQueryOptions = () =>
   queryOptions({
     queryKey: [...TenantKeys.all, 'logo'],

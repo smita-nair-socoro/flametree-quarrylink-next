@@ -13,8 +13,17 @@ import { JobTableActions } from './job-table-actions';
 // import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/tenant-config-helper';
 
-export const jobColumns: ColumnDef<JobDTO>[] = [
+export const getJobColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<JobDTO>[] => [
   {
     id: 'jobNumber',
     accessorFn: (row) => row.jobNumber,
@@ -95,7 +104,7 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
                   </span>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>ex GST</p>
+                  <p>{getExTaxLabel(taxLabel)}</p>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -105,7 +114,12 @@ export const jobColumns: ColumnDef<JobDTO>[] = [
     },
     cell: ({ row }) => {
       const amount = row.original.uninvoicedDocketsAmount ?? 0;
-      return <div>${centsToDollars(amount)}</div>;
+      return (
+        <div>
+          {getCurrencySymbol(currencyCode)}
+          {centsToDollars(amount)}
+        </div>
+      );
     },
     meta: 'Uninvoiced Dockets',
   },

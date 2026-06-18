@@ -19,6 +19,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useCreateInvoice } from '@/lib/api/invoices';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -35,6 +36,7 @@ export function InvoiceActions({
     'bulk' | 'individual' | null
   >(null);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
     React.useState(false);
 
@@ -102,12 +104,12 @@ export function InvoiceActions({
                           <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>(ex-GST)</p>
+                          <p>{exTaxLabel}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
                     <span className="font-bold v text-lg">
-                      $
+                      {currencySymbol}
                       {centsToDollars(
                         selectedDockets.reduce(
                           (acc, docket) => acc + docket.totalProductAmount,
@@ -124,13 +126,13 @@ export function InvoiceActions({
                           <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5 -ml-0.5" />
                         </TooltipTrigger>
                         <TooltipContent>
-                          <p>(ex-GST)</p>
+                          <p>{exTaxLabel}</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
 
                     <span className="font-bold text-[#101828] text-lg">
-                      $
+                      {currencySymbol}
                       {centsToDollars(
                         selectedDockets.reduce(
                           (acc, docket) => acc + docket.totalDeliveryAmount,
@@ -149,12 +151,12 @@ export function InvoiceActions({
                         <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help mt-0.5" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>(ex-GST)</p>
+                        <p>{exTaxLabel}</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <span className="font-bold text-[#101828] text-lg">
-                    $
+                    {currencySymbol}
                     {centsToDollars(
                       selectedDockets.reduce(
                         (acc, docket) => acc + docket.totalInvoiceAmount,

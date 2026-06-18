@@ -21,6 +21,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';
@@ -72,6 +73,7 @@ export default function ProductForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -737,7 +739,7 @@ export default function ProductForm({
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                 {isDesktop ? (
                   <DataTableClient
-                    columns={supplierColumns(selectedProduct?.id)}
+                    columns={supplierColumns(selectedProduct?.id, currencyCode, taxLabel)}
                     data={
                       isEditing || productJustCreated
                         ? (selectedProduct?.quarrySupplierProducts ?? [])

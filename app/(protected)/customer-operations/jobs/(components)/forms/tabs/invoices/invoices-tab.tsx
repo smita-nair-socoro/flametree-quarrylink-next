@@ -3,7 +3,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { InvoicesListQueryOptions } from '@/lib/api/invoices';
-import { invoicesColumns } from './(data-tables)/columns';
+import { getInvoicesColumns } from './(data-tables)/columns';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
@@ -14,9 +14,11 @@ import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { JOB_STATUS } from '@/lib/types/job-enums';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencyCode, taxLabel } = useTenantCurrencyTax();
 
   const retrySyncMutation = useRetrySync();
 
@@ -56,7 +58,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
-          columns={invoicesColumns}
+          columns={getInvoicesColumns(currencyCode, taxLabel)}
           data={invoices ?? []}
           simpleTable={true}
           defaultSorting={[{ id: 'invoice', desc: false }]}

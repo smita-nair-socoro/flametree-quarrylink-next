@@ -67,6 +67,14 @@ interface DocketsTabProps {
   pendingDocketId?: number | null;
   onPendingDocketConsumed?: () => void;
   vehicleInspectionDoneSignal?: number;
+  /** Docket id from a deep link (e.g. email "View Delivery"); opened once on load. */
+  autoOpenDocketId?: number | null;
+  /**
+   * Resolved daily-checklist requirement from the parent. `undefined` while the
+   * driver data is still loading. The deep-link auto-open reads this instead of the
+   * lagging store so it doesn't spuriously route through the checklist gate.
+   */
+  dailyChecklistRequired?: boolean;
 }
 
 type ActionType =
@@ -82,6 +90,8 @@ export default function DocketsTab({
   pendingDocketId,
   onPendingDocketConsumed,
   vehicleInspectionDoneSignal,
+  autoOpenDocketId,
+  dailyChecklistRequired,
 }: DocketsTabProps) {
   const [selectedDocketData, setSelectedDocket] = React.useState<DocketDTO | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
@@ -191,6 +201,29 @@ export default function DocketsTab({
     setIsDrawerOpen(true);
   };
 
+  // Deep link: open the requested docket once BOTH the docket list and the daily-checklist
+  // requirement have resolved. We gate on the resolved `dailyChecklistRequired` prop rather
+  // than reusing openDocketDetails — the store-backed `isPreStartPassed` still reads its
+  // pessimistic `true` default on the render the data first loads, which would spuriously
+  // open the checklist prompt (and leave it lingering behind the docket drawer).
+  const autoOpenHandledRef = React.useRef(false);
+  React.useEffect(() => {
+    if (autoOpenDocketId == null || autoOpenHandledRef.current) return;
+    if (dailyChecklistRequired === undefined) return; // wait until the requirement is known
+    const docket = dockets.find((d) => d.id === autoOpenDocketId);
+    if (!docket) return;
+    autoOpenHandledRef.current = true;
+    if (dailyChecklistRequired) {
+      // Checklist genuinely still required today — gate first; pendingDocketId opens the
+      // docket drawer once the checklist is completed.
+      onOpenChecklist?.('pre-start', undefined, docket.id, undefined);
+    } else {
+      setSelectedDocket(docket);
+      setIsDrawerOpen(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenDocketId, dockets, dailyChecklistRequired]);
+
   const renderDocketCard = (docket: DocketDTO, isActive: boolean = false) => {
     return (
       <div
@@ -236,7 +269,7 @@ export default function DocketsTab({
               {docketSizes[docket.id] ?? docket.actualLoadSize ?? docket.plannedLoadSize}{' '}
               {docket.jobItem?.productSellUom === 'TN'
                 ? 'TN'
-                : docket.jobItem?.productSellUom === 'M3'
+                : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
                   ? 'm³'
                   : docket.jobItem?.productSellUom === 'BULKA'
                     ? 'Bulka'
@@ -413,7 +446,7 @@ export default function DocketsTab({
                           {selectedDocket.docketStatus === 'ASSIGNED'
                             ? selectedDocket.plannedLoadSize
                             : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
-                          {selectedDocket.jobItem?.productSellUom === 'M3'
+                          {selectedDocket.jobItem?.productSellUom === 'M3' || selectedDocket.jobItem?.productSellUom === 'm3'
                             ? 'm³'
                             : selectedDocket.jobItem?.productSellUom === 'KG_20'
                               ? 'x 20kg'
@@ -655,7 +688,7 @@ export default function DocketsTab({
                 {updateValue || '0'}
               </span>
               <span className="text-[24px] text-[#64748B] font-medium">
-                {selectedDocket?.jobItem?.productSellUom === 'M3'
+                {selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
                   ? 'm³'
                   : selectedDocket?.jobItem?.productSellUom === 'KG_20'
                     ? 'x 20kg'
@@ -671,7 +704,7 @@ export default function DocketsTab({
                   selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize}
                 {
-                  selectedDocket?.jobItem?.productSellUom === 'M3'
+                  selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
                     ? 'm³'
                     : selectedDocket?.jobItem?.productSellUom === 'KG_20'
                       ? 'x 20kg'

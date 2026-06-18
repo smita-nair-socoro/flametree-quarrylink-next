@@ -11,7 +11,7 @@ import { ChecklistPromptDrawer } from './(components)/checklist/checklist-prompt
 import DocketsTab from './(components)/tabs/dockets/dockets-tab';
 import CalendarTab from './(components)/tabs/calendar/calendar-tab';
 import { FileText, Calendar, LogOut, StopCircleIcon, Info } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/app/stores/user-store';
@@ -41,6 +41,13 @@ export default function DriversAppPage() {
   const userName = useUserStore((state) => state.userName);
   const { signOut } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Deep link support: /drivers-app/?docketId=123 (e.g. "View Delivery" email links)
+  // opens the matching docket, going through the daily-checklist gate first if needed.
+  const docketIdParam = searchParams.get('docketId');
+  const autoOpenDocketId =
+    docketIdParam && /^\d+$/.test(docketIdParam) ? Number(docketIdParam) : null;
 
   const { data: driverData } = useQuery(DriverAppAssignedDocketsQueryOptions());
   const dockets = driverData?.dockets ?? [];
@@ -63,16 +70,22 @@ export default function DriversAppPage() {
     (s) => s.isDailyChecklistRequired,
   );
 
-  React.useEffect(() => {
-    const checklist = driverData?.latestDriverChecklist;
-    if (!checklist) {
-      setIsDailyChecklistRequired(true);
-      return;
-    }
+  // Resolved daily-checklist requirement, derived synchronously from the loaded
+  // driver data. `undefined` means it's not known yet (data still loading) — callers
+  // must wait rather than fall back to the store's pessimistic `true` default.
+  const dailyChecklistRequired = React.useMemo<boolean | undefined>(() => {
+    if (driverData === undefined) return undefined;
+    const checklist = driverData.latestDriverChecklist;
+    if (!checklist) return true;
     const todayUTC = new Date().toISOString().split('T')[0];
-    const checklistDateUTC = checklist.checklistDate.split('T')[0];
-    setIsDailyChecklistRequired(todayUTC !== checklistDateUTC);
-  }, [driverData, setIsDailyChecklistRequired]);
+    return todayUTC !== checklist.checklistDate.split('T')[0];
+  }, [driverData]);
+
+  React.useEffect(() => {
+    if (dailyChecklistRequired !== undefined) {
+      setIsDailyChecklistRequired(dailyChecklistRequired);
+    }
+  }, [dailyChecklistRequired, setIsDailyChecklistRequired]);
 
   const handleLogout = async () => {
     try {
@@ -181,6 +194,8 @@ export default function DriversAppPage() {
             {activeTab === 'dockets' && (
               <DocketsTab
                 dockets={dockets}
+                autoOpenDocketId={autoOpenDocketId}
+                dailyChecklistRequired={dailyChecklistRequired}
                 pendingDocketId={pendingDocketId}
                 onPendingDocketConsumed={() => setPendingDocketId(null)}
                 vehicleInspectionDoneSignal={vehicleInspectionDoneSignal}

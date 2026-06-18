@@ -21,14 +21,22 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 
-export const JOB_STATUS_FILTER_ALL = '__ALL_EXCEPT_UNASSIGNED__';
-
-const JOB_STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: JOB_STATUS_FILTER_ALL, label: 'All (Except Unassigned)' },
+export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
+  value: string;
+  label: string;
+}[] = [
   { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
   { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
   { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
   { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
+];
+
+export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {
+  value: string;
+  label: string;
+}[] = [
+  { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
+  ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
 ];
 
 const DRIVER_STATUS_OPTIONS: { value: DRIVER_STATUS; label: string }[] = [
@@ -42,9 +50,9 @@ const TRUCK_BUSINESS_TYPE_OPTIONS: {
   value: TRUCK_BUSINESS_TYPE;
   label: string;
 }[] = [
-    { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
-    { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
-  ];
+  { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
+  { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
+];
 
 export type ResourceFilterOption = {
   id: string;
@@ -80,6 +88,7 @@ type Props = {
   isLoadingResources?: boolean;
   filter: DispatchBoardFilterState;
   onFilterChange: (next: DispatchBoardFilterState) => void;
+  jobStatusOptions?: { value: string; label: string }[];
 };
 
 export function DispatchDriversTrucksFilter({
@@ -91,16 +100,13 @@ export function DispatchDriversTrucksFilter({
   isLoadingResources,
   filter,
   onFilterChange,
+  jobStatusOptions = DEFAULT_JOB_STATUS_FILTER_OPTIONS,
 }: Props) {
   const setFilter = (patch: Partial<DispatchBoardFilterState>) => {
     onFilterChange({ ...filter, ...patch });
   };
 
   const toggleJobStatus = (status: string) => {
-    if (status === JOB_STATUS_FILTER_ALL) {
-      setFilter({ jobStatuses: [] });
-      return;
-    }
     setFilter({
       jobStatuses: filter.jobStatuses.includes(status)
         ? filter.jobStatuses.filter((s) => s !== status)
@@ -160,15 +166,18 @@ export function DispatchDriversTrucksFilter({
     onFilterChange({ ...DEFAULT_DISPATCH_BOARD_FILTER });
   };
 
-  const isAllJobStatus = filter.jobStatuses.length === 0;
-  const jobStatusLabel = isAllJobStatus
-    ? 'All (Except Unassigned)'
-    : filter.jobStatuses.length === 1
-      ? JOB_STATUS_OPTIONS.find((o) => o.value === filter.jobStatuses[0])?.label
+  const jobStatusLabel =
+    filter.jobStatuses.length === 1
+      ? jobStatusOptions.find((o) => o.value === filter.jobStatuses[0])?.label
       : `${filter.jobStatuses.length} selected`;
 
+  const customerLabel =
+    filter.customerNames.length === 1
+      ? filter.customerNames[0]
+      : `${filter.customerNames.length} selected`;
+
   return (
-    <div className="border-b bg-white px-6 py-3 flex items-center gap-6">
+    <div className="border-b bg-white px-4 py-3 md:px-6 flex items-center gap-6">
       <div className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
         <div className="flex flex-col gap-3 min-w-0 flex-1">
           <div className="flex items-center gap-3 flex-wrap">
@@ -180,15 +189,15 @@ export function DispatchDriversTrucksFilter({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${!isAllJobStatus ? 'border-gray-300' : 'border-gray-200'}`}
+                  className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.jobStatuses.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
                 >
                   <Plus className="w-4 h-4 text-gray-500" />
                   <span
-                    className={`font-medium text-gray-700 ${!isAllJobStatus ? 'mr-1' : ''}`}
+                    className={`font-medium text-gray-700 ${filter.jobStatuses.length > 0 ? 'mr-1' : ''}`}
                   >
                     Status
                   </span>
-                  {!isAllJobStatus && (
+                  {filter.jobStatuses.length > 0 && (
                     <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[180px] truncate">
                       {jobStatusLabel}
                     </span>
@@ -199,31 +208,31 @@ export function DispatchDriversTrucksFilter({
                 <Command>
                   <CommandList>
                     <CommandGroup>
-                      {JOB_STATUS_OPTIONS.map((opt) => {
-                        const isChecked =
-                          opt.value === JOB_STATUS_FILTER_ALL
-                            ? isAllJobStatus
-                            : filter.jobStatuses.includes(opt.value);
-                        return (
-                          <CommandItem
-                            key={opt.value}
-                            onSelect={() => toggleJobStatus(opt.value)}
-                            className="flex items-center gap-2 cursor-pointer"
+                      {jobStatusOptions.map((opt) => (
+                        <CommandItem
+                          key={opt.value}
+                          onSelect={() => toggleJobStatus(opt.value)}
+                          className="flex items-center gap-2 cursor-pointer"
+                        >
+                          <div
+                            className={cn(
+                              'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                              filter.jobStatuses.includes(opt.value)
+                                ? 'bg-primary text-white'
+                                : 'opacity-50 [&_svg]:invisible',
+                            )}
                           >
-                            <div
+                            <Check
                               className={cn(
-                                'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                isChecked
-                                  ? 'bg-primary text-white'
-                                  : 'opacity-50 [&_svg]:invisible'
+                                'h-3.5 w-3.5',
+                                filter.jobStatuses.includes(opt.value) &&
+                                  'text-white',
                               )}
-                            >
-                              <Check className={cn('h-3.5 w-3.5', isChecked && 'text-white')} />
-                            </div>
-                            <span>{opt.label}</span>
-                          </CommandItem>
-                        );
-                      })}
+                            />
+                          </div>
+                          <span>{opt.label}</span>
+                        </CommandItem>
+                      ))}
                     </CommandGroup>
                   </CommandList>
                 </Command>
@@ -244,9 +253,7 @@ export function DispatchDriversTrucksFilter({
                   </span>
                   {filter.customerNames.length > 0 && (
                     <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[180px] truncate">
-                      {filter.customerNames.length === 1
-                        ? filter.customerNames[0]
-                        : `${filter.customerNames.length} selected`}
+                      {customerLabel}
                     </span>
                   )}
                 </button>
@@ -263,6 +270,7 @@ export function DispatchDriversTrucksFilter({
                       {customerOptions.map((customer) => (
                         <CommandItem
                           key={customer}
+                          value={customer}
                           onSelect={() => toggleCustomerName(customer)}
                           className="flex items-center gap-2 cursor-pointer"
                         >
@@ -271,10 +279,16 @@ export function DispatchDriversTrucksFilter({
                               'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
                               filter.customerNames.includes(customer)
                                 ? 'bg-primary text-white'
-                                : 'opacity-50 [&_svg]:invisible'
+                                : 'opacity-50 [&_svg]:invisible',
                             )}
                           >
-                            <Check className={cn('h-3.5 w-3.5', filter.customerNames.includes(customer) && 'text-white')} />
+                            <Check
+                              className={cn(
+                                'h-3.5 w-3.5',
+                                filter.customerNames.includes(customer) &&
+                                  'text-white',
+                              )}
+                            />
                           </div>
                           <span>{customer}</span>
                         </CommandItem>
@@ -310,8 +324,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[160px] truncate">
                             {filter.driverStatuses.length === 1
                               ? DRIVER_STATUS_OPTIONS.find(
-                                (o) => o.value === filter.driverStatuses[0],
-                              )?.label
+                                  (o) => o.value === filter.driverStatuses[0],
+                                )?.label
                               : `${filter.driverStatuses.length} selected`}
                           </span>
                         )}
@@ -330,16 +344,19 @@ export function DispatchDriversTrucksFilter({
                                 <div
                                   className={cn(
                                     'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                    filter.driverStatuses.includes(
-                                      opt.value,
-                                    )
+                                    filter.driverStatuses.includes(opt.value)
                                       ? 'bg-primary text-white'
-                                      : 'opacity-50 [&_svg]:invisible'
+                                      : 'opacity-50 [&_svg]:invisible',
                                   )}
                                 >
-                                  <Check className={cn('h-3.5 w-3.5', filter.driverStatuses.includes(
-                                    opt.value,
-                                  ) && 'text-white')} />
+                                  <Check
+                                    className={cn(
+                                      'h-3.5 w-3.5',
+                                      filter.driverStatuses.includes(
+                                        opt.value,
+                                      ) && 'text-white',
+                                    )}
+                                  />
                                 </div>
                                 <span>{opt.label}</span>
                               </CommandItem>
@@ -366,8 +383,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[140px] truncate">
                             {filter.driverIds.length === 1
                               ? (driverOptions.find(
-                                (o) => o.id === filter.driverIds[0],
-                              )?.label ?? filter.driverIds[0])
+                                  (o) => o.id === filter.driverIds[0],
+                                )?.label ?? filter.driverIds[0])
                               : `${filter.driverIds.length} selected`}
                           </span>
                         )}
@@ -399,10 +416,16 @@ export function DispatchDriversTrucksFilter({
                                       'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
                                       filter.driverIds.includes(driver.id)
                                         ? 'bg-primary text-white'
-                                        : 'opacity-50 [&_svg]:invisible'
+                                        : 'opacity-50 [&_svg]:invisible',
                                     )}
                                   >
-                                    <Check className={cn('h-3.5 w-3.5', filter.driverIds.includes(driver.id) && 'text-white')} />
+                                    <Check
+                                      className={cn(
+                                        'h-3.5 w-3.5',
+                                        filter.driverIds.includes(driver.id) &&
+                                          'text-white',
+                                      )}
+                                    />
                                   </div>
                                   <span>{driver.label}</span>
                                 </div>
@@ -437,8 +460,9 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
                             {filter.truckBusinessTypes.length === 1
                               ? TRUCK_BUSINESS_TYPE_OPTIONS.find(
-                                (o) => o.value === filter.truckBusinessTypes[0],
-                              )?.label
+                                  (o) =>
+                                    o.value === filter.truckBusinessTypes[0],
+                                )?.label
                               : `${filter.truckBusinessTypes.length} selected`}
                           </span>
                         )}
@@ -463,12 +487,17 @@ export function DispatchDriversTrucksFilter({
                                       opt.value,
                                     )
                                       ? 'bg-primary text-white'
-                                      : 'opacity-50 [&_svg]:invisible'
+                                      : 'opacity-50 [&_svg]:invisible',
                                   )}
                                 >
-                                  <Check className={cn('h-3.5 w-3.5', filter.truckBusinessTypes.includes(
-                                    opt.value,
-                                  ) && 'text-white')} />
+                                  <Check
+                                    className={cn(
+                                      'h-3.5 w-3.5',
+                                      filter.truckBusinessTypes.includes(
+                                        opt.value,
+                                      ) && 'text-white',
+                                    )}
+                                  />
                                 </div>
                                 <span>{opt.label}</span>
                               </CommandItem>
@@ -495,8 +524,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
                             {filter.haulierIds.length === 1
                               ? (haulierOptions.find(
-                                (h) => h.id === filter.haulierIds[0],
-                              )?.label ?? filter.haulierIds[0])
+                                  (h) => h.id === filter.haulierIds[0],
+                                )?.label ?? filter.haulierIds[0])
                               : `${filter.haulierIds.length} selected`}
                           </span>
                         )}
@@ -528,16 +557,19 @@ export function DispatchDriversTrucksFilter({
                                   <div
                                     className={cn(
                                       'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                      filter.haulierIds.includes(
-                                        haulier.id,
-                                      )
+                                      filter.haulierIds.includes(haulier.id)
                                         ? 'bg-primary text-white'
-                                        : 'opacity-50 [&_svg]:invisible'
+                                        : 'opacity-50 [&_svg]:invisible',
                                     )}
                                   >
-                                    <Check className={cn('h-3.5 w-3.5', filter.haulierIds.includes(
-                                      haulier.id,
-                                    ) && 'text-white')} />
+                                    <Check
+                                      className={cn(
+                                        'h-3.5 w-3.5',
+                                        filter.haulierIds.includes(
+                                          haulier.id,
+                                        ) && 'text-white',
+                                      )}
+                                    />
                                   </div>
                                   <span>{haulier.label}</span>
                                 </div>
@@ -565,8 +597,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
                             {filter.truckIds.length === 1
                               ? (truckOptions.find(
-                                (t) => t.id === filter.truckIds[0],
-                              )?.label ?? filter.truckIds[0])
+                                  (t) => t.id === filter.truckIds[0],
+                                )?.label ?? filter.truckIds[0])
                               : `${filter.truckIds.length} selected`}
                           </span>
                         )}
@@ -598,10 +630,16 @@ export function DispatchDriversTrucksFilter({
                                       'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
                                       filter.truckIds.includes(truck.id)
                                         ? 'bg-primary text-white'
-                                        : 'opacity-50 [&_svg]:invisible'
+                                        : 'opacity-50 [&_svg]:invisible',
                                     )}
                                   >
-                                    <Check className={cn('h-3.5 w-3.5', filter.truckIds.includes(truck.id) && 'text-white')} />
+                                    <Check
+                                      className={cn(
+                                        'h-3.5 w-3.5',
+                                        filter.truckIds.includes(truck.id) &&
+                                          'text-white',
+                                      )}
+                                    />
                                   </div>
                                   <span>{truck.label}</span>
                                 </div>

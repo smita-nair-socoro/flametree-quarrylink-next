@@ -10,6 +10,7 @@ import {
   FormTableRow,
 } from '@/components/ui/form-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface PricingConfigurationTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;
@@ -20,6 +21,8 @@ export function PricingConfigurationTable({
   control,
   watch,
 }: PricingConfigurationTableProps) {
+  const { exTaxLabel } = useTenantCurrencyTax();
+
   // Calculate margin percentage: (Sell Price - Cost Price) / Sell Price × 100
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
     if (!sellPrice || sellPrice <= 0) return 0;
@@ -33,13 +36,13 @@ export function PricingConfigurationTable({
       key: 'cost_price',
       label: 'Cost Price*',
       className: 'md:w-20',
-      tooltip: '(ex-GST)',
+      tooltip: exTaxLabel,
     },
     {
       key: 'sell_price',
       label: 'Sell Price*',
       className: 'md:w-20',
-      tooltip: '(ex-GST)',
+      tooltip: exTaxLabel,
     },
     { key: 'Margin', label: 'Profit Margin %', className: 'w-25' },
     {

@@ -20,6 +20,7 @@ import {
   Briefcase,
 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import { parseCalendarDate, GetTodaysDate } from '@/lib/utils/date';
 import { DatePicker } from '@/components/date-picker';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -978,14 +979,18 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const handleSendToCustomerClick = () => {
     // Guard: don't open the dialog if the quote is already expired
     if (quotationData?.expiryDate) {
-      const expiry = new Date(quotationData.expiryDate);
-      if (!Number.isNaN(expiry.getTime()) && expiry < new Date()) {
-        notifyError(
-          `Quote expired on ${expiry.toLocaleDateString(
-            'en-AU',
-          )}. Please extend the expiry date.`,
-        );
-        return;
+      try {
+        const expiry = parseCalendarDate(quotationData.expiryDate);
+        if (expiry < GetTodaysDate()) {
+          notifyError(
+            `Quote expired on ${expiry.toLocaleDateString(
+              'en-AU',
+            )}. Please extend the expiry date.`,
+          );
+          return;
+        }
+      } catch {
+        // Ignore unparsable expiry dates and allow the dialog to open
       }
     }
 

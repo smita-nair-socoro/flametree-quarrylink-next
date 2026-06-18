@@ -2,6 +2,12 @@
 
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+  getExTaxLabel,
+} from '@/lib/utils/tenant-config-helper';
 import { Star } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
@@ -14,13 +20,20 @@ import {
 
 // ─── Column factory ───────────────────────────────────────────────────────────
 
-function rateCell(val: number, available: boolean) {
+function rateCell(val: number, available: boolean, currencyCode: string) {
   if (!available) return <span className="text-gray-400">N/A</span>;
-  return <span>${val ? centsToDollars(val) : '0.00'}</span>;
+  return (
+    <span>
+      {getCurrencySymbol(currencyCode)}
+      {val ? centsToDollars(val) : '0.00'}
+    </span>
+  );
 }
 
 export function createTruckRateColumns(
   lowestTn: number | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
 ): ColumnDef<QuarriesWithProduct>[] {
   return [
     {
@@ -68,7 +81,8 @@ export function createTruckRateColumns(
         return (
           <div>
             <p className="font-medium text-[#101828]">
-              ${tn ? centsToDollars(tn) : '0.00'}
+              {getCurrencySymbol(currencyCode)}
+              {tn ? centsToDollars(tn) : '0.00'}
             </p>
             {isLowest && (
               <p className="text-xs text-green-600 font-medium">Lowest</p>
@@ -84,16 +98,16 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="m³ Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.m3TruckRate, row.original.availableForTruckRateM3),
+        rateCell(row.original.m3TruckRate, row.original.availableForTruckRateM3, currencyCode),
     },
     {
       id: 'truck_kg_rate',
       accessorFn: (row) => row.kg20TruckRate,
       header: ({ column }) => (
-        <TableClientSortableHeader column={column} title="kg Rate (ex-GST)" />
+        <TableClientSortableHeader column={column} title={`kg Rate ${getExTaxLabel(taxLabel)}`} />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.kg20TruckRate, row.original.availableForTruckRate20kg),
+        rateCell(row.original.kg20TruckRate, row.original.availableForTruckRate20kg, currencyCode),
     },
     {
       id: 'truck_bulka_rate',
@@ -102,7 +116,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Bulka Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.bulkaTruckRate, row.original.availableForTruckRateBulka),
+        rateCell(row.original.bulkaTruckRate, row.original.availableForTruckRateBulka, currencyCode),
     },
     {
       id: 'truck_hourly_rate',
@@ -111,7 +125,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Hourly Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.hourlyTruckRate, row.original.availableForTruckRateHour),
+        rateCell(row.original.hourlyTruckRate, row.original.availableForTruckRateHour, currencyCode),
     },
     {
       id: 'truck_load_rate',
@@ -120,7 +134,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Load Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.loadTruckRate, row.original.availableForTruckRateLoad),
+        rateCell(row.original.loadTruckRate, row.original.availableForTruckRateLoad, currencyCode),
     },
     {
       id: 'truck_distance_rate',
@@ -129,7 +143,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Dist. Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.kmTruckRate, row.original.availableForTruckRateKm),
+        rateCell(row.original.kmTruckRate, row.original.availableForTruckRateKm, currencyCode),
     },
   ];
 }
@@ -139,9 +153,11 @@ export function createTruckRateColumns(
 export function MobileTruckRateList({
   data,
   lowestTn,
+  currencyCode = DEFAULT_CURRENCY_CODE,
 }: {
   data: QuarriesWithProduct[];
   lowestTn: number | null;
+  currencyCode?: string;
 }) {
   const sorted = [...data].sort((a, b) => {
     const aRate = a.tnTruckRate || Infinity;
@@ -160,6 +176,7 @@ export function MobileTruckRateList({
             supplier.tnTruckRate === lowestTn &&
             supplier.tnTruckRate > 0
           }
+          currencyCode={currencyCode}
         />
       ))}
     </div>
