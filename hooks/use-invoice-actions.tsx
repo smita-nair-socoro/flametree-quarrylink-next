@@ -44,28 +44,47 @@ export function InvoiceDetailsDialog() {
     enabled: open && invoiceId !== undefined,
   });
 
-  const handleDownload = async () => {
-    if (invoiceId == null) return;
-    console.log(accountingSoftware);
-    if (accountingSoftware === 'XERO') {
-      const invoiceUrl = await queryClient.fetchQuery(
-        InvoiceUrlQueryOptions(invoiceId),
-      );
-      if (invoiceUrl?.invoiceLink) {
-        window.open(invoiceUrl.invoiceLink, '_blank');
-      }
-      return;
-    }
+  const [isDownloading, setIsDownloading] = React.useState(false);
 
-    if (accountingSoftware === 'MYOB_BUSINESS') {
-      const invoicePdf = await queryClient.fetchQuery(
-        InvoicePdfQueryOptions(invoiceId),
-      );
-      if (invoicePdf) {
-        const url = URL.createObjectURL(invoicePdf);
-        window.open(url, '_blank');
-        URL.revokeObjectURL(url);
+  React.useEffect(() => {
+    if (!open) setIsDownloading(false);
+  }, [open]);
+
+  const handleDownload = async () => {
+    if (invoiceId == null || isDownloading) return;
+
+    setIsDownloading(true);
+    try {
+      if (accountingSoftware === 'XERO') {
+        const invoiceUrl = await queryClient.fetchQuery(
+          InvoiceUrlQueryOptions(invoiceId),
+        );
+        if (invoiceUrl?.invoiceLink) {
+          window.open(invoiceUrl.invoiceLink, '_blank');
+        }
+        return;
       }
+
+      if (accountingSoftware === 'MYOB_BUSINESS') {
+        const invoicePdf = await queryClient.fetchQuery(
+          InvoicePdfQueryOptions(invoiceId),
+        );
+        if (!(invoicePdf instanceof Blob)) return;
+
+        const url = URL.createObjectURL(invoicePdf);
+        const opened = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `invoice-${invoice?.invoiceNumber ?? invoiceId}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -228,8 +247,16 @@ export function InvoiceDetailsDialog() {
                   variant="outline"
                   className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
                   onClick={handleDownload}
+                  disabled={isDownloading}
                 >
-                  Download PDF
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Downloading…
+                    </>
+                  ) : (
+                    'Download PDF'
+                  )}
                 </Button>
               </div>
             )}

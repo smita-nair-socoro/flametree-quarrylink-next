@@ -1380,8 +1380,12 @@ export const APIClient = {
       appClient.Get<InvoiceUrlResponse>(
         `/socoro/quarrylink/api/invoices/${invoiceId}/url`,
       ),
-    getPdf: (invoiceId: number) =>
-      appClient.Get<Blob>(`/socoro/quarrylink/api/invoices/${invoiceId}/pdf`),
+    getPdf: async (invoiceId: number) => {
+      const response = await appClient.Get<Response>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}/pdf`,
+      );
+      return response.blob();
+    },
   },
 
   driverApp: {
