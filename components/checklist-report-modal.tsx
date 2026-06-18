@@ -222,7 +222,20 @@ export function ChecklistReportModal({
               </div>
             </div>
 
-            {/* Section 2 — Inspection / Checklist Answers */}
+            {/* Section 2 — Additional Notes (Truck only) */}
+            {type === CHECKLIST_TYPE.TRUCK && data.additionalNotes && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-3 pl-1">
+                  <div className="w-1 h-5 rounded-full bg-[#7C3AED]" />
+                  <span className="font-bold text-base">Additional Notes</span>
+                </div>
+                <div className="border rounded-lg p-4">
+                  <p className="text-sm text-[#364153] whitespace-pre-wrap">{data.additionalNotes}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Section 3 — Inspection / Checklist Answers */}
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-3 pl-1">
                 <div className="w-1 h-5 rounded-full bg-[#7C3AED]" />

@@ -13,8 +13,17 @@ import { TableClientSortableHeader } from '@/components/table-client-sortable-he
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 import { InvoiceTableActions } from './invoice-table-actions';
 import { HelpCircle } from 'lucide-react';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  formatCurrency,
+  getExTaxLabel,
+} from '@/lib/utils/tenant-config-helper';
 
-export const invoicesColumns: ColumnDef<Invoice>[] = [
+export const getInvoicesColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<Invoice>[] => [
   {
     id: 'invoice',
     accessorFn: (row) => row.invoiceNumber,
@@ -50,7 +59,7 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
             <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
           </TooltipTrigger>
           <TooltipContent>
-            <p>(ex-GST)</p>
+            <p>{getExTaxLabel(taxLabel)}</p>
           </TooltipContent>
         </Tooltip>
       </div>;
@@ -58,10 +67,7 @@ export const invoicesColumns: ColumnDef<Invoice>[] = [
     cell: ({ row }) => {
       const cents = parseFloat(row.original.amount.toString());
       const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: 'AUD',
-      }).format(dollars);
+      const formatted = formatCurrency(dollars, currencyCode);
       return (
         <div className="flex items-center gap-1">
           <span className="py-2 font-medium w-[100px] truncate">

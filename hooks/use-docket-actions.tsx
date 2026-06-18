@@ -314,6 +314,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.READY,
       });
+      setSelectedDocket({
+        ...(selectedDocket as DocketDTO),
+        docketStatus: DOCKET_STATUS.READY,
+      });
       notifySuccess('Docket marked as Ready for Collection');
       setActiveDialog(null);
     } catch (error) {

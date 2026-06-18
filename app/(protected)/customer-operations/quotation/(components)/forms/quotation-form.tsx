@@ -21,7 +21,6 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -61,6 +60,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { AuditInformation } from '@/components/audit-information';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -84,6 +84,8 @@ export default function QuotationForm({
   onSaved,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencyCode, currencySymbol, taxLabel, taxPercentage, exTaxLabel, taxRateLabel } =
+    useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
@@ -108,7 +110,13 @@ export default function QuotationForm({
     dateLabel,
     timeWindowLabel,
     pricingBreakdown,
-  } = useQuotationFormState(selectedQuotation, isEditing, quotationForm);
+  } = useQuotationFormState(
+    selectedQuotation,
+    isEditing,
+    quotationForm,
+    taxPercentage,
+    currencyCode,
+  );
 
   // Update form values when API data loads
   React.useEffect(() => {
@@ -823,7 +831,11 @@ export default function QuotationForm({
                       );
                       return (
                         <DataTableClient
-                          columns={getQuotationLineItemColumns()}
+                          columns={getQuotationLineItemColumns(
+                            undefined,
+                            currencyCode,
+                            taxLabel,
+                          )}
                           data={quoteItemsData}
                           simpleTable={true}
                           defaultSorting={[{ id: 'productName', desc: false }]}
@@ -849,31 +861,31 @@ export default function QuotationForm({
                                   <div>
                                     <span>Product Cost</span>
                                     <span>
-                                      ${pricingBreakdown.totalProductCostPrice}
+                                      {currencySymbol}{pricingBreakdown.totalProductCostPrice}
                                     </span>
                                   </div>
                                   <div>
                                     <span>Truck Cost</span>
                                     <span>
-                                      ${pricingBreakdown.totalTruckCostPrice}
+                                      {currencySymbol}{pricingBreakdown.totalTruckCostPrice}
                                     </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
-                                    <span>Subtotal (ex-GST)</span>
+                                    <span>Subtotal {exTaxLabel}</span>
                                     <span>
-                                      ${pricingBreakdown.costSubtotalExGST}
+                                      {currencySymbol}{pricingBreakdown.costSubtotalExGST}
                                     </span>
                                   </div>
                                   <div>
-                                    <span>GST (10%)</span>
-                                    <span>${pricingBreakdown.costGst}</span>
+                                    <span>{taxRateLabel}</span>
+                                    <span>{currencySymbol}{pricingBreakdown.costGst}</span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span className="font-bold text-lg">
                                       Total Cost
                                     </span>
                                     <span className="font-bold text-lg">
-                                      ${pricingBreakdown.totalCost}
+                                      {currencySymbol}{pricingBreakdown.totalCost}
                                     </span>
                                   </div>
                                 </div>
@@ -887,31 +899,31 @@ export default function QuotationForm({
                                   <div>
                                     <span>Product Sell</span>
                                     <span>
-                                      ${pricingBreakdown.totalProductSellPrice}
+                                      {currencySymbol}{pricingBreakdown.totalProductSellPrice}
                                     </span>
                                   </div>
                                   <div>
                                     <span>Truck Sell</span>
                                     <span>
-                                      ${pricingBreakdown.totalTruckSellPrice}
+                                      {currencySymbol}{pricingBreakdown.totalTruckSellPrice}
                                     </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
-                                    <span>Subtotal (ex-GST)</span>
+                                    <span>Subtotal {exTaxLabel}</span>
                                     <span>
-                                      ${pricingBreakdown.invoiceSubtotalExGST}
+                                      {currencySymbol}{pricingBreakdown.invoiceSubtotalExGST}
                                     </span>
                                   </div>
                                   <div>
-                                    <span>GST (10%)</span>
-                                    <span>${pricingBreakdown.invoiceGst}</span>
+                                    <span>{taxRateLabel}</span>
+                                    <span>{currencySymbol}{pricingBreakdown.invoiceGst}</span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span className="font-bold text-lg">
                                       Total Invoice
                                     </span>
                                     <span className="font-bold text-lg">
-                                      ${pricingBreakdown.totalInvoice}
+                                      {currencySymbol}{pricingBreakdown.totalInvoice}
                                     </span>
                                   </div>
                                 </div>
@@ -942,23 +954,7 @@ export default function QuotationForm({
                                   %
                                 </span>
                                 <span className="text-lg font-medium ml-5">
-                                  {Number(
-                                    String(
-                                      pricingBreakdown.grossProfit,
-                                    ).replace(/,/g, ''),
-                                  ) >= 0
-                                    ? ''
-                                    : '-'}
-                                  $
-                                  {formatNumberThousandSeparator(
-                                    Math.abs(
-                                      Number(
-                                        String(
-                                          pricingBreakdown.grossProfit,
-                                        ).replace(/,/g, ''),
-                                      ),
-                                    ),
-                                  )}
+                                  {pricingBreakdown.grossProfit}
                                 </span>
                               </div>
                             </div>

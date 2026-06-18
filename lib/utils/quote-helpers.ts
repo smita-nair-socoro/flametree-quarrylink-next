@@ -2,6 +2,11 @@ import { QUOTE_STATUS } from '../types/quotation-enums';
 import type { QuotationDTO, QuotationLineItem } from '../types/quotation';
 import { formatCalendarDate, toLocalDateTime } from './date';
 import { centsToDollars } from './currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_PERCENTAGE,
+  formatCurrency,
+} from './tenant-config-helper';
 import { formatPhoneNumber } from './phone-helper';
 
 export const formatQuoteStatus = (status: QUOTE_STATUS | string): string => {
@@ -106,8 +111,6 @@ export const transformFormDataToQuoteDto = (
  * Quotation pricing breakdown interface
  */
 
-const GST_RATE = 0.1;
-
 export interface QuotationPricingBreakdown {
   totalProductCostPrice: string | number;
   totalTruckCostPrice: string | number;
@@ -125,6 +128,8 @@ export interface QuotationPricingBreakdown {
 
 export const calculateQuotationPricing = (
   lineItems: QuotationLineItem[] | undefined | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
 ): QuotationPricingBreakdown => {
   // Handle empty or null line items
   if (!lineItems || lineItems.length === 0) {
@@ -166,9 +171,10 @@ export const calculateQuotationPricing = (
   const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
 
   // Convert cents to dollars for display
-  const gstCents = totalInvoiceCents * GST_RATE;
+  const taxRate = taxPercentage / 100;
+  const gstCents = totalInvoiceCents * taxRate;
   const totalInvoiceCentsWithGST = totalInvoiceCents + gstCents;
-  const costGstCents = totalCostCents * GST_RATE;
+  const costGstCents = totalCostCents * taxRate;
   const totalCostCentsWithGST = totalCostCents + costGstCents;
 
   // Gross profit = Total Invoice (incl. GST) - Total Cost (incl. GST)
@@ -184,7 +190,7 @@ export const calculateQuotationPricing = (
     totalTruckCostPrice: centsToDollars(totalTruckCostCents),
     totalProductSellPrice: centsToDollars(totalProductSellCents),
     totalTruckSellPrice: centsToDollars(totalTruckSellCents),
-    grossProfit: centsToDollars(grossProfitCents),
+    grossProfit: formatCurrency(grossProfitCents / 100, currencyCode),
     costSubtotalExGST: centsToDollars(totalCostCents),
     costGst: centsToDollars(costGstCents),
     totalCost: centsToDollars(totalCostCentsWithGST),

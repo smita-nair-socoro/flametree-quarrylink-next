@@ -11,10 +11,19 @@ import {
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { TriangleAlert } from 'lucide-react';
+import { HelpCircle, TriangleAlert } from 'lucide-react';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  formatCurrency,
+  getExTaxLabel,
+} from '@/lib/utils/tenant-config-helper';
 
-export const docketColumns: ColumnDef<DocketDTO>[] = [
+export const getDocketColumns = (
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
+): ColumnDef<DocketDTO>[] => [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -39,8 +48,8 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   {
     id: 'docketType',
     accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Type" />;
+    header: () => {
+      return <div>Type</div>;
     },
     cell: ({ row }) => {
       return (
@@ -103,12 +112,15 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'customer',
-    accessorFn: (row) =>
-      row.job?.customerDto?.customerType === CUSTOMER_TYPE.BUSINESS
-        ? row.job?.customerDto?.businessName || 'N/A'
-        : row.job?.customerDto?.individualContactName ||
-          row.job?.customerDto?.contactName ||
-          'N/A',
+    accessorFn: (row) => {
+      const customer = row.job?.customerDto;
+      if (!customer?.id) return '';
+      const customerName =
+        customer.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer.businessName || 'N/A'
+          : customer.individualContactName || customer.contactName || 'N/A';
+      return `${customer.id}|${customerName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Customer" />;
     },
@@ -133,7 +145,12 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product?.productName,
+    accessorFn: (row) => {
+      const product = row.jobItem?.product;
+      if (!product?.id) return '';
+      const productName = product.productName || 'N/A';
+      return `${product.id}|${productName}`;
+    },
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
@@ -162,7 +179,6 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const deliveryDate = row.original.deliveryCollectionDate;
-      console.log('[docket-columns] deliveryDate', deliveryDate);
       return <DateCell dateString={deliveryDate.toString()} side="top" />;
     },
     meta: 'Delivery Date',
@@ -216,16 +232,33 @@ export const docketColumns: ColumnDef<DocketDTO>[] = [
     accessorFn: (row) => row.totalInvoiceAmount,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title="Total Invoice" />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Total Invoice{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getExTaxLabel(taxLabel)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
       );
     },
     cell: ({ row }) => {
       const cents = parseFloat(row.original.totalInvoiceAmount.toString());
       const dollars = cents / 100;
-      const formatted = new Intl.NumberFormat('en-AU', {
-        style: 'currency',
-        currency: 'AUD',
-      }).format(dollars);
+      const formatted = formatCurrency(dollars, currencyCode);
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

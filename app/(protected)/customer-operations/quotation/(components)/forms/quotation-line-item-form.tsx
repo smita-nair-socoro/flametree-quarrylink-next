@@ -37,6 +37,7 @@ import { formatLocalDateShort } from '@/lib/utils/date';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -58,6 +59,8 @@ export default function QuoteLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
+    useTenantCurrencyTax();
   const {
     isEditing,
     isReadOnly,
@@ -82,7 +85,14 @@ export default function QuoteLineItemForm({
     isPending,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
-  } = useLineItemFormState({ id, canEdit, onCancel, onSuccess, onSaved });
+  } = useLineItemFormState({
+    id,
+    canEdit,
+    onCancel,
+    onSuccess,
+    onSaved,
+    taxPercentage,
+  });
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -447,7 +457,7 @@ export default function QuoteLineItemForm({
                               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>(ex-GST)</p>
+                              <p>{exTaxLabel}</p>
                             </TooltipContent>
                           </Tooltip>
                         </FormLabel>
@@ -557,7 +567,7 @@ export default function QuoteLineItemForm({
                               <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                             </TooltipTrigger>
                             <TooltipContent>
-                              <p>(ex-GST)</p>
+                              <p>{exTaxLabel}</p>
                             </TooltipContent>
                           </Tooltip>
                         </FormLabel>
@@ -702,7 +712,7 @@ export default function QuoteLineItemForm({
                                 <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>(ex-GST)</p>
+                                <p>{exTaxLabel}</p>
                               </TooltipContent>
                             </Tooltip>
                           </FormLabel>
@@ -814,7 +824,7 @@ export default function QuoteLineItemForm({
                                 <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>(ex-GST)</p>
+                                <p>{exTaxLabel}</p>
                               </TooltipContent>
                             </Tooltip>
                           </FormLabel>
@@ -902,7 +912,7 @@ export default function QuoteLineItemForm({
                             <div>
                               <span>Product Cost</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalProductCostPrice,
                                 )}
@@ -912,7 +922,7 @@ export default function QuoteLineItemForm({
                               <div>
                                 <span>Truck Cost</span>
                                 <span>
-                                  $
+                                  {currencySymbol}
                                   {formatDollars(
                                     pricingBreakdown.totalTruckCostPrice,
                                   )}
@@ -920,18 +930,19 @@ export default function QuoteLineItemForm({
                               </div>
                             )}
                             <div className={`pt-2 ${separatorBorder}`}>
-                              <span>Subtotal (ex-GST)</span>
+                              <span>Subtotal {exTaxLabel}</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.costSubtotalExGST,
                                 )}
                               </span>
                             </div>
                             <div>
-                              <span>GST (10%)</span>
+                              <span>{taxRateLabel}</span>
                               <span>
-                                ${formatDollars(pricingBreakdown.costGst)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.costGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -939,7 +950,8 @@ export default function QuoteLineItemForm({
                                 Total Cost
                               </span>
                               <span className="font-bold text-lg">
-                                ${formatDollars(pricingBreakdown.totalCost)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.totalCost)}
                               </span>
                             </div>
                           </div>
@@ -953,7 +965,7 @@ export default function QuoteLineItemForm({
                             <div>
                               <span>Product Sell</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalProductSellPrice,
                                 )}
@@ -963,7 +975,7 @@ export default function QuoteLineItemForm({
                               <div>
                                 <span>Truck Sell</span>
                                 <span>
-                                  $
+                                  {currencySymbol}
                                   {formatDollars(
                                     pricingBreakdown.totalTruckSellPrice,
                                   )}
@@ -971,18 +983,19 @@ export default function QuoteLineItemForm({
                               </div>
                             )}
                             <div className={`pt-2 ${separatorBorder}`}>
-                              <span>Subtotal (ex-GST)</span>
+                              <span>Subtotal {exTaxLabel}</span>
                               <span>
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.invoiceSubtotalExGST,
                                 )}
                               </span>
                             </div>
                             <div>
-                              <span>GST (10%)</span>
+                              <span>{taxRateLabel}</span>
                               <span>
-                                ${formatDollars(pricingBreakdown.invoiceGst)}
+                                {currencySymbol}
+                                {formatDollars(pricingBreakdown.invoiceGst)}
                               </span>
                             </div>
                             <div className={`pt-2 ${separatorBorder}`}>
@@ -990,7 +1003,7 @@ export default function QuoteLineItemForm({
                                 Total Invoice
                               </span>
                               <span className="font-bold text-lg">
-                                $
+                                {currencySymbol}
                                 {formatDollars(
                                   pricingBreakdown.totalInvoiceInclGst,
                                 )}
@@ -1021,10 +1034,7 @@ export default function QuoteLineItemForm({
                           {pricingBreakdown.grossProfitPercentage.toFixed(2)}%
                         </span>
                         <span className="text-lg font-medium ml-3">
-                          {pricingBreakdown.grossProfit >= 0 ? '' : '-'}$
-                          {formatDollars(
-                            Math.abs(pricingBreakdown.grossProfit),
-                          )}
+                          {formatCurrency(pricingBreakdown.grossProfit)}
                         </span>
                       </div>
                     </>

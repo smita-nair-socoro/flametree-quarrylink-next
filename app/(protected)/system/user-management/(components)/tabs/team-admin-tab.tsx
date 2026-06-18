@@ -168,7 +168,7 @@ export default function TeamAdminTab() {
         !isSuperAdmin && isUserSuperAdmin(user.groups)
           ? undefined
           : onViewDetails;
-      const initials = getInitials(user.name || user.email || '');
+      const initials = getInitials(user.name, user.email);
       const color = getAvatarColor(user.name || user.email || '');
       const roleLabel = getRoleLabel(user.groups);
 

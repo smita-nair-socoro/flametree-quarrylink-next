@@ -5,9 +5,10 @@ import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { DataTableClient } from '@/components/ui/data-table-client';
-import { jobLineItemsColumns } from './(data-tables)/columns';
+import { getJobLineItemsColumns } from './(data-tables)/columns';
 import { JobItem } from '@/lib/types/job';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
@@ -20,10 +21,12 @@ interface LineItemsTabProps {
 
 export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const { currencyCode, currencySymbol, taxLabel, taxPercentage, exTaxLabel, taxRateLabel } =
+    useTenantCurrencyTax();
 
   const pricingBreakdown = React.useMemo(() => {
-    return calculateJobPricing(jobLineItems);
-  }, [jobLineItems]);
+    return calculateJobPricing(jobLineItems, currencyCode, taxPercentage);
+  }, [jobLineItems, currencyCode, taxPercentage]);
 
   const isAllCollection = React.useMemo(() => {
     if (!jobLineItems || jobLineItems.length === 0) return false;
@@ -58,7 +61,7 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
-          columns={jobLineItemsColumns}
+          columns={getJobLineItemsColumns(currencyCode, taxLabel, taxPercentage)}
           data={jobLineItems}
           simpleTable={true}
           defaultSorting={[{ id: 'productName', desc: false }]}
@@ -77,26 +80,26 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
                     <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                       <div>
                         <span>Product Cost</span>
-                        <span>${pricingBreakdown.totalProductCostPrice}</span>
+                        <span>{currencySymbol}{pricingBreakdown.totalProductCostPrice}</span>
                       </div>
                       {!isAllCollection && (
                         <div>
                           <span>Truck Cost</span>
-                          <span>${pricingBreakdown.totalTruckCostPrice}</span>
+                          <span>{currencySymbol}{pricingBreakdown.totalTruckCostPrice}</span>
                         </div>
                       )}
                       <div className={`pt-2 ${separatorBorder}`}>
-                        <span>Subtotal (ex-GST)</span>
-                        <span>${pricingBreakdown.costSubtotalExGST}</span>
+                        <span>Subtotal {exTaxLabel}</span>
+                        <span>{currencySymbol}{pricingBreakdown.costSubtotalExGST}</span>
                       </div>
                       <div>
-                        <span>GST (10%)</span>
-                        <span>${pricingBreakdown.costGst}</span>
+                        <span>{taxRateLabel}</span>
+                        <span>{currencySymbol}{pricingBreakdown.costGst}</span>
                       </div>
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span className="font-bold text-lg">Total Cost</span>
                         <span className="font-bold text-lg">
-                          ${pricingBreakdown.totalCost}
+                          {currencySymbol}{pricingBreakdown.totalCost}
                         </span>
                       </div>
                     </div>
@@ -107,26 +110,26 @@ export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
                     <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                       <div>
                         <span>Product Sell</span>
-                        <span>${pricingBreakdown.totalProductSellPrice}</span>
+                        <span>{currencySymbol}{pricingBreakdown.totalProductSellPrice}</span>
                       </div>
                       {!isAllCollection && (
                         <div>
                           <span>Truck Sell</span>
-                          <span>${pricingBreakdown.totalTruckSellPrice}</span>
+                          <span>{currencySymbol}{pricingBreakdown.totalTruckSellPrice}</span>
                         </div>
                       )}
                       <div className={`pt-2 ${separatorBorder}`}>
-                        <span>Subtotal (ex-GST)</span>
-                        <span>${pricingBreakdown.invoiceSubtotalExGST}</span>
+                        <span>Subtotal {exTaxLabel}</span>
+                        <span>{currencySymbol}{pricingBreakdown.invoiceSubtotalExGST}</span>
                       </div>
                       <div>
-                        <span>GST (10%)</span>
-                        <span>${pricingBreakdown.invoiceGst}</span>
+                        <span>{taxRateLabel}</span>
+                        <span>{currencySymbol}{pricingBreakdown.invoiceGst}</span>
                       </div>
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span className="font-bold text-lg">Total Invoice</span>
                         <span className="font-bold text-lg">
-                          ${pricingBreakdown.totalInvoice}
+                          {currencySymbol}{pricingBreakdown.totalInvoice}
                         </span>
                       </div>
                     </div>

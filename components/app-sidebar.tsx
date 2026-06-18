@@ -18,7 +18,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
-import { TenantCompleteDetailsQueryOptions } from '@/lib/api/tenant';
+import { TenantLogoQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useClientStore } from '@/app/stores/client-store';
 
@@ -82,33 +82,23 @@ export const navItems = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
-  const { data: tenantCompleteDetails } = useQuery(
-    TenantCompleteDetailsQueryOptions(),
-  );
+  const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
 
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
   );
 
-  const tenantName = tenantCompleteDetails?.tenantDetails?.tenantName;
+  const tenantName = tenantLogo?.tenantBusinessName;
 
   React.useEffect(() => {
-    if (tenantCompleteDetails) {
-      console.log(
-        '🏢 [AppSidebar] Tenant Complete Details:',
-        tenantCompleteDetails,
-      );
+    if (tenantLogo) {
+      console.log('🏢 [AppSidebar] Tenant Logo:', tenantLogo);
       console.log(
         '🏷️ [AppSidebar] Tenant Name:',
-        tenantCompleteDetails.tenantDetails?.tenantName,
-      );
-      console.log(
-        '📋 [AppSidebar] Subscription Plan:',
-        tenantCompleteDetails.subscriptionAndInvoices?.subscriptions
-          ?.subscriptions?.[1]?.subscriptionPlan,
+        tenantLogo.tenantBusinessName,
       );
     }
-  }, [tenantCompleteDetails]);
+  }, [tenantLogo]);
 
   const displayName =
     currentUser?.name ||
@@ -129,33 +119,31 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     avatar: '/default-user.png',
   };
 
-  // Get subscription plan from the first active subscription
-  const subscriptionPlan =
-    tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-      ?.subscriptions?.[0]?.subscriptionPlan;
+  // Subscription check no longer needed
+  // const subscriptionPlan =
+  //   tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
+  //     ?.subscriptions?.[0]?.subscriptionPlan;
 
   // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {
-    useClientStore
-      .getState()
-      .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
+    // useClientStore
+    //   .getState()
+    //   .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
     useClientStore.getState().setUser(displayName);
     useClientStore.getState().setTenantName(tenantName ?? 'Unknown Tenant');
     useClientStore
       .getState()
-      .setBusinessName(
-        tenantCompleteDetails?.tenantDetails?.businessName ?? null,
-      );
-  }, [subscriptionPlan, displayName, tenantName, tenantCompleteDetails]);
+      .setBusinessName(tenantLogo?.tenantBusinessName ?? null);
+  }, [displayName, tenantName, tenantLogo]);
 
   React.useEffect(() => {
     claritySafe((c) => {
-      if (tenantCompleteDetails?.tenantDetails?.tenantName) {
-        c('set', 'tenantName', tenantCompleteDetails.tenantDetails.tenantName);
+      if (tenantName) {
+        c('set', 'tenantName', tenantName);
       }
-      if (subscriptionPlan) {
-        c('set', 'subscriptionPlan', subscriptionPlan);
-      }
+      // if (subscriptionPlan) {
+      //   c('set', 'subscriptionPlan', subscriptionPlan);
+      // }
       if (displayName) {
         c('set', 'userName', displayName);
       }
@@ -163,7 +151,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         c('set', 'userEmail', email);
       }
     });
-  }, [tenantCompleteDetails, subscriptionPlan, displayName, email]);
+  }, [tenantName, displayName, email]);
 
   return (
     <Sidebar collapsible="icon" {...props}>

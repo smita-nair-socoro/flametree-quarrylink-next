@@ -3,6 +3,11 @@
 import { QuarriesWithProduct } from '@/lib/types/quarry';
 import { cn } from '@/lib/utils';
 import { centsToDollars } from '@/lib/utils/currency';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  getCurrencySymbol,
+} from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp, Star } from 'lucide-react';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableBadges } from '@/components/table-badges';
@@ -84,6 +89,8 @@ export function computePricingMeta(
 export function createPricingColumns(
   type: PricingType,
   meta: PricingMeta,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxLabel: string = DEFAULT_TAX_LABEL,
 ): ColumnDef<QuarriesWithProduct>[] {
   const { lowestCost, bestMargin } = meta;
 
@@ -137,7 +144,7 @@ export function createPricingColumns(
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
-                <TooltipContent>Exclude GST</TooltipContent>
+                <TooltipContent>Exclude {taxLabel}</TooltipContent>
               </Tooltip>
             </span>
           }
@@ -149,7 +156,8 @@ export function createPricingColumns(
         return (
           <div>
             <p className="font-medium text-[#101828]">
-              ${cost ? centsToDollars(cost) : '0.00'}
+              {getCurrencySymbol(currencyCode)}
+              {cost ? centsToDollars(cost) : '0.00'}
             </p>
             {isLowest && (
               <p className="text-xs text-green-600 font-medium">Lowest</p>
@@ -171,7 +179,7 @@ export function createPricingColumns(
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
                 </TooltipTrigger>
-                <TooltipContent>Exclude GST</TooltipContent>
+                <TooltipContent>Exclude {taxLabel}</TooltipContent>
               </Tooltip>
             </span>
           }
@@ -179,7 +187,12 @@ export function createPricingColumns(
       ),
       cell: ({ row }) => {
         const { sell } = getPricingFields(row.original, type);
-        return <div>${sell ? centsToDollars(sell) : '0.00'}</div>;
+        return (
+          <div>
+            {getCurrencySymbol(currencyCode)}
+            {sell ? centsToDollars(sell) : '0.00'}
+          </div>
+        );
       },
     },
     {
@@ -248,6 +261,7 @@ export function MobilePricingList({
   bestMargin,
   availableOnly = false,
   sortCost = 'asc',
+  currencyCode = DEFAULT_CURRENCY_CODE,
 }: {
   data: QuarriesWithProduct[];
   pricingType: PricingType;
@@ -255,6 +269,7 @@ export function MobilePricingList({
   bestMargin: number | null;
   availableOnly?: boolean;
   sortCost?: 'asc' | 'desc';
+  currencyCode?: string;
 }) {
   const getCost = (r: QuarriesWithProduct) =>
     getPricingFields(r, pricingType).cost;
@@ -288,6 +303,7 @@ export function MobilePricingList({
             pricingType={pricingType}
             isLowestCost={isLowestCost}
             isBestMargin={isBestMargin}
+            currencyCode={currencyCode}
           />
         );
       })}
