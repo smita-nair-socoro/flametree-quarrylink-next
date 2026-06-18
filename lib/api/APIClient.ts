@@ -49,10 +49,7 @@ import {
   TenantLogoResponse,
 } from '../types/client';
 import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
-import {
-  MyobConnectResponseDTO,
-  MyobStatusResponseDTO,
-} from '../types/myob';
+import { MyobConnectResponseDTO, MyobStatusResponseDTO } from '../types/myob';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -1383,6 +1380,8 @@ export const APIClient = {
       appClient.Get<InvoiceUrlResponse>(
         `/socoro/quarrylink/api/invoices/${invoiceId}/url`,
       ),
+    getPdf: (invoiceId: number) =>
+      appClient.Get<Blob>(`/socoro/quarrylink/api/invoices/${invoiceId}/pdf`),
   },
 
   driverApp: {

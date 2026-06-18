@@ -8,8 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
-import { InvoiceByIdQueryOptions, InvoiceUrlQueryOptions } from '@/lib/api/invoices';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  InvoiceByIdQueryOptions,
+  InvoicePdfQueryOptions,
+  InvoiceUrlQueryOptions,
+} from '@/lib/api/invoices';
 import { centsToDollars } from '@/lib/utils/currency';
 import { format, formatDate } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -23,26 +27,45 @@ import {
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
+  const queryClient = useQueryClient();
   const open = useInvoiceDetailsDialogStore((s) => s.open);
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
-
-  const { data: invoiceUrl } = useQuery({
-    ...InvoiceUrlQueryOptions(invoiceId as number),
-    enabled: open && invoiceId !== undefined,
-  });
+  const accountingSoftware = useTenantStore(
+    (s) => s.tenantDetails?.accountingSoftware ?? null,
+  );
 
   const { data: invoice, isLoading } = useQuery({
     ...InvoiceByIdQueryOptions(invoiceId as number),
     enabled: open && invoiceId !== undefined,
   });
 
-  const handleDownload = () => {
-    if (invoiceUrl?.invoiceLink) {
-      window.open(invoiceUrl.invoiceLink, '_blank');
+  const handleDownload = async () => {
+    if (invoiceId == null) return;
+    console.log(accountingSoftware);
+    if (accountingSoftware === 'XERO') {
+      const invoiceUrl = await queryClient.fetchQuery(
+        InvoiceUrlQueryOptions(invoiceId),
+      );
+      if (invoiceUrl?.invoiceLink) {
+        window.open(invoiceUrl.invoiceLink, '_blank');
+      }
+      return;
+    }
+
+    if (accountingSoftware === 'MYOB_BUSINESS') {
+      const invoicePdf = await queryClient.fetchQuery(
+        InvoicePdfQueryOptions(invoiceId),
+      );
+      if (invoicePdf) {
+        const url = URL.createObjectURL(invoicePdf);
+        window.open(url, '_blank');
+        URL.revokeObjectURL(url);
+      }
     }
   };
 
@@ -159,12 +182,13 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {formatNumberThousandSeparator(
                               docket.actualLoadSize ||
-                              docket.plannedLoadSize ||
-                              0,
+                                docket.plannedLoadSize ||
+                                0,
                             )}{' '}
                             {docket.jobItem?.productSellUom === 'TN'
                               ? 'TN'
-                              : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
+                              : docket.jobItem?.productSellUom === 'M3' ||
+                                  docket.jobItem?.productSellUom === 'm3'
                                 ? 'm³'
                                 : docket.jobItem?.productSellUom === 'KG_20'
                                   ? 'x 20kg'
@@ -175,9 +199,9 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {docket.deliveryCollectionDate
                               ? formatDate(
-                                docket.deliveryCollectionDate,
-                                'MMM dd, yyyy',
-                              )
+                                  docket.deliveryCollectionDate,
+                                  'MMM dd, yyyy',
+                                )
                               : '-'}
                           </td>
                         </tr>
