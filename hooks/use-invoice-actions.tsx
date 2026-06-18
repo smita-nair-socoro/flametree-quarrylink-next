@@ -37,9 +37,7 @@ export function InvoiceDetailsDialog() {
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
   const accSoftware = useAccountingSoftwareLabel();
-  const accountingSoftware = useTenantStore(
-    (s) => s.tenantDetails?.accountingSoftware ?? null,
-  );
+  const accountingSoftware = useTenantStore((s) => s.accountingSoftware ?? null);
 
   const { data: invoice, isLoading } = useQuery({
     ...InvoiceByIdQueryOptions(invoiceId as number),
