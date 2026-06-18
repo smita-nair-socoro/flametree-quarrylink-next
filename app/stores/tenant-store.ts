@@ -7,6 +7,8 @@ interface TenantStore {
   currencyCode?: string;
   taxLabel?: string;
   taxPercentage?: number;
+  /** Raw connected accounting software, e.g. "XERO" or "MYOB_BUSINESS". */
+  accountingSoftware?: string;
 
   setTenantDetails: (tenantDetails: TenantInternalDetails) => void;
 }
@@ -18,6 +20,7 @@ export const useTenantStore = create<TenantStore>()(
       currencyCode: undefined,
       taxLabel: undefined,
       taxPercentage: undefined,
+      accountingSoftware: undefined,
 
       setTenantDetails: (tenantDetails) =>
         set({
@@ -25,6 +28,7 @@ export const useTenantStore = create<TenantStore>()(
           currencyCode: tenantDetails.currency?.toUpperCase(),
           taxLabel: tenantDetails.taxType,
           taxPercentage: tenantDetails.taxAmount,
+          accountingSoftware: tenantDetails.accountingSoftware,
         }),
     }),
     { name: 'tenant-store' },

@@ -23,12 +23,14 @@ import {
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
+import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
   const open = useInvoiceDetailsDialogStore((s) => s.open);
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
+  const accSoftware = useAccountingSoftwareLabel();
 
   const { data: invoiceUrl } = useQuery({
     ...InvoiceUrlQueryOptions(invoiceId as number),
@@ -118,7 +120,7 @@ export function InvoiceDetailsDialog() {
                   </p>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-sm text-gray-500">Xero Status</p>
+                  <p className="text-sm text-gray-500">{accSoftware} Status</p>
                   <TableBadges names={[invoice.status]} visibleCount={1} />
                 </div>
               </div>
