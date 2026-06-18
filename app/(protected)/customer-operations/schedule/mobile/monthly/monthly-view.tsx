@@ -25,9 +25,7 @@ import type {
   DispatchBoardDocketRow,
   DispatchTruckResource,
 } from '@/lib/types/docket';
-import {
-  type DispatchBoardFilterState,
-} from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
+import { type DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import {
   docketMatchesScheduleJobFilters,
   docketPassesScheduleFleetFilters,
@@ -68,7 +66,9 @@ function AgendaDocketCard({
   const location = [docket.deliverySuburb, docket.deliveryState]
     .filter(Boolean)
     .join(', ');
-  const personnel = [docket.truckName, docket.driverName].filter(Boolean).join(' · ');
+  const personnel = [docket.truckName, docket.driverName]
+    .filter(Boolean)
+    .join(' · ');
   const startTime = formatTime(docket.deliveryCollectionStartTime) || '—';
   const timeRange = formatTimeRange(
     docket.deliveryCollectionStartTime,
@@ -128,12 +128,10 @@ export function ScheduleMobileMonthlyView({
   date,
   onDateChange,
   filter,
-  onFilterChange,
 }: {
   date: Date;
   onDateChange: (next: Date) => void;
   filter: DispatchBoardFilterState;
-  onFilterChange: (next: DispatchBoardFilterState) => void;
 }) {
   const [selectedDocketId, setSelectedDocketId] = React.useState<
     number | undefined

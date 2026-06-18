@@ -58,10 +58,7 @@ export default function DeliveriesPage() {
         </div>
 
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3">
-          <DeliveriesPeriodToggle
-            value={periodView}
-            onChange={setPeriodView}
-          />
+          <DeliveriesPeriodToggle value={periodView} onChange={setPeriodView} />
           <Button
             type="button"
             variant="outline"
@@ -95,14 +92,12 @@ export default function DeliveriesPage() {
               date={selectedDate}
               onDateChange={setSelectedDate}
               filter={boardFilter}
-              onFilterChange={setBoardFilter}
             />
           ) : (
             <ScheduleMobileWeeklyView
               date={selectedDate}
               onDateChange={setSelectedDate}
               filter={boardFilter}
-              onFilterChange={setBoardFilter}
             />
           )}
         </div>
