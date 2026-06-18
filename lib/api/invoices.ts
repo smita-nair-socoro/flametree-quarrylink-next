@@ -51,7 +51,8 @@ export const useCreateInvoice = (options?: {
       queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
       queryClient.invalidateQueries({ queryKey: JobKeys.all });
-      const jobIdToRefresh = options?.jobId ?? useJobStore.getState().selectedJob?.id;
+      const jobIdToRefresh =
+        options?.jobId ?? useJobStore.getState().selectedJob?.id;
       if (jobIdToRefresh) {
         try {
           const updatedJob = await APIClient.jobs.getJobItems(jobIdToRefresh);
@@ -90,6 +91,14 @@ export const InvoiceUrlQueryOptions = (id: number) =>
   queryOptions({
     queryKey: InvoicesKeys.url(id),
     queryFn: () => APIClient.invoices.getUrl(id),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const InvoicePdfQueryOptions = (id: number) =>
+  queryOptions({
+    queryKey: InvoicesKeys.pdf(id),
+    queryFn: () => APIClient.invoices.getPdf(id),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

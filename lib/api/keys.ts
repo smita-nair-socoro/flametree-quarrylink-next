@@ -109,7 +109,8 @@ export const DocketKeys = {
 
 export const ChecklistKeys = {
   all: ['checklists'] as const,
-  truckTemplate: (truckType?: string) => [...ChecklistKeys.all, 'truck-template', truckType ?? ''] as const,
+  truckTemplate: (truckType?: string) =>
+    [...ChecklistKeys.all, 'truck-template', truckType ?? ''] as const,
   driverTemplate: () => [...ChecklistKeys.all, 'driver-template'] as const,
   truckSubmission: (submissionId: number) =>
     [...ChecklistKeys.all, 'truck-submission', submissionId] as const,
@@ -122,6 +123,7 @@ export const InvoicesKeys = {
   list: (jobId: number) => [...InvoicesKeys.all, 'list', jobId] as const,
   detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
   url: (id: number) => [...InvoicesKeys.all, 'url', id] as const,
+  pdf: (id: number) => [...InvoicesKeys.all, 'pdf', id] as const,
 };
 
 export const HaulierKeys = {
