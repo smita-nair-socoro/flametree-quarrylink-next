@@ -8,8 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useQuery } from '@tanstack/react-query';
-import { InvoiceByIdQueryOptions, InvoiceUrlQueryOptions } from '@/lib/api/invoices';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  InvoiceByIdQueryOptions,
+  InvoicePdfQueryOptions,
+  InvoiceUrlQueryOptions,
+} from '@/lib/api/invoices';
 import { centsToDollars } from '@/lib/utils/currency';
 import { format, formatDate } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -23,26 +27,64 @@ import {
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
+  const queryClient = useQueryClient();
   const open = useInvoiceDetailsDialogStore((s) => s.open);
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
-
-  const { data: invoiceUrl } = useQuery({
-    ...InvoiceUrlQueryOptions(invoiceId as number),
-    enabled: open && invoiceId !== undefined,
-  });
+  const accountingSoftware = useTenantStore(
+    (s) => s.tenantDetails?.accountingSoftware ?? null,
+  );
 
   const { data: invoice, isLoading } = useQuery({
     ...InvoiceByIdQueryOptions(invoiceId as number),
     enabled: open && invoiceId !== undefined,
   });
 
-  const handleDownload = () => {
-    if (invoiceUrl?.invoiceLink) {
-      window.open(invoiceUrl.invoiceLink, '_blank');
+  const [isDownloading, setIsDownloading] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) setIsDownloading(false);
+  }, [open]);
+
+  const handleDownload = async () => {
+    if (invoiceId == null || isDownloading) return;
+
+    setIsDownloading(true);
+    try {
+      if (accountingSoftware === 'XERO') {
+        const invoiceUrl = await queryClient.fetchQuery(
+          InvoiceUrlQueryOptions(invoiceId),
+        );
+        if (invoiceUrl?.invoiceLink) {
+          window.open(invoiceUrl.invoiceLink, '_blank');
+        }
+        return;
+      }
+
+      if (accountingSoftware === 'MYOB_BUSINESS') {
+        const invoicePdf = await queryClient.fetchQuery(
+          InvoicePdfQueryOptions(invoiceId),
+        );
+        if (!(invoicePdf instanceof Blob)) return;
+
+        const url = URL.createObjectURL(invoicePdf);
+        const opened = window.open(url, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `invoice-${invoice?.invoiceNumber ?? invoiceId}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+        window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      }
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -159,12 +201,13 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {formatNumberThousandSeparator(
                               docket.actualLoadSize ||
-                              docket.plannedLoadSize ||
-                              0,
+                                docket.plannedLoadSize ||
+                                0,
                             )}{' '}
                             {docket.jobItem?.productSellUom === 'TN'
                               ? 'TN'
-                              : docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
+                              : docket.jobItem?.productSellUom === 'M3' ||
+                                  docket.jobItem?.productSellUom === 'm3'
                                 ? 'm³'
                                 : docket.jobItem?.productSellUom === 'KG_20'
                                   ? 'x 20kg'
@@ -175,9 +218,9 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {docket.deliveryCollectionDate
                               ? formatDate(
-                                docket.deliveryCollectionDate,
-                                'MMM dd, yyyy',
-                              )
+                                  docket.deliveryCollectionDate,
+                                  'MMM dd, yyyy',
+                                )
                               : '-'}
                           </td>
                         </tr>
@@ -204,8 +247,16 @@ export function InvoiceDetailsDialog() {
                   variant="outline"
                   className="h-10 rounded-lg border-gray-300 bg-white font-semibold text-gray-900 hover:bg-gray-50"
                   onClick={handleDownload}
+                  disabled={isDownloading}
                 >
-                  Download PDF
+                  {isDownloading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Downloading…
+                    </>
+                  ) : (
+                    'Download PDF'
+                  )}
                 </Button>
               </div>
             )}
