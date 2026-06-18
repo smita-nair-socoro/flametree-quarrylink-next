@@ -42,6 +42,7 @@ export function UnassignedDockets() {
     isFetchingNextUnassignedPage,
     fetchNextUnassignedPage,
     setQueueListSortBy,
+    setQueueListSortOrder,
     openAssignTruck,
     openAssignDriver,
     openDetails,
@@ -80,11 +81,26 @@ export function UnassignedDockets() {
   React.useEffect(() => {
     if (queueDateScope === 'all_dates') {
       setQueueListSortBy(sortBy);
+      setQueueListSortOrder(sortOrder);
     }
-  }, [sortBy, queueDateScope, setQueueListSortBy]);
+  }, [
+    sortBy,
+    sortOrder,
+    queueDateScope,
+    setQueueListSortBy,
+    setQueueListSortOrder,
+  ]);
+
+  React.useEffect(() => {
+    if (queueDateScope === 'all_dates' && sortOrder === 'desc') {
+      setSortOrder('asc');
+    }
+  }, [queueDateScope, sortOrder]);
 
   const isLoading =
-    isLoadingTrucks || isLoadingDrivers || isLoadingAllUnassignedDockets;
+    isLoadingTrucks ||
+    isLoadingDrivers ||
+    (queueDateScope === 'all_dates' && isLoadingAllUnassignedDockets);
 
   const scopeDockets =
     queueDateScope === 'this_day' ? unassignedForDay : allUnassignedDockets;
@@ -196,6 +212,7 @@ export function UnassignedDockets() {
         onOpenChange={setSortOpen}
         sortBy={sortBy}
         sortOrder={sortOrder}
+        dateScope={queueDateScope}
         onSortByChange={setSortBy}
         onSortOrderChange={setSortOrder}
       />
@@ -222,8 +239,8 @@ export function UnassignedDockets() {
 
       {queueDateScope === 'all_dates' ? (
         <p className="text-xs text-[#64748B]">
-          Showing unassigned jobs across all dates. Sorted by date when sorting
-          by customer; assigning schedules on{' '}
+          Showing unassigned dockets across all dates. Sorted by date when
+          sorting by customer; assigning schedules on{' '}
           <span className="font-semibold text-[#0F172A]">
             {format(date, 'd MMM yyyy')}
           </span>
@@ -322,9 +339,7 @@ export function UnassignedDockets() {
             );
           })}
           <div ref={loadMoreRef} className="flex justify-center py-4">
-            {isFetchingNextUnassignedPage ? (
-              <Spinner size="medium" />
-            ) : null}
+            {isFetchingNextUnassignedPage ? <Spinner size="medium" /> : null}
           </div>
         </div>
       )}

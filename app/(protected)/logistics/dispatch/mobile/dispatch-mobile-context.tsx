@@ -18,6 +18,7 @@ import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
 import type {
   DispatchDriverResource,
   DispatchTruckResource,
+  DispatchUnassignedDocket,
 } from '@/lib/types/docket';
 import type { TruckResource } from '@/lib/types/truck';
 import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-driver-modal';
@@ -40,13 +41,14 @@ import {
   sortDispatchDriverList,
   sortDispatchTruckList,
   getUnassignedQueueApiSortParams,
+  mergeDispatchUnassignedDockets,
 } from '@/lib/utils/dispatch-helper';
 import {
   MobileAssignPickerDrawer,
   type MobileAssignSlot,
 } from './mobile-assign-picker-drawer';
 import type { QueueDateScope } from './queue/queue-filters-drawer';
-import type { QueueSortKey } from './queue/queue-sort-drawer';
+import type { QueueSortKey, QueueSortOrder } from './queue/queue-sort-drawer';
 
 type AssignModalData = {
   docketId: string;
@@ -110,6 +112,7 @@ type DispatchMobileContextValue = {
   isFetchingNextUnassignedPage: boolean;
   fetchNextUnassignedPage: () => void;
   setQueueListSortBy: (sortBy: QueueSortKey) => void;
+  setQueueListSortOrder: (sortOrder: QueueSortOrder) => void;
 };
 
 const DispatchMobileContext =
@@ -171,6 +174,8 @@ export function DispatchMobileProvider({
     React.useState<QueueDateScope>('this_day');
   const [queueListSortBy, setQueueListSortBy] =
     React.useState<QueueSortKey>('time');
+  const [queueListSortOrder, setQueueListSortOrder] =
+    React.useState<QueueSortOrder>('asc');
 
   const setQueueDateScope = React.useCallback((scope: QueueDateScope) => {
     setQueueDateScopeState(scope);
@@ -206,8 +211,9 @@ export function DispatchMobileProvider({
     ...DocketsInfiniteListQueryOptions({
       pageSize: 10,
       status: DOCKET_STATUS.UNASSIGNED,
-      ...getUnassignedQueueApiSortParams(queueListSortBy),
+      ...getUnassignedQueueApiSortParams(queueListSortBy, queueListSortOrder),
     }),
+    enabled: queueDateScope === 'all_dates',
   });
 
   const allUnassignedFromApi = React.useMemo(() => {
@@ -237,8 +243,6 @@ export function DispatchMobileProvider({
   }, [date]);
 
   React.useEffect(() => {
-    const globalUnassigned = allUnassignedFromApi;
-
     const truckAssigned = (trucksData?.resources || []).flatMap((r) =>
       (r.dockets || []).map((d) => mapAssignedDocket(d, String(r.id))),
     );
@@ -249,7 +253,23 @@ export function DispatchMobileProvider({
     const assignedIds = new Set(
       [...truckAssigned, ...driverAssigned].map((d) => d.id),
     );
-    const unassigned = globalUnassigned.filter((u) => !assignedIds.has(u.id));
+
+    const schedulerUnassignedById = new Map<number, DispatchUnassignedDocket>();
+    for (const u of [
+      ...(trucksData?.unassignedDockets ?? []),
+      ...(driversData?.unassignedDockets ?? []),
+    ]) {
+      schedulerUnassignedById.set(u.id, u);
+    }
+
+    const globalForMerge =
+      queueDateScope === 'all_dates' ? allUnassignedFromApi : [];
+
+    const unassigned = mergeDispatchUnassignedDockets(
+      Array.from(schedulerUnassignedById.values()),
+      globalForMerge,
+      assignedIds,
+    );
 
     const merged = [...truckAssigned, ...driverAssigned, ...unassigned];
 
@@ -268,7 +288,12 @@ export function DispatchMobileProvider({
         };
       });
     });
-  }, [trucksData, driversData, allUnassignedFromApi]);
+  }, [
+    trucksData,
+    driversData,
+    allUnassignedFromApi,
+    queueDateScope,
+  ]);
 
   const truckResources: TruckResource[] = React.useMemo(() => {
     const mapped = (trucksData?.resources || []).map((r) => {
@@ -332,8 +357,12 @@ export function DispatchMobileProvider({
 
   const unassignedForDay = React.useMemo(
     () =>
-      allUnassignedDockets.filter((d) => isDocketOnSelectedLocalDay(d, date)),
-    [allUnassignedDockets, date],
+      dockets.filter(
+        (d) =>
+          d.docketStatus === DOCKET_STATUS.UNASSIGNED &&
+          isDocketOnSelectedLocalDay(d, date),
+      ),
+    [dockets, date],
   );
 
   const truckAssignedDockets = React.useMemo(() => {
@@ -616,6 +645,7 @@ export function DispatchMobileProvider({
       void fetchNextPage();
     },
     setQueueListSortBy,
+    setQueueListSortOrder,
   };
 
   return (

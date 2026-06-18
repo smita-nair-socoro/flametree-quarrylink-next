@@ -23,11 +23,14 @@ function scheduleUnlockBodyPointerEvents() {
   });
 }
 
+import type { QueueDateScope } from './queue-filters-drawer';
+
 export function QueueSortDrawer({
   open,
   onOpenChange,
   sortBy,
   sortOrder,
+  dateScope,
   onSortByChange,
   onSortOrderChange,
 }: {
@@ -35,6 +38,7 @@ export function QueueSortDrawer({
   onOpenChange: (open: boolean) => void;
   sortBy: QueueSortKey;
   sortOrder: QueueSortOrder;
+  dateScope?: QueueDateScope;
   onSortByChange: (value: QueueSortKey) => void;
   onSortOrderChange: (value: QueueSortOrder) => void;
 }) {
@@ -50,7 +54,7 @@ export function QueueSortDrawer({
           <div>
             <DrawerTitle className="text-xl font-bold text-[#0F172A]">Sort queue</DrawerTitle>
             <p className="mt-1 text-sm text-[#64748B]">
-              Choose how unassigned jobs are ordered.
+              Choose how unassigned dockets are ordered.
             </p>
           </div>
 
@@ -86,6 +90,12 @@ export function QueueSortDrawer({
             <p className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
               Order
             </p>
+            {dateScope === 'all_dates' ? (
+              <p className="mt-1 text-xs text-[#64748B]">
+                All dates uses ascending server order so new pages load at the
+                bottom.
+              </p>
+            ) : null}
             <div className="mt-2 grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -101,9 +111,10 @@ export function QueueSortDrawer({
               </button>
               <button
                 type="button"
+                disabled={dateScope === 'all_dates'}
                 onClick={() => onSortOrderChange('desc')}
                 className={cn(
-                  'rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors',
+                  'rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
                   sortOrder === 'desc'
                     ? 'border-[#8E51FF] bg-[#F5F3FF] text-[#7C3AED]'
                     : 'border-gray-200 bg-white text-[#64748B]',

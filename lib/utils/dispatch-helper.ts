@@ -649,17 +649,20 @@ export function dayBucketMs(iso: string | undefined): number {
 export type UnassignedQueueSortKey = 'time' | 'size' | 'customer';
 
 /** Server sort for infinite unassigned list — must match API page order so new pages append at the bottom. */
-export function getUnassignedQueueApiSortParams(sortBy: UnassignedQueueSortKey): {
+export function getUnassignedQueueApiSortParams(
+  sortBy: UnassignedQueueSortKey,
+  sortOrder: 'asc' | 'desc' = 'asc',
+): {
   sortBy: string;
-  sortOrder: 'asc';
+  sortOrder: 'asc' | 'desc';
 } {
   switch (sortBy) {
     case 'time':
-      return { sortBy: 'deliveryCollectionStartTime', sortOrder: 'asc' };
+      return { sortBy: 'deliveryCollectionStartTime', sortOrder };
     case 'size':
-      return { sortBy: 'plannedLoadSize', sortOrder: 'asc' };
+      return { sortBy: 'plannedLoadSize', sortOrder };
     case 'customer':
-      return { sortBy: 'customerName', sortOrder: 'asc' };
+      return { sortBy: 'customerName', sortOrder };
   }
 }
 

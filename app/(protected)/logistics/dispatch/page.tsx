@@ -31,14 +31,14 @@ function MobileDispatchTabs() {
       defaultValue="queue"
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
     >
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC]">
-        <TabsContent value="queue" className="mt-0 h-full">
+      <div className="min-h-0 flex-1 overflow-hidden bg-[#F8FAFC]">
+        <TabsContent value="queue" className="mt-0 h-full overflow-y-auto">
           <UnassignedDockets />
         </TabsContent>
-        <TabsContent value="trucks" className="mt-0 h-full">
+        <TabsContent value="trucks" className="mt-0 h-full overflow-y-auto">
           <AssignedDockets viewType="trucks" />
         </TabsContent>
-        <TabsContent value="drivers" className="mt-0 h-full">
+        <TabsContent value="drivers" className="mt-0 h-full overflow-y-auto">
           <AssignedDockets viewType="drivers" />
         </TabsContent>
       </div>
