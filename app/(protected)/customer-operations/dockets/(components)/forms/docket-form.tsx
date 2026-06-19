@@ -1429,7 +1429,7 @@ export default function DocketForm({
                       name="deliveryCollectionDate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Delivery Date*</FormLabel>
+                          <FormLabel>{selectedJobLineItemDetails().type !== 'COLLECTION' ? 'Delivery Date*' : 'Collection Date*'}</FormLabel>
                           <FormControl>
                             <DatePicker
                               value={field.value}

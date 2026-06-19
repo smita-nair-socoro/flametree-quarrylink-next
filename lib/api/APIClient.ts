@@ -65,6 +65,8 @@ import {
   DocketStatistics,
   DuplicateDocketRequest,
   DuplicateDocketResponse,
+  DocketsListResponse,
+  DocketsPage,
 } from '../types/docket';
 import {
   JobDTO,
@@ -850,12 +852,7 @@ export const APIClient = {
       const pageSize = params?.pageSize ?? params?.size;
 
       const response = await appClient.Get<
-        | DocketDTO[]
-        | {
-            content: DocketDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
+        DocketDTO[] | DocketsListResponse | DocketsPage
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),

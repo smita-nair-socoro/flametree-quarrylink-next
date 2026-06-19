@@ -15,7 +15,7 @@ import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { DocketsInfiniteListQueryOptions } from '@/lib/api/docket';
+import { DocketsInfiniteListQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useDebounce } from '@/hooks/use-debounce';
@@ -48,21 +48,25 @@ function getAllDatesApiSortParams(sortBy: UnassignedSortKey): {
   }
 }
 
-function DraggableDocketCard({
+function UnassignedDocketCardView({
   docket,
   activeTab,
   isSelected,
   onSelect,
+  dragEnabled,
+  setNodeRef,
+  dragHandleProps,
+  isDragging = false,
 }: {
   docket: DispatchDocket;
   activeTab: string;
   isSelected?: boolean;
   onSelect?: () => void;
+  dragEnabled: boolean;
+  setNodeRef?: (node: HTMLElement | null) => void;
+  dragHandleProps?: Record<string, unknown>;
+  isDragging?: boolean;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: String(docket.id),
-  });
-
   return (
     <div
       ref={setNodeRef}
@@ -74,11 +78,16 @@ function DraggableDocketCard({
     >
       {/* Drag Handle Area */}
       <div
-        {...listeners}
-        {...attributes}
-        className="w-8 bg-[#FEFCE8] flex items-center justify-center border-r border-[#E2E8F0] shrink-0 cursor-grab active:cursor-grabbing"
+        {...(dragEnabled ? dragHandleProps : {})}
+        className={`w-8 flex items-center justify-center border-r border-[#E2E8F0] shrink-0 ${dragEnabled
+          ? 'bg-[#FEFCE8] cursor-grab active:cursor-grabbing'
+          : 'bg-[#F8FAFC] cursor-default'
+          }`}
+        aria-hidden={!dragEnabled}
       >
-        <GripVertical className="h-4 w-4 text-[#D97706]" />
+        <GripVertical
+          className={`h-4 w-4 ${dragEnabled ? 'text-[#D97706]' : 'text-[#CBD5E1]'}`}
+        />
       </div>
 
       {/* Card Content */}
@@ -139,6 +148,70 @@ function DraggableDocketCard({
         </div>
       </div>
     </div>
+  );
+}
+
+function UnassignedDocketCardDraggable({
+  docket,
+  activeTab,
+  isSelected,
+  onSelect,
+}: {
+  docket: DispatchDocket;
+  activeTab: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: String(docket.id),
+  });
+
+  return (
+    <UnassignedDocketCardView
+      docket={docket}
+      activeTab={activeTab}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      dragEnabled
+      setNodeRef={setNodeRef}
+      dragHandleProps={{ ...listeners, ...attributes }}
+      isDragging={isDragging}
+    />
+  );
+}
+
+function DraggableDocketCard({
+  docket,
+  activeTab,
+  isSelected,
+  onSelect,
+  dragEnabled = true,
+}: {
+  docket: DispatchDocket;
+  activeTab: string;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  dragEnabled?: boolean;
+}) {
+  if (!dragEnabled) {
+    return (
+      <UnassignedDocketCardView
+        docket={docket}
+        activeTab={activeTab}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        dragEnabled={false}
+      />
+    );
+  }
+
+  return (
+    <UnassignedDocketCardDraggable
+      docket={docket}
+      activeTab={activeTab}
+      isSelected={isSelected}
+      onSelect={onSelect}
+    />
   );
 }
 
@@ -211,6 +284,7 @@ export default function UnassignedDockets({
   isLoading,
   selectedDocketId,
   onSelectDocket,
+  dragEnabled = true,
 }: {
   date: Date;
   dockets: DispatchDocket[];
@@ -218,6 +292,7 @@ export default function UnassignedDockets({
   isLoading?: boolean;
   selectedDocketId?: string | null;
   onSelectDocket?: (id: string) => void;
+  dragEnabled?: boolean;
 }) {
   const [activeTab, setActiveTab] = React.useState<'this_day' | 'all_dates'>(
     'this_day',
@@ -256,7 +331,7 @@ export default function UnassignedDockets({
     const raw: DocketDTO[] = [];
 
     for (const page of pages) {
-      const items = Array.isArray(page) ? page : (page.content ?? []);
+      const items = getDocketItemsFromListResponse(page);
       for (const docket of items) {
         if (seenIds.has(docket.id)) continue;
         seenIds.add(docket.id);
@@ -362,6 +437,7 @@ export default function UnassignedDockets({
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: 'unassigned-queue',
+    disabled: !dragEnabled,
   });
 
   return (
@@ -379,7 +455,7 @@ export default function UnassignedDockets({
             <h2 className="text-[22px] font-bold text-[#0F172A]">Unassigned</h2>
           </div>
           <div className="px-3 py-1.5 rounded-full border border-[#FDE68A] text-[12px] font-medium text-[#B45309]">
-            Drag out to assign
+            {dragEnabled ? 'Drag out to assign' : 'View only'}
           </div>
         </div>
 
@@ -413,12 +489,23 @@ export default function UnassignedDockets({
 
         {activeTab === 'all_dates' && (
           <p className="text-[13px] text-[#64748B] leading-relaxed">
-            Sorted by date, then by your sort option. Dragging onto the board
-            schedules on{' '}
-            <span className="font-bold text-[#0F172A]">
-              {format(date, 'EEEE, d MMMM yyyy')}
-            </span>
-            .
+            {dragEnabled
+              ? (
+                <>
+                  Sorted by date, then by your sort option. Dragging onto the board
+                  schedules on{' '}
+                  <span className="font-bold text-[#0F172A]">
+                    {format(date, 'EEEE, d MMMM yyyy')}
+                  </span>
+                  .
+                </>
+              )
+              : (
+                <>
+                  Sorted by date, then by your sort option. Past dates are
+                  view-only — switch to today or a future date to assign.
+                </>
+              )}
           </p>
         )}
 
@@ -465,7 +552,7 @@ export default function UnassignedDockets({
 
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3"
+        className="flex-1 overflow-y-auto px-4 pb-4 flex flex-col gap-3 pt-3"
       >
         {isQueueLoading ? (
           <div className="flex flex-col items-center justify-center gap-2 h-full text-sm text-gray-500 font-medium">
@@ -490,6 +577,7 @@ export default function UnassignedDockets({
                 activeTab={activeTab}
                 isSelected={selectedDocketId === String(docket.id)}
                 onSelect={() => onSelectDocket?.(String(docket.id))}
+                dragEnabled={dragEnabled}
               />
             ))}
             {activeTab === 'all_dates' && (
