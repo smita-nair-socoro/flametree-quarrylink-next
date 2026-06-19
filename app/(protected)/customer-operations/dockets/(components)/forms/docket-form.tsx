@@ -151,7 +151,6 @@ export default function DocketForm({
     overProductMax?: boolean;
     isGenericTruck?: boolean;
   } | null>(null);
-  const isReadOnly = Boolean(id) && !canEdit;
   const createDocket = useCreateDocket();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
@@ -203,6 +202,7 @@ export default function DocketForm({
 
   const currentStatus = selectedDocket?.docketStatus;
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
+  const isReadOnly = Boolean(id) && !canEdit && currentStatus !== DOCKET_STATUS.PENDING;
 
   const isAssigned = currentStatus === DOCKET_STATUS.ASSIGNED;
   const canEditTruckType =
@@ -212,6 +212,12 @@ export default function DocketForm({
     currentStatus === DOCKET_STATUS.UNASSIGNED ||
     currentStatus === DOCKET_STATUS.PENDING ||
     currentStatus === DOCKET_STATUS.ASSIGNED;
+
+  const canEditCollectionDate =
+    !isEditing ||
+    (!isDelivery &&
+      (currentStatus === DOCKET_STATUS.PREPARING ||
+        currentStatus === DOCKET_STATUS.READY));
 
   const canEditDocketEmail =
     !isEditing ||
@@ -436,7 +442,7 @@ export default function DocketForm({
   async function handleReadOnlyUpdate(
     values: z.infer<typeof DocketFormSchema>,
   ) {
-    if (!isEditing || (!canActualLoadSize && !canEditDocketEmail)) return;
+    if (!isEditing || (!canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate)) return;
 
     const actualLoadSize = values.actualLoadSize;
     const docketEmails = values.docketEmail
@@ -446,6 +452,29 @@ export default function DocketForm({
       checkWindowTimeConflict: false,
     };
 
+    if (canEditCollectionDate) {
+      if (values.deliveryCollectionDate) {
+        payload.deliveryCollectionDate = appendUtcSuffix(
+          format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
+        );
+      }
+      let startDateTime = values.deliveryCollectionStartTime;
+      let endDateTime = values.deliveryCollectionEndTime;
+      if (values.deliveryCollectionDate) {
+        if (startDateTime && !startDateTime.includes('T')) {
+          startDateTime =
+            combineDateAndTime(values.deliveryCollectionDate, startDateTime) ??
+            startDateTime;
+        }
+        if (endDateTime && !endDateTime.includes('T')) {
+          endDateTime =
+            combineDateAndTime(values.deliveryCollectionDate, endDateTime) ??
+            endDateTime;
+        }
+      }
+      if (startDateTime) payload.deliveryStartWindow = appendUtcSuffix(startDateTime);
+      if (endDateTime) payload.deliveryEndWindow = appendUtcSuffix(endDateTime);
+    }
     if (canEditDocketEmail) {
       payload.docketEmailRecipients = docketEmails;
     }
@@ -1436,7 +1465,7 @@ export default function DocketForm({
                               onChangeAction={field.onChange}
                               placeholder="Pick a date"
                               disabled={{ before: today }}
-                              readOnly={isReadOnly}
+                              readOnly={isReadOnly && !canEditCollectionDate}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1549,7 +1578,7 @@ export default function DocketForm({
                               key={`start-${field.value || 'empty'}`}
                               value={field.value || ''}
                               onValueChange={field.onChange}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly && !canEditCollectionDate}
                             >
                               <SelectTrigger
                                 className="w-full"
@@ -1586,7 +1615,7 @@ export default function DocketForm({
                               key={`end-${field.value || 'empty'}`}
                               value={field.value || ''}
                               onValueChange={field.onChange}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly && !canEditCollectionDate}
                             >
                               <SelectTrigger
                                 className="w-full"
@@ -2075,7 +2104,7 @@ export default function DocketForm({
                     docketForm.handleSubmit(onSubmit, scrollToFirstError)()
                   }
                   disabled={
-                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
+                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
                     isSubmitting
                   }
                 >
@@ -2093,7 +2122,7 @@ export default function DocketForm({
                     docketForm.handleSubmit(onSubmit, scrollToFirstError)()
                   }
                   disabled={
-                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail) ||
+                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
                     isSubmitting
                   }
                 >
