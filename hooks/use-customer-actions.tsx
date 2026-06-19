@@ -510,10 +510,9 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         err.message ??
         '';
 
-      if (apiErrorMessage.includes('Local archive was successful. Reverting local archive.')) {
+      if (apiErrorMessage.includes('Local archive was successful')) {
         // Strip the raw accounting software JSON — only show the human-readable prefix
-        const friendlyMessage = apiErrorMessage.split('Reason:')[0].trim().replace(/\.*$/, '.');
-        notifyError(friendlyMessage);
+        notifyError('Archive customer failed! Failed at linked accounting software. Reverting QuarryLink archive.');
         if (customerId) {
           queryClient.invalidateQueries({
             queryKey: CustomerKeys.detail(customerId),
