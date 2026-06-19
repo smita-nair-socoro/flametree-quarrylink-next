@@ -226,6 +226,21 @@ export interface InvoiceUrlResponse {
   invoiceLink: string;
 }
 
+export interface CreatedInvoiceDTO {
+  internalInvoiceId: number;
+  externalInvoiceId: string;
+  idempotencyKey: string;
+  internalStatus: string;
+  externalStatus: string;
+  externalInvoiceNumber: string;
+  invoiceDate: string;
+  dueDate: string;
+}
+
+export interface CreateInvoiceResponseDTO {
+  invoices: CreatedInvoiceDTO[];
+}
+
 export interface JobStatistics {
   jobsInProgress: number;
   uninvoicedDocketsValue: number;

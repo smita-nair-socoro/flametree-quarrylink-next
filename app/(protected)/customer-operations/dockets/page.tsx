@@ -12,6 +12,9 @@ import {
   DocketStatisticsQueryOptions,
   toDocketApiFilterParams,
   toDocketApiSortParams,
+  getDocketsPageFromListResponse,
+  buildDocketFacetOptions,
+  isDocketsListResponse,
 } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
@@ -80,28 +83,33 @@ export default function DocketsPage() {
     enabled: !linkedJobId,
   });
 
-  const dockets = allDockets;
+  const docketPage = React.useMemo(
+    () => getDocketsPageFromListResponse(allDockets),
+    [allDockets],
+  );
+
+  const facetOptions = React.useMemo(
+    () =>
+      buildDocketFacetOptions(
+        isDocketsListResponse(allDockets) ? allDockets : null,
+      ),
+    [allDockets],
+  );
+
   const isLoading = isAllDocketsLoading;
   const isError = isAllDocketsError;
   const error = allDocketsError;
 
   const items: DocketDTO[] = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets)
-      ? dockets
-      : (dockets?.content ?? []);
-    return list.map((docket) => ({
+    return (docketPage?.content ?? []).map((docket) => ({
       ...docket,
     })) as DocketDTO[];
-  }, [dockets]);
+  }, [docketPage]);
 
-  const totalElements =
-    !Array.isArray(dockets) && dockets?.totalElements != null
-      ? dockets.totalElements
-      : items.length;
+  const totalElements = docketPage?.totalElements ?? items.length;
   const totalPages =
-    !Array.isArray(dockets) && dockets?.totalPages != null
-      ? dockets.totalPages
-      : Math.max(1, Math.ceil(totalElements / pageSize));
+    docketPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -201,12 +209,31 @@ export default function DocketsPage() {
 
   const { actions, viewDialog, confirmDialogs } = useDocketActions();
 
-  const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status' },
-    { column: 'product', title: 'Product' },
-    { column: 'customer', title: 'Customer' },
-    { column: 'docketType', title: 'Type' },
-  ];
+  const facetDefs: FacetDefinition[] = React.useMemo(
+    () => [
+      {
+        column: 'status',
+        title: 'Status',
+        options: facetOptions.statuses,
+      },
+      {
+        column: 'product',
+        title: 'Product',
+        options: facetOptions.products,
+      },
+      {
+        column: 'customer',
+        title: 'Customer',
+        options: facetOptions.customers,
+      },
+      {
+        column: 'docketType',
+        title: 'Type',
+        options: facetOptions.types,
+      },
+    ],
+    [facetOptions],
+  );
 
   const handleRowClick = (row: DocketDTO) => {
     actions.view(row);

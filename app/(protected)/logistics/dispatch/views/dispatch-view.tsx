@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
-import { format, startOfDay, endOfDay } from 'date-fns';
+import { format, startOfDay, endOfDay, isBefore } from 'date-fns';
 import {
   DndContext,
   DragEndEvent,
@@ -32,7 +32,6 @@ import {
 import {
   useAssignDocket,
   useUnassignDocket,
-  DocketsListQueryOptions,
 } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -44,8 +43,7 @@ import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
   buildDispatchAssignmentWindows,
   DispatchDocket,
-  mapUnassignedDocketDtoToBoardRow,
-  mergeDispatchUnassignedDockets,
+  mapSchedulerUnassignedDocketsToBoardRows,
   isDispatchTruckResource,
   isDispatchDriverResource,
   truckMatchesFleetFilters,
@@ -79,6 +77,19 @@ function countTrucksWithAssignedBookingsOnSelectedDay(
   ).length;
 }
 
+type DispatchDragData = {
+  docket: DispatchDocket;
+};
+
+function getDocketFromDragActive(
+  active: DragStartEvent['active'],
+  dockets: DispatchDocket[],
+): DispatchDocket | undefined {
+  const fromDrag = (active.data.current as DispatchDragData | undefined)?.docket;
+  if (fromDrag) return fromDrag;
+  return dockets.find((d) => String(d.id) === String(active.id));
+}
+
 /** Driver id for IN_TRANSIT / ARRIVED stats: full docket, or truck row in trucks view, or driver row id in drivers view. */
 function resolveDriverIdForTripStats(
   d: DispatchDocket,
@@ -106,13 +117,17 @@ export function DispatchView({
   viewType: 'trucks' | 'drivers';
 }) {
   const [dockets, setDockets] = useState<DispatchDocket[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
   const [assignModalData, setAssignModalData] = useState<{
     docketId: string;
     targetId: string;
     time: string;
+    docket: DispatchDocket;
   } | null>(null);
+
+  const [activeDragDocket, setActiveDragDocket] = useState<DispatchDocket | null>(
+    null,
+  );
 
   const [pendingUnassignDocketId, setPendingUnassignDocketId] = useState<
     string | null
@@ -143,8 +158,17 @@ export function DispatchView({
     }
   }, [viewType]);
 
-  const start = useMemo(() => startOfDay(date).toISOString(), [date]);
-  const end = useMemo(() => endOfDay(date).toISOString(), [date]);
+  const start = useMemo(
+    () => `${formatLocalISO(startOfDay(date))}Z`,
+    [date],
+  );
+  const end = useMemo(() => `${formatLocalISO(endOfDay(date))}Z`, [date]);
+  const isPastDispatchDate = useMemo(
+    () => isBefore(startOfDay(date), startOfDay(new Date())),
+    [date],
+  );
+  const isDispatchTodayOrFuture = !isPastDispatchDate;
+  const boardInteractionMode = isPastDispatchDate ? 'view-only' : 'full';
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(start, end),
@@ -154,10 +178,6 @@ export function DispatchView({
   const { data: driversData, isLoading: isLoadingDrivers } = useQuery({
     ...SchedulerDriversQueryOptions(start, end),
     enabled: viewType === 'drivers',
-  });
-
-  const { data: allDocketsData } = useQuery({
-    ...DocketsListQueryOptions(),
   });
 
   /** Trucks endpoint used for “Trucks booked” when the board is in drivers view. */
@@ -173,16 +193,6 @@ export function DispatchView({
 
   useEffect(() => {
     let newDockets: DispatchDocket[] = [];
-
-    const allUnassignedList = Array.isArray(allDocketsData)
-      ? allDocketsData
-      : allDocketsData && 'content' in allDocketsData
-        ? allDocketsData.content
-        : [];
-
-    const globalUnassigned = allUnassignedList
-      .filter((d) => d.docketStatus === DOCKET_STATUS.UNASSIGNED)
-      .map(mapUnassignedDocketDtoToBoardRow);
 
     if (viewType === 'trucks' && trucksData) {
       const assigned = (trucksData.resources || []).flatMap((r) =>
@@ -209,9 +219,8 @@ export function DispatchView({
         }),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
-      const unassigned = mergeDispatchUnassignedDockets(
+      const unassigned = mapSchedulerUnassignedDocketsToBoardRows(
         trucksData.unassignedDockets ?? [],
-        globalUnassigned,
         assignedIds,
       );
       newDockets = [...assigned, ...unassigned];
@@ -240,9 +249,8 @@ export function DispatchView({
         }),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
-      const unassigned = mergeDispatchUnassignedDockets(
+      const unassigned = mapSchedulerUnassignedDocketsToBoardRows(
         driversData.unassignedDockets ?? [],
-        globalUnassigned,
         assignedIds,
       );
       newDockets = [...assigned, ...unassigned];
@@ -263,7 +271,7 @@ export function DispatchView({
         };
       });
     });
-  }, [trucksData, driversData, allDocketsData, viewType]);
+  }, [trucksData, driversData, viewType]);
 
   const mappedResources: TruckResource[] = useMemo(() => {
     if (viewType === 'trucks' && trucksData) {
@@ -524,10 +532,14 @@ export function DispatchView({
     };
   }, [docketsForSelectedDay, viewType, trucksData, trucksDataForStats, date]);
 
-  const applyUtilisationForDocket = (docketId: string) => {
+  const applyUtilisationForDocket = (
+    docketId: string,
+    sourceDocket?: DispatchDocket,
+  ) => {
     if (viewType !== 'trucks') return;
 
-    const d = dockets.find((x) => String(x.id) === docketId);
+    const d =
+      sourceDocket ?? dockets.find((x) => String(x.id) === docketId);
     if (!d) return;
 
     const loadSize = d.actualLoadSize || d.plannedLoadSize || 0;
@@ -537,32 +549,35 @@ export function DispatchView({
   };
 
   const handleDragStart = (event: DragStartEvent) => {
-    const id = event.active.id as string;
-    const docket = dockets.find((d) => String(d.id) === id);
+    if (isPastDispatchDate) {
+      return;
+    }
 
-    setActiveId(id);
+    const id = event.active.id as string;
+    const docket = getDocketFromDragActive(event.active, dockets);
+
+    setActiveDragDocket(docket ?? null);
     setSelectedDocketId(id);
 
     if (docket?.docketStatus === DOCKET_STATUS.UNASSIGNED) {
-      applyUtilisationForDocket(id);
+      applyUtilisationForDocket(id, docket);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    const docketId = active.id as string;
+    setActiveDragDocket(null);
 
-    if (!over) {
-      setActiveId(null);
+    if (isPastDispatchDate || !over) {
       return;
     }
 
+    const docketId = active.id as string;
+    const draggedDocket = getDocketFromDragActive(active, dockets);
     const overId = over.id as string;
 
     if (overId === 'unassigned-queue') {
-      setActiveId(null);
-      const docket = dockets.find((d) => String(d.id) === docketId);
-      if (docket && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+      if (draggedDocket && draggedDocket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
         return;
       }
       setPendingUnassignDocketId(docketId);
@@ -573,37 +588,34 @@ export function DispatchView({
     if (match) {
       const [, targetId, time] = match;
 
-      const docket = dockets.find((d) => String(d.id) === docketId);
-      if (
-        docket &&
-        docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
-        docket.docketStatus !== DOCKET_STATUS.ASSIGNED
-      ) {
-        setActiveId(null);
+      const docket = draggedDocket;
+      if (!docket) {
         return;
       }
 
       if (
-        docket &&
+        docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
+        docket.docketStatus !== DOCKET_STATUS.ASSIGNED
+      ) {
+        return;
+      }
+
+      if (
         docket.uiAssignedTruckId === targetId &&
         docket.uiAssignedTime === time
       ) {
-        setActiveId(null);
         return;
       }
 
       setSelectedDocketId(docketId);
-      setActiveId(null);
-      applyUtilisationForDocket(docketId);
-      setAssignModalData({ docketId, targetId, time });
+      applyUtilisationForDocket(docketId, docket);
+      setAssignModalData({ docketId, targetId, time, docket });
       return;
     }
-
-    setActiveId(null);
   };
 
   const handleDragCancel = () => {
-    setActiveId(null);
+    setActiveDragDocket(null);
   };
 
   const handleUpdateDocket = (
@@ -616,6 +628,8 @@ export function DispatchView({
   };
 
   const handleResizeDocket = (docketId: string, newDuration: number) => {
+    if (isPastDispatchDate) return;
+
     const docket = dockets.find((d) => String(d.id) === docketId);
     if (!docket || !docket.uiAssignedTruckId) return;
 
@@ -685,9 +699,7 @@ export function DispatchView({
     );
   };
 
-  const activeDocket = activeId
-    ? dockets.find((d) => String(d.id) === activeId)
-    : null;
+  const activeDocket = activeDragDocket;
 
   const handleSelectUnassignedDocket = (id: string) => {
     setSelectedDocketId(id);
@@ -805,8 +817,9 @@ export function DispatchView({
   ) => {
     if (!assignModalData) return;
 
-    const { docketId, targetId, time } = assignModalData;
-    const docket = dockets.find((d) => String(d.id) === docketId);
+    const { docketId, targetId, time, docket: modalDocket } = assignModalData;
+    const docket =
+      modalDocket ?? dockets.find((d) => String(d.id) === docketId);
     const plannedLoad =
       adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
@@ -835,32 +848,36 @@ export function DispatchView({
       },
       {
         onSuccess: () => {
-          setDockets((prev) =>
-            prev.map((d) =>
-              String(d.id) === docketId
+          setDockets((prev) => {
+            const existing = prev.find((d) => String(d.id) === docketId);
+            const base = existing ?? modalDocket;
+            const updated: DispatchDocket = {
+              ...base,
+              uiAssignedTruckId: targetId,
+              uiAssignedTime: time,
+              plannedLoadSize: plannedLoad,
+              actualLoadSize: adjustedLoadSize ?? base.actualLoadSize,
+              loadSize: plannedLoad,
+              deliveryCollectionDate:
+                formatLocalISO(startWindow).split('T')[0] + 'T00:00:00.000',
+              deliveryCollectionStartTime: formatLocalISO(startWindow),
+              deliveryCollectionEndTime: formatLocalISO(endWindow),
+              docketStatus: DOCKET_STATUS.ASSIGNED,
+              ...(adjustedLoadSize != null
                 ? {
-                  ...d,
-                  uiAssignedTruckId: targetId,
-                  uiAssignedTime: time,
-                  plannedLoadSize: plannedLoad,
-                  actualLoadSize: adjustedLoadSize ?? d.actualLoadSize,
-                  loadSize: plannedLoad,
-                  deliveryCollectionDate:
-                    formatLocalISO(startWindow).split('T')[0] +
-                    'T00:00:00.000',
-                  deliveryCollectionStartTime: formatLocalISO(startWindow),
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: DOCKET_STATUS.ASSIGNED,
-                  ...(adjustedLoadSize != null
-                    ? {
-                      actualLoadSize: adjustedLoadSize,
-                      plannedLoadSize: adjustedLoadSize,
-                    }
-                    : {}),
+                  actualLoadSize: adjustedLoadSize,
+                  plannedLoadSize: adjustedLoadSize,
                 }
-                : d,
-            ),
-          );
+                : {}),
+            };
+
+            if (existing) {
+              return prev.map((d) =>
+                String(d.id) === docketId ? updated : d,
+              );
+            }
+            return [...prev, updated];
+          });
           setUtilisationFocus((prev) => {
             if (prev?.docketId !== docketId) return prev;
             if (adjustedLoadSize != null) {
@@ -874,9 +891,7 @@ export function DispatchView({
     );
   };
 
-  const assignModalDocket = assignModalData
-    ? dockets.find((d) => String(d.id) === assignModalData.docketId)
-    : null;
+  const assignModalDocket = assignModalData?.docket ?? null;
 
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
@@ -954,6 +969,7 @@ export function DispatchView({
               isLoading={isLoading}
               selectedDocketId={selectedDocketId}
               onSelectDocket={handleSelectUnassignedDocket}
+              dragEnabled={isDispatchTodayOrFuture}
             />
           </div>
           <div className="flex-1 min-w-0">
@@ -967,6 +983,7 @@ export function DispatchView({
               onSelectDocket={handleSelectAssignedDocket}
               viewType={viewType}
               utilisationFocus={utilisationFocus}
+              boardInteractionMode={boardInteractionMode}
             />
           </div>
           {selectedDocketId && (

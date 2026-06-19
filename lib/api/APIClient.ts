@@ -65,6 +65,8 @@ import {
   DocketStatistics,
   DuplicateDocketRequest,
   DuplicateDocketResponse,
+  DocketsListResponse,
+  DocketsPage,
 } from '../types/docket';
 import {
   JobDTO,
@@ -77,6 +79,7 @@ import {
   RetrySyncResponse,
   InvoiceUrlResponse,
   JobStatistics,
+  CreateInvoiceResponseDTO,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -850,12 +853,7 @@ export const APIClient = {
       const pageSize = params?.pageSize ?? params?.size;
 
       const response = await appClient.Get<
-        | DocketDTO[]
-        | {
-            content: DocketDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
+        DocketDTO[] | DocketsListResponse | DocketsPage
       >(`/socoro/quarrylink/api/dockets`, {
         queryString: {
           page: params?.page?.toString(),
@@ -1371,7 +1369,7 @@ export const APIClient = {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) =>
-      appClient.Post<void>(`/socoro/quarrylink/api/invoices`, { body: data }),
+      appClient.Post<CreateInvoiceResponseDTO>(`/socoro/quarrylink/api/invoices`, { body: data }),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(
         `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,

@@ -1,13 +1,13 @@
 Hi {RecipientName},
 
-This is to notify you that an invoice has FAILED TO SYNC with Xero.
+This is to notify you that an invoice has FAILED TO SYNC with your accounting software.
 
 Job Number: {JobNumber}
 Customer: {CustomerName}
 Error Message: {ErrorMessage}
 Attempted At: {Timestamp}
 
-The invoice associated with this job was not successfully synced to Xero. Please review the error and take action.
+The invoice associated with this job was not successfully synced to your accounting software. Please review the error and take action.
 
 View Job: {JobUrl}
 
