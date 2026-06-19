@@ -638,6 +638,23 @@ export function dayBucketMs(iso: string | undefined): number {
 
 export type UnassignedQueueSortKey = 'time' | 'size' | 'customer';
 
+/** True while scheduler data is not ready to show (incl. keepPreviousData refetches). */
+export function isSchedulerQueryLoading(options: {
+  isPending: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isPlaceholderData: boolean;
+  hasData: boolean;
+}): boolean {
+  const { isPending, isLoading, isFetching, isPlaceholderData, hasData } =
+    options;
+  return (
+    isPending ||
+    isLoading ||
+    (isFetching && (isPlaceholderData || !hasData))
+  );
+}
+
 /** Server sort for infinite unassigned list — must match API page order so new pages append at the bottom. */
 export function getUnassignedQueueApiSortParams(
   sortBy: UnassignedQueueSortKey,

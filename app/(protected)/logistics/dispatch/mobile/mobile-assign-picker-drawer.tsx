@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format, startOfDay } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import {
   Calendar as CalendarIcon,
   ChevronRight,
@@ -186,6 +186,9 @@ export function MobileAssignPickerDrawer({
     [docket, trucks],
   );
 
+  const today = startOfDay(new Date());
+  const isPastAssignmentDate = isBefore(startOfDay(assignmentDate), today);
+
   const loadLabel = docket
     ? `${formatNumberThousandSeparator(
       docket.actualLoadSize || docket.plannedLoadSize || 0,
@@ -258,7 +261,12 @@ export function MobileAssignPickerDrawer({
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="mt-2 flex w-full items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-left text-sm font-semibold text-[#0F172A]"
+                    className={cn(
+                      'mt-2 flex w-full items-center gap-2 rounded-xl border bg-white px-3 py-2.5 text-left text-sm font-semibold text-[#0F172A]',
+                      isPastAssignmentDate
+                        ? 'border-red-300'
+                        : 'border-gray-200',
+                    )}
                   >
                     <CalendarIcon className="h-4 w-4 text-[#8E51FF]" />
                     {format(assignmentDate, 'EEE d MMM yyyy')}
@@ -267,6 +275,7 @@ export function MobileAssignPickerDrawer({
                 <PopoverContent className="w-auto p-0" align="start">
                   <DeliveriesCalendar
                     selected={assignmentDate}
+                    disabled={{ before: today }}
                     onSelect={(d) => {
                       if (d) {
                         setAssignmentDate(startOfDay(d));
@@ -276,6 +285,11 @@ export function MobileAssignPickerDrawer({
                   />
                 </PopoverContent>
               </Popover>
+              {isPastAssignmentDate ? (
+                <p className="mt-2 text-xs font-medium text-red-700">
+                  Date shouldn&apos;t be before today&apos;s date.
+                </p>
+              ) : null}
             </div>
 
             <div>
@@ -329,9 +343,11 @@ export function MobileAssignPickerDrawer({
                   <button
                     key={t.id}
                     type="button"
+                    disabled={isPastAssignmentDate}
                     onClick={() => onConfirm(String(t.id), confirmSlot)}
                     className={cn(
                       'flex items-center justify-between rounded-xl border p-4 text-left transition-colors',
+                      isPastAssignmentDate && 'cursor-not-allowed opacity-50',
                       t.isOverVolume
                         ? 'border-amber-200 bg-amber-50/60'
                         : index === 0
@@ -408,8 +424,13 @@ export function MobileAssignPickerDrawer({
                     <button
                       key={d.id}
                       type="button"
+                      disabled={isPastAssignmentDate}
                       onClick={() => onConfirm(String(d.id), confirmSlot)}
-                      className="flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-[#C4B5FD]"
+                      className={cn(
+                        'flex items-center justify-between rounded-xl border border-gray-200 bg-white p-4 text-left transition-colors hover:border-[#C4B5FD]',
+                        isPastAssignmentDate &&
+                        'cursor-not-allowed opacity-50 hover:border-gray-200',
+                      )}
                     >
                       <div className="flex min-w-0 items-center gap-3">
                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-100 bg-gray-50">

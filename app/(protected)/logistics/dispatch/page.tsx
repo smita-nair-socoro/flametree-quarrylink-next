@@ -18,7 +18,7 @@ import { UnassignedDockets } from './mobile/queue/unassigned-dockets';
 import { AssignedDockets } from './mobile/trucks-drivers/assigned-dockets';
 
 function MobileDispatchTabs() {
-  const { unassignedCount } = useDispatchMobile();
+  const { unassignedCount, setActiveTab } = useDispatchMobile();
 
   const mobileNavItems = [
     { value: 'queue', label: 'Queue', icon: ClipboardList, badge: unassignedCount },
@@ -29,6 +29,9 @@ function MobileDispatchTabs() {
   return (
     <Tabs
       defaultValue="queue"
+      onValueChange={(value) =>
+        setActiveTab(value as 'queue' | 'trucks' | 'drivers')
+      }
       className="flex min-h-0 flex-1 flex-col overflow-hidden"
     >
       <div className="min-h-0 flex-1 overflow-hidden bg-[#F8FAFC]">

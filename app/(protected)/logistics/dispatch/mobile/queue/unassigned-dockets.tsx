@@ -33,8 +33,7 @@ export function UnassignedDockets() {
     date,
     unassignedForDay,
     allUnassignedDockets,
-    isLoadingTrucks,
-    isLoadingDrivers,
+    isLoadingQueue,
     queueDateScope,
     setQueueDateScope,
     isLoadingAllUnassignedDockets,
@@ -97,10 +96,7 @@ export function UnassignedDockets() {
     }
   }, [queueDateScope, sortOrder]);
 
-  const isLoading =
-    isLoadingTrucks ||
-    isLoadingDrivers ||
-    (queueDateScope === 'all_dates' && isLoadingAllUnassignedDockets);
+  const isLoading = isLoadingQueue;
 
   const scopeDockets =
     queueDateScope === 'this_day' ? unassignedForDay : allUnassignedDockets;
@@ -275,7 +271,7 @@ export function UnassignedDockets() {
                     {docket.docketNumber}
                   </span>
                   {queueDateScope === 'all_dates' &&
-                  docket.deliveryCollectionDate ? (
+                    docket.deliveryCollectionDate ? (
                     <span className="rounded-md border border-[#E9D5FF] bg-[#FAF5FF] px-2 py-0.5 text-xs font-semibold text-[#6D28D9]">
                       {format(
                         new Date(

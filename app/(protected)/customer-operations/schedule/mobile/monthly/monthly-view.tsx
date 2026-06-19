@@ -26,6 +26,7 @@ import {
   docketMatchesScheduleJobFilters,
   docketPassesScheduleFleetFilters,
   isDispatchTruckResource,
+  isSchedulerQueryLoading,
   parseCollectionStartMs,
 } from '@/lib/utils/dispatch-helper';
 import {
@@ -63,12 +64,26 @@ export function ScheduleMobileMonthlyView({
     end: calendarEnd,
   });
 
-  const { data: trucksData, isLoading } = useQuery(
+  const {
+    data: trucksData,
+    isLoading,
+    isFetching,
+    isPending,
+    isPlaceholderData,
+  } = useQuery(
     SchedulerTrucksQueryOptions(
       calendarStart.toISOString(),
       calendarEnd.toISOString(),
     ),
   );
+
+  const isLoadingSchedule = isSchedulerQueryLoading({
+    isPending,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+    hasData: Boolean(trucksData),
+  });
 
   const allMonthDockets = React.useMemo(() => {
     if (!trucksData) return [];
@@ -232,7 +247,7 @@ export function ScheduleMobileMonthlyView({
           </span>
         </div>
 
-        {isLoading ? (
+        {isLoadingSchedule ? (
           <div className="flex items-center justify-center py-16">
             <Spinner size="medium" />
           </div>

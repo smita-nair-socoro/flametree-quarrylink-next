@@ -19,6 +19,7 @@ import { type DispatchBoardFilterState } from '@/app/(protected)/logistics/dispa
 import {
   docketMatchesScheduleJobFilters,
   isDispatchTruckResource,
+  isSchedulerQueryLoading,
   parseCollectionStartMs,
 } from '@/lib/utils/dispatch-helper';
 import {
@@ -44,9 +45,23 @@ export function ScheduleMobileWeeklyView({
   const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start: weekStart, end: weekEnd });
 
-  const { data: trucksData, isLoading } = useQuery(
+  const {
+    data: trucksData,
+    isLoading,
+    isFetching,
+    isPending,
+    isPlaceholderData,
+  } = useQuery(
     SchedulerTrucksQueryOptions(weekStart.toISOString(), weekEnd.toISOString()),
   );
+
+  const isLoadingSchedule = isSchedulerQueryLoading({
+    isPending,
+    isLoading,
+    isFetching,
+    isPlaceholderData,
+    hasData: Boolean(trucksData),
+  });
 
   const allWeekDockets = React.useMemo(() => {
     const rows: ScheduleAgendaDocket[] = [];
@@ -165,7 +180,7 @@ export function ScheduleMobileWeeklyView({
           </span>
         </div>
 
-        {isLoading ? (
+        {isLoadingSchedule ? (
           <div className="flex items-center justify-center py-16">
             <Spinner size="medium" />
           </div>
