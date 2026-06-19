@@ -18,6 +18,7 @@ import { CustomerKeys } from '@/lib/api/keys';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 
 interface DialogConfig {
   title?: string;
@@ -58,6 +59,7 @@ const getDialogConfigs = (
   selectedAction?: SelectedAction,
   archiveResponse?: ArchiveCustomerResponseDTO | null,
   unarchiveResponse?: UnarchiveCustomerResponseDTO | null,
+  accSoftware: string = 'Xero',
 ): Record<string, DialogConfig> => {
   const customerName = getCustomerDisplayName(customerData);
   const customerEmail = getCustomerEmail(customerData);
@@ -105,7 +107,7 @@ const getDialogConfigs = (
                   <p className="text-sm text-[#64748B]">
                     This customer will be moved to archived status and removed
                     from active customer lists. The customer will be marked as
-                    archived in Xero automatically.
+                    archived in {accSoftware} automatically.
                   </p>
                 </div>
               </div>
@@ -120,7 +122,7 @@ const getDialogConfigs = (
                 <li>Customer status changes to Archived</li>
                 <li>Customer is removed from active customer lists</li>
                 <li>Cannot create new quotes or jobs for this customer</li>
-                <li>Customer is synced to Xero as archived</li>
+                <li>Customer is synced to {accSoftware} as archived</li>
                 <li>Account number is reserved and cannot be reused</li>
               </ul>
             </div>
@@ -198,7 +200,7 @@ const getDialogConfigs = (
                 <li>Restored to active customer lists</li>
                 <li>Available for new quotes and jobs</li>
                 <li>Contact information becomes visible</li>
-                <li>Synced with Xero as active contact</li>
+                <li>Synced with {accSoftware} as active contact</li>
               </ul>
             </div>
 
@@ -410,8 +412,8 @@ const getDialogConfigs = (
                 <p className="text-sm text-[#CA3500]">
                   An active customer with the name &quot;{duplicateName}&quot;
                   already exists in the system. To maintain data integrity and
-                  prevent conflicts with Xero sync, duplicate active customer
-                  names are not allowed.
+                  prevent conflicts with {accSoftware} sync, duplicate active
+                  customer names are not allowed.
                 </p>
                 {duplicateName && (
                   <div className="bg-white border border-[#FDE68A] rounded p-3">
@@ -454,6 +456,7 @@ const getDialogConfigs = (
 export function useCustomerActions(customerData?: CustomerDTO | null) {
   const customerId = customerData?.id;
   const queryClient = useQueryClient();
+  const accSoftware = useAccountingSoftwareLabel();
   const selectedCustomer = useCustomerStore((s) => s.selectedCustomer);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -474,8 +477,9 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         selectedAction || undefined,
         archiveResponse,
         unarchiveResponse,
+        accSoftware,
       ),
-    [customerData, selectedAction, archiveResponse, unarchiveResponse],
+    [customerData, selectedAction, archiveResponse, unarchiveResponse, accSoftware],
   );
 
   const handleArchive = async () => {

@@ -14,6 +14,25 @@ export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
+export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
+
+/**
+ * Maps the tenant's raw accounting software value (e.g. "XERO",
+ * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB"). Falls back to
+ * Xero for tenants without the field set.
+ */
+export function getAccountingSoftwareLabel(accountingSoftware?: string): string {
+  const value = (accountingSoftware || '').toUpperCase();
+  if (value.includes('MYOB')) return 'MYOB';
+  if (value.includes('XERO')) return 'Xero';
+  return DEFAULT_ACCOUNTING_SOFTWARE_LABEL;
+}
+
+/** Reads the connected accounting software label from the tenant store. */
+export function useAccountingSoftwareLabel(): string {
+  const accountingSoftware = useTenantStore((s) => s.accountingSoftware);
+  return getAccountingSoftwareLabel(accountingSoftware);
+}
 
 const FIXED_LOCALE = 'en-AU';
 

@@ -106,9 +106,9 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
-    { label: 'Invoice', icon: Receipt, action: 'invoice' },
-    { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
+    // { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
+    { label: 'Invoice', icon: Receipt, action: 'invoice', },
+    { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },

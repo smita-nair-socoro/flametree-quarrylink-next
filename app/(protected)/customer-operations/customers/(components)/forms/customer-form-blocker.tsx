@@ -22,6 +22,7 @@ import {
   ACC_SOFTWARE_SYNC_STATUS,
 } from '@/lib/types/customer-enums';
 import { CustomerDTO } from '@/lib/types/customer';
+import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 
 const ARCHIVE_FAILED_PREFIX = 'Archive customer failed!';
 const UNARCHIVE_FAILED_PREFIX = 'Unarchive customer failed!';
@@ -36,25 +37,25 @@ export function getCustomerFormBlockState(
   const syncFailed = lastAccSoftwareSyncStatus === ACC_SOFTWARE_SYNC_STATUS.FAILED;
 
   if (customerStatus === CUSTOMER_STATUS.ARCHIVED) {
-    // Xero unarchived the contact but QL couldn't follow; Xero was re-archived to stay in sync
+    // Accounting software unarchived the contact but QL couldn't follow; it was re-archived to stay in sync
     if (
       syncFailed &&
       lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL &&
       accSoftwareNotes?.startsWith(UNARCHIVE_FAILED_PREFIX)
     ) {
-      return CustomerFormBlockState.UNARCHIVE_XERO_REARCHIVED;
+      return CustomerFormBlockState.UNARCHIVE_ACCOUNTING_SOFTWARE_REARCHIVED;
     }
     return CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK;
   }
 
   if (syncFailed && accSoftwareNotes?.startsWith(ARCHIVE_FAILED_PREFIX)) {
     if (lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.ACC_SOFTWARE_TO_QL) {
-      // Xero archived the contact but QL couldn't mirror it due to blocking dockets/jobs
+      // Accounting software archived the contact but QL couldn't mirror it due to blocking dockets/jobs
       return CustomerFormBlockState.QUARRYLINK_ARCHIVE_BLOCKED;
     }
     if (lastAccSoftwareSyncDirection === ACC_SOFTWARE_SYNC_DIRECTION.QL_TO_ACC_SOFTWARE) {
-      // QL tried to archive; Xero rejected it; QL reverted customer back to ACTIVE
-      return CustomerFormBlockState.XERO_ARCHIVE_FAILED;
+      // QL tried to archive; the accounting software rejected it; QL reverted customer back to ACTIVE
+      return CustomerFormBlockState.ACCOUNTING_SOFTWARE_ARCHIVE_FAILED;
     }
   }
 
@@ -65,8 +66,8 @@ export function getCustomerFormBlockState(
 // Banner components (one per case)
 // =============================================================================
 
-/** Case 1 — Archived in Xero, QL archive blocked by active dockets/jobs */
-function QuarryLinkArchiveBlockedBanner() {
+/** Case 1 — Archived in the accounting software, QL archive blocked by active dockets/jobs */
+function QuarryLinkArchiveBlockedBanner({ accSoftware }: { accSoftware: string }) {
   const [optionAOpen, setOptionAOpen] = React.useState(false);
   const [optionBOpen, setOptionBOpen] = React.useState(false);
 
@@ -77,13 +78,14 @@ function QuarryLinkArchiveBlockedBanner() {
         <Link2Off className="h-4 w-4 text-[#D42422] flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-[#7F1D1D]">
-            Archived in Xero — action required in QuarryLink
+            Archived in {accSoftware} — action required in QuarryLink
           </span>
           <p className="text-sm text-[#991B1B]">
-            This contact is archived in Xero, but QuarryLink could not archive
-            it here because there are still active dockets, jobs, or other items
-            linked to this customer. QuarryLink cannot send an unarchive request
-            back to Xero — that is not supported by the Xero API.
+            This contact is archived in {accSoftware}, but QuarryLink could not
+            archive it here because there are still active dockets, jobs, or
+            other items linked to this customer. QuarryLink cannot send an
+            unarchive request back to {accSoftware} — that is not supported by
+            the {accSoftware} API.
           </p>
           <p className="text-sm text-[#991B1B]">
             You have two ways to resolve this:
@@ -118,7 +120,7 @@ function QuarryLinkArchiveBlockedBanner() {
                 <li>
                   Once no blocking items remain, come back here and{' '}
                   <strong>archive this customer from QuarryLink</strong> — the
-                  change will sync to Xero.
+                  change will sync to {accSoftware}.
                 </li>
               </ul>
             </div>
@@ -136,13 +138,14 @@ function QuarryLinkArchiveBlockedBanner() {
                 optionBOpen && 'rotate-90',
               )}
             />
-            Option B — Unarchive the contact in Xero
+            Option B — Unarchive the contact in {accSoftware}
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="bg-[#E7000B0D] px-3 pt-0 pb-2.5">
               <ul className="text-sm text-[#991B1B] list-disc list-outside pl-4 space-y-1.5">
                 <li>
-                  Open the contact in Xero ↗ and manually unarchive it there.
+                  Open the contact in {accSoftware} ↗ and manually unarchive it
+                  there.
                 </li>
                 <li>
                   QuarryLink will receive a notification and automatically clear
@@ -157,9 +160,9 @@ function QuarryLinkArchiveBlockedBanner() {
       {/* Footer */}
       <p className="ml-[26px] text-xs text-[#991B1B] border-t border-[#FECACA] pt-2.5 mt-0.5">
         While this notice is active,{' '}
-        <strong>editing this customer is disabled</strong> — Xero does not
-        accept updates to archived contacts. Need help identifying what&apos;s
-        blocking?{' '}
+        <strong>editing this customer is disabled</strong> — {accSoftware} does
+        not accept updates to archived contacts. Need help identifying
+        what&apos;s blocking?{' '}
         <a
           href="mailto:support@quarrylink.com.au"
           className="underline hover:no-underline"
@@ -171,8 +174,8 @@ function QuarryLinkArchiveBlockedBanner() {
   );
 }
 
-/** Case 2 — QL archive reverted because Xero did not accept the change */
-function XeroArchiveFailedBanner() {
+/** Case 2 — QL archive reverted because the accounting software did not accept the change */
+function AccountingSoftwareArchiveFailedBanner({ accSoftware }: { accSoftware: string }) {
   const [whyOpen, setWhyOpen] = React.useState(false);
 
   return (
@@ -184,12 +187,13 @@ function XeroArchiveFailedBanner() {
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-sm font-semibold text-[#461901]">
-            Archive reverted in QuarryLink (Xero did not accept it)
+            Archive reverted in QuarryLink ({accSoftware} did not accept it)
           </span>
           <p className="text-sm text-[#7B3306E5]">
             You archived this customer in QuarryLink. We could not apply the
-            same change in Xero, so the archive was reverted here to keep both
-            systems aligned. The customer is active in QuarryLink again.
+            same change in {accSoftware}, so the archive was reverted here to
+            keep both systems aligned. The customer is active in QuarryLink
+            again.
           </p>
         </div>
       </div>
@@ -208,14 +212,16 @@ function XeroArchiveFailedBanner() {
         <CollapsibleContent>
           <div className="mt-2 pl-5 ml-[26px]">
             <ul className="text-sm text-[#92400E] list-disc list-outside pl-2 space-y-1.5">
-              <li>Contact locked or restricted in Xero</li>
-              <li>Invalid or incomplete Xero contact details</li>
+              <li>Contact locked or restricted in {accSoftware}</li>
+              <li>Invalid or incomplete {accSoftware} contact details</li>
               <li>
-                Connection or configuration issues between QuarryLink and Xero
+                Connection or configuration issues between QuarryLink and{' '}
+                {accSoftware}
               </li>
             </ul>
             <p className="text-sm text-[#92400E] mt-2">
-              In Xero, confirm the contact can be archived manually, check the{' '}
+              In {accSoftware}, confirm the contact can be archived manually,
+              check the{' '}
               <strong>integration tab</strong>, then try archiving again from
               QuarryLink.{' '}
               <a
@@ -233,11 +239,13 @@ function XeroArchiveFailedBanner() {
   );
 }
 
-/** Case 3 — Xero unarchive reverted because QL detected a duplicate customer */
-function UnarchiveXeroRearchivedBanner({
+/** Case 3 — Accounting-software unarchive reverted because QL detected a duplicate customer */
+function UnarchiveAccountingSoftwareRearchivedBanner({
   contactEmail,
+  accSoftware,
 }: {
   contactEmail?: string | null;
+  accSoftware: string;
 }) {
   return (
     <div className="border border-[#FDE68A] bg-[#FFFBEB] rounded-md p-4 mb-4 flex flex-col gap-3">
@@ -246,12 +254,12 @@ function UnarchiveXeroRearchivedBanner({
         <TriangleAlert className="h-4 w-4 text-[#461901] flex-shrink-0 mt-0.5" />
         <div className="flex flex-col gap-2">
           <span className="text-sm text-[#461901]">
-            Unarchive not applied in QuarryLink (Xero was reverted)
+            Unarchive not applied in QuarryLink ({accSoftware} was reverted)
           </span>
           <p className="text-sm text-[#7B3306E5]">
-            You unarchived this contact in Xero. QuarryLink could not mirror the
-            unarchive, so the change was reverted in Xero and the contact was
-            re-archived there to stay in sync.
+            You unarchived this contact in {accSoftware}. QuarryLink could not
+            mirror the unarchive, so the change was reverted in {accSoftware}{' '}
+            and the contact was re-archived there to stay in sync.
           </p>
         </div>
       </div>
@@ -264,7 +272,7 @@ function UnarchiveXeroRearchivedBanner({
             Check for duplicate or conflicting customers (search for{' '}
             <span className="font-medium text-[#7B3306E5]">{contactEmail}</span>
             ). Resolve the conflict first, then unarchive the contact directly in
-            Xero — QuarryLink will be notified automatically.
+            {' '}{accSoftware} — QuarryLink will be notified automatically.
           </p>
         </div>
       )}
@@ -283,15 +291,15 @@ function UnarchiveXeroRearchivedBanner({
 
       {/* Auto-clear footer */}
       <p className="text-xs text-[#71717B] border-t border-[#E4E4E799] pt-2.5 mt-0.5 ml-[26px]">
-        When the contact is unarchived in Xero, QuarryLink is notified and can
-        clear this notice and any restrictions automatically.
+        When the contact is unarchived in {accSoftware}, QuarryLink is notified
+        and can clear this notice and any restrictions automatically.
       </p>
     </div>
   );
 }
 
 /** Case 4 — Customer is archived in QL; editing blocked; no unarchive action */
-function ArchivedInQuarryLinkBanner() {
+function ArchivedInQuarryLinkBanner({ accSoftware }: { accSoftware: string }) {
   return (
     <div className="border border-[#E5E7EB] bg-[#F9FAFB] rounded-md p-4 mb-4 flex flex-col gap-2">
       <div className="flex items-start gap-2.5">
@@ -302,14 +310,14 @@ function ArchivedInQuarryLinkBanner() {
           </span>
           <p className="text-sm text-[#1E2939]">
             Archived customers cannot be edited in QuarryLink. To make changes,
-            unarchive the customer directly in Xero — QuarryLink will be
-            notified automatically.
+            unarchive the customer directly in {accSoftware} — QuarryLink will
+            be notified automatically.
           </p>
         </div>
       </div>
       <p className="text-xs text-[#71717B] ml-[26px]">
-        Unarchiving via QuarryLink is not supported because the Xero API does
-        not provide an unarchive endpoint.
+        Unarchiving via QuarryLink is not supported because the {accSoftware}{' '}
+        API does not provide an unarchive endpoint.
       </p>
     </div>
   );
@@ -328,6 +336,7 @@ export function CustomerFormBlockBanner({
   blockState,
   customer,
 }: CustomerFormBlockBannerProps) {
+  const accSoftware = useAccountingSoftwareLabel();
   const contactEmail =
     customer?.contactPersonEmail?.trim() ||
     customer?.businessEmail?.trim() ||
@@ -335,13 +344,18 @@ export function CustomerFormBlockBanner({
 
   switch (blockState) {
     case CustomerFormBlockState.QUARRYLINK_ARCHIVE_BLOCKED:
-      return <QuarryLinkArchiveBlockedBanner />;
-    case CustomerFormBlockState.XERO_ARCHIVE_FAILED:
-      return <XeroArchiveFailedBanner />;
-    case CustomerFormBlockState.UNARCHIVE_XERO_REARCHIVED:
-      return <UnarchiveXeroRearchivedBanner contactEmail={contactEmail} />;
+      return <QuarryLinkArchiveBlockedBanner accSoftware={accSoftware} />;
+    case CustomerFormBlockState.ACCOUNTING_SOFTWARE_ARCHIVE_FAILED:
+      return <AccountingSoftwareArchiveFailedBanner accSoftware={accSoftware} />;
+    case CustomerFormBlockState.UNARCHIVE_ACCOUNTING_SOFTWARE_REARCHIVED:
+      return (
+        <UnarchiveAccountingSoftwareRearchivedBanner
+          contactEmail={contactEmail}
+          accSoftware={accSoftware}
+        />
+      );
     case CustomerFormBlockState.ARCHIVED_IN_QUARRYLINK:
-      return <ArchivedInQuarryLinkBanner />;
+      return <ArchivedInQuarryLinkBanner accSoftware={accSoftware} />;
     default:
       return null;
   }

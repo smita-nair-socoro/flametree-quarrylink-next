@@ -46,7 +46,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
             }}
           >
             <RefreshCw className="h-4 w-4" />
-            Sync All to Xero
+            Retry Sync
           </Button>
           {jobStatus !== JOB_STATUS.CANCELLED && (
             <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">

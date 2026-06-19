@@ -64,6 +64,7 @@ import {
   EMPTY_CUSTOMER_FORM_VALUES,
 } from '@/hooks/customer/use-customer-form-state';
 import { AuditInformation } from '@/components/audit-information';
+import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -86,6 +87,7 @@ export default function CustomerForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const customerId = id ?? 0;
+  const accSoftware = useAccountingSoftwareLabel();
 
   // Single source of truth: fetch customer by id when editing (get-by-id endpoint)
   const { data: selectedCustomer, isLoading: isCustomerLoading } = useQuery({
@@ -125,7 +127,7 @@ export default function CustomerForm({
   );
   const isFormBlocked = blockState !== null;
 
-  const [xeroSyncError, setXeroSyncError] = React.useState<string | null>(null);
+  const [accSoftwareSyncError, setAccSoftwareSyncError] = React.useState<string | null>(null);
   const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
@@ -231,13 +233,13 @@ export default function CustomerForm({
       setNotLinkedWarning(true);
       return true;
     }
-    setXeroSyncError(note);
+    setAccSoftwareSyncError(note);
     return true;
   };
 
   // Initialize sync banners from real customer data when editing
   React.useEffect(() => {
-    setXeroSyncError(null);
+    setAccSoftwareSyncError(null);
     setNotLinkedWarning(false);
     if (!isEditing || !selectedCustomer) return;
     handleSyncNote(selectedCustomer.accSoftwareNotes);
@@ -512,20 +514,20 @@ export default function CustomerForm({
             )}
             onSubmit={customerForm.handleSubmit(onSubmit, onError)}
           >
-            {/* Xero sync error banner */}
-            {xeroSyncError && (
+            {/* Accounting software sync error banner */}
+            {accSoftwareSyncError && (
               <div className="col-span-full border border-[#DC2626] bg-[#FEF2F2] rounded-md p-4 flex items-center justify-between gap-4 mb-2">
                 <div className="flex items-start gap-3">
                   <TriangleAlert className="h-4 w-4 text-[#DC2626] flex-shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-1">
                     <span className="text-sm font-semibold text-[#7F1D1D]">
-                      Xero contact could not be created
+                      {accSoftware} contact could not be created
                     </span>
                     <span className="text-sm text-[#DC2626]">
-                      This customer is saved in QuarryLink, but a matching Xero
-                      contact was not created (e.g. validation or connection
-                      issue). Review the details below, then use Retry sync
-                      button.
+                      This customer is saved in QuarryLink, but a matching{' '}
+                      {accSoftware} contact was not created (e.g. validation or
+                      connection issue). Review the details below, then use
+                      Retry sync button.
                     </span>
                   </div>
                 </div>
@@ -581,7 +583,7 @@ export default function CustomerForm({
               </div>
             )}
 
-            {/* Warning for incomplete data from Xero sync */}
+            {/* Warning for incomplete data from accounting software sync */}
             {isEditing &&
               selectedCustomer &&
               (() => {
@@ -659,9 +661,9 @@ export default function CustomerForm({
                     <div className="flex items-center gap-2 text-[#09090B] text-sm">
                       <Info className="h-4 w-4 text-[#0075FF]" />
                       <span>
-                        This customer was synced from Xero with partial data.
-                        Please complete the missing fields to continue using
-                        this customer in QuarryLink.
+                        This customer was synced from {accSoftware} with partial
+                        data. Please complete the missing fields to continue
+                        using this customer in QuarryLink.
                       </span>
                     </div>
                   </div>
