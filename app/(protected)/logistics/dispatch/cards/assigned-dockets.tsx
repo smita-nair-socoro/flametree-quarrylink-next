@@ -421,6 +421,7 @@ function DocketCardDraggable({
 }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
+    data: { docket },
   });
 
   return (

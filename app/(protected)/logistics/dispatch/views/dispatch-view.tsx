@@ -76,6 +76,19 @@ function countTrucksWithAssignedBookingsOnSelectedDay(
   ).length;
 }
 
+type DispatchDragData = {
+  docket: DispatchDocket;
+};
+
+function getDocketFromDragActive(
+  active: DragStartEvent['active'],
+  dockets: DispatchDocket[],
+): DispatchDocket | undefined {
+  const fromDrag = (active.data.current as DispatchDragData | undefined)?.docket;
+  if (fromDrag) return fromDrag;
+  return dockets.find((d) => String(d.id) === String(active.id));
+}
+
 /** Driver id for IN_TRANSIT / ARRIVED stats: full docket, or truck row in trucks view, or driver row id in drivers view. */
 function resolveDriverIdForTripStats(
   d: DispatchDocket,
@@ -103,13 +116,17 @@ export function DispatchView({
   viewType: 'trucks' | 'drivers';
 }) {
   const [dockets, setDockets] = useState<DispatchDocket[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [selectedDocketId, setSelectedDocketId] = useState<string | null>(null);
   const [assignModalData, setAssignModalData] = useState<{
     docketId: string;
     targetId: string;
     time: string;
+    docket: DispatchDocket;
   } | null>(null);
+
+  const [activeDragDocket, setActiveDragDocket] = useState<DispatchDocket | null>(
+    null,
+  );
 
   const [pendingUnassignDocketId, setPendingUnassignDocketId] = useState<
     string | null
@@ -514,10 +531,14 @@ export function DispatchView({
     };
   }, [docketsForSelectedDay, viewType, trucksData, trucksDataForStats, date]);
 
-  const applyUtilisationForDocket = (docketId: string) => {
+  const applyUtilisationForDocket = (
+    docketId: string,
+    sourceDocket?: DispatchDocket,
+  ) => {
     if (viewType !== 'trucks') return;
 
-    const d = dockets.find((x) => String(x.id) === docketId);
+    const d =
+      sourceDocket ?? dockets.find((x) => String(x.id) === docketId);
     if (!d) return;
 
     const loadSize = d.actualLoadSize || d.plannedLoadSize || 0;
@@ -532,31 +553,30 @@ export function DispatchView({
     }
 
     const id = event.active.id as string;
-    const docket = dockets.find((d) => String(d.id) === id);
+    const docket = getDocketFromDragActive(event.active, dockets);
 
-    setActiveId(id);
+    setActiveDragDocket(docket ?? null);
     setSelectedDocketId(id);
 
     if (docket?.docketStatus === DOCKET_STATUS.UNASSIGNED) {
-      applyUtilisationForDocket(id);
+      applyUtilisationForDocket(id, docket);
     }
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveId(null);
+    setActiveDragDocket(null);
 
     if (isPastDispatchDate || !over) {
       return;
     }
 
     const docketId = active.id as string;
-    const draggedDocket = dockets.find((d) => String(d.id) === docketId);
+    const draggedDocket = getDocketFromDragActive(active, dockets);
     const overId = over.id as string;
 
     if (overId === 'unassigned-queue') {
-      const docket = draggedDocket ?? dockets.find((d) => String(d.id) === docketId);
-      if (docket && docket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+      if (draggedDocket && draggedDocket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
         return;
       }
       setPendingUnassignDocketId(docketId);
@@ -568,8 +588,11 @@ export function DispatchView({
       const [, targetId, time] = match;
 
       const docket = draggedDocket;
+      if (!docket) {
+        return;
+      }
+
       if (
-        docket &&
         docket.docketStatus !== DOCKET_STATUS.UNASSIGNED &&
         docket.docketStatus !== DOCKET_STATUS.ASSIGNED
       ) {
@@ -577,7 +600,6 @@ export function DispatchView({
       }
 
       if (
-        docket &&
         docket.uiAssignedTruckId === targetId &&
         docket.uiAssignedTime === time
       ) {
@@ -585,14 +607,14 @@ export function DispatchView({
       }
 
       setSelectedDocketId(docketId);
-      applyUtilisationForDocket(docketId);
-      setAssignModalData({ docketId, targetId, time });
+      applyUtilisationForDocket(docketId, docket);
+      setAssignModalData({ docketId, targetId, time, docket });
       return;
     }
   };
 
   const handleDragCancel = () => {
-    setActiveId(null);
+    setActiveDragDocket(null);
   };
 
   const handleUpdateDocket = (
@@ -686,9 +708,7 @@ export function DispatchView({
     );
   };
 
-  const activeDocket = activeId
-    ? dockets.find((d) => String(d.id) === activeId)
-    : null;
+  const activeDocket = activeDragDocket;
 
   const handleSelectUnassignedDocket = (id: string) => {
     setSelectedDocketId(id);
@@ -804,8 +824,9 @@ export function DispatchView({
   ) => {
     if (!assignModalData) return;
 
-    const { docketId, targetId, time } = assignModalData;
-    const docket = dockets.find((d) => String(d.id) === docketId);
+    const { docketId, targetId, time, docket: modalDocket } = assignModalData;
+    const docket =
+      modalDocket ?? dockets.find((d) => String(d.id) === docketId);
     const plannedLoad =
       adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
@@ -847,32 +868,36 @@ export function DispatchView({
       },
       {
         onSuccess: () => {
-          setDockets((prev) =>
-            prev.map((d) =>
-              String(d.id) === docketId
+          setDockets((prev) => {
+            const existing = prev.find((d) => String(d.id) === docketId);
+            const base = existing ?? modalDocket;
+            const updated: DispatchDocket = {
+              ...base,
+              uiAssignedTruckId: targetId,
+              uiAssignedTime: time,
+              plannedLoadSize: plannedLoad,
+              actualLoadSize: adjustedLoadSize ?? base.actualLoadSize,
+              loadSize: plannedLoad,
+              deliveryCollectionDate:
+                formatLocalISO(startWindow).split('T')[0] + 'T00:00:00.000',
+              deliveryCollectionStartTime: formatLocalISO(startWindow),
+              deliveryCollectionEndTime: formatLocalISO(endWindow),
+              docketStatus: DOCKET_STATUS.ASSIGNED,
+              ...(adjustedLoadSize != null
                 ? {
-                  ...d,
-                  uiAssignedTruckId: targetId,
-                  uiAssignedTime: time,
-                  plannedLoadSize: plannedLoad,
-                  actualLoadSize: adjustedLoadSize ?? d.actualLoadSize,
-                  loadSize: plannedLoad,
-                  deliveryCollectionDate:
-                    formatLocalISO(startWindow).split('T')[0] +
-                    'T00:00:00.000',
-                  deliveryCollectionStartTime: formatLocalISO(startWindow),
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                  docketStatus: DOCKET_STATUS.ASSIGNED,
-                  ...(adjustedLoadSize != null
-                    ? {
-                      actualLoadSize: adjustedLoadSize,
-                      plannedLoadSize: adjustedLoadSize,
-                    }
-                    : {}),
+                  actualLoadSize: adjustedLoadSize,
+                  plannedLoadSize: adjustedLoadSize,
                 }
-                : d,
-            ),
-          );
+                : {}),
+            };
+
+            if (existing) {
+              return prev.map((d) =>
+                String(d.id) === docketId ? updated : d,
+              );
+            }
+            return [...prev, updated];
+          });
           setUtilisationFocus((prev) => {
             if (prev?.docketId !== docketId) return prev;
             if (adjustedLoadSize != null) {
@@ -886,9 +911,7 @@ export function DispatchView({
     );
   };
 
-  const assignModalDocket = assignModalData
-    ? dockets.find((d) => String(d.id) === assignModalData.docketId)
-    : null;
+  const assignModalDocket = assignModalData?.docket ?? null;
 
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
