@@ -511,8 +511,9 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         '';
 
       if (apiErrorMessage.includes('Local archive was successful. Reverting local archive.')) {
-        // Xero sync failed — local change was rolled back; show exact API reason and refetch
-        notifyError(apiErrorMessage);
+        // Strip the raw accounting software JSON — only show the human-readable prefix
+        const friendlyMessage = apiErrorMessage.split('Reason:')[0].trim().replace(/\.*$/, '.');
+        notifyError(friendlyMessage);
         if (customerId) {
           queryClient.invalidateQueries({
             queryKey: CustomerKeys.detail(customerId),
