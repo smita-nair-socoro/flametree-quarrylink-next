@@ -1,8 +1,8 @@
 Hi {firstName},
 
-You archived {customerName} in Xero. QuarryLink attempted to archive the same customer, but we couldn't complete the archive in QuarryLink.
+You archived {customerName} in your accounting software. QuarryLink attempted to archive the same customer, but we couldn't complete the archive in QuarryLink.
 
-To avoid breaking existing work, {customerName} remains active in QuarryLink, even though it is archived in Xero.
+To avoid breaking existing work, {customerName} remains active in QuarryLink, even though it is archived in your accounting software.
 
 WHY THIS CAN HAPPEN
 
@@ -24,4 +24,4 @@ Thanks,
 The QuarryLink Team
 
 ---
-You're receiving this email because a Xero archive action could not be applied in QuarryLink.
+You're receiving this email because an accounting software archive action could not be applied in QuarryLink.

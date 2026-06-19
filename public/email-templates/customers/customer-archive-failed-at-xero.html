@@ -3,7 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QuarryLink - Archive reverted (Xero update failed)</title>
+    <title>
+      QuarryLink - Archive reverted (accounting software update failed)
+    </title>
     <style>
       body {
         margin: 0;
@@ -216,8 +218,10 @@
         <div class="content">
           <p>
             You archived <strong>{customerName}</strong> in QuarryLink. We tried
-            to apply the same change in Xero, but
-            <strong>Xero did not accept the archive request.</strong>
+            to apply the same change in your accounting software, but
+            <strong
+              >your accounting software did not accept the archive request.</strong
+            >
           </p>
           <p>
             To keep both systems consistent,
@@ -229,19 +233,21 @@
         <div class="info-box">
           <p class="section-title">Why this can happen</p>
           <p style="font-size: 15px; color: #374151; margin: 0 0 6px 0">
-            Xero may reject an archive request for reasons such as:
+            Your accounting software may reject an archive request for reasons such
+            as:
           </p>
           <ul class="box-list">
             <li>
-              The contact is locked or restricted by Xero settings or
-              permissions
+              The contact is locked or restricted by your accounting software
+              settings or permissions
             </li>
             <li>
-              The Xero contact is in an invalid state (e.g. missing required
-              fields)
+              The accounting software contact is in an invalid state (e.g.
+              missing required fields)
             </li>
             <li>
-              A connection or configuration issue between QuarryLink and Xero
+              A connection or configuration issue between QuarryLink and
+              your accounting software
             </li>
           </ul>
         </div>
@@ -250,12 +256,13 @@
           <p class="section-title">What you can do next</p>
           <ol class="steps-list">
             <li>
-              In Xero, open the contact for <strong>{customerName}</strong> and
-              confirm it can be archived manually.
+              In your accounting software, open the contact for
+              <strong>{customerName}</strong> and confirm it can be archived
+              manually.
             </li>
             <li>
               Confirm that QuarryLink still has an active, authorised connection
-              to the Xero organisation.
+              to your accounting software organisation.
             </li>
             <li>
               Once resolved, try archiving <strong>{customerName}</strong>
@@ -275,7 +282,7 @@
         <div class="card-footer">
           <p>
             You're receiving this email because a QuarryLink archive action
-            could not be synced to Xero and has been reverted.
+            could not be synced to your accounting software and has been reverted.
           </p>
         </div>
       </div>
