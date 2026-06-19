@@ -33,7 +33,7 @@ import {
 import {
   useTenantCurrencyTax,
   getCurrencyName,
-  getTimezoneLabel,
+  // getTimezoneLabel,
 } from '@/lib/utils/tenant-config-helper';
 import {
   extractErrorMessage,
@@ -58,7 +58,7 @@ export default function SettingsTab() {
   // Tenant (workspace) settings - currency, tax, timezone
   const { currencyCode, taxLabel, taxPercentage } = useTenantCurrencyTax();
   const currencyName = getCurrencyName(currencyCode);
-  const timezoneLabel = getTimezoneLabel();
+  // const timezoneLabel = getTimezoneLabel();
 
   // Use change password mutation
   // const changePasswordMutation = useChangePassword();
@@ -368,10 +368,10 @@ export default function SettingsTab() {
                 <Label>Tax Label</Label>
                 <Input className="w-full" value={taxLabel} disabled />
               </div>
-              <div className="flex flex-col gap-2 sm:col-span-2">
+              {/* <div className="flex flex-col gap-2 sm:col-span-2">
                 <Label>Timezone</Label>
                 <Input className="w-full" value={timezoneLabel} disabled />
-              </div>
+              </div> */}
             </div>
 
             <div className="mt-4 flex items-center gap-2 rounded-lg bg-[#F5F3FF] px-4 py-3 text-sm text-[#7C3AED]">
