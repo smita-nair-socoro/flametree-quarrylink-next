@@ -79,6 +79,7 @@ import {
   RetrySyncResponse,
   InvoiceUrlResponse,
   JobStatistics,
+  CreateInvoiceResponseDTO,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -1368,7 +1369,7 @@ export const APIClient = {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) =>
-      appClient.Post<void>(`/socoro/quarrylink/api/invoices`, { body: data }),
+      appClient.Post<CreateInvoiceResponseDTO>(`/socoro/quarrylink/api/invoices`, { body: data }),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(
         `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,

@@ -27,11 +27,12 @@ export function InvoiceDocketIndividualModal({
 
   const createInvoiceMutation = useCreateInvoice({
     jobId: docket?.job?.id,
-    onSuccess: () => {
+    onSuccess: (invoiceId) => {
       onOpenChange(false);
       setSelectedDocket({
         ...(docket as DocketDTO),
         docketStatus: DOCKET_STATUS.INVOICED,
+        invoiceId: invoiceId ?? (docket as DocketDTO).invoiceId,
       });
     },
   });

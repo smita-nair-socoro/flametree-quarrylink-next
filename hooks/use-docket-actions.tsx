@@ -60,12 +60,14 @@ import {
   UnassignDocketContent,
 } from '@/hooks/docket/unassign-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
+import { useQueryClient } from '@tanstack/react-query';
 import { useDocketStore } from '@/app/stores/docket-store';
 import {
   useUpdateDocketStatus,
   useAssignDocket,
   useUnassignDocket,
   useDuplicateDocket,
+  DocketByIdQueryOptions,
 } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -166,6 +168,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   }, [docketData?.purchaseOrder]);
   const { actions: invoiceActions } = useInvoiceActions((docketData ?? selectedDocket)?.invoiceId);
   const retrySyncMutation = useRetrySync();
+  const queryClient = useQueryClient();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
@@ -389,10 +392,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     if (!docketData?.id) return;
     try {
       await retrySyncMutation.mutateAsync(docketData.jobId);
-      notifySuccess('Retry sync successful');
+      const freshDocket = await queryClient.fetchQuery(DocketByIdQueryOptions(docketData.id));
+      if (freshDocket) setSelectedDocket(freshDocket);
     } catch (error) {
       notifyError(extractErrorMessage(error));
-    };
+    }
   };
 
   const isVoidFormValid = React.useMemo(() => {

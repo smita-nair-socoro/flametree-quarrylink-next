@@ -8,6 +8,7 @@ import { APIClient } from './APIClient';
 import { DocketKeys, InvoicesKeys, JobKeys } from './keys';
 import { useJobStore } from '@/app/stores/job-store';
 import { toast } from 'sonner';
+import { CreateInvoiceResponseDTO } from '@/lib/types/job';
 
 export const InvoicesListQueryOptions = (jobId: number) =>
   queryOptions({
@@ -27,7 +28,7 @@ export const InvoiceByIdQueryOptions = (id: number) =>
 
 export const useCreateInvoice = (options?: {
   jobId?: number;
-  onSuccess?: () => void;
+  onSuccess?: (invoiceId: number | undefined) => void;
   onError?: (error: Error) => void;
 }) => {
   const queryClient = useQueryClient();
@@ -38,9 +39,10 @@ export const useCreateInvoice = (options?: {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) => APIClient.invoices.create(data),
-    onSuccess: () => {
+    onSuccess: (data: CreateInvoiceResponseDTO) => {
       toast.success('Invoices created successfully');
-      options?.onSuccess?.();
+      const invoiceId = data?.invoices?.[0]?.internalInvoiceId;
+      options?.onSuccess?.(invoiceId);
     },
     onError: (error) => {
       toast.error('Failed to create invoices');
