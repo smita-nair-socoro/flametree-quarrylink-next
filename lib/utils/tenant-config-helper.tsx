@@ -10,9 +10,29 @@ import { useTenantStore } from '@/app/stores/tenant-store';
  * tenants are backfilled with AUD / GST / 10%, which is why these are the
  * fallback defaults below.
  */
-export const DEFAULT_CURRENCY_CODE = 'JPY';
+export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
+export const DEFAULT_TIMEZONE = 'Australia/Sydney';
+export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
+
+/**
+ * Maps the tenant's raw accounting software value (e.g. "XERO",
+ * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB"). Falls back to
+ * Xero for tenants without the field set.
+ */
+export function getAccountingSoftwareLabel(accountingSoftware?: string): string {
+  const value = (accountingSoftware || '').toUpperCase();
+  if (value.includes('MYOB')) return 'MYOB';
+  if (value.includes('XERO')) return 'Xero';
+  return DEFAULT_ACCOUNTING_SOFTWARE_LABEL;
+}
+
+/** Reads the connected accounting software label from the tenant store. */
+export function useAccountingSoftwareLabel(): string {
+  const accountingSoftware = useTenantStore((s) => s.accountingSoftware);
+  return getAccountingSoftwareLabel(accountingSoftware);
+}
 
 const FIXED_LOCALE = 'en-AU';
 
@@ -78,6 +98,35 @@ export function getSubscriptionCurrencySymbol(currency?: string): string {
   return '$';
 }
 
+/** Currency code -> display name, e.g. "AUD" -> "Australian Dollar". */
+export function getCurrencyName(currencyCode: string): string {
+  try {
+    return (
+      new Intl.DisplayNames(['en'], { type: 'currency' }).of(currencyCode) ||
+      currencyCode
+    );
+  } catch {
+    return currencyCode;
+  }
+}
+
+/** IANA timezone id -> "Australia/Sydney (UTC+10:00)". */
+export function getTimezoneLabel(): string {
+  const timeZoneId = useTenantStore.getState().tenantDetails?.timeZoneId;
+  if (!timeZoneId) return DEFAULT_TIMEZONE;
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: timeZoneId,
+      timeZoneName: 'longOffset',
+    }).formatToParts(new Date());
+    const offset =
+      parts.find((part) => part.type === 'timeZoneName')?.value || '';
+    return `${timeZoneId} (${offset.replace('GMT', 'UTC')})`;
+  } catch {
+    return timeZoneId ?? DEFAULT_TIMEZONE;
+  }
+}
+
 export interface TenantCurrencyTax {
   currencyCode: string;
   currencySymbol: string;
@@ -101,7 +150,9 @@ export function useTenantCurrencyTax(): TenantCurrencyTax {
     taxPercentage: storeTaxPercentage,
   } = useTenantStore();
 
-  const currencyCode = (storeCurrencyCode || DEFAULT_CURRENCY_CODE).toUpperCase();
+  const currencyCode = (
+    storeCurrencyCode || DEFAULT_CURRENCY_CODE
+  ).toUpperCase();
   const taxLabel = storeTaxLabel || DEFAULT_TAX_LABEL;
   const taxPercentage = storeTaxPercentage ?? DEFAULT_TAX_PERCENTAGE;
 

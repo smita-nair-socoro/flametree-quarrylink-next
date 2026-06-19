@@ -56,5 +56,6 @@ export interface ChecklistSubmission {
   truckIdentifier: string;
   submittedAt: string;
   summaryNotes: string;
+  additionalNotes?: string;
   sections: ChecklistSubmissionSection[];
 }

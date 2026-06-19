@@ -1,4 +1,4 @@
-import { getCurrencyLocale } from './currency-tax-helper';
+import { getCurrencyLocale } from './tenant-config-helper';
 
 /**
  * Convert a dollar‐amount (string or number) to integer cents.

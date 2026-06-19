@@ -40,7 +40,7 @@ import {
   CustomerDeliveryAddress,
 } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
-import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/currency-tax-helper';
+import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 

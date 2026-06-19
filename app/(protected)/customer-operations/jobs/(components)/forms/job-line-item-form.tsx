@@ -34,7 +34,7 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
 import { formatDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';

@@ -235,7 +235,7 @@ export function MobileTeamMemberList({
             </div>
           ) : (
             paginated.map((user) => {
-              const initials = getInitials(user.name || user.email || '');
+              const initials = getInitials(user.name, user.email);
               const color = getAvatarColor(user.name || user.email || '');
               const role = getRoleLabel(user.groups);
               return (

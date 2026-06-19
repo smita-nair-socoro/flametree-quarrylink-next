@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
-import { getCurrencyLocale } from '@/lib/utils/currency-tax-helper';
+import { getCurrencyLocale } from '@/lib/utils/tenant-config-helper';
 
 interface ExtendedInputProps extends React.ComponentProps<'input'> {
   isNumber?: boolean;

@@ -60,7 +60,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { AuditInformation } from '@/components/audit-information';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;

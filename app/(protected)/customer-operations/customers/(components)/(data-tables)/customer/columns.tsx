@@ -15,7 +15,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import {
   DEFAULT_CURRENCY_CODE,
   getCurrencySymbol,
-} from '@/lib/utils/currency-tax-helper';
+} from '@/lib/utils/tenant-config-helper';
 
 export const getCustomerColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,

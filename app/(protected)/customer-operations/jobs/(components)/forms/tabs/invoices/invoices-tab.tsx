@@ -14,7 +14,7 @@ import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { useTenantCurrencyTax } from '@/lib/utils/currency-tax-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -46,7 +46,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
             }}
           >
             <RefreshCw className="h-4 w-4" />
-            Sync All to Xero
+            Retry Sync
           </Button>
           {jobStatus !== JOB_STATUS.CANCELLED && (
             <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
