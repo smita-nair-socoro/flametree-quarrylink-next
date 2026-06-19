@@ -164,7 +164,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     setDuplicateDeliveryDate(undefined);
     setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
   }, [docketData?.purchaseOrder]);
-  const { actions: invoiceActions } = useInvoiceActions(docketData?.invoiceId);
+  const { actions: invoiceActions } = useInvoiceActions((docketData ?? selectedDocket)?.invoiceId);
   const retrySyncMutation = useRetrySync();
   const updateDocketStatusMutation = useUpdateDocketStatus();
   const assignDocketMutation = useAssignDocket();
