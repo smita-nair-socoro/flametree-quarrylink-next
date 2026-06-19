@@ -24,7 +24,7 @@ export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
-  const { data: jobs } = useQuery(JobsListQueryOptions());
+  const { data: jobs, isLoading } = useQuery(JobsListQueryOptions());
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
   const items: JobDTO[] = React.useMemo(() => {
     const list: JobDTO[] = Array.isArray(jobs) ? jobs : (jobs?.content ?? []);
@@ -141,29 +141,40 @@ export default function CustomersPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {jobIdsSet && (
-          <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
-            <div className="mt-1 text-sm text-muted-foreground">
-              <span>Showing filtered jobs</span>
+        {isLoading && !jobs ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading jobs...</p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.push('/customer-operations/jobs')}
-            >
-              Reset Filter
-            </Button>
           </div>
+        ) : (
+          <>
+            {jobIdsSet && (
+              <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+                <div className="mt-1 text-sm text-muted-foreground">
+                  <span>Showing filtered jobs</span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => router.push('/customer-operations/jobs')}
+                >
+                  Reset Filter
+                </Button>
+              </div>
+            )}
+            <DataTableClient
+              tableId="job_main_data_table"
+              data={filteredItems ?? []}
+              columns={getJobColumns(currencyCode, taxLabel)}
+              facetDefinition={facetDefs}
+              searchPlaceHolder="Search jobs..."
+              defaultSorting={[{ id: 'jobNumber', desc: true }]}
+              onRowClick={handleRowClick}
+            />
+          </>
         )}
-        <DataTableClient
-          tableId="job_main_data_table"
-          data={filteredItems ?? []}
-          columns={getJobColumns(currencyCode, taxLabel)}
-          facetDefinition={facetDefs}
-          searchPlaceHolder="Search jobs..."
-          defaultSorting={[{ id: 'jobNumber', desc: true }]}
-          onRowClick={handleRowClick}
-        />
       </div>
     </div>
   );

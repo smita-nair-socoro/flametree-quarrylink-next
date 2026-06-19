@@ -124,12 +124,12 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    {
-      label: 'Cash Sale',
-      icon: ReceiptText,
-      action: 'cashSale',
-      separator: true,
-    },
+    // {
+    //   label: 'Cash Sale',
+    //   icon: ReceiptText,
+    //   action: 'cashSale',
+    //   separator: true,
+    // },
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
