@@ -24,6 +24,8 @@ import {
   DocketOperationalUpdateRequest,
   ConflictCheckRequest,
   DuplicateDocketRequest,
+  DocketsListResponse,
+  DocketsPage,
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
@@ -124,6 +126,71 @@ function toApiPage(page: number): number {
   return page + 1;
 }
 
+function formatFacetEnumLabel(value: string): string {
+  return value
+    .split('_')
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+export function getDocketsPageFromListResponse(
+  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+): DocketsPage | null {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      totalElements: data.length,
+      totalPages: 1,
+    };
+  }
+  if ('dockets' in data && data.dockets) {
+    return data.dockets;
+  }
+  if ('content' in data) {
+    return data;
+  }
+  return null;
+}
+
+export function getDocketItemsFromListResponse(
+  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+): DocketDTO[] {
+  return getDocketsPageFromListResponse(data)?.content ?? [];
+}
+
+export function isDocketsListResponse(
+  data: unknown,
+): data is DocketsListResponse {
+  return (
+    typeof data === 'object' &&
+    data != null &&
+    'dockets' in data &&
+    typeof (data as DocketsListResponse).dockets === 'object'
+  );
+}
+
+export function buildDocketFacetOptions(response?: DocketsListResponse | null) {
+  return {
+    statuses: (response?.statuses ?? []).map((status) => ({
+      value: status,
+      label: formatFacetEnumLabel(status),
+    })),
+    products: (response?.products ?? []).map((product) => ({
+      value: String(product.id),
+      label: product.name,
+    })),
+    customers: (response?.customers ?? []).map((customer) => ({
+      value: String(customer.id),
+      label: customer.name,
+    })),
+    types: (response?.types ?? []).map((type) => ({
+      value: type,
+      label: formatFacetEnumLabel(type),
+    })),
+  };
+}
+
 export const DocketsListQueryOptions = (params?: DocketsListParams) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
@@ -149,11 +216,12 @@ export const DocketsInfiniteListQueryOptions = (
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      if (Array.isArray(lastPage)) return undefined;
-      const content = lastPage.content ?? [];
+      const page = getDocketsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      const content = page.content ?? [];
       if (content.length === 0) return undefined;
       const nextPage = (lastPageParam as number) + 1;
-      if (nextPage > lastPage.totalPages) return undefined;
+      if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
     staleTime: 5_000,

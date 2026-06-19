@@ -32,6 +32,18 @@ export function useFacets<TData>(
 }> {
   return useMemo(() => {
     return defs.map((def) => {
+      if (def.options?.length) {
+        return {
+          column: def.column,
+          title: def.title ?? def.column,
+          options: def.options.map((option) => ({
+            ...option,
+            icon: option.icon ?? def.icon,
+          })),
+          counts: {} as Record<string, number>,
+        };
+      }
+
       const counts: Record<string, number> = {};
       const labels: Record<string, string> = {};
 

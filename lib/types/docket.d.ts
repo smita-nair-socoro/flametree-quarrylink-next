@@ -484,3 +484,29 @@ export interface DocketStatistics {
   quantityScheduledTodayUnit: string;
   quantityScheduledTodayDockets: number;
 }
+
+export interface DocketListFacetOption {
+  id: number;
+  name: string;
+}
+
+export interface DocketsPage {
+  content: DocketDTO[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+/** Paginated dockets list with facet metadata from GET /dockets. */
+export interface DocketsListResponse {
+  customers?: DocketListFacetOption[];
+  products?: DocketListFacetOption[];
+  statuses?: string[];
+  types?: string[];
+  dockets: DocketsPage;
+}

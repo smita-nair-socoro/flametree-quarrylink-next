@@ -128,6 +128,8 @@ export type FacetDefinition = {
   column: string;
   title?: string;
   icon?: LucideIcon;
+  /** When set, options come from the server instead of the current table rows. */
+  options?: Array<{ value: string; label: string; icon?: LucideIcon }>;
 };
 
 const paginationSizeSelect = [
@@ -486,9 +488,9 @@ export function DataTableClient<TData, TValue>({
       };
       const newValue = typeof updater === 'function' ? updater(currentState) : updater;
 
-      if (!isMobile) {
-        saveToStorage('pagination', newValue);
-      }
+      // if (!isMobile) {
+      //   saveToStorage('pagination', newValue);
+      // }
       if (onPaginationChange) {
         // Schedule it so we don't cause React state updates during render phase
         setTimeout(() => onPaginationChange(newValue.pageIndex, newValue.pageSize), 0);
@@ -518,9 +520,9 @@ export function DataTableClient<TData, TValue>({
   const handleColumnFiltersChange = (updater: Updater<ColumnFiltersState>) => {
     setColumnFilters((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      if (!isMobile) {
-        saveToStorage('columnFilters', newValue);
-      }
+      // if (!isMobile) {
+      //   saveToStorage('columnFilters', newValue);
+      // }
       return newValue;
     });
   };
@@ -528,9 +530,9 @@ export function DataTableClient<TData, TValue>({
   const handleGlobalFilterChange = (updater: Updater<string>) => {
     setGlobalFilter((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      if (!isMobile) {
-        saveToStorage('globalFilter', newValue);
-      }
+      // if (!isMobile) {
+      //   saveToStorage('globalFilter', newValue);
+      // }
       return newValue;
     });
   };
@@ -538,18 +540,18 @@ export function DataTableClient<TData, TValue>({
   const handleColumnVisibilityChange = (updater: Updater<VisibilityState>) => {
     setColumnVisibility((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      if (!isMobile) {
-        saveToStorage('columnVisibility', newValue);
-      }
+      // if (!isMobile) {
+      //   saveToStorage('columnVisibility', newValue);
+      // }
       return newValue;
     });
   };
 
   const handlePaginationSizeChange = (value: string) => {
     setPaginationSize(value);
-    if (!isMobile) {
-      saveToStorage('paginationSize', value);
-    }
+    // if (!isMobile) {
+    //   saveToStorage('paginationSize', value);
+    // }
     table.setPageSize(Number(value));
     if (onPaginationChange) {
       onPaginationChange(externalPageIndex ?? pagination.pageIndex, Number(value));

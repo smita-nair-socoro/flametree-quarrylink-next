@@ -214,21 +214,24 @@ function DroppableSlot({
   truckId,
   time,
   children,
+  disabled = false,
 }: {
   truckId: string;
   time: string;
   children: React.ReactNode;
+  disabled?: boolean;
 }) {
   const { isOver, setNodeRef } = useDroppable({
     id: `truck-${truckId}-time-${time}`,
+    disabled,
   });
 
   return (
     <div
       ref={setNodeRef}
       className={`min-h-0 h-full p-1.5 transition-colors ${isOver
-          ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
-          : 'bg-transparent'
+        ? 'bg-blue-100/90 ring-1 ring-inset ring-blue-300/80'
+        : 'bg-transparent'
         }`}
     >
       {children}
@@ -354,7 +357,54 @@ const getStatusColors = (status?: string) => {
   }
 };
 
+export type DispatchBoardInteractionMode = 'full' | 'view-only';
+
 function DocketCard({
+  docket,
+  layout,
+  onUpdateDocket,
+  onResizeDocket,
+  isSelected,
+  onSelect,
+  boardInteractionMode = 'full',
+}: {
+  docket: DispatchDocket;
+  layout: { col: number };
+  onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
+  onResizeDocket?: (docketId: string, newDuration: number) => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  boardInteractionMode?: DispatchBoardInteractionMode;
+}) {
+  const isLocked =
+    docket.docketStatus !== 'UNASSIGNED' && docket.docketStatus !== 'ASSIGNED';
+  const canInteract = !isLocked && boardInteractionMode === 'full';
+
+  if (canInteract) {
+    return (
+      <DocketCardDraggable
+        docket={docket}
+        layout={layout}
+        onUpdateDocket={onUpdateDocket}
+        onResizeDocket={onResizeDocket}
+        isSelected={isSelected}
+        onSelect={onSelect}
+      />
+    );
+  }
+
+  return (
+    <DocketCardView
+      docket={docket}
+      layout={layout}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      isLocked={isLocked}
+    />
+  );
+}
+
+function DocketCardDraggable({
   docket,
   layout,
   onUpdateDocket,
@@ -369,17 +419,58 @@ function DocketCard({
   isSelected?: boolean;
   onSelect?: () => void;
 }) {
-  const [resizeDelta, setResizeDelta] = React.useState(0);
-  const [isResizing, setIsResizing] = React.useState(false);
-
-  const isLocked =
-    docket.docketStatus !== 'UNASSIGNED' && docket.docketStatus !== 'ASSIGNED';
-  const colors = getStatusColors(docket.docketStatus);
-
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: String(docket.id),
-    disabled: isLocked,
   });
+
+  return (
+    <DocketCardView
+      docket={docket}
+      layout={layout}
+      onUpdateDocket={onUpdateDocket}
+      onResizeDocket={onResizeDocket}
+      isSelected={isSelected}
+      onSelect={onSelect}
+      isLocked={false}
+      canDrag
+      canResize
+      setNodeRef={setNodeRef}
+      dragHandleProps={{ ...listeners, ...attributes }}
+      isDragging={isDragging}
+    />
+  );
+}
+
+function DocketCardView({
+  docket,
+  layout,
+  onUpdateDocket,
+  onResizeDocket,
+  isSelected,
+  onSelect,
+  isLocked,
+  canDrag = false,
+  canResize = false,
+  setNodeRef,
+  dragHandleProps,
+  isDragging = false,
+}: {
+  docket: DispatchDocket;
+  layout: { col: number };
+  onUpdateDocket?: (docketId: string, updates: Partial<DispatchDocket>) => void;
+  onResizeDocket?: (docketId: string, newDuration: number) => void;
+  isSelected?: boolean;
+  onSelect?: () => void;
+  isLocked: boolean;
+  canDrag?: boolean;
+  canResize?: boolean;
+  setNodeRef?: (node: HTMLElement | null) => void;
+  dragHandleProps?: Record<string, unknown>;
+  isDragging?: boolean;
+}) {
+  const [resizeDelta, setResizeDelta] = React.useState(0);
+  const [isResizing, setIsResizing] = React.useState(false);
+  const colors = getStatusColors(docket.docketStatus);
 
   const interval = getDocketIntervalHours(docket);
   if (!interval) return null;
@@ -404,7 +495,7 @@ function DocketCard({
   };
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (isLocked) return;
+    if (!canResize) return;
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
@@ -482,9 +573,8 @@ function DocketCard({
     >
       <div className="flex flex-1">
         <div
-          {...(isLocked ? {} : listeners)}
-          {...(isLocked ? {} : attributes)}
-          className={`flex items-center justify-center w-8 shrink-0 border-r ${colors.border} ${colors.handleBg} ${isLocked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
+          {...(canDrag ? dragHandleProps : {})}
+          className={`flex items-center justify-center w-8 shrink-0 border-r ${colors.border} ${colors.handleBg} ${canDrag ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
         >
           {isLocked ? (
             <Lock className="w-3.5 h-3.5 text-gray-400" />
@@ -532,7 +622,7 @@ function DocketCard({
       )}
 
       {/* Resize handle */}
-      {!isLocked && (
+      {canResize && (
         <div
           className={`h-2.5 ${colors.handleBg} hover:bg-gray-200 cursor-ns-resize transition-colors mt-auto relative z-20 border-t ${colors.border}`}
           onPointerDown={handlePointerDown}
@@ -552,6 +642,7 @@ export default function AssignedDockets({
   onSelectDocket,
   viewType = 'drivers',
   utilisationFocus,
+  boardInteractionMode = 'full',
 }: {
   trucks: TruckResource[];
   dockets: DispatchDocket[];
@@ -562,6 +653,7 @@ export default function AssignedDockets({
   onSelectDocket?: (id: string | null) => void;
   viewType?: 'trucks' | 'drivers';
   utilisationFocus?: { docketId: string; loadSize: number } | null;
+  boardInteractionMode?: DispatchBoardInteractionMode;
 }) {
   const [expandedTruckId, setExpandedTruckId] = React.useState<string | null>(
     null,
@@ -872,7 +964,11 @@ export default function AssignedDockets({
                 </div>
                 {/* Droppable Area */}
                 <div className="flex-1 relative">
-                  <DroppableSlot truckId={truck.id} time={time}>
+                  <DroppableSlot
+                    truckId={truck.id}
+                    time={time}
+                    disabled={boardInteractionMode !== 'full'}
+                  >
                     <div className="w-full h-full" />
                   </DroppableSlot>
                 </div>
@@ -890,6 +986,7 @@ export default function AssignedDockets({
                     onResizeDocket={onResizeDocket}
                     isSelected={selectedDocketId === String(docket.id)}
                     onSelect={() => onSelectDocket?.(String(docket.id))}
+                    boardInteractionMode={boardInteractionMode}
                   />
                 ))}
               </div>
