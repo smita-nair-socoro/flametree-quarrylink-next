@@ -9,7 +9,6 @@ import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useDeleteJobItem } from '@/lib/api/job';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorData } from '@/lib/utils/error-message-helper';
 import { useJobLineItemStore } from '@/app/stores/job-line-item-store';
 import {
   CannotDeleteJobLineItemDescription,
@@ -42,7 +41,6 @@ interface SelectedAction {
 const getDialogConfigs = (
   lineItemData?: JobItem | JobItem | null,
   selectedAction?: SelectedAction,
-  cannotDeleteDocketIds: number[] = [],
 ): Record<string, DialogConfig> => {
   const lineItemName =
     'productName' in (lineItemData || {})
@@ -72,7 +70,7 @@ const getDialogConfigs = (
       'cannot-delete': {
         title: 'Cannot Remove Line Item',
         description: <CannotDeleteJobLineItemDescription jobItem={lineItemData} />,
-        content: <CannotDeleteJobLineItemContent activeDocketIds={cannotDeleteDocketIds} />,
+        content: <CannotDeleteJobLineItemContent />,
         cancelText: 'Close',
         confirmActionNeeded: false,
       },
@@ -163,7 +161,6 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
   const [viewOpen, setViewOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
-  const [cannotDeleteDocketIds, setCannotDeleteDocketIds] = React.useState<number[]>([]);
 
   const deleteJobItem = useDeleteJobItem();
 
@@ -179,7 +176,6 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
   const dialogConfigs = getDialogConfigs(
     lineItemData,
     selectedAction || undefined,
-    cannotDeleteDocketIds,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -189,8 +185,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
     };
   };
 
-  const handleCannotDelete = (docketIds: number[] = []) => {
-    setCannotDeleteDocketIds(docketIds);
+  const handleCannotDelete = () => {
     setSelectedAction({ key: 'cannot-delete' });
     setActiveDialog('cannot-delete');
   };
@@ -252,16 +247,8 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
                 await handleDelete();
               } catch (error) {
                 console.error('Failed to delete job line item:', error);
-                const errorData = extractErrorData(error) as {
-                  activeDockets?: Array<{ id: number }>;
-                } | null;
-                const blocked = errorData?.activeDockets ?? [];
-                if (blocked.length > 0) {
-                  handleCannotDelete(blocked.map((d) => d.id));
-                } else {
-                  notifyError('Failed to remove line item');
-                  handleCannotDelete();
-                }
+                notifyError('Failed to remove line item');
+                handleCannotDelete();
               }
               break;
             case 'duplicate':
