@@ -814,6 +814,34 @@ export default function DocketForm({
         ? `${newStart} – ${newEnd}`
         : 'the new time';
 
+  // Gross Vehicle Mass (GVM) check — Calculated Gross Weight is the truck's tare
+  // weight plus the planned load (converted to tonnes). When it exceeds the
+  // truck's GVM limit we surface a warning and flag the gross weight field.
+  const weightDetails = selectedJobLineItemDetails();
+  const truckTareWeight = selectedDocket?.truck?.tareWeight ?? null;
+  const truckGvm =
+    selectedDocket?.truck?.pbsApproved &&
+    selectedDocket?.truck?.combinationGvmPbs != null
+      ? selectedDocket.truck.combinationGvmPbs
+      : (selectedDocket?.truck?.combinationGvm ?? null);
+  const plannedLoadSizeForGvm = docketForm.watch('plannedLoadSize') || 0;
+  const plannedLoadInTn = (() => {
+    const uom = (weightDetails.productUom || 'TN').toLowerCase();
+    const density = weightDetails.densityTonnagePerM3 || 1;
+    if (uom === 'm3' || uom === 'bulka') return plannedLoadSizeForGvm * density;
+    if (uom === '20kg' || uom === 'kg_20') return plannedLoadSizeForGvm / 50;
+    return plannedLoadSizeForGvm;
+  })();
+  const calculatedGrossWeight =
+    truckTareWeight != null ? truckTareWeight + plannedLoadInTn : null;
+  const showWeightFields = truckTareWeight != null;
+  const gvmExceeded =
+    truckGvm != null &&
+    calculatedGrossWeight != null &&
+    calculatedGrossWeight > truckGvm;
+  const gvmOverBy =
+    gvmExceeded && truckGvm != null ? calculatedGrossWeight! - truckGvm : 0;
+
   return (
     <>
       <ImagePreviewDialog
@@ -1281,6 +1309,47 @@ export default function DocketForm({
 
                           {truckQtyField}
                         </div>
+
+                        {showWeightFields && (
+                          <div className={cn('grid gap-4', gridCols)}>
+                            <FormItem>
+                              <FormLabel>Truck Tare Weight (TN)*</FormLabel>
+                              <FormControl>
+                                <Input
+                                  className="w-full"
+                                  readOnly
+                                  isNumber
+                                  allowDecimal
+                                  minDecimals={2}
+                                  maxDecimals={2}
+                                  value={truckTareWeight ?? ''}
+                                />
+                              </FormControl>
+                            </FormItem>
+                            <FormItem>
+                              <FormLabel
+                                className={cn(gvmExceeded && 'text-[#DC2626]')}
+                              >
+                                Calculated Gross Weight (TN)*
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  className={cn(
+                                    'w-full',
+                                    gvmExceeded &&
+                                      'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
+                                  )}
+                                  readOnly
+                                  isNumber
+                                  allowDecimal
+                                  minDecimals={2}
+                                  maxDecimals={2}
+                                  value={calculatedGrossWeight ?? ''}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          </div>
+                        )}
                       </>
                     );
                   })()}
@@ -1319,6 +1388,23 @@ export default function DocketForm({
                               ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                               : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                             : `Only ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom} available. Quantity has been adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`}
+                      </div>
+                    </div>
+                  )}
+
+                  {gvmExceeded && (
+                    <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-4 rounded-md flex flex-col gap-1">
+                      <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
+                        <Info className="h-4 w-4 text-[#DC2626]" />
+                        <span>GVM Limit Exceeded</span>
+                      </div>
+                      <div className="text-sm text-[#991B1B] pl-6">
+                        The current load puts Truck{' '}
+                        {selectedDocket?.truck?.licensePlate ?? ''}{' '}
+                        {gvmOverBy.toFixed(2)} TN over its maximum allowed Gross
+                        Vehicle Mass (Max GVM: {truckGvm?.toFixed(2)} TN).
+                        <br />
+                        Please reduce Planned Load Size before dispatching.
                       </div>
                     </div>
                   )}
