@@ -10,7 +10,7 @@ import {
 } from '@/lib/types/customer';
 import CustomerForm from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form';
 import { CustomerActionButtons } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-action-buttons';
-import { Archive, TriangleAlert, FileText, RotateCcw } from 'lucide-react';
+import { Archive, TriangleAlert, RotateCcw } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
 import { useCustomerStore } from '@/app/stores/customer-store';
 import { useArchiveCustomer, useUnarchiveCustomer } from '@/lib/api/customer';
@@ -253,115 +253,85 @@ const getDialogConfigs = (
           </div>
         ),
         content: (
-          <div className="flex flex-col gap-4">
-            <div className="flex items-start gap-2 p-4 bg-[#FFF7ED] border border-[#FFD6A7] rounded-md">
-              <TriangleAlert className="h-[18px] w-[18px] text-[#F54900] mt-0.5 flex-shrink-0" />
-              <div className="flex flex-col gap-1">
-                <span className="font-medium text-base text-[#F54900]">
-                  Active Records Found
-                </span>
-                <span className="text-sm text-[#CA3500]">
-                  This customer has {totalBlocking} active record(s) that must
-                  be resolved before archiving.
+          <div className="flex flex-col gap-5">
+            <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] p-4 flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <TriangleAlert className="h-4 w-4 text-[#E7000B] flex-shrink-0" />
+                <span className="text-[14px] font-semibold text-[#991B1B]">
+                  Archiving Blocked
                 </span>
               </div>
+              <span className="text-[14px] text-[#B91C1C] pl-6">
+                This customer has {totalBlocking} active record(s) that must be
+                resolved before archiving.
+              </span>
             </div>
 
             {blockingQuotes.length > 0 && (
-              <>
-                <span>
-                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
-                  <span className="font-medium text-base text-[#101828]">
-                    Pending Quotes ({blockingQuotes.length}):
-                  </span>
+              <div className="flex flex-col gap-2">
+                <span className="text-[14px] font-semibold text-gray-900">
+                  Active Quotes Found:
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingQuotes.map((quote) => (
-                    <div
-                      key={quote.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {quote.projectName}
-                        </span>
-                        <span className="text-xs text-yellow-600">
-                          {quote.quoteNumber}
-                        </span>
-                      </div>
-                      <TableBadges names={quote.quoteStatus} visibleCount={1} />
-                    </div>
-                  ))}
+                <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
+                  <a
+                    href={`/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((q) => q.id).join(',')}`}
+                    className="text-[14px] text-[#155DFC] underline font-medium"
+                  >
+                    {blockingQuotes.length} active{' '}
+                    {blockingQuotes.length === 1 ? 'quote' : 'quotes'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             {blockingDockets.length > 0 && (
-              <>
-                <span>
-                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
-                  <span className="font-medium text-base text-[#101828]">
-                    Active Dockets ({blockingDockets.length}):
-                  </span>
+              <div className="flex flex-col gap-2">
+                <span className="text-[14px] font-semibold text-gray-900">
+                  Active Dockets Found:
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingDockets.map((docket) => (
-                    <div
-                      key={docket.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {docket.docketNumber}
-                        </span>
-                      </div>
-                      <TableBadges
-                        names={docket.docketStatus}
-                        visibleCount={1}
-                      />
-                    </div>
-                  ))}
+                <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
+                  <a
+                    href={`/customer-operations/dockets/?docketId=${blockingDockets.map((d) => d.id).join(',')}`}
+                    className="text-[14px] text-[#155DFC] underline font-medium"
+                  >
+                    {blockingDockets.length} active{' '}
+                    {blockingDockets.length === 1 ? 'docket' : 'dockets'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             {blockingJobs.length > 0 && (
-              <>
-                <span>
-                  <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
-                  <span className="font-medium text-base text-[#101828]">
-                    Active Jobs ({blockingJobs.length}):
-                  </span>
+              <div className="flex flex-col gap-2">
+                <span className="text-[14px] font-semibold text-gray-900">
+                  Active Jobs Found:
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingJobs.map((job) => (
-                    <div
-                      key={job.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {job.projectName}
-                        </span>
-                        <span className="text-xs text-yellow-600">
-                          {job.jobNumber}
-                        </span>
-                      </div>
-                      <TableBadges names={job.jobStatus} visibleCount={1} />
-                    </div>
-                  ))}
+                <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
+                  <a
+                    href={`/customer-operations/jobs?jobId=${blockingJobs.map((j) => j.id).join(',')}`}
+                    className="text-[14px] text-[#155DFC] underline font-medium"
+                  >
+                    {blockingJobs.length} active{' '}
+                    {blockingJobs.length === 1 ? 'job' : 'jobs'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             <div className="flex flex-col gap-2">
-              <span className="font-medium text-base text-[#101828]">
-                To archive this customer:
+              <span className="text-[14px] font-semibold text-gray-900">
+                Required actions:
               </span>
-              <ul className="text-sm text-[#6A7282] space-y-1.5 list-disc list-outside pl-5">
-                <li>Decline or archive all pending quotes</li>
-                <li>Complete or cancel all active dockets and jobs</li>
-                <li>Then customer can be archived</li>
+              <ul className="flex flex-col gap-1 pl-1">
+                {[
+                  'Decline or archive all pending quotes',
+                  'Complete or cancel all active dockets and jobs',
+                ].map((item) => (
+                  <li key={item} className="flex gap-2 text-[14px] text-[#6A7282]">
+                    <span className="mt-[6px] h-[5px] w-[5px] rounded-full bg-[#6A7282] flex-shrink-0" />
+                    {item}
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
