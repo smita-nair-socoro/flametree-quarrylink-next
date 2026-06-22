@@ -47,6 +47,7 @@ import {
   isDispatchDriverResource,
   truckMatchesFleetFilters,
   driverRowMatchesFilters,
+  buildSchedulerFilterHaulierOptions,
   matchesBoardJobFilter,
   formatCargoLineForUnassign,
   assignmentDateDisplayForUnassign,
@@ -357,22 +358,11 @@ export function DispatchView({
     }));
   }, [viewType, trucksData]);
 
-  const filterHaulierOptions = useMemo(() => {
-    if (viewType !== 'trucks' || !trucksData?.resources) return [];
-    const byId = new Map<number, string>();
-    for (const r of trucksData.resources) {
-      if (!isDispatchTruckResource(r)) continue;
-      for (const d of r.drivers || []) {
-        const h = d.haulier;
-        if (h?.id != null && h.haulierName) {
-          byId.set(h.id, h.haulierName);
-        }
-      }
-    }
-    return [...byId.entries()]
-      .sort((a, b) => a[1].localeCompare(b[1]))
-      .map(([id, label]) => ({ id: String(id), label }));
-  }, [viewType, trucksData]);
+  const filterHaulierOptions = useMemo(
+    () =>
+      buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
+    [viewType, trucksData, driversData],
+  );
 
   const filterCustomerOptions = useMemo(() => {
     const names = new Set<string>();

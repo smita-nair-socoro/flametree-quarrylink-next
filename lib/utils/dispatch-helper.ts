@@ -226,11 +226,24 @@ export function isDispatchDriverResource(
 export function inferTruckBusinessType(
   r: DispatchTruckResource,
 ): TRUCK_BUSINESS_TYPE {
+  if (r.truckBusinessType) {
+    return r.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL
+      ? TRUCK_BUSINESS_TYPE.INTERNAL
+      : TRUCK_BUSINESS_TYPE.EXTERNAL;
+  }
   const dt = r.drivers?.[0]?.driverType;
   if (dt === DRIVER_TYPE.SUBCONTRACTOR) {
     return TRUCK_BUSINESS_TYPE.EXTERNAL;
   }
   return TRUCK_BUSINESS_TYPE.INTERNAL;
+}
+
+export function inferDriverBusinessType(
+  r: DispatchDriverResource,
+): TRUCK_BUSINESS_TYPE {
+  return r.driverType === DRIVER_TYPE.SUBCONTRACTOR
+    ? TRUCK_BUSINESS_TYPE.EXTERNAL
+    : TRUCK_BUSINESS_TYPE.INTERNAL;
 }
 
 export function truckMatchesFleetFilters(
@@ -239,11 +252,8 @@ export function truckMatchesFleetFilters(
 ): boolean {
   if (f.truckIds.length > 0 && !f.truckIds.includes(String(r.id))) return false;
   if (f.haulierIds.length > 0) {
-    const hasHaulier = (r.drivers || []).some((d) => {
-      const hid = String(d.haulierId || d.haulier?.id);
-      return f.haulierIds.includes(hid);
-    });
-    if (!hasHaulier) return false;
+    const hid = String(r.haulier?.id ?? '');
+    if (!hid || !f.haulierIds.includes(hid)) return false;
   }
   if (f.truckBusinessTypes.length > 0) {
     if (!f.truckBusinessTypes.includes(inferTruckBusinessType(r))) return false;
@@ -264,6 +274,13 @@ export function driverRowMatchesFilters(
 ): boolean {
   if (f.driverIds.length > 0 && !f.driverIds.includes(String(r.id))) {
     return false;
+  }
+  if (f.haulierIds.length > 0) {
+    const hid = String(r.haulier?.id ?? r.haulierId ?? '');
+    if (!hid || !f.haulierIds.includes(hid)) return false;
+  }
+  if (f.truckBusinessTypes.length > 0) {
+    if (!f.truckBusinessTypes.includes(inferDriverBusinessType(r))) return false;
   }
   if (f.driverStatuses.length > 0) {
     const want = new Set(f.driverStatuses);
@@ -378,19 +395,30 @@ export function buildSchedulerFilterTruckOptions(
 }
 
 export function buildSchedulerFilterHaulierOptions(
+  viewType: 'trucks' | 'drivers',
   trucksData?: DispatchDocketDTO | null,
+  driversData?: DispatchDocketDTO | null,
 ): SchedulerFilterOption[] {
-  if (!trucksData?.resources) return [];
   const byId = new Map<number, string>();
-  for (const r of trucksData.resources) {
-    if (!isDispatchTruckResource(r)) continue;
-    for (const d of r.drivers || []) {
-      const h = d.haulier;
+
+  if (viewType === 'trucks' && trucksData?.resources) {
+    for (const r of trucksData.resources) {
+      if (!isDispatchTruckResource(r)) continue;
+      const h = r.haulier;
+      if (h?.id != null && h.haulierName) {
+        byId.set(h.id, h.haulierName);
+      }
+    }
+  } else if (viewType === 'drivers' && driversData?.resources) {
+    for (const r of driversData.resources) {
+      if (!isDispatchDriverResource(r)) continue;
+      const h = r.haulier;
       if (h?.id != null && h.haulierName) {
         byId.set(h.id, h.haulierName);
       }
     }
   }
+
   return [...byId.entries()]
     .sort((a, b) => a[1].localeCompare(b[1]))
     .map(([id, label]) => ({ id: String(id), label }));

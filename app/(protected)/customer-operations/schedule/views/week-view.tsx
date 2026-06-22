@@ -109,7 +109,7 @@ function formatLoadLine(d: WeekViewDocket): string {
   return `${formatNumberThousandSeparator(loadSize)} ${u}`.trim();
 }
 
-function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
+function typeConvert(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
   if (driverType === 'SUBCONTRACTOR') return 'EXTERNAL';
   return 'INTERNAL';
 }
@@ -218,15 +218,14 @@ export function ScheduleWeekView({
           truckName: truck.licensePlate,
           driverName: truck.drivers?.[0]?.driverName,
         }));
-        const firstDriver = truck.drivers?.[0];
-        const companyLine =
-          firstDriver?.haulier?.haulierName?.trim() || undefined;
-        const typeLabel = driverTypeToFleetLabel(firstDriver?.driverType);
+        const haulierName =
+          truck.haulier?.haulierName?.trim() || undefined;
+        const typeLabel = typeConvert(truck.truckBusinessType);
 
         return {
           id: String(truck.id),
           name: truck.licensePlate,
-          companyLine,
+          companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
           dockets,
@@ -242,12 +241,14 @@ export function ScheduleWeekView({
           driverName: driver.driverName,
           truckName: driver.trucks?.[0]?.licensePlate,
         }));
-        const typeLabel = driverTypeToFleetLabel(driver.driverType);
+        const typeLabel = typeConvert(driver.driverType);
+        const haulierName =
+          driver.haulier?.haulierName?.trim() || undefined;
 
         return {
           id: String(driver.id),
           name: driver.driverName,
-          companyLine: undefined,
+          companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
           dockets,
@@ -288,8 +289,9 @@ export function ScheduleWeekView({
   );
 
   const filterHaulierOptions = useMemo(
-    () => buildSchedulerFilterHaulierOptions(trucksData),
-    [trucksData],
+    () =>
+      buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
+    [viewType, trucksData, driversData],
   );
 
   const filteredResources = useMemo(() => {
@@ -457,10 +459,10 @@ export function ScheduleWeekView({
                   className="grid border-b border-[#E2E8F0] last:border-b-0 bg-white"
                   style={{ gridTemplateColumns: GRID_TEMPLATE }}
                 >
-                  <div className="px-4 py-3 border-r border-[#E2E8F0] flex flex-col justify-between gap-2 bg-[#FAFBFC]">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight">
+                  <div className="px-4 py-3 border-r border-[#E2E8F0] flex flex-col justify-between gap-2 bg-[#FAFBFC] min-w-0 overflow-hidden">
+                    <div className="min-w-0">
+                      <div className="flex flex-col items-start gap-1 min-w-0">
+                        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight break-words min-w-0">
                           {resource.name}
                         </span>
                         <TableBadges

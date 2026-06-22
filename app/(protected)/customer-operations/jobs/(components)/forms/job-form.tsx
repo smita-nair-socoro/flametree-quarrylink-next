@@ -24,6 +24,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import { formatLocalDateTime } from '@/lib/utils/date';
+import { DELIVERY_TIME_WINDOW_HOUR_OPTIONS } from '@/lib/utils/time';
 import { AuditInformation } from '@/components/audit-information';
 import {
   Select,
@@ -313,15 +314,11 @@ export default function JobForm({
                         </SelectTrigger>
 
                         <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = String(i).padStart(2, '0');
-
-                            return (
-                              <SelectItem key={hour} value={`${hour}:00`}>
-                                {hour}:00
-                              </SelectItem>
-                            );
-                          })}
+                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -347,15 +344,11 @@ export default function JobForm({
                         </SelectTrigger>
 
                         <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = String(i).padStart(2, '0');
-
-                            return (
-                              <SelectItem key={hour} value={`${hour}:00`}>
-                                {hour}:00
-                              </SelectItem>
-                            );
-                          })}
+                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                            <SelectItem key={time} value={time}>
+                              {time}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>

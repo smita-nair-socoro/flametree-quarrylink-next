@@ -217,7 +217,7 @@ export function ScheduleMonthView({
   );
 
   const filterHaulierOptions = useMemo(
-    () => buildSchedulerFilterHaulierOptions(trucksData),
+    () => buildSchedulerFilterHaulierOptions('trucks', trucksData),
     [trucksData],
   );
 

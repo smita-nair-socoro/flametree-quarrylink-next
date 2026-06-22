@@ -22,6 +22,8 @@ import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { Spinner } from '@/components/ui/spinner';
 
 const TIME_SLOTS = [
+  '04:00',
+  '05:00',
   '06:00',
   '07:00',
   '08:00',
@@ -39,7 +41,6 @@ const TIME_SLOTS = [
   '20:00',
   '21:00',
   '22:00',
-  '23:00',
 ];
 
 /** First column label (must match `TIME_SLOTS[0]`). */

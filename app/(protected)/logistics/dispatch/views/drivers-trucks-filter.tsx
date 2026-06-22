@@ -24,19 +24,19 @@ export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
 }[] = [
-  { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
-  { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
-  { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
-  { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
-];
+    { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
+    { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
+    { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
+    { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
+  ];
 
 export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
 }[] = [
-  { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
-  ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
-];
+    { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
+    ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
+  ];
 
 const DRIVER_STATUS_OPTIONS: { value: DRIVER_STATUS; label: string }[] = [
   { value: DRIVER_STATUS.ACTIVE, label: 'Active' },
@@ -49,9 +49,9 @@ const TRUCK_BUSINESS_TYPE_OPTIONS: {
   value: TRUCK_BUSINESS_TYPE;
   label: string;
 }[] = [
-  { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
-  { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
-];
+    { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
+    { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
+  ];
 
 export type ResourceFilterOption = {
   id: string;
@@ -153,6 +153,79 @@ export function DispatchDriversTrucksFilter({
     });
   };
 
+  const renderHaulierFilter = () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+        >
+          <Plus className="w-4 h-4 text-gray-500" />
+          <span
+            className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
+          >
+            Haulier
+          </span>
+          {filter.haulierIds.length > 0 && (
+            <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
+              {filter.haulierIds.length === 1
+                ? (haulierOptions.find((h) => h.id === filter.haulierIds[0])
+                  ?.label ?? filter.haulierIds[0])
+                : `${filter.haulierIds.length} selected`}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <Command>
+          <CommandInput
+            placeholder="Search hauliers..."
+            className="focus-visible:ring-primary focus-within:ring-primary"
+          />
+          <CommandList>
+            <CommandEmpty>
+              {isLoadingResources
+                ? 'Loading hauliers…'
+                : haulierOptions.length === 0
+                  ? 'No hauliers on this fleet.'
+                  : 'No haulier found.'}
+            </CommandEmpty>
+            <CommandGroup>
+              {haulierOptions.map((haulier) => (
+                <CommandItem
+                  key={haulier.id}
+                  value={haulier.label}
+                  onSelect={() => toggleHaulierId(haulier.id)}
+                  className="flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                        filter.haulierIds.includes(haulier.id)
+                          ? 'bg-primary text-white'
+                          : 'opacity-50 [&_svg]:invisible',
+                      )}
+                    >
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5',
+                          filter.haulierIds.includes(haulier.id) &&
+                          'text-white',
+                        )}
+                      />
+                    </div>
+                    <span>{haulier.label}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+
   const toggleTruckId = (id: string) => {
     setFilter({
       truckIds: filter.truckIds.includes(id)
@@ -210,15 +283,15 @@ export function DispatchDriversTrucksFilter({
                           className="flex items-center gap-2 cursor-pointer"
                         >
                           <div
-                                className={cn(
-                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                  isChecked
-                                    ? 'bg-primary text-white'
-                                    : 'opacity-50 [&_svg]:invisible'
-                                )}
-                              >
-                                <Check className={cn('h-3.5 w-3.5', isChecked && 'text-white')} />
-                              </div>
+                            className={cn(
+                              'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                              isChecked
+                                ? 'bg-primary text-white'
+                                : 'opacity-50 [&_svg]:invisible'
+                            )}
+                          >
+                            <Check className={cn('h-3.5 w-3.5', isChecked && 'text-white')} />
+                          </div>
                           <span>{opt.label}</span>
                         </CommandItem>
                       );
@@ -266,15 +339,15 @@ export function DispatchDriversTrucksFilter({
                         className="flex items-center gap-2 cursor-pointer"
                       >
                         <div
-                                className={cn(
-                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                  filter.customerNames.includes(customer)
-                                    ? 'bg-primary text-white'
-                                    : 'opacity-50 [&_svg]:invisible'
-                                )}
-                              >
-                                <Check className={cn('h-3.5 w-3.5', filter.customerNames.includes(customer) && 'text-white')} />
-                              </div>
+                          className={cn(
+                            'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                            filter.customerNames.includes(customer)
+                              ? 'bg-primary text-white'
+                              : 'opacity-50 [&_svg]:invisible'
+                          )}
+                        >
+                          <Check className={cn('h-3.5 w-3.5', filter.customerNames.includes(customer) && 'text-white')} />
+                        </div>
                         <span>{customer}</span>
                       </CommandItem>
                     ))}
@@ -309,8 +382,8 @@ export function DispatchDriversTrucksFilter({
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[160px] truncate">
                           {filter.driverStatuses.length === 1
                             ? DRIVER_STATUS_OPTIONS.find(
-                                (o) => o.value === filter.driverStatuses[0],
-                              )?.label
+                              (o) => o.value === filter.driverStatuses[0],
+                            )?.label
                             : `${filter.driverStatuses.length} selected`}
                         </span>
                       )}
@@ -330,8 +403,8 @@ export function DispatchDriversTrucksFilter({
                                 className={cn(
                                   'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
                                   filter.driverStatuses.includes(
-                                  opt.value,
-                                )
+                                    opt.value,
+                                  )
                                     ? 'bg-primary text-white'
                                     : 'opacity-50 [&_svg]:invisible'
                                 )}
@@ -365,8 +438,8 @@ export function DispatchDriversTrucksFilter({
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[140px] truncate">
                           {filter.driverIds.length === 1
                             ? (driverOptions.find(
-                                (o) => o.id === filter.driverIds[0],
-                              )?.label ?? filter.driverIds[0])
+                              (o) => o.id === filter.driverIds[0],
+                            )?.label ?? filter.driverIds[0])
                             : `${filter.driverIds.length} selected`}
                         </span>
                       )}
@@ -394,16 +467,87 @@ export function DispatchDriversTrucksFilter({
                             >
                               <div className="flex items-center gap-2">
                                 <div
-                                className={cn(
-                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                  filter.driverIds.includes(driver.id)
-                                    ? 'bg-primary text-white'
-                                    : 'opacity-50 [&_svg]:invisible'
-                                )}
-                              >
-                                <Check className={cn('h-3.5 w-3.5', filter.driverIds.includes(driver.id) && 'text-white')} />
-                              </div>
+                                  className={cn(
+                                    'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                    filter.driverIds.includes(driver.id)
+                                      ? 'bg-primary text-white'
+                                      : 'opacity-50 [&_svg]:invisible'
+                                  )}
+                                >
+                                  <Check className={cn('h-3.5 w-3.5', filter.driverIds.includes(driver.id) && 'text-white')} />
+                                </div>
                                 <span>{driver.label}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+                    >
+                      <Plus className="w-4 h-4 text-gray-500" />
+                      <span
+                        className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
+                      >
+                        Haulier
+                      </span>
+                      {filter.haulierIds.length > 0 && (
+                        <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
+                          {filter.haulierIds.length === 1
+                            ? (haulierOptions.find((h) => h.id === filter.haulierIds[0])
+                              ?.label ?? filter.haulierIds[0])
+                            : `${filter.haulierIds.length} selected`}
+                        </span>
+                      )}
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search hauliers..."
+                        className="focus-visible:ring-primary focus-within:ring-primary"
+                      />
+                      <CommandList>
+                        <CommandEmpty>
+                          {isLoadingResources
+                            ? 'Loading hauliers…'
+                            : haulierOptions.length === 0
+                              ? 'No hauliers on this fleet.'
+                              : 'No haulier found.'}
+                        </CommandEmpty>
+                        <CommandGroup>
+                          {haulierOptions.map((haulier) => (
+                            <CommandItem
+                              key={haulier.id}
+                              value={haulier.label}
+                              onSelect={() => toggleHaulierId(haulier.id)}
+                              className="flex items-center justify-between cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={cn(
+                                    'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                    filter.haulierIds.includes(haulier.id)
+                                      ? 'bg-primary text-white'
+                                      : 'opacity-50 [&_svg]:invisible',
+                                  )}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'h-3.5 w-3.5',
+                                      filter.haulierIds.includes(haulier.id) &&
+                                      'text-white',
+                                    )}
+                                  />
+                                </div>
+                                <span>{haulier.label}</span>
                               </div>
                             </CommandItem>
                           ))}
@@ -436,8 +580,8 @@ export function DispatchDriversTrucksFilter({
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
                           {filter.truckBusinessTypes.length === 1
                             ? TRUCK_BUSINESS_TYPE_OPTIONS.find(
-                                (o) => o.value === filter.truckBusinessTypes[0],
-                              )?.label
+                              (o) => o.value === filter.truckBusinessTypes[0],
+                            )?.label
                             : `${filter.truckBusinessTypes.length} selected`}
                         </span>
                       )}
@@ -459,8 +603,8 @@ export function DispatchDriversTrucksFilter({
                                 className={cn(
                                   'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
                                   filter.truckBusinessTypes.includes(
-                                  opt.value,
-                                )
+                                    opt.value,
+                                  )
                                     ? 'bg-primary text-white'
                                     : 'opacity-50 [&_svg]:invisible'
                                 )}
@@ -478,75 +622,7 @@ export function DispatchDriversTrucksFilter({
                   </PopoverContent>
                 </Popover>
 
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
-                    >
-                      <Plus className="w-4 h-4 text-gray-500" />
-                      <span
-                        className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
-                      >
-                        Haulier
-                      </span>
-                      {filter.haulierIds.length > 0 && (
-                        <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
-                          {filter.haulierIds.length === 1
-                            ? (haulierOptions.find(
-                                (h) => h.id === filter.haulierIds[0],
-                              )?.label ?? filter.haulierIds[0])
-                            : `${filter.haulierIds.length} selected`}
-                        </span>
-                      )}
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-0" align="start">
-                    <Command>
-                      <CommandInput
-                        placeholder="Search hauliers..."
-                        className="focus-visible:ring-primary focus-within:ring-primary"
-                      />
-                      <CommandList>
-                        <CommandEmpty>
-                          {isLoadingResources
-                            ? 'Loading hauliers…'
-                            : haulierOptions.length === 0
-                              ? 'No hauliers on this fleet.'
-                              : 'No haulier found.'}
-                        </CommandEmpty>
-                        <CommandGroup>
-                          {haulierOptions.map((haulier) => (
-                            <CommandItem
-                              key={haulier.id}
-                              value={haulier.label}
-                              onSelect={() => toggleHaulierId(haulier.id)}
-                              className="flex items-center justify-between cursor-pointer"
-                            >
-                              <div className="flex items-center gap-2">
-                                <div
-                                className={cn(
-                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                  filter.haulierIds.includes(
-                                    haulier.id,
-                                  )
-                                    ? 'bg-primary text-white'
-                                    : 'opacity-50 [&_svg]:invisible'
-                                )}
-                              >
-                                <Check className={cn('h-3.5 w-3.5', filter.haulierIds.includes(
-                                    haulier.id,
-                                  ) && 'text-white')} />
-                              </div>
-                                <span>{haulier.label}</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                {renderHaulierFilter()}
 
                 <Popover>
                   <PopoverTrigger asChild>
@@ -564,8 +640,8 @@ export function DispatchDriversTrucksFilter({
                         <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
                           {filter.truckIds.length === 1
                             ? (truckOptions.find(
-                                (t) => t.id === filter.truckIds[0],
-                              )?.label ?? filter.truckIds[0])
+                              (t) => t.id === filter.truckIds[0],
+                            )?.label ?? filter.truckIds[0])
                             : `${filter.truckIds.length} selected`}
                         </span>
                       )}
@@ -593,15 +669,15 @@ export function DispatchDriversTrucksFilter({
                             >
                               <div className="flex items-center gap-2">
                                 <div
-                                className={cn(
-                                  'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                  filter.truckIds.includes(truck.id)
-                                    ? 'bg-primary text-white'
-                                    : 'opacity-50 [&_svg]:invisible'
-                                )}
-                              >
-                                <Check className={cn('h-3.5 w-3.5', filter.truckIds.includes(truck.id) && 'text-white')} />
-                              </div>
+                                  className={cn(
+                                    'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                                    filter.truckIds.includes(truck.id)
+                                      ? 'bg-primary text-white'
+                                      : 'opacity-50 [&_svg]:invisible'
+                                  )}
+                                >
+                                  <Check className={cn('h-3.5 w-3.5', filter.truckIds.includes(truck.id) && 'text-white')} />
+                                </div>
                                 <span>{truck.label}</span>
                               </div>
                             </CommandItem>
