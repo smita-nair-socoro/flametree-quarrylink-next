@@ -16,6 +16,10 @@ import type {
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import type { TruckResource } from '@/lib/types/truck';
+import {
+  normalizeDeliveryCollectionEndIso,
+  normalizeDeliveryCollectionStartIso,
+} from '@/lib/utils/time';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 export type DispatchDocketUiFields = {
@@ -28,10 +32,37 @@ export type DispatchDocket = DispatchBoardDocketRow &
   DispatchDocketUiFields &
   Partial<Omit<DocketDTO, 'pickUpAddress' | 'deliveryAddress'>>;
 
+export function normalizeDispatchDocketDeliveryWindows<
+  T extends {
+    deliveryCollectionStartTime?: string;
+    deliveryCollectionEndTime?: string;
+  },
+>(d: T): T {
+  const deliveryCollectionStartTime = d.deliveryCollectionStartTime
+    ? normalizeDeliveryCollectionStartIso(d.deliveryCollectionStartTime)
+    : d.deliveryCollectionStartTime;
+  const deliveryCollectionEndTime = d.deliveryCollectionEndTime
+    ? normalizeDeliveryCollectionEndIso(d.deliveryCollectionEndTime)
+    : d.deliveryCollectionEndTime;
+
+  if (
+    deliveryCollectionStartTime === d.deliveryCollectionStartTime &&
+    deliveryCollectionEndTime === d.deliveryCollectionEndTime
+  ) {
+    return d;
+  }
+
+  return {
+    ...d,
+    deliveryCollectionStartTime,
+    deliveryCollectionEndTime,
+  };
+}
+
 export function mapUnassignedDocketDtoToBoardRow(
   d: DocketDTO,
 ): DispatchUnassignedDocket & DispatchDocketUiFields {
-  return {
+  const normalized = normalizeDispatchDocketDeliveryWindows({
     id: d.id,
     docketNumber: d.docketNumber,
     docketStatus: d.docketStatus,
@@ -55,17 +86,44 @@ export function mapUnassignedDocketDtoToBoardRow(
     truckSellPrice: d.jobItem?.truckSellPrice ?? 0,
     uiAssignedTruckId: null,
     uiAssignedTime: null,
-  };
+  });
+  return normalized;
 }
 
 export function mapSchedulerUnassignedToBoardRow(
   d: DispatchUnassignedDocket,
 ): DispatchUnassignedDocket & DispatchDocketUiFields {
-  return {
+  return normalizeDispatchDocketDeliveryWindows({
     ...d,
     loadSize: d.loadSize ?? d.actualLoadSize ?? d.plannedLoadSize ?? 0,
     uiAssignedTruckId: null,
     uiAssignedTime: null,
+  });
+}
+
+export function mapSchedulerAssignedDocketToBoardRow(
+  d: DispatchBoardDocketRow,
+  uiAssignedTruckId: string,
+): DispatchDocket {
+  const normalized = normalizeDispatchDocketDeliveryWindows(d);
+  let duration = 2;
+  if (
+    normalized.deliveryCollectionStartTime &&
+    normalized.deliveryCollectionEndTime
+  ) {
+    const start = new Date(
+      normalized.deliveryCollectionStartTime.replace('Z', ''),
+    ).getTime();
+    const end = new Date(
+      normalized.deliveryCollectionEndTime.replace('Z', ''),
+    ).getTime();
+    duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+  }
+  return {
+    ...normalized,
+    uiAssignedTruckId,
+    uiAssignedTime: formatTime(normalized.deliveryCollectionStartTime),
+    uiAssignedDuration: duration,
   };
 }
 
@@ -227,11 +285,24 @@ export function isDispatchDriverResource(
 export function inferTruckBusinessType(
   r: DispatchTruckResource,
 ): TRUCK_BUSINESS_TYPE {
+  if (r.truckBusinessType) {
+    return r.truckBusinessType === TRUCK_BUSINESS_TYPE.INTERNAL
+      ? TRUCK_BUSINESS_TYPE.INTERNAL
+      : TRUCK_BUSINESS_TYPE.EXTERNAL;
+  }
   const dt = r.drivers?.[0]?.driverType;
   if (dt === DRIVER_TYPE.SUBCONTRACTOR) {
     return TRUCK_BUSINESS_TYPE.EXTERNAL;
   }
   return TRUCK_BUSINESS_TYPE.INTERNAL;
+}
+
+export function inferDriverBusinessType(
+  r: DispatchDriverResource,
+): TRUCK_BUSINESS_TYPE {
+  return r.driverType === DRIVER_TYPE.SUBCONTRACTOR
+    ? TRUCK_BUSINESS_TYPE.EXTERNAL
+    : TRUCK_BUSINESS_TYPE.INTERNAL;
 }
 
 export function truckMatchesFleetFilters(
@@ -240,11 +311,8 @@ export function truckMatchesFleetFilters(
 ): boolean {
   if (f.truckIds.length > 0 && !f.truckIds.includes(String(r.id))) return false;
   if (f.haulierIds.length > 0) {
-    const hasHaulier = (r.drivers || []).some((d) => {
-      const hid = String(d.haulierId || d.haulier?.id);
-      return f.haulierIds.includes(hid);
-    });
-    if (!hasHaulier) return false;
+    const hid = String(r.haulier?.id ?? '');
+    if (!hid || !f.haulierIds.includes(hid)) return false;
   }
   if (f.truckBusinessTypes.length > 0) {
     if (!f.truckBusinessTypes.includes(inferTruckBusinessType(r))) return false;
@@ -265,6 +333,14 @@ export function driverRowMatchesFilters(
 ): boolean {
   if (f.driverIds.length > 0 && !f.driverIds.includes(String(r.id))) {
     return false;
+  }
+  if (f.haulierIds.length > 0) {
+    const hid = String(r.haulier?.id ?? r.haulierId ?? '');
+    if (!hid || !f.haulierIds.includes(hid)) return false;
+  }
+  if (f.truckBusinessTypes.length > 0) {
+    if (!f.truckBusinessTypes.includes(inferDriverBusinessType(r)))
+      return false;
   }
   if (f.driverStatuses.length > 0) {
     const want = new Set(f.driverStatuses);
@@ -379,19 +455,30 @@ export function buildSchedulerFilterTruckOptions(
 }
 
 export function buildSchedulerFilterHaulierOptions(
+  viewType: 'trucks' | 'drivers',
   trucksData?: DispatchDocketDTO | null,
+  driversData?: DispatchDocketDTO | null,
 ): SchedulerFilterOption[] {
-  if (!trucksData?.resources) return [];
   const byId = new Map<number, string>();
-  for (const r of trucksData.resources) {
-    if (!isDispatchTruckResource(r)) continue;
-    for (const d of r.drivers || []) {
-      const h = d.haulier;
+
+  if (viewType === 'trucks' && trucksData?.resources) {
+    for (const r of trucksData.resources) {
+      if (!isDispatchTruckResource(r)) continue;
+      const h = r.haulier;
+      if (h?.id != null && h.haulierName) {
+        byId.set(h.id, h.haulierName);
+      }
+    }
+  } else if (viewType === 'drivers' && driversData?.resources) {
+    for (const r of driversData.resources) {
+      if (!isDispatchDriverResource(r)) continue;
+      const h = r.haulier;
       if (h?.id != null && h.haulierName) {
         byId.set(h.id, h.haulierName);
       }
     }
   }
+
   return [...byId.entries()]
     .sort((a, b) => a[1].localeCompare(b[1]))
     .map(([id, label]) => ({ id: String(id), label }));
@@ -649,9 +736,7 @@ export function isSchedulerQueryLoading(options: {
   const { isPending, isLoading, isFetching, isPlaceholderData, hasData } =
     options;
   return (
-    isPending ||
-    isLoading ||
-    (isFetching && (isPlaceholderData || !hasData))
+    isPending || isLoading || (isFetching && (isPlaceholderData || !hasData))
   );
 }
 

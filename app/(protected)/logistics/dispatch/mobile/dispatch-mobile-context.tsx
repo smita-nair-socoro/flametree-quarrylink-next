@@ -31,11 +31,11 @@ import {
   DispatchDocket,
   formatCargoLineForUnassign,
   formatLocalISO,
-  formatTime,
   formatTimeRange,
   isDispatchDriverResource,
   isDispatchTruckResource,
   isDocketOnSelectedLocalDay,
+  mapSchedulerAssignedDocketToBoardRow,
   mapUnassignedDocketDtoToBoardRow,
   assignmentDateDisplayForUnassign,
   resolveUnassignAssignmentLabels,
@@ -51,6 +51,7 @@ import {
 } from './mobile-assign-picker-drawer';
 import type { QueueDateScope } from './queue/queue-filters-drawer';
 import type { QueueSortKey, QueueSortOrder } from './queue/queue-sort-drawer';
+import { notifySuccess } from '@/lib/toast';
 
 type AssignModalData = {
   docketId: string;
@@ -134,28 +135,6 @@ export function useDispatchMobile() {
     );
   }
   return ctx;
-}
-
-function mapAssignedDocket(
-  d: DispatchDocket,
-  resourceId: string,
-): DispatchDocket {
-  let duration = 2;
-  if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-    const startMs = new Date(
-      d.deliveryCollectionStartTime.replace('Z', ''),
-    ).getTime();
-    const endMs = new Date(
-      d.deliveryCollectionEndTime.replace('Z', ''),
-    ).getTime();
-    duration = Math.max(1, Math.round((endMs - startMs) / (1000 * 60 * 60)));
-  }
-  return {
-    ...d,
-    uiAssignedTruckId: resourceId,
-    uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
-    uiAssignedDuration: duration,
-  };
 }
 
 function resolveDocketById(
@@ -327,10 +306,14 @@ export function DispatchMobileProvider({
 
   React.useEffect(() => {
     const truckAssigned = (trucksData?.resources || []).flatMap((r) =>
-      (r.dockets || []).map((d) => mapAssignedDocket(d, String(r.id))),
+      (r.dockets || []).map((d) =>
+        mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+      ),
     );
     const driverAssigned = (driversData?.resources || []).flatMap((r) =>
-      (r.dockets || []).map((d) => mapAssignedDocket(d, String(r.id))),
+      (r.dockets || []).map((d) =>
+        mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+      ),
     );
 
     const assignedIds = new Set(
@@ -588,6 +571,7 @@ export function DispatchMobileProvider({
             return [...prev, updated];
           });
           setAssignModalData(null);
+          notifySuccess('Successfully assigned.');
         },
       },
     );
