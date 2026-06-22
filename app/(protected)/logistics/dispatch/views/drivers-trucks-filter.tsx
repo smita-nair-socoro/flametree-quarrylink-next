@@ -183,8 +183,8 @@ export function DispatchDriversTrucksFilter({
   return (
     <div className="border-b bg-white px-4 py-3 md:px-6 flex items-center gap-6">
       <div className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
-        <div className="flex flex-col gap-3 min-w-0 flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center justify-between gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-3 flex-wrap min-w-0 flex-1">
             <span className="text-xs font-semibold text-gray-500 tracking-wider">
               JOBS
             </span>
@@ -302,11 +302,8 @@ export function DispatchDriversTrucksFilter({
                 </Command>
               </PopoverContent>
             </Popover>
-          </div>
 
-          <div className="flex items-center justify-between gap-3 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap min-w-0">
-              {viewType === 'drivers' && (
+            {viewType === 'drivers' && (
                 <>
                   <span className="text-xs font-semibold text-gray-500 tracking-wider">
                     DRIVERS
@@ -664,10 +661,9 @@ export function DispatchDriversTrucksFilter({
               >
                 Clear filters
               </button>
-            </div>
-            <div className="shrink-0 lg:hidden">
-              <DocketStatusColorsPopover />
-            </div>
+          </div>
+          <div className="shrink-0 lg:hidden">
+            <DocketStatusColorsPopover />
           </div>
         </div>
 
