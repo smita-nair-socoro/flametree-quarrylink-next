@@ -43,7 +43,6 @@ import {
 } from '@/lib/utils/dispatch-helper';
 
 const HOUR_OPTIONS = [
-  '03:00',
   '04:00',
   '05:00',
   '06:00',

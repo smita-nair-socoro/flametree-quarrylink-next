@@ -21,6 +21,11 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
+import {
+  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
+  isDeliveryTimeWindowEndOptionDisabled,
+  isDeliveryTimeWindowStartOptionDisabled,
+} from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -162,6 +167,8 @@ export default function QuotationForm({
     },
     [customers],
   );
+  const deliveryWindowStart = quotationForm.watch('deliveryWindowStart');
+  const deliveryWindowEnd = quotationForm.watch('deliveryWindowEnd');
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
@@ -176,7 +183,7 @@ export default function QuotationForm({
           quotationForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-              '',
+            '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -198,9 +205,9 @@ export default function QuotationForm({
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : []),
     ].filter(Boolean);
     const submitCustomer = customers.find((c) => c.id === values.customerId);
@@ -374,24 +381,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isDuplicate
-                ? 'Creating Duplicate Quote...'
-                : createQuotation.isPending
-                  ? 'Adding Quote...'
-                  : 'Updating Quote...'}
-            </p>
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10',
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isDuplicate
+                  ? 'Creating Duplicate Quote...'
+                  : createQuotation.isPending
+                    ? 'Adding Quote...'
+                    : 'Updating Quote...'}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Form {...quotationForm}>
         <form
@@ -402,7 +409,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-              'pointer-events-none',
+            'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
@@ -478,7 +485,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none',
+              'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -702,14 +709,18 @@ export default function QuotationForm({
                         </SelectTrigger>
 
                         <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = String(i).padStart(2, '0');
-                            return (
-                              <SelectItem key={hour} value={`${hour}:00`}>
-                                {hour}:00
-                              </SelectItem>
-                            );
-                          })}
+                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowStartOptionDisabled(
+                                time,
+                                deliveryWindowEnd,
+                              )}
+                            >
+                              {time}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -735,14 +746,18 @@ export default function QuotationForm({
                         </SelectTrigger>
 
                         <SelectContent>
-                          {Array.from({ length: 24 }, (_, i) => {
-                            const hour = String(i).padStart(2, '0');
-                            return (
-                              <SelectItem key={hour} value={`${hour}:00`}>
-                                {hour}:00
-                              </SelectItem>
-                            );
-                          })}
+                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowEndOptionDisabled(
+                                time,
+                                deliveryWindowStart,
+                              )}
+                            >
+                              {time}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </FormControl>

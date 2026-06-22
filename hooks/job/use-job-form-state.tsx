@@ -22,6 +22,11 @@ import { JOB_STATUS } from '@/lib/types/job-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { formatCalendarDate, parseCalendarDate } from '@/lib/utils/date';
+import {
+  normalizeDeliveryTimeWindowEnd,
+  normalizeDeliveryTimeWindowStart,
+  parseDeliveryTimeWindowValue,
+} from '@/lib/utils/time';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { addNewRecordId } from '@/lib/utils';
@@ -43,23 +48,8 @@ export const EMPTY_JOB_FORM_VALUES = {
   deliveryStartDate: undefined,
 };
 
-export const formatJobTimeString = (timeStr?: string | null) => {
-  if (!timeStr) return '';
-
-  if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeStr)) {
-    return timeStr.substring(0, 5);
-  }
-
-  if (timeStr.includes('T')) {
-    return timeStr.split('T')[1]?.substring(0, 5) ?? '';
-  }
-
-  if (timeStr.includes(' ')) {
-    return timeStr.split(' ')[1]?.substring(0, 5) ?? '';
-  }
-
-  return timeStr.substring(0, 5);
-};
+export const formatJobTimeString = (timeStr?: string | null) =>
+  parseDeliveryTimeWindowValue(timeStr);
 
 type UseJobFormStateProps = {
   id?: number;
@@ -154,8 +144,12 @@ export function useJobFormState({
       ? parseCalendarDate(jobDetails.estimatedStartDate)
       : currentValues.deliveryStartDate;
 
-    const apiStartWindow = formatJobTimeString(jobDetails.startTimeWindow);
-    const apiEndWindow = formatJobTimeString(jobDetails.endTimeWindow);
+    const apiStartWindow = normalizeDeliveryTimeWindowStart(
+      formatJobTimeString(jobDetails.startTimeWindow),
+    );
+    const apiEndWindow = normalizeDeliveryTimeWindowEnd(
+      formatJobTimeString(jobDetails.endTimeWindow),
+    );
 
     const startWindow =
       apiStartWindow || currentValues.deliveryWindowStart || '';

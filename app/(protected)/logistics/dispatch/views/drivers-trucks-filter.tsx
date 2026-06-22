@@ -25,23 +25,23 @@ export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
 }[] = [
-  { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
-  { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
-  { value: DOCKET_STATUS.STOPPED, label: 'Stopped' },
-  { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
-  { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
-  { value: DOCKET_STATUS.INVOICED, label: 'Invoiced' },
-  { value: DOCKET_STATUS.CANCELLED, label: 'Cancelled' },
-  { value: DOCKET_STATUS.VOIDED, label: 'Voided' },
-];
+    { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
+    { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
+    { value: DOCKET_STATUS.STOPPED, label: 'Stopped' },
+    { value: DOCKET_STATUS.ARRIVED, label: 'Arrived' },
+    { value: DOCKET_STATUS.DELIVERED, label: 'Delivered' },
+    { value: DOCKET_STATUS.INVOICED, label: 'Invoiced' },
+    { value: DOCKET_STATUS.CANCELLED, label: 'Cancelled' },
+    { value: DOCKET_STATUS.VOIDED, label: 'Voided' },
+  ];
 
 export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
 }[] = [
-  { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
-  ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
-];
+    { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
+    ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
+  ];
 
 const DRIVER_STATUS_OPTIONS: { value: DRIVER_STATUS; label: string }[] = [
   { value: DRIVER_STATUS.ACTIVE, label: 'Active' },
@@ -54,9 +54,9 @@ const TRUCK_BUSINESS_TYPE_OPTIONS: {
   value: TRUCK_BUSINESS_TYPE;
   label: string;
 }[] = [
-  { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
-  { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
-];
+    { value: TRUCK_BUSINESS_TYPE.INTERNAL, label: 'Internal' },
+    { value: TRUCK_BUSINESS_TYPE.EXTERNAL, label: 'External' },
+  ];
 
 export type ResourceFilterOption = {
   id: string;
@@ -158,6 +158,79 @@ export function DispatchDriversTrucksFilter({
     });
   };
 
+  const renderHaulierFilter = () => (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
+        >
+          <Plus className="w-4 h-4 text-gray-500" />
+          <span
+            className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
+          >
+            Haulier
+          </span>
+          {filter.haulierIds.length > 0 && (
+            <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
+              {filter.haulierIds.length === 1
+                ? (haulierOptions.find((h) => h.id === filter.haulierIds[0])
+                  ?.label ?? filter.haulierIds[0])
+                : `${filter.haulierIds.length} selected`}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 p-0" align="start">
+        <Command>
+          <CommandInput
+            placeholder="Search hauliers..."
+            className="focus-visible:ring-primary focus-within:ring-primary"
+          />
+          <CommandList>
+            <CommandEmpty>
+              {isLoadingResources
+                ? 'Loading hauliers…'
+                : haulierOptions.length === 0
+                  ? 'No hauliers on this fleet.'
+                  : 'No haulier found.'}
+            </CommandEmpty>
+            <CommandGroup>
+              {haulierOptions.map((haulier) => (
+                <CommandItem
+                  key={haulier.id}
+                  value={haulier.label}
+                  onSelect={() => toggleHaulierId(haulier.id)}
+                  className="flex items-center justify-between cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
+                        filter.haulierIds.includes(haulier.id)
+                          ? 'bg-primary text-white'
+                          : 'opacity-50 [&_svg]:invisible',
+                      )}
+                    >
+                      <Check
+                        className={cn(
+                          'h-3.5 w-3.5',
+                          filter.haulierIds.includes(haulier.id) &&
+                          'text-white',
+                        )}
+                      />
+                    </div>
+                    <span>{haulier.label}</span>
+                  </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+
   const toggleTruckId = (id: string) => {
     setFilter({
       truckIds: filter.truckIds.includes(id)
@@ -182,12 +255,11 @@ export function DispatchDriversTrucksFilter({
 
   return (
     <div className="border-b bg-white px-4 py-3 md:px-6 flex items-center gap-6">
-      <div className="border border-gray-200 rounded-lg p-3 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between w-full">
-        <div className="flex flex-col gap-3 min-w-0 flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs font-semibold text-gray-500 tracking-wider">
-              JOBS
-            </span>
+      <div className="border border-gray-200 rounded-lg p-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-3 w-full">
+        <div className="flex flex-wrap items-center gap-3 min-w-0 flex-1">
+          <span className="text-xs font-semibold text-gray-500 tracking-wider shrink-0">
+            JOBS
+          </span>
 
             <Popover>
               <PopoverTrigger asChild>
@@ -230,7 +302,7 @@ export function DispatchDriversTrucksFilter({
                               className={cn(
                                 'h-3.5 w-3.5',
                                 filter.jobStatuses.includes(opt.value) &&
-                                  'text-white',
+                                'text-white',
                               )}
                             />
                           </div>
@@ -290,7 +362,7 @@ export function DispatchDriversTrucksFilter({
                               className={cn(
                                 'h-3.5 w-3.5',
                                 filter.customerNames.includes(customer) &&
-                                  'text-white',
+                                'text-white',
                               )}
                             />
                           </div>
@@ -302,11 +374,13 @@ export function DispatchDriversTrucksFilter({
                 </Command>
               </PopoverContent>
             </Popover>
-          </div>
 
-          <div className="flex items-center justify-between gap-3 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap min-w-0">
-              {viewType === 'drivers' && (
+          <div
+            className="hidden sm:block w-px h-5 bg-gray-200 shrink-0"
+            aria-hidden="true"
+          />
+
+          {viewType === 'drivers' && (
                 <>
                   <span className="text-xs font-semibold text-gray-500 tracking-wider">
                     DRIVERS
@@ -328,8 +402,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[160px] truncate">
                             {filter.driverStatuses.length === 1
                               ? DRIVER_STATUS_OPTIONS.find(
-                                  (o) => o.value === filter.driverStatuses[0],
-                                )?.label
+                                (o) => o.value === filter.driverStatuses[0],
+                              )?.label
                               : `${filter.driverStatuses.length} selected`}
                           </span>
                         )}
@@ -387,8 +461,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[140px] truncate">
                             {filter.driverIds.length === 1
                               ? (driverOptions.find(
-                                  (o) => o.id === filter.driverIds[0],
-                                )?.label ?? filter.driverIds[0])
+                                (o) => o.id === filter.driverIds[0],
+                              )?.label ?? filter.driverIds[0])
                               : `${filter.driverIds.length} selected`}
                           </span>
                         )}
@@ -427,7 +501,7 @@ export function DispatchDriversTrucksFilter({
                                       className={cn(
                                         'h-3.5 w-3.5',
                                         filter.driverIds.includes(driver.id) &&
-                                          'text-white',
+                                        'text-white',
                                       )}
                                     />
                                   </div>
@@ -464,9 +538,9 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium">
                             {filter.truckBusinessTypes.length === 1
                               ? TRUCK_BUSINESS_TYPE_OPTIONS.find(
-                                  (o) =>
-                                    o.value === filter.truckBusinessTypes[0],
-                                )?.label
+                                (o) =>
+                                  o.value === filter.truckBusinessTypes[0],
+                              )?.label
                               : `${filter.truckBusinessTypes.length} selected`}
                           </span>
                         )}
@@ -512,78 +586,7 @@ export function DispatchDriversTrucksFilter({
                     </PopoverContent>
                   </Popover>
 
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className={`flex items-center gap-1.5 border rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors ${filter.haulierIds.length > 0 ? 'border-gray-300' : 'border-gray-200'}`}
-                      >
-                        <Plus className="w-4 h-4 text-gray-500" />
-                        <span
-                          className={`font-medium text-gray-700 ${filter.haulierIds.length > 0 ? 'mr-1' : ''}`}
-                        >
-                          Haulier
-                        </span>
-                        {filter.haulierIds.length > 0 && (
-                          <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
-                            {filter.haulierIds.length === 1
-                              ? (haulierOptions.find(
-                                  (h) => h.id === filter.haulierIds[0],
-                                )?.label ?? filter.haulierIds[0])
-                              : `${filter.haulierIds.length} selected`}
-                          </span>
-                        )}
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-0" align="start">
-                      <Command>
-                        <CommandInput
-                          placeholder="Search hauliers..."
-                          className="focus-visible:ring-primary focus-within:ring-primary"
-                        />
-                        <CommandList>
-                          <CommandEmpty>
-                            {isLoadingResources
-                              ? 'Loading hauliers…'
-                              : haulierOptions.length === 0
-                                ? 'No hauliers on this fleet.'
-                                : 'No haulier found.'}
-                          </CommandEmpty>
-                          <CommandGroup>
-                            {haulierOptions.map((haulier) => (
-                              <CommandItem
-                                key={haulier.id}
-                                value={haulier.label}
-                                onSelect={() => toggleHaulierId(haulier.id)}
-                                className="flex items-center justify-between cursor-pointer"
-                              >
-                                <div className="flex items-center gap-2">
-                                  <div
-                                    className={cn(
-                                      'mr-2 flex h-4 w-4 shrink-0 items-center justify-center border border-primary rounded-[4px]',
-                                      filter.haulierIds.includes(haulier.id)
-                                        ? 'bg-primary text-white'
-                                        : 'opacity-50 [&_svg]:invisible',
-                                    )}
-                                  >
-                                    <Check
-                                      className={cn(
-                                        'h-3.5 w-3.5',
-                                        filter.haulierIds.includes(
-                                          haulier.id,
-                                        ) && 'text-white',
-                                      )}
-                                    />
-                                  </div>
-                                  <span>{haulier.label}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  {renderHaulierFilter()}
 
                   <Popover>
                     <PopoverTrigger asChild>
@@ -601,8 +604,8 @@ export function DispatchDriversTrucksFilter({
                           <span className="bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-lg font-medium max-w-[120px] truncate">
                             {filter.truckIds.length === 1
                               ? (truckOptions.find(
-                                  (t) => t.id === filter.truckIds[0],
-                                )?.label ?? filter.truckIds[0])
+                                (t) => t.id === filter.truckIds[0],
+                              )?.label ?? filter.truckIds[0])
                               : `${filter.truckIds.length} selected`}
                           </span>
                         )}
@@ -641,7 +644,7 @@ export function DispatchDriversTrucksFilter({
                                       className={cn(
                                         'h-3.5 w-3.5',
                                         filter.truckIds.includes(truck.id) &&
-                                          'text-white',
+                                        'text-white',
                                       )}
                                     />
                                   </div>
@@ -657,21 +660,16 @@ export function DispatchDriversTrucksFilter({
                 </>
               )}
 
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="ml-2 border border-gray-200 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors font-medium text-gray-700"
-              >
-                Clear filters
-              </button>
-            </div>
-            <div className="shrink-0 lg:hidden">
-              <DocketStatusColorsPopover />
-            </div>
-          </div>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors font-medium text-gray-700"
+          >
+            Clear filters
+          </button>
         </div>
 
-        <div className="hidden lg:block shrink-0 self-end">
+        <div className="shrink-0">
           <DocketStatusColorsPopover />
         </div>
       </div>
