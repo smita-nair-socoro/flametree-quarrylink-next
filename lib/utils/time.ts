@@ -130,26 +130,30 @@ export function getDeliveryTimeWindowHour(
   return Number.isNaN(hour) ? null : hour;
 }
 
-/** When end is set, start options after end are disabled. */
+/** When end is set, start options after end are disabled. Start cannot be 23:00 (end must be later). */
 export function isDeliveryTimeWindowStartOptionDisabled(
   option: string,
   endTime?: string | null,
 ): boolean {
-  const endHour = getDeliveryTimeWindowHour(endTime);
-  if (endHour === null) return false;
   const optionHour = getDeliveryTimeWindowHour(option);
   if (optionHour === null) return false;
+  if (optionHour >= 23) return true;
+
+  const endHour = getDeliveryTimeWindowHour(endTime);
+  if (endHour === null) return false;
   return optionHour > endHour;
 }
 
-/** When start is set, end options before start are disabled. */
+/** When start is set, end options before start are disabled. End cannot be 04:00 (start must be earlier). */
 export function isDeliveryTimeWindowEndOptionDisabled(
   option: string,
   startTime?: string | null,
 ): boolean {
-  const startHour = getDeliveryTimeWindowHour(startTime);
-  if (startHour === null) return false;
   const optionHour = getDeliveryTimeWindowHour(option);
   if (optionHour === null) return false;
+  if (optionHour <= 4) return true;
+
+  const startHour = getDeliveryTimeWindowHour(startTime);
+  if (startHour === null) return false;
   return optionHour < startHour;
 }

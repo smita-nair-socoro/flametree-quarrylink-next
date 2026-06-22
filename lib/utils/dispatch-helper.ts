@@ -194,6 +194,7 @@ export function isVolumeProductSellUom(uom?: string): boolean {
 
 export function formatDispatchProductSellUomLabel(uom?: string): string {
   if (uom === 'M3') return 'm³';
+  if (uom === 'm3') return 'm³';
   if (uom === 'KG_20') return 'x 20kg';
   if (uom === 'TN') return 'TN';
   if (uom === 'BULKA') return 'Bulka';

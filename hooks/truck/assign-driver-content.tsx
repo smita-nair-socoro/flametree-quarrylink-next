@@ -160,7 +160,7 @@ export function AssignDriverContent({
 
       {/* Selected badges */}
       {selectedIds.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 overflow-y-auto">
           {selectedIds.map((id) => {
             const driver = availableDrivers.find((d) => d.id === id);
             return (

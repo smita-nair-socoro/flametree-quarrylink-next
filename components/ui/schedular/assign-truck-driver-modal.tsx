@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ClipboardList, Truck, AlertTriangle, Package } from 'lucide-react';
+import { ClipboardList, Truck, AlertTriangle, Package, ChevronRight } from 'lucide-react';
 import type { DispatchDocket } from '@/lib/utils/dispatch-helper';
 import {
   buildDispatchOperationalLoadUpdate,
@@ -558,7 +558,7 @@ export function AssignTruckDriverModal({
                 </div>
 
                 <div className="px-6 pb-6">
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 overflow-y-auto custom-scrollbar max-h-[320px]">
                     {truck.drivers?.map((d, index) => (
                       <div
                         key={d.id ?? d.driverName}
@@ -664,7 +664,7 @@ export function AssignTruckDriverModal({
                               : 'border-gray-200 bg-white hover:border-purple-300 hover:bg-purple-50/30'
                             }`}
                         >
-                          <div className="flex items-center gap-4">
+                          <div className="flex min-w-0 items-center gap-3">
                             <div
                               className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${t.isOverVolume
                                 ? 'bg-yellow-100 border-yellow-200'
@@ -675,33 +675,34 @@ export function AssignTruckDriverModal({
                                 className={`w-5 h-5 ${t.isOverVolume ? 'text-yellow-700' : 'text-gray-600'}`}
                               />
                             </div>
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-gray-900 text-[15px]">
+                            <div className="min-w-0">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="font-bold text-[#0F172A]">
                                   {t.licensePlate}
                                 </span>
                                 <TableBadges
                                   names={[t.businessType || 'INTERNAL']}
                                 />
-                                {!t.isOverVolume && index === 0 && (
-                                  <span className="px-2 py-0.5 bg-green-600 text-white text-[10px] font-bold rounded">
-                                    BEST FIT
-                                  </span>
-                                )}
                               </div>
-                              <span className="text-[13px] text-gray-600">
-                                Capacity: {t.tankVolumeM3} m³
-                              </span>
+                              <p className="text-sm text-[#64748B]">
+                                {t.truckVol} m³
+                              </p>
                               {t.isOverVolume ? (
-                                <span className="text-xs font-medium text-red-700 mt-0.5">
-                                  Does not fit — {formatNumberThousandSeparator(docket.actualLoadSize || docket.plannedLoadSize)}{' '}
-                                  {docket.productSellUom} exceeds capacity
-                                </span>
+                                <p className="text-xs font-medium text-red-700">
+                                  Does not fit
+                                </p>
                               ) : (
-                                <span className="text-xs font-medium text-green-700 mt-0.5">
-                                  This load utilises {formatDispatchTruckFillPct(t.fillPct)}% of the
-                                  truck's capacity
-                                </span>
+                                <div className="flex flex-col gap-1">
+                                  <span className="text-xs font-medium text-green-700 mt-0.5">
+                                    This load utilises {formatDispatchTruckFillPct(t.fillPct)}% of the
+                                    truck's capacity
+                                  </span>
+                                  {!t.isOverVolume && index === 0 && (
+                                    <span className="w-fit rounded bg-green-600 px-2 py-1 text-[11px] font-bold text-white">
+                                      BEST FIT
+                                    </span>
+                                  )}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -715,9 +716,7 @@ export function AssignTruckDriverModal({
                               </span>
                             </div>
                           ) : (
-                            <span className="text-purple-600 text-sm font-medium">
-                              Select
-                            </span>
+                            <ChevronRight className="h-5 w-5 shrink-0 text-gray-400" />
                           )}
                         </div>
                       ))}
