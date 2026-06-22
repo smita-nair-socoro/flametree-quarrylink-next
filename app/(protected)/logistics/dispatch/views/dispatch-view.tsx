@@ -33,6 +33,7 @@ import {
   useAssignDocket,
   useUnassignDocket,
 } from '@/lib/api/docket';
+import { notifySuccess } from '@/lib/toast';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   SchedulerTrucksQueryOptions,
@@ -840,6 +841,7 @@ export function DispatchView({
             return prev;
           });
           setAssignModalData(null);
+          notifySuccess('Successfully assigned.');
         },
       },
     );

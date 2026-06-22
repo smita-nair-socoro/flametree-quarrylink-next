@@ -51,6 +51,7 @@ import {
 } from './mobile-assign-picker-drawer';
 import type { QueueDateScope } from './queue/queue-filters-drawer';
 import type { QueueSortKey, QueueSortOrder } from './queue/queue-sort-drawer';
+import { notifySuccess } from '@/lib/toast';
 
 type AssignModalData = {
   docketId: string;
@@ -570,6 +571,7 @@ export function DispatchMobileProvider({
             return [...prev, updated];
           });
           setAssignModalData(null);
+          notifySuccess('Successfully assigned.');
         },
       },
     );
