@@ -587,7 +587,7 @@ export function FormDialog({
             preventAutoFocus ? (e) => e.preventDefault() : undefined
           }
           onEscapeKeyDown={(e) => {
-            if (isAnyDropdownOpen()) e.preventDefault();
+            e.preventDefault();
           }}
           onPointerDownOutside={(e) => {
             if (isAnyDropdownOpen()) e.preventDefault();
