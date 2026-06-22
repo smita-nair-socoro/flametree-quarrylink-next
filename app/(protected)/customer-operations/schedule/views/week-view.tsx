@@ -22,6 +22,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
+import type { TruckResource } from '@/lib/types/truck';
 import {
   DispatchBoardDocketRow,
   DispatchTruckResource,
@@ -38,8 +40,12 @@ import {
   buildSchedulerFilterTruckOptions,
   docketMatchesScheduleJobFilters,
   driverRowMatchesFilters,
+  inferDriverBusinessType,
+  inferTruckBusinessType,
   isDispatchDriverResource,
   isDispatchTruckResource,
+  sortDispatchBoardTruckColumns,
+  sortDispatchDriverList,
   truckMatchesFleetFilters,
 } from '@/lib/utils/dispatch-helper';
 import { Button } from '@/components/ui/button';
@@ -66,8 +72,35 @@ type ResourceRow = {
   companyLine?: string;
   weekSummaryLine: string;
   typeLabel: 'INTERNAL' | 'EXTERNAL';
+  businessType: TRUCK_BUSINESS_TYPE;
   dockets: WeekViewDocket[];
 };
+
+function sortWeekViewResourceRows(
+  rows: ResourceRow[],
+  viewType: ViewType,
+): ResourceRow[] {
+  const asTruckResource: TruckResource[] = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    capacity: 0,
+    status: TRUCK_STATUS.ACTIVE,
+    businessType: row.businessType,
+    trips: 0,
+    drivers: '',
+    haulierName: row.companyLine,
+  }));
+
+  const sorted =
+    viewType === 'trucks'
+      ? sortDispatchBoardTruckColumns(asTruckResource)
+      : sortDispatchDriverList(asTruckResource);
+
+  const order = new Map(sorted.map((resource, index) => [resource.id, index]));
+  return [...rows].sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+  );
+}
 
 const GRID_TEMPLATE = 'minmax(200px,1fr) repeat(7,minmax(0,1fr))';
 
@@ -114,11 +147,6 @@ function formatLoadLine(d: WeekViewDocket): string {
   const u = formatSellUomLabel(d.productSellUom);
   const loadSize = d.actualLoadSize || d.plannedLoadSize;
   return `${formatNumberThousandSeparator(loadSize)} ${u}`.trim();
-}
-
-function typeConvert(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
-  if (driverType === 'SUBCONTRACTOR') return 'EXTERNAL';
-  return 'INTERNAL';
 }
 
 function buildWeekSummaryLine(dockets: WeekViewDocket[]): string {
@@ -222,7 +250,11 @@ export function ScheduleWeekView({
         }));
         const haulierName =
           truck.haulier?.haulierName?.trim() || undefined;
-        const typeLabel = typeConvert(truck.truckBusinessType);
+        const businessType = inferTruckBusinessType(truck);
+        const typeLabel =
+          businessType === TRUCK_BUSINESS_TYPE.INTERNAL
+            ? 'INTERNAL'
+            : 'EXTERNAL';
 
         return {
           id: String(truck.id),
@@ -230,6 +262,7 @@ export function ScheduleWeekView({
           companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
+          businessType,
           dockets,
         };
       });
@@ -243,7 +276,11 @@ export function ScheduleWeekView({
           driverName: driver.driverName,
           truckName: driver.trucks?.[0]?.licensePlate,
         }));
-        const typeLabel = typeConvert(driver.driverType);
+        const businessType = inferDriverBusinessType(driver);
+        const typeLabel =
+          businessType === TRUCK_BUSINESS_TYPE.INTERNAL
+            ? 'INTERNAL'
+            : 'EXTERNAL';
         const haulierName =
           driver.haulier?.haulierName?.trim() || undefined;
 
@@ -253,6 +290,7 @@ export function ScheduleWeekView({
           companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
+          businessType,
           dockets,
         };
       });
@@ -326,7 +364,7 @@ export function ScheduleWeekView({
       result = result.filter((r) => r.dockets.length > 0);
     }
 
-    return result;
+    return sortWeekViewResourceRows(result, viewType);
   }, [resources, viewType, trucksData, driversData, filter]);
 
   const allDockets = useMemo(() => {
