@@ -41,6 +41,7 @@ import {
 
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
+  buildDispatchAssignmentWindows,
   DispatchDocket,
   mapSchedulerUnassignedDocketsToBoardRows,
   isDispatchTruckResource,
@@ -665,21 +666,11 @@ export function DispatchView({
     const time = docket.uiAssignedTime;
     if (!time) return;
 
-    const [hours, minutes] = time.split(':').map(Number);
-    const startWindow = new Date(date);
-    startWindow.setHours(hours, minutes, 0, 0);
-
-    let endWindow = new Date(startWindow);
-    endWindow.setHours(startWindow.getHours() + newDuration);
-
-    if (
-      endWindow.getDate() !== startWindow.getDate() ||
-      endWindow.getMonth() !== startWindow.getMonth() ||
-      endWindow.getFullYear() !== startWindow.getFullYear()
-    ) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(23, 59, 59, 999);
-    }
+    const { startWindow, endWindow } = buildDispatchAssignmentWindows(
+      date,
+      time,
+      newDuration,
+    );
 
     assignMutation.mutate(
       {
@@ -771,10 +762,12 @@ export function DispatchView({
     return {
       docketNumber: pendingUnassignDocket.docketNumber,
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
-      destination:
-        pendingUnassignDocket.deliverySuburb +
-        ', ' +
-        pendingUnassignDocket.deliveryState || '',
+      destination: [
+        pendingUnassignDocket.deliverySuburb,
+        pendingUnassignDocket.deliveryState,
+      ]
+        .filter(Boolean)
+        .join(', '),
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -830,25 +823,12 @@ export function DispatchView({
     const plannedLoad =
       adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
-    // Parse time to ISO strings for start and end windows
     // The time variable is like "11:00"
-    const [hours, minutes] = time.split(':').map(Number);
-    const startWindow = new Date(date);
-    startWindow.setHours(hours, minutes, 0, 0);
-
-    // Assuming 2 hours duration for now, or use docket.uiAssignedDuration
-    const duration = docket?.uiAssignedDuration || 2;
-    let endWindow = new Date(startWindow);
-    endWindow.setHours(startWindow.getHours() + duration);
-
-    if (
-      endWindow.getDate() !== startWindow.getDate() ||
-      endWindow.getMonth() !== startWindow.getMonth() ||
-      endWindow.getFullYear() !== startWindow.getFullYear()
-    ) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(23, 59, 59, 999);
-    }
+    const { startWindow, endWindow } = buildDispatchAssignmentWindows(
+      date,
+      time,
+      docket?.uiAssignedDuration || 2,
+    );
 
     const truckId = viewType === 'trucks' ? Number(targetId) : selectedId;
     const driverId = viewType === 'trucks' ? selectedId : Number(targetId);

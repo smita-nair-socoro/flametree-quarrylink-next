@@ -48,6 +48,13 @@ import { TableBadges } from '@/components/table-badges';
 
 type ViewType = 'trucks' | 'drivers';
 
+export type ScheduleWeekViewProps = {
+  date: Date;
+  viewType: ViewType;
+  filter: DispatchBoardFilterState;
+  onFilterChange: (next: DispatchBoardFilterState) => void;
+};
+
 type WeekViewDocket = DispatchBoardDocketRow & {
   driverName?: string;
   truckName?: string;
@@ -180,12 +187,7 @@ export function ScheduleWeekView({
   viewType,
   filter,
   onFilterChange,
-}: {
-  date: Date;
-  viewType: ViewType;
-  filter: DispatchBoardFilterState;
-  onFilterChange: (next: DispatchBoardFilterState) => void;
-}) {
+}: ScheduleWeekViewProps) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
   );

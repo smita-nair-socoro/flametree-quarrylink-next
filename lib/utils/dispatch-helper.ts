@@ -16,6 +16,7 @@ import type {
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import type { TruckResource } from '@/lib/types/truck';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
 export type DispatchDocketUiFields = {
   uiAssignedTruckId?: string | null;
@@ -534,7 +535,10 @@ export function buildDispatchAssignmentWindows(
   assignmentDate: Date,
   slotTime: string,
   durationHours: number = 2,
+  endSlotTime?: string,
 ): {
+  startWindow: Date;
+  endWindow: Date;
   deliveryCollectionDate: string;
   deliveryStartWindow: string;
   deliveryEndWindow: string;
@@ -543,8 +547,20 @@ export function buildDispatchAssignmentWindows(
   const startWindow = new Date(assignmentDate);
   startWindow.setHours(hours, minutes, 0, 0);
 
-  let endWindow = new Date(startWindow);
-  endWindow.setHours(startWindow.getHours() + durationHours);
+  let endWindow: Date;
+  if (endSlotTime) {
+    const [endHours, endMinutes] = endSlotTime.split(':').map(Number);
+    endWindow = new Date(assignmentDate);
+    endWindow.setHours(endHours, endMinutes, 0, 0);
+  } else {
+    endWindow = new Date(startWindow);
+    endWindow.setHours(startWindow.getHours() + durationHours);
+  }
+
+  if (endWindow <= startWindow) {
+    endWindow = new Date(startWindow);
+    endWindow.setHours(startWindow.getHours() + durationHours);
+  }
 
   if (
     endWindow.getDate() !== startWindow.getDate() ||
@@ -560,10 +576,29 @@ export function buildDispatchAssignmentWindows(
   const dateIso = `${startIso.split('T')[0]}T00:00:00.000`;
 
   return {
+    startWindow,
+    endWindow,
     deliveryCollectionDate: appendUtcSuffix(dateIso),
     deliveryStartWindow: appendUtcSuffix(startIso),
     deliveryEndWindow: appendUtcSuffix(endIso),
   };
+}
+
+/** Stripe accent per docket status — hues match the board cards and the status-colors legend. */
+const DISPATCH_STATUS_STRIPE_CLASSES: Record<string, string> = {
+  [DOCKET_STATUS.ASSIGNED]: 'bg-cyan-400',
+  [DOCKET_STATUS.IN_TRANSIT]: 'bg-indigo-500',
+  [DOCKET_STATUS.STOPPED]: 'bg-orange-400',
+  [DOCKET_STATUS.ARRIVED]: 'bg-yellow-400',
+  [DOCKET_STATUS.DELIVERED]: 'bg-green-500',
+  [DOCKET_STATUS.INVOICED]: 'bg-purple-400',
+  [DOCKET_STATUS.CASH_SALE]: 'bg-yellow-400',
+  [DOCKET_STATUS.CANCELLED]: 'bg-red-400',
+  [DOCKET_STATUS.VOIDED]: 'bg-red-400',
+};
+
+export function getDispatchStatusStripeClass(status?: string): string {
+  return (status && DISPATCH_STATUS_STRIPE_CLASSES[status]) || 'bg-gray-300';
 }
 
 export function formatDispatchConflictDetail(d: ConflictingDocket): string {
@@ -601,6 +636,43 @@ export function dayBucketMs(iso: string | undefined): number {
   return startOfDay(new Date(ms)).getTime();
 }
 
+export type UnassignedQueueSortKey = 'time' | 'size' | 'customer';
+
+/** True while scheduler data is not ready to show (incl. keepPreviousData refetches). */
+export function isSchedulerQueryLoading(options: {
+  isPending: boolean;
+  isLoading: boolean;
+  isFetching: boolean;
+  isPlaceholderData: boolean;
+  hasData: boolean;
+}): boolean {
+  const { isPending, isLoading, isFetching, isPlaceholderData, hasData } =
+    options;
+  return (
+    isPending ||
+    isLoading ||
+    (isFetching && (isPlaceholderData || !hasData))
+  );
+}
+
+/** Server sort for infinite unassigned list — must match API page order so new pages append at the bottom. */
+export function getUnassignedQueueApiSortParams(
+  sortBy: UnassignedQueueSortKey,
+  sortOrder: 'asc' | 'desc' = 'asc',
+): {
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+} {
+  switch (sortBy) {
+    case 'time':
+      return { sortBy: 'deliveryCollectionStartTime', sortOrder };
+    case 'size':
+      return { sortBy: 'actualLoadSize', sortOrder };
+    case 'customer':
+      return { sortBy: 'customerName', sortOrder };
+  }
+}
+
 export function normalizedLoadM3ForSort(docket: DispatchDocket): number {
   const density = docket.jobItem?.product?.densityTonnagePerM3;
   const uom = docket.productSellUom;
@@ -633,6 +705,62 @@ export function isGenericDispatchTruckName(name?: string): boolean {
   return (name ?? '').toLowerCase().includes('generic');
 }
 
+export function sortTruckResourcesAlphabeticalGenericLast(
+  list: TruckResource[],
+): TruckResource[] {
+  return [...list].sort((a, b) => {
+    const genericA = isGenericDispatchTruckName(a.name);
+    const genericB = isGenericDispatchTruckName(b.name);
+    if (genericA !== genericB) return genericA ? 1 : -1;
+    return (a.name || '').localeCompare(b.name || '', undefined, {
+      sensitivity: 'base',
+    });
+  });
+}
+
+function sortDispatchResourcesAlphabetical(
+  list: TruckResource[],
+): TruckResource[] {
+  return [...list].sort((a, b) =>
+    (a.name || '').localeCompare(b.name || '', undefined, {
+      sensitivity: 'base',
+    }),
+  );
+}
+
+function sortDispatchResourcesByBusinessType(
+  resources: TruckResource[],
+  sortWithinGroup: (list: TruckResource[]) => TruckResource[],
+): TruckResource[] {
+  const internal = resources.filter(
+    (r) => r.businessType === TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  const subcontractor = resources.filter(
+    (r) => r.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  return [...sortWithinGroup(internal), ...sortWithinGroup(subcontractor)];
+}
+
+/** Flat truck list: INTERNAL (alpha, generic last) then subcontractor (alpha, generic last). */
+export function sortDispatchTruckList(
+  trucks: TruckResource[],
+): TruckResource[] {
+  return sortDispatchResourcesByBusinessType(
+    trucks,
+    sortTruckResourcesAlphabeticalGenericLast,
+  );
+}
+
+/** Flat driver list: INTERNAL (alpha) then subcontractor (alpha). */
+export function sortDispatchDriverList(
+  drivers: TruckResource[],
+): TruckResource[] {
+  return sortDispatchResourcesByBusinessType(
+    drivers,
+    sortDispatchResourcesAlphabetical,
+  );
+}
+
 /** Default truck column order when utilisation sorting is off. */
 export function sortDispatchBoardTruckColumns(
   trucks: TruckResource[],
@@ -644,17 +772,7 @@ export function sortDispatchBoardTruckColumns(
     (t) => t.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
   );
 
-  const sortWithinFleetGroup = (list: TruckResource[]) =>
-    [...list].sort((a, b) => {
-      const genericA = isGenericDispatchTruckName(a.name);
-      const genericB = isGenericDispatchTruckName(b.name);
-      if (genericA !== genericB) return genericA ? 1 : -1;
-      return (a.name || '').localeCompare(b.name || '', undefined, {
-        sensitivity: 'base',
-      });
-    });
-
-  const sortedInternal = sortWithinFleetGroup(internal);
+  const sortedInternal = sortTruckResourcesAlphabeticalGenericLast(internal);
 
   const byHaulier = new Map<string, TruckResource[]>();
   for (const t of external) {
@@ -666,7 +784,9 @@ export function sortDispatchBoardTruckColumns(
 
   const sortedExternal = [...byHaulier.keys()]
     .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }))
-    .flatMap((key) => sortWithinFleetGroup(byHaulier.get(key)!));
+    .flatMap((key) =>
+      sortTruckResourcesAlphabeticalGenericLast(byHaulier.get(key)!),
+    );
 
   return [...sortedInternal, ...sortedExternal];
 }
