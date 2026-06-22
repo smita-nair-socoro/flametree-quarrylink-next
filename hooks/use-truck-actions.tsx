@@ -53,11 +53,11 @@ interface DialogConfig {
   confirmCustomColor?: string;
   confirmIcon?: React.ReactNode;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmActionNeeded?: boolean;
   confirmDisabled?: boolean;
   cancelText?: string;
@@ -375,7 +375,6 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           open={activeDialog === key}
           onOpenChangeAction={(open) => {
             if (!open) {
-              // TODO: need to change to API response check instead of hardcoding transitioning state
               if (transitioningRef.current) {
                 transitioningRef.current = false;
                 return;

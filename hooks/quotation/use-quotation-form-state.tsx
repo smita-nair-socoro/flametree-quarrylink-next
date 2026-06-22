@@ -73,7 +73,6 @@ export function useQuotationFormState(
       const currentPhone = quotationForm.getValues('phone');
       const currentEmail = quotationForm.getValues('email');
 
-      // TODO: Replace hardcoded values with actual customer data from API/store
       if (!currentPhone) {
         quotationForm.setValue('phone', '+61444555777');
       }

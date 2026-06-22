@@ -37,6 +37,8 @@ import { Spinner } from '@/components/ui/spinner';
 import {
   buildDispatchAssignmentWindows,
 } from '@/lib/utils/dispatch-helper';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 type AssignStep = 'select' | 'checking' | 'conflict' | 'adjust';
 
@@ -74,6 +76,8 @@ export function AssignTruckDriverModal({
   const [pendingDriverId, setPendingDriverId] = useState<number | null>(null);
   const [conflicts, setConflicts] = useState<ConflictingDocket[]>([]);
   const conflictHandledRef = useRef(false);
+
+  const isDesktop = !useIsMobile();
 
   const operationalUpdateMutation = useOperationalUpdateDocket();
 
@@ -323,6 +327,11 @@ export function AssignTruckDriverModal({
   const handleModalClose = (isOpen: boolean) => {
     if (!isOpen) {
       resetFlow();
+      window.requestAnimationFrame(() => {
+        if (document.body.style.pointerEvents === 'none') {
+          document.body.style.pointerEvents = '';
+        }
+      });
     }
     onOpenChange(isOpen);
   };
@@ -512,7 +521,7 @@ export function AssignTruckDriverModal({
             {docket && viewType === 'trucks' && truck && (
               <div className="flex flex-col">
                 <div className="px-6 pb-6">
-                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+                  <div className={cn("bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex justify-between", isDesktop ? 'flex-row' : 'flex-col gap-4')}>
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                         <ClipboardList className="w-5 h-5 text-purple-600" />
@@ -526,7 +535,7 @@ export function AssignTruckDriverModal({
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className={cn("flex flex-col", isDesktop ? 'items-end' : 'items-center')}>
                       <span className="text-[10px] font-bold text-gray-500 tracking-wider">
                         LOAD
                       </span>
@@ -539,7 +548,9 @@ export function AssignTruckDriverModal({
                             ? 'm³'
                             : docket.productSellUom === 'KG_20'
                               ? 'x 20kg'
-                              : docket.productSellUom || 'TN'}
+                              : docket.productSellUom === 'BULKA'
+                                ? 'Bulka'
+                                : docket.productSellUom || 'TN'}
                         </span>
                       </div>
                     </div>
@@ -589,7 +600,7 @@ export function AssignTruckDriverModal({
             {docket && viewType === 'drivers' && driver && (
               <div className="flex flex-col">
                 <div className="px-6 pb-6">
-                  <div className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex items-center justify-between">
+                  <div className={cn("bg-white rounded-xl p-4 border border-gray-100 shadow-sm flex justify-between", isDesktop ? 'flex-row' : 'flex-col gap-4')}>
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center shrink-0">
                         <ClipboardList className="w-5 h-5 text-purple-600" />
@@ -603,7 +614,7 @@ export function AssignTruckDriverModal({
                         </span>
                       </div>
                     </div>
-                    <div className="flex flex-col items-end">
+                    <div className={cn("flex flex-col", isDesktop ? 'items-end' : 'items-center')}>
                       <span className="text-[10px] font-bold text-gray-500 tracking-wider">
                         LOAD
                       </span>
@@ -616,7 +627,9 @@ export function AssignTruckDriverModal({
                             ? 'm³'
                             : docket.productSellUom === 'KG_20'
                               ? 'x 20kg'
-                              : docket.productSellUom || 'TN'}
+                              : docket.productSellUom === 'BULKA'
+                                ? 'Bulka'
+                                : docket.productSellUom || 'TN'}
                         </span>
                       </div>
                     </div>
