@@ -42,7 +42,7 @@ function getAllDatesApiSortParams(sortBy: UnassignedSortKey): {
     case 'time':
       return { sortBy: 'deliveryCollectionStartTime', sortOrder: 'asc' };
     case 'size':
-      return { sortBy: 'plannedLoadSize', sortOrder: 'asc' };
+      return { sortBy: 'actualLoadSize', sortOrder: 'asc' };
     case 'customer':
       return { sortBy: 'customerName', sortOrder: 'asc' };
   }
@@ -304,27 +304,67 @@ export default function UnassignedDockets({
   const debouncedSearch = useDebounce(searchQuery, 300);
   const scrollContainerRef = React.useRef<HTMLDivElement>(null);
   const loadMoreRef = React.useRef<HTMLDivElement>(null);
+  const hasNextPageRef = React.useRef(false);
+  const isFetchingNextPageRef = React.useRef(false);
+  const [awaitingAllDatesParamsFetch, setAwaitingAllDatesParamsFetch] =
+    React.useState(false);
 
   const assignedIdsSet = React.useMemo(
     () => new Set(assignedDocketIds),
     [assignedDocketIds],
   );
 
-  const {
-    data: allDatesPages,
-    isLoading: isAllDatesLoading,
-    isFetchingNextPage,
-    hasNextPage,
-    fetchNextPage,
-  } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions({
+  const allDatesQueryParams = React.useMemo(
+    () => ({
       pageSize: 10,
       search: debouncedSearch.trim() || undefined,
       status: DOCKET_STATUS.UNASSIGNED,
       ...getAllDatesApiSortParams(sortBy),
     }),
+    [debouncedSearch, sortBy],
+  );
+
+  const {
+    data: allDatesPages,
+    isLoading: isAllDatesLoading,
+    isPending: isAllDatesPending,
+    isFetching: isAllDatesFetching,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+  } = useInfiniteQuery({
+    ...DocketsInfiniteListQueryOptions(allDatesQueryParams),
     enabled: activeTab === 'all_dates',
   });
+
+  const isAllDatesRefreshing =
+    activeTab === 'all_dates' &&
+    awaitingAllDatesParamsFetch &&
+    isAllDatesFetching &&
+    !isFetchingNextPage;
+
+  const isAllDatesListPending =
+    isAllDatesPending ||
+    isAllDatesLoading ||
+    (isAllDatesFetching && !allDatesPages?.pages.length);
+
+  React.useEffect(() => {
+    if (activeTab !== 'all_dates') return;
+    setAwaitingAllDatesParamsFetch(true);
+    isFetchingNextPageRef.current = false;
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+  }, [activeTab, sortBy, debouncedSearch]);
+
+  React.useEffect(() => {
+    if (!awaitingAllDatesParamsFetch) return;
+    if (isAllDatesFetching && !isFetchingNextPage) return;
+    setAwaitingAllDatesParamsFetch(false);
+  }, [
+    awaitingAllDatesParamsFetch,
+    isAllDatesFetching,
+    isFetchingNextPage,
+    allDatesPages,
+  ]);
 
   const allDatesUnassigned = React.useMemo(() => {
     const pages = allDatesPages?.pages ?? [];
@@ -359,7 +399,9 @@ export default function UnassignedDockets({
     activeTab === 'this_day' ? thisDayUnassigned : allDatesUnassigned;
 
   const isQueueLoading =
-    activeTab === 'all_dates' ? isAllDatesLoading : isLoading;
+    activeTab === 'all_dates'
+      ? isAllDatesListPending || isAllDatesRefreshing
+      : isLoading;
 
   const visibleUnassignedDockets = React.useMemo(() => {
     const filtered =
@@ -402,8 +444,6 @@ export default function UnassignedDockets({
     return list;
   }, [unassignedDockets, sortBy, activeTab, searchQuery]);
 
-  const hasNextPageRef = React.useRef(hasNextPage);
-  const isFetchingNextPageRef = React.useRef(false);
   hasNextPageRef.current = hasNextPage;
 
   React.useEffect(() => {
@@ -413,7 +453,7 @@ export default function UnassignedDockets({
   }, [isFetchingNextPage]);
 
   React.useEffect(() => {
-    if (activeTab !== 'all_dates' || isAllDatesLoading) return;
+    if (activeTab !== 'all_dates' || isQueueLoading) return;
     const root = scrollContainerRef.current;
     const target = loadMoreRef.current;
     if (!root || !target) return;
@@ -434,7 +474,12 @@ export default function UnassignedDockets({
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [activeTab, isAllDatesLoading, fetchNextPage]);
+  }, [
+    activeTab,
+    isQueueLoading,
+    fetchNextPage,
+    visibleUnassignedDockets.length,
+  ]);
 
   const { setNodeRef: setDroppableRef, isOver } = useDroppable({
     id: 'unassigned-queue',
@@ -573,7 +618,7 @@ export default function UnassignedDockets({
           <>
             {visibleUnassignedDockets.map((docket) => (
               <DraggableDocketCard
-                key={docket.id}
+                key={`${sortBy}-${debouncedSearch}-${docket.id}`}
                 docket={docket}
                 activeTab={activeTab}
                 isSelected={selectedDocketId === String(docket.id)}

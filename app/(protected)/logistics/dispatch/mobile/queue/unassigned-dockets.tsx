@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { useDebounce } from '@/hooks/use-debounce';
 import {
   formatDispatchProductSellUomLabel,
   formatTimeRange,
-  matchesUnassignedSearch,
   normalizedLoadM3ForSort,
   parseCollectionStartMs,
 } from '@/lib/utils/dispatch-helper';
@@ -25,7 +25,6 @@ import {
   QueueSortDrawer,
   QueueSortTriggerButton,
   type QueueSortKey,
-  type QueueSortOrder,
 } from './queue-sort-drawer';
 
 export function UnassignedDockets() {
@@ -41,7 +40,7 @@ export function UnassignedDockets() {
     isFetchingNextUnassignedPage,
     fetchNextUnassignedPage,
     setQueueListSortBy,
-    setQueueListSortOrder,
+    setQueueListSearch,
     openAssignTruck,
     openAssignDriver,
     openDetails,
@@ -61,8 +60,8 @@ export function UnassignedDockets() {
   }, [isFetchingNextUnassignedPage]);
 
   const [searchQuery, setSearchQuery] = React.useState('');
+  const debouncedSearch = useDebounce(searchQuery, 300);
   const [sortBy, setSortBy] = React.useState<QueueSortKey>('time');
-  const [sortOrder, setSortOrder] = React.useState<QueueSortOrder>('asc');
   const [customerNames, setCustomerNames] = React.useState<string[]>([]);
   const [sortOpen, setSortOpen] = React.useState(false);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
@@ -80,21 +79,17 @@ export function UnassignedDockets() {
   React.useEffect(() => {
     if (queueDateScope === 'all_dates') {
       setQueueListSortBy(sortBy);
-      setQueueListSortOrder(sortOrder);
+      setQueueListSearch(debouncedSearch.trim() || undefined);
+      return;
     }
+    setQueueListSearch(undefined);
   }, [
     sortBy,
-    sortOrder,
+    debouncedSearch,
     queueDateScope,
     setQueueListSortBy,
-    setQueueListSortOrder,
+    setQueueListSearch,
   ]);
-
-  React.useEffect(() => {
-    if (queueDateScope === 'all_dates' && sortOrder === 'desc') {
-      setSortOrder('asc');
-    }
-  }, [queueDateScope, sortOrder]);
 
   const isLoading = isLoadingQueue;
 
@@ -113,7 +108,6 @@ export function UnassignedDockets() {
 
   const visibleDockets = React.useMemo(() => {
     const filtered = scopeDockets.filter((d) => {
-      if (!matchesUnassignedSearch(d, searchQuery)) return false;
       if (
         customerNames.length > 0 &&
         (!d.customerName || !customerNames.includes(d.customerName))
@@ -129,7 +123,6 @@ export function UnassignedDockets() {
     }
 
     const list = [...filtered];
-    const direction = sortOrder === 'asc' ? 1 : -1;
 
     list.sort((a, b) => {
       let cmp = 0;
@@ -150,17 +143,15 @@ export function UnassignedDockets() {
           );
           break;
       }
-      if (cmp !== 0) return cmp * direction;
+      if (cmp !== 0) return cmp;
       return String(a.docketNumber).localeCompare(String(b.docketNumber));
     });
     return list;
   }, [
     scopeDockets,
-    searchQuery,
     customerNames,
     queueDateScope,
     sortBy,
-    sortOrder,
   ]);
 
   React.useEffect(() => {
@@ -196,22 +187,23 @@ export function UnassignedDockets() {
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex items-center justify-end gap-2">
-        <QueueSortTriggerButton onClick={() => setSortOpen(true)} />
+        {queueDateScope === 'all_dates' ? (
+          <QueueSortTriggerButton onClick={() => setSortOpen(true)} />
+        ) : null}
         <QueueFiltersTriggerButton
           active={filtersActive}
           onClick={() => setFiltersOpen(true)}
         />
       </div>
 
-      <QueueSortDrawer
-        open={sortOpen}
-        onOpenChange={setSortOpen}
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        dateScope={queueDateScope}
-        onSortByChange={setSortBy}
-        onSortOrderChange={setSortOrder}
-      />
+      {queueDateScope === 'all_dates' ? (
+        <QueueSortDrawer
+          open={sortOpen}
+          onOpenChange={setSortOpen}
+          sortBy={sortBy}
+          onSortByChange={setSortBy}
+        />
+      ) : null}
 
       <QueueFiltersDrawer
         open={filtersOpen}
@@ -223,20 +215,21 @@ export function UnassignedDockets() {
         isDateScopeLoading={isLoadingAllUnassignedDockets}
       />
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-        <Input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search ID, customer, product..."
-          className="h-11 rounded-xl border-gray-200 pl-9"
-        />
-      </div>
+      {queueDateScope === 'all_dates' ? (
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search ID, customer, product..."
+            className="h-11 rounded-xl border-gray-200 pl-9"
+          />
+        </div>
+      ) : null}
 
       {queueDateScope === 'all_dates' ? (
         <p className="text-xs text-[#64748B]">
-          Showing unassigned dockets across all dates. Sorted by date when
-          sorting by customer; assigning schedules on{' '}
+          Showing unassigned dockets across all dates. Assigning schedules on{' '}
           <span className="font-semibold text-[#0F172A]">
             {format(date, 'd MMM yyyy')}
           </span>

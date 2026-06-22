@@ -120,6 +120,7 @@ type DispatchMobileContextValue = {
   fetchNextUnassignedPage: () => void;
   setQueueListSortBy: (sortBy: QueueSortKey) => void;
   setQueueListSortOrder: (sortOrder: QueueSortOrder) => void;
+  setQueueListSearch: (search: string | undefined) => void;
 };
 
 const DispatchMobileContext =
@@ -194,6 +195,9 @@ export function DispatchMobileProvider({
     React.useState<QueueSortKey>('time');
   const [queueListSortOrder, setQueueListSortOrder] =
     React.useState<QueueSortOrder>('asc');
+  const [queueListSearch, setQueueListSearch] = React.useState<
+    string | undefined
+  >(undefined);
   const [activeTab, setActiveTab] =
     React.useState<MobileDispatchTab>('queue');
 
@@ -251,6 +255,16 @@ export function DispatchMobileProvider({
     return new Set([...truckAssigned, ...driverAssigned]);
   }, [trucksData, driversData]);
 
+  const allDatesQueryParams = React.useMemo(
+    () => ({
+      pageSize: 10,
+      status: DOCKET_STATUS.UNASSIGNED,
+      search: queueListSearch,
+      ...getUnassignedQueueApiSortParams(queueListSortBy, queueListSortOrder),
+    }),
+    [queueListSearch, queueListSortBy, queueListSortOrder],
+  );
+
   const {
     data: allDocketsPages,
     isLoading: isLoadingAllUnassignedDockets,
@@ -260,11 +274,7 @@ export function DispatchMobileProvider({
     hasNextPage: hasNextUnassignedPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions({
-      pageSize: 10,
-      status: DOCKET_STATUS.UNASSIGNED,
-      ...getUnassignedQueueApiSortParams(queueListSortBy, queueListSortOrder),
-    }),
+    ...DocketsInfiniteListQueryOptions(allDatesQueryParams),
     enabled: activeTab === 'queue' && queueDateScope === 'all_dates',
   });
 
@@ -748,6 +758,7 @@ export function DispatchMobileProvider({
     },
     setQueueListSortBy,
     setQueueListSortOrder,
+    setQueueListSearch,
   };
 
   return (
