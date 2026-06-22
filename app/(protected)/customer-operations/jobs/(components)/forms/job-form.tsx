@@ -24,7 +24,11 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import { formatLocalDateTime } from '@/lib/utils/date';
-import { DELIVERY_TIME_WINDOW_HOUR_OPTIONS } from '@/lib/utils/time';
+import {
+  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
+  isDeliveryTimeWindowEndOptionDisabled,
+  isDeliveryTimeWindowStartOptionDisabled,
+} from '@/lib/utils/time';
 import { AuditInformation } from '@/components/audit-information';
 import {
   Select,
@@ -74,6 +78,8 @@ export default function JobForm({
   });
 
   const isSyncing = useIsMutating({ mutationKey: ['retrySync'] }) > 0;
+  const deliveryWindowStart = jobForm.watch('deliveryWindowStart');
+  const deliveryWindowEnd = jobForm.watch('deliveryWindowEnd');
 
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !jobDetails) return null;
@@ -315,7 +321,14 @@ export default function JobForm({
 
                         <SelectContent>
                           {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowStartOptionDisabled(
+                                time,
+                                deliveryWindowEnd,
+                              )}
+                            >
                               {time}
                             </SelectItem>
                           ))}
@@ -345,7 +358,14 @@ export default function JobForm({
 
                         <SelectContent>
                           {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowEndOptionDisabled(
+                                time,
+                                deliveryWindowStart,
+                              )}
+                            >
                               {time}
                             </SelectItem>
                           ))}

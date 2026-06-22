@@ -20,33 +20,10 @@ import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 import { BADGE_COLORS } from '@/lib/utils';
-
-const formatTimeString = (dateString?: string | null) => {
-  if (!dateString) return '';
-
-  if (/^\d{2}:\d{2}(:\d{2})?$/.test(dateString)) {
-    return dateString.substring(0, 5);
-  }
-
-  if (dateString.includes('T')) {
-    const timePart = dateString.split('T')[1];
-    return timePart ? timePart.substring(0, 5) : '';
-  }
-
-  if (dateString.includes(' ')) {
-    const timePart = dateString.split(' ')[1];
-    return timePart ? timePart.substring(0, 5) : '';
-  }
-
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-
-  return date.toLocaleTimeString('en-US', {
-    hour12: false,
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-};
+import {
+  normalizeDeliveryTimeWindowEnd,
+  normalizeDeliveryTimeWindowStart,
+} from '@/lib/utils/time';
 
 export const EMPTY_DOCKET_FORM_VALUES = {
   jobId: 0,
@@ -168,10 +145,12 @@ const mapDocketToFormValues = (
   deliveryCollectionDate: docket.deliveryCollectionDate
     ? parseCalendarDate(docket.deliveryCollectionDate as unknown as string)
     : GetTodaysDate(),
-  deliveryCollectionStartTime: formatTimeString(
+  deliveryCollectionStartTime: normalizeDeliveryTimeWindowStart(
     docket.deliveryCollectionStartTime,
   ),
-  deliveryCollectionEndTime: formatTimeString(docket.deliveryCollectionEndTime),
+  deliveryCollectionEndTime: normalizeDeliveryTimeWindowEnd(
+    docket.deliveryCollectionEndTime,
+  ),
   customerContactName: docket.customerContactName ?? '',
   customerContactPhone: docket.customerContactPhone ?? '',
   docketEmail:
@@ -201,11 +180,11 @@ const mapSelectedJobToFormValues = (
   docketEmail: selectedJob.additionalDocketEmails || currentValues.docketEmail,
 
   deliveryCollectionStartTime:
-    formatTimeString(selectedJob.startTimeWindow) ||
+    normalizeDeliveryTimeWindowStart(selectedJob.startTimeWindow) ||
     currentValues.deliveryCollectionStartTime,
 
   deliveryCollectionEndTime:
-    formatTimeString(selectedJob.endTimeWindow) ||
+    normalizeDeliveryTimeWindowEnd(selectedJob.endTimeWindow) ||
     currentValues.deliveryCollectionEndTime,
 });
 

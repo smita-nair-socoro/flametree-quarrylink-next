@@ -60,7 +60,11 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { DELIVERY_TIME_WINDOW_HOUR_OPTIONS } from '@/lib/utils/time';
+import {
+  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
+  isDeliveryTimeWindowEndOptionDisabled,
+  isDeliveryTimeWindowStartOptionDisabled,
+} from '@/lib/utils/time';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -1590,7 +1594,14 @@ export default function DocketForm({
 
                               <SelectContent>
                                 {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem key={time} value={time}>
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    disabled={isDeliveryTimeWindowStartOptionDisabled(
+                                      time,
+                                      newEnd,
+                                    )}
+                                  >
                                     {time}
                                   </SelectItem>
                                 ))}
@@ -1624,7 +1635,14 @@ export default function DocketForm({
 
                               <SelectContent>
                                 {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem key={time} value={time}>
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    disabled={isDeliveryTimeWindowEndOptionDisabled(
+                                      time,
+                                      newStart,
+                                    )}
+                                  >
                                     {time}
                                   </SelectItem>
                                 ))}

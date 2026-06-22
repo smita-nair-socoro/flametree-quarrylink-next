@@ -16,6 +16,10 @@ import type {
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import type { TruckResource } from '@/lib/types/truck';
+import {
+  normalizeDeliveryCollectionEndIso,
+  normalizeDeliveryCollectionStartIso,
+} from '@/lib/utils/time';
 
 export type DispatchDocketUiFields = {
   uiAssignedTruckId?: string | null;
@@ -27,10 +31,37 @@ export type DispatchDocket = DispatchBoardDocketRow &
   DispatchDocketUiFields &
   Partial<Omit<DocketDTO, 'pickUpAddress' | 'deliveryAddress'>>;
 
+export function normalizeDispatchDocketDeliveryWindows<
+  T extends {
+    deliveryCollectionStartTime?: string;
+    deliveryCollectionEndTime?: string;
+  },
+>(d: T): T {
+  const deliveryCollectionStartTime = d.deliveryCollectionStartTime
+    ? normalizeDeliveryCollectionStartIso(d.deliveryCollectionStartTime)
+    : d.deliveryCollectionStartTime;
+  const deliveryCollectionEndTime = d.deliveryCollectionEndTime
+    ? normalizeDeliveryCollectionEndIso(d.deliveryCollectionEndTime)
+    : d.deliveryCollectionEndTime;
+
+  if (
+    deliveryCollectionStartTime === d.deliveryCollectionStartTime &&
+    deliveryCollectionEndTime === d.deliveryCollectionEndTime
+  ) {
+    return d;
+  }
+
+  return {
+    ...d,
+    deliveryCollectionStartTime,
+    deliveryCollectionEndTime,
+  };
+}
+
 export function mapUnassignedDocketDtoToBoardRow(
   d: DocketDTO,
 ): DispatchUnassignedDocket & DispatchDocketUiFields {
-  return {
+  const normalized = normalizeDispatchDocketDeliveryWindows({
     id: d.id,
     docketNumber: d.docketNumber,
     docketStatus: d.docketStatus,
@@ -54,17 +85,44 @@ export function mapUnassignedDocketDtoToBoardRow(
     truckSellPrice: d.jobItem?.truckSellPrice ?? 0,
     uiAssignedTruckId: null,
     uiAssignedTime: null,
-  };
+  });
+  return normalized;
 }
 
 export function mapSchedulerUnassignedToBoardRow(
   d: DispatchUnassignedDocket,
 ): DispatchUnassignedDocket & DispatchDocketUiFields {
-  return {
+  return normalizeDispatchDocketDeliveryWindows({
     ...d,
     loadSize: d.loadSize ?? d.actualLoadSize ?? d.plannedLoadSize ?? 0,
     uiAssignedTruckId: null,
     uiAssignedTime: null,
+  });
+}
+
+export function mapSchedulerAssignedDocketToBoardRow(
+  d: DispatchBoardDocketRow,
+  uiAssignedTruckId: string,
+): DispatchDocket {
+  const normalized = normalizeDispatchDocketDeliveryWindows(d);
+  let duration = 2;
+  if (
+    normalized.deliveryCollectionStartTime &&
+    normalized.deliveryCollectionEndTime
+  ) {
+    const start = new Date(
+      normalized.deliveryCollectionStartTime.replace('Z', ''),
+    ).getTime();
+    const end = new Date(
+      normalized.deliveryCollectionEndTime.replace('Z', ''),
+    ).getTime();
+    duration = Math.max(1, Math.round((end - start) / (1000 * 60 * 60)));
+  }
+  return {
+    ...normalized,
+    uiAssignedTruckId,
+    uiAssignedTime: formatTime(normalized.deliveryCollectionStartTime),
+    uiAssignedDuration: duration,
   };
 }
 

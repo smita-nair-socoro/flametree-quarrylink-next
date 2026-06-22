@@ -21,7 +21,11 @@ import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
-import { DELIVERY_TIME_WINDOW_HOUR_OPTIONS } from '@/lib/utils/time';
+import {
+  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
+  isDeliveryTimeWindowEndOptionDisabled,
+  isDeliveryTimeWindowStartOptionDisabled,
+} from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog } from '@/components/form-dialog';
@@ -163,6 +167,8 @@ export default function QuotationForm({
     },
     [customers],
   );
+  const deliveryWindowStart = quotationForm.watch('deliveryWindowStart');
+  const deliveryWindowEnd = quotationForm.watch('deliveryWindowEnd');
 
   // Auto-fill phone/email (and preselect account manager on create) when customer is selected
   React.useEffect(() => {
@@ -704,7 +710,14 @@ export default function QuotationForm({
 
                         <SelectContent>
                           {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowStartOptionDisabled(
+                                time,
+                                deliveryWindowEnd,
+                              )}
+                            >
                               {time}
                             </SelectItem>
                           ))}
@@ -734,7 +747,14 @@ export default function QuotationForm({
 
                         <SelectContent>
                           {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem key={time} value={time}>
+                            <SelectItem
+                              key={time}
+                              value={time}
+                              disabled={isDeliveryTimeWindowEndOptionDisabled(
+                                time,
+                                deliveryWindowStart,
+                              )}
+                            >
                               {time}
                             </SelectItem>
                           ))}

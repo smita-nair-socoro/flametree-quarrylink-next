@@ -43,6 +43,7 @@ import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
   DispatchDocket,
   mapSchedulerUnassignedDocketsToBoardRows,
+  mapSchedulerAssignedDocketToBoardRow,
   isDispatchTruckResource,
   isDispatchDriverResource,
   truckMatchesFleetFilters,
@@ -196,27 +197,9 @@ export function DispatchView({
 
     if (viewType === 'trucks' && trucksData) {
       const assigned = (trucksData.resources || []).flatMap((r) =>
-        (r.dockets || []).map((d) => {
-          let duration = 2;
-          if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(
-              d.deliveryCollectionStartTime.replace('Z', ''),
-            ).getTime();
-            const end = new Date(
-              d.deliveryCollectionEndTime.replace('Z', ''),
-            ).getTime();
-            duration = Math.max(
-              1,
-              Math.round((end - start) / (1000 * 60 * 60)),
-            );
-          }
-          return {
-            ...d,
-            uiAssignedTruckId: String(r.id),
-            uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
-            uiAssignedDuration: duration,
-          };
-        }),
+        (r.dockets || []).map((d) =>
+          mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+        ),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
       const unassigned = mapSchedulerUnassignedDocketsToBoardRows(
@@ -226,27 +209,9 @@ export function DispatchView({
       newDockets = [...assigned, ...unassigned];
     } else if (viewType === 'drivers' && driversData) {
       const assigned = (driversData.resources || []).flatMap((r) =>
-        (r.dockets || []).map((d) => {
-          let duration = 2;
-          if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(
-              d.deliveryCollectionStartTime.replace('Z', ''),
-            ).getTime();
-            const end = new Date(
-              d.deliveryCollectionEndTime.replace('Z', ''),
-            ).getTime();
-            duration = Math.max(
-              1,
-              Math.round((end - start) / (1000 * 60 * 60)),
-            );
-          }
-          return {
-            ...d,
-            uiAssignedTruckId: String(r.id), // We map driver id to truckId for the UI to reuse the same component
-            uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
-            uiAssignedDuration: duration,
-          };
-        }),
+        (r.dockets || []).map((d) =>
+          mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+        ),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
       const unassigned = mapSchedulerUnassignedDocketsToBoardRows(

@@ -44,10 +44,10 @@ const TIME_SLOTS = [
 ];
 
 /** First column label (must match `TIME_SLOTS[0]`). */
-const GRID_FIRST_HOUR = 6;
+const GRID_FIRST_HOUR = 4;
 /** Must match row + card geometry (`h-[112px]`). */
 const SLOT_HEIGHT_PX = 112;
-/** Exclusive end of the grid in “hours since `GRID_FIRST_HOUR`” (06:00 … 24:00 → 18h). */
+/** Exclusive end of the grid in “hours since `GRID_FIRST_HOUR`” (04:00 … 23:00). */
 const GRID_SPAN_HOURS = TIME_SLOTS.length;
 
 function hoursSinceGridStart(iso?: string | null): number | null {
@@ -78,7 +78,7 @@ function fallbackSlotInterval(d: DispatchDocket): {
   return { start: slotIdx, end };
 }
 
-/** Interval in fractional hours from grid start (06:00 → 0, midnight → GRID_SPAN_HOURS). Never extends past midnight. */
+/** Interval in fractional hours from grid start (04:00 → 0). Never extends past midnight. */
 function getDocketIntervalHours(d: DispatchDocket): {
   start: number;
   end: number;
