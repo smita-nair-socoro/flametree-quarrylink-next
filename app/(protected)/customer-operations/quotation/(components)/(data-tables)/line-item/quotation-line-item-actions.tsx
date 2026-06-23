@@ -34,7 +34,7 @@ export function QuotationLineItemTableActions({
     (actionFn: () => void, additionalSetup?: () => void) => () => {
       additionalSetup?.();
       setDropdownOpen(false);
-      actionFn();
+      setTimeout(actionFn, 0);
     };
 
   const handleView = createHandler(actions.view);
@@ -56,7 +56,7 @@ export function QuotationLineItemTableActions({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={handleView}>
+          <DropdownMenuItem onSelect={handleView}>
             <Eye className="h-4 w-4 mr-2" />
             View Products
           </DropdownMenuItem>
@@ -64,7 +64,7 @@ export function QuotationLineItemTableActions({
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={handleDelete}
+                onSelect={handleDelete}
                 className="text-destructive focus:text-destructive"
               >
                 <Delete className="h-4 w-4 mr-2 text-red-600" />

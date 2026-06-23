@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import clsx from 'clsx';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { useSelectedCustomer } from '@/app/stores/customer-store';
-import { useSelectedLineItem } from '@/app/stores/quotation-line-item-store';
+import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
@@ -261,7 +261,9 @@ export function FormDialog({
   const selectedQuotation = useSelectedQuotation();
   const selectedCustomer = useSelectedCustomer();
   const selectedProduct = useSelectedProduct();
-  const selectedQuotationLineItem = useSelectedLineItem();
+  const selectedQuotationLineItem = useQuotationLineItemStore((state) =>
+    headerInfo?.useSelectedLineItem ? state.selectedLineItem : null,
+  );
   const selectedQuarrySupplier = useSelectedQuarrySupplier();
   const selectedClient = useSelectedClient();
   const selectedJob = useSelectedJob();
@@ -349,9 +351,9 @@ export function FormDialog({
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [
-        normalizeTruckStatus(selectedTruck.truckStatus) ??
-        selectedTruck.truckStatus,
-      ]
+          normalizeTruckStatus(selectedTruck.truckStatus) ??
+            selectedTruck.truckStatus,
+        ]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType
       ? [selectedTruck.truckBusinessType]
@@ -441,12 +443,12 @@ export function FormDialog({
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-      id: effectiveId,
-      onCancel: close,
-      onSuccess: handleChildSuccess,
-      onDirtyChange: handleChildDirtyChange,
-      onSaved: handleChildSaved,
-    })
+        id: effectiveId,
+        onCancel: close,
+        onSuccess: handleChildSuccess,
+        onDirtyChange: handleChildDirtyChange,
+        onSaved: handleChildSaved,
+      })
     : children;
 
   const formatBadgeText = (text?: string | number | null): string => {

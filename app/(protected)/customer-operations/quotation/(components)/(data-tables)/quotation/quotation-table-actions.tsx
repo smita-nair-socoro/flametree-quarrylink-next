@@ -26,10 +26,12 @@ import { Quotation } from '@/lib/types/quotation';
 
 interface QuotationTableActionsProps {
   quotation: Quotation;
+  onViewDetails?: (quotation: Quotation) => void;
 }
 
 export function QuotationTableActions({
   quotation,
+  onViewDetails,
 }: QuotationTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
 
@@ -43,7 +45,14 @@ export function QuotationTableActions({
       actionFn();
     };
 
-  const handleView = createHandler(actions.view);
+  const handleViewDetails = () => {
+    setDropdownOpen(false);
+    if (onViewDetails) {
+      onViewDetails(quotation);
+      return;
+    }
+    actions.view();
+  };
   const handlePreview = createHandler(actions.preview);
   const handleArchive = createHandler(actions.archive);
   const handleSendToCustomer = createHandler(actions.sendToCustomer);
@@ -57,7 +66,7 @@ export function QuotationTableActions({
   return (
     <div>
       {confirmDialogs}
-      {viewDialog}
+      {!onViewDetails && viewDialog}
       {duplicateDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
@@ -67,7 +76,7 @@ export function QuotationTableActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">
           {/* Always available: View Details */}
-          <DropdownMenuItem onClick={handleView}>
+          <DropdownMenuItem onClick={handleViewDetails}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
