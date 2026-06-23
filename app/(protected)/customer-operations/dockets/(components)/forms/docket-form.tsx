@@ -65,6 +65,7 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   getDeliveryDistanceQuantity,
   convertTruckVolumeToProductUom,
+  calculateGrossWeight,
 } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
@@ -157,6 +158,7 @@ export default function DocketForm({
   const [pendingRetry, setPendingRetry] = React.useState<
     (() => Promise<void>) | null
   >(null);
+  const [tareWeightInput, setTareWeightInput] = React.useState<string>('');
   const {
     docketForm,
     isEditing,
@@ -186,6 +188,10 @@ export default function DocketForm({
     onDirtyChange,
     taxPercentage,
   });
+
+  React.useEffect(() => {
+    setTareWeightInput(selectedDocket?.truck?.tareWeight?.toString() ?? '');
+  }, [selectedDocket?.id, selectedDocket?.truck?.tareWeight]);
 
   const combineDateAndTime = (
     date: Date | undefined,
@@ -818,29 +824,34 @@ export default function DocketForm({
   // weight plus the planned load (converted to tonnes). When it exceeds the
   // truck's GVM limit we surface a warning and flag the gross weight field.
   const weightDetails = selectedJobLineItemDetails();
-  const truckTareWeight = selectedDocket?.truck?.tareWeight ?? null;
+  const parsedTareWeight = parseFloat(tareWeightInput);
+  const tareWeightForCalc = isNaN(parsedTareWeight) ? null : parsedTareWeight;
   const truckGvm =
     selectedDocket?.truck?.pbsApproved &&
     selectedDocket?.truck?.combinationGvmPbs != null
       ? selectedDocket.truck.combinationGvmPbs
       : (selectedDocket?.truck?.combinationGvm ?? null);
   const plannedLoadSizeForGvm = docketForm.watch('plannedLoadSize') || 0;
-  const plannedLoadInTn = (() => {
-    const uom = (weightDetails.productUom || 'TN').toLowerCase();
-    const density = weightDetails.densityTonnagePerM3 || 1;
-    if (uom === 'm3' || uom === 'bulka') return plannedLoadSizeForGvm * density;
-    if (uom === '20kg' || uom === 'kg_20') return plannedLoadSizeForGvm / 50;
-    return plannedLoadSizeForGvm;
-  })();
-  const calculatedGrossWeight =
-    truckTareWeight != null ? truckTareWeight + plannedLoadInTn : null;
-  const showWeightFields = truckTareWeight != null;
+  const calculatedGrossWeight = calculateGrossWeight({
+    tareWeight: tareWeightForCalc,
+    loadSize: plannedLoadSizeForGvm,
+    productUom: weightDetails.productUom || 'TN',
+    density: weightDetails.densityTonnagePerM3 || 1,
+  });
+  const showWeightFields = selectedDocket?.truck != null;
   const gvmExceeded =
     truckGvm != null &&
     calculatedGrossWeight != null &&
     calculatedGrossWeight > truckGvm;
   const gvmOverBy =
     gvmExceeded && truckGvm != null ? calculatedGrossWeight! - truckGvm : 0;
+
+  const handleSaveTareWeight = () => {
+    // const tareWeight = parseFloat(tareWeightInput) || 0;
+    // TODO(QLINK-2824): persist tare weight once the backend exposes a
+    // tareWeight field. UI-only for now — the edited value already lives in
+    // local state and drives the calculated gross weight / GVM check.
+  };
 
   return (
     <>
@@ -1315,15 +1326,28 @@ export default function DocketForm({
                             <FormItem>
                               <FormLabel>Truck Tare Weight (TN)*</FormLabel>
                               <FormControl>
-                                <Input
-                                  className="w-full"
-                                  readOnly
-                                  isNumber
-                                  allowDecimal
-                                  minDecimals={2}
-                                  maxDecimals={2}
-                                  value={truckTareWeight ?? ''}
-                                />
+                                <div className="flex gap-2">
+                                  <Input
+                                    className="w-full"
+                                    isNumber
+                                    allowDecimal
+                                    minDecimals={2}
+                                    maxDecimals={2}
+                                    value={tareWeightInput}
+                                    onChange={(e) =>
+                                      setTareWeightInput(e.target.value)
+                                    }
+                                    disabled={isReadOnly}
+                                  />
+                                  {!isReadOnly && (
+                                    <Button
+                                      type="button"
+                                      onClick={handleSaveTareWeight}
+                                    >
+                                      Save
+                                    </Button>
+                                  )}
+                                </div>
                               </FormControl>
                             </FormItem>
                             <FormItem>
