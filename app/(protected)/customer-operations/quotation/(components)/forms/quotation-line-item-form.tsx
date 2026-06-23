@@ -59,8 +59,13 @@ export default function QuoteLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
-    useTenantCurrencyTax();
+  const {
+    currencySymbol,
+    taxPercentage,
+    exTaxLabel,
+    taxRateLabel,
+    formatCurrency,
+  } = useTenantCurrencyTax();
   const {
     isEditing,
     isReadOnly,
@@ -83,6 +88,7 @@ export default function QuoteLineItemForm({
     handleSubmit,
     onSubmit,
     isPending,
+    isLineItemLoading,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
   } = useLineItemFormState({
@@ -175,7 +181,7 @@ export default function QuoteLineItemForm({
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
-      {isPending && (
+      {(isPending || isLineItemLoading) && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -185,7 +191,11 @@ export default function QuoteLineItemForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isEditing ? 'Updating Product...' : 'Adding Product...'}
+              {isLineItemLoading
+                ? 'Loading Product...'
+                : isEditing
+                  ? 'Updating Product...'
+                  : 'Adding Product...'}
             </p>
           </div>
         </div>
@@ -474,19 +484,19 @@ export default function QuoteLineItemForm({
                             disabled={isReadOnly}
                             unit={
                               quotationLineItemForm.watch('productSellUom') ===
-                                'TN'
+                              'TN'
                                 ? 'TN'
                                 : quotationLineItemForm.watch(
-                                  'productSellUom',
-                                ) === 'M3'
+                                      'productSellUom',
+                                    ) === 'M3'
                                   ? 'm3'
                                   : quotationLineItemForm.watch(
-                                    'productSellUom',
-                                  ) === 'KG_20'
+                                        'productSellUom',
+                                      ) === 'KG_20'
                                     ? 'Bags'
                                     : quotationLineItemForm.watch(
-                                      'productSellUom',
-                                    ) === 'BULKA'
+                                          'productSellUom',
+                                        ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -499,14 +509,14 @@ export default function QuoteLineItemForm({
                   <div className="col-span-3 -mt-3 mb-3">
                     {(quotationLineItemForm.watch('densityTonnagePerM3') ?? 0) >
                       0 && (
-                        <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
-                          <div className="text-sm text-purple-900">
-                            The conversion is using the product density of{' '}
-                            {quotationLineItemForm.watch('densityTonnagePerM3')}{' '}
-                            TN/m³.
-                          </div>
+                      <div className="p-[17.25px] bg-purple-50 border border-purple-300 rounded-md">
+                        <div className="text-sm text-purple-900">
+                          The conversion is using the product density of{' '}
+                          {quotationLineItemForm.watch('densityTonnagePerM3')}{' '}
+                          TN/m³.
                         </div>
-                      )}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {/* Conversion Info Box */}
@@ -584,19 +594,19 @@ export default function QuoteLineItemForm({
                             disabled={isReadOnly}
                             unit={
                               quotationLineItemForm.watch('productCostUom') ===
-                                'TN'
+                              'TN'
                                 ? 'TN'
                                 : quotationLineItemForm.watch(
-                                  'productCostUom',
-                                ) === 'M3'
+                                      'productCostUom',
+                                    ) === 'M3'
                                   ? 'm3'
                                   : quotationLineItemForm.watch(
-                                    'productCostUom',
-                                  ) === 'KG_20'
+                                        'productCostUom',
+                                      ) === 'KG_20'
                                     ? 'Bags'
                                     : quotationLineItemForm.watch(
-                                      'productCostUom',
-                                    ) === 'BULKA'
+                                          'productCostUom',
+                                        ) === 'BULKA'
                                       ? 'Bags'
                                       : ''
                             }
@@ -611,20 +621,20 @@ export default function QuoteLineItemForm({
 
               {pricingBreakdown.totalProductCostPrice >
                 pricingBreakdown.totalProductSellPrice && (
-                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
-                    <div className="flex items-start gap-2">
-                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                      <div className="flex-1 text-sm">
-                        <p className="font-semibold">Review Product Pricing</p>
-                        <p className="text-[#364153]">
-                          This line item will generate a loss based on current
-                          costs. If this is expected, you can continue. Otherwise,
-                          adjust the price to restore profitability.
-                        </p>
-                      </div>
+                <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md">
+                  <div className="flex items-start gap-2">
+                    <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                    <div className="flex-1 text-sm">
+                      <p className="font-semibold">Review Product Pricing</p>
+                      <p className="text-[#364153]">
+                        This line item will generate a loss based on current
+                        costs. If this is expected, you can continue. Otherwise,
+                        adjust the price to restore profitability.
+                      </p>
                     </div>
                   </div>
-                )}
+                </div>
+              )}
             </div>
 
             {/* Truck Configuration */}
@@ -729,23 +739,23 @@ export default function QuoteLineItemForm({
                               disabled={isReadOnly}
                               unit={
                                 quotationLineItemForm.watch('truckSellUom') ===
-                                  'TN'
+                                'TN'
                                   ? 'TN'
                                   : quotationLineItemForm.watch(
-                                    'truckSellUom',
-                                  ) === 'M3'
+                                        'truckSellUom',
+                                      ) === 'M3'
                                     ? 'm3'
                                     : quotationLineItemForm.watch(
-                                      'truckSellUom',
-                                    ) === 'HOURLY'
+                                          'truckSellUom',
+                                        ) === 'HOURLY'
                                       ? 'HOURLY'
                                       : quotationLineItemForm.watch(
-                                        'truckSellUom',
-                                      ) === 'LOAD'
+                                            'truckSellUom',
+                                          ) === 'LOAD'
                                         ? 'LOAD'
                                         : quotationLineItemForm.watch(
-                                          'truckSellUom',
-                                        ) === 'KM'
+                                              'truckSellUom',
+                                            ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -841,23 +851,23 @@ export default function QuoteLineItemForm({
                               disabled={isReadOnly}
                               unit={
                                 quotationLineItemForm.watch('truckCostUom') ===
-                                  'TN'
+                                'TN'
                                   ? 'TN'
                                   : quotationLineItemForm.watch(
-                                    'truckCostUom',
-                                  ) === 'M3'
+                                        'truckCostUom',
+                                      ) === 'M3'
                                     ? 'm3'
                                     : quotationLineItemForm.watch(
-                                      'truckCostUom',
-                                    ) === 'HOURLY'
+                                          'truckCostUom',
+                                        ) === 'HOURLY'
                                       ? 'HOURLY'
                                       : quotationLineItemForm.watch(
-                                        'truckCostUom',
-                                      ) === 'LOAD'
+                                            'truckCostUom',
+                                          ) === 'LOAD'
                                         ? 'LOAD'
                                         : quotationLineItemForm.watch(
-                                          'truckCostUom',
-                                        ) === 'KM'
+                                              'truckCostUom',
+                                            ) === 'KM'
                                           ? 'KM'
                                           : ''
                               }
@@ -872,20 +882,20 @@ export default function QuoteLineItemForm({
 
                 {pricingBreakdown.totalTruckCostPrice >
                   pricingBreakdown.totalTruckSellPrice && (
-                    <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
-                      <div className="flex items-start gap-2">
-                        <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
-                        <div className="flex-1 text-sm">
-                          <p className="font-semibold">Review Truck Pricing</p>
-                          <p className="text-[#364153]">
-                            The truck configuration will generate a loss based on
-                            current costs. If this is expected, you can continue.
-                            Otherwise, adjust the price to restore profitability.
-                          </p>
-                        </div>
+                  <div className="p-[17.25px] bg-[#FFF4E6] border border-[#FF8C00] rounded-md mb-3">
+                    <div className="flex items-start gap-2">
+                      <TriangleAlertIcon className="h-5 w-5 text-[#FF8C00]" />
+                      <div className="flex-1 text-sm">
+                        <p className="font-semibold">Review Truck Pricing</p>
+                        <p className="text-[#364153]">
+                          The truck configuration will generate a loss based on
+                          current costs. If this is expected, you can continue.
+                          Otherwise, adjust the price to restore profitability.
+                        </p>
                       </div>
                     </div>
-                  )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1095,7 +1105,12 @@ export default function QuoteLineItemForm({
                   className="cursor-pointer"
                   type="button"
                   disabled={isPending || !canEdit}
-                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit, scrollToFirstError)()}
+                  onClick={() =>
+                    quotationLineItemForm.handleSubmit(
+                      onSubmit,
+                      scrollToFirstError,
+                    )()
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>
@@ -1108,7 +1123,12 @@ export default function QuoteLineItemForm({
                   type="button"
                   className="cursor-pointer"
                   disabled={isPending || !canEdit}
-                  onClick={() => quotationLineItemForm.handleSubmit(onSubmit, scrollToFirstError)()}
+                  onClick={() =>
+                    quotationLineItemForm.handleSubmit(
+                      onSubmit,
+                      scrollToFirstError,
+                    )()
+                  }
                 >
                   {isEditing ? 'Save Changes' : 'Add Product'}
                 </Button>

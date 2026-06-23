@@ -37,58 +37,39 @@ export function CannotDeleteJobLineItemDescription({
   );
 }
 
-export function CannotDeleteJobLineItemContent({
-  activeDocketIds = [],
-}: {
-  activeDocketIds?: number[];
-}) {
-  const docketCount = activeDocketIds.length;
-  const docketLink = `/customer-operations/dockets/?docketId=${activeDocketIds.join(',')}`;
-
+export function CannotDeleteJobLineItemContent() {
   return (
     <div className="flex flex-col gap-5">
-      <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] p-4 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <TriangleAlert className="h-4 w-4 text-[#E7000B] flex-shrink-0" />
-          <span className="text-[14px] font-semibold text-[#991B1B]">
-            Deletion Blocked
-          </span>
-        </div>
-        <span className="text-[14px] text-[#B91C1C] pl-6">
-          This line item cannot be removed because it is attached to active
-          dockets in this job.
-        </span>
-      </div>
+      <span className="text-[14px] font-normal text-gray-700">
+        This line item cannot be removed because it is attached to active
+        dockets in this job.
+      </span>
 
-      {docketCount > 0 && (
-        <div className="flex flex-col gap-2">
-          <span className="text-[14px] font-semibold text-gray-900">
-            Active Dockets Found:
-          </span>
-          <div className="rounded-md border border-[#FFD6A7] bg-[#FFF3E6] px-4 py-3">
-            <a
-              href={docketLink}
-              className="text-[14px] text-[#155DFC] underline font-medium"
-            >
-              {docketCount} active {docketCount === 1 ? 'docket' : 'dockets'}
-            </a>
+      <div className="border border-[#FFD6A7] rounded-md p-4 bg-[#FFF7ED]">
+        <div className="flex justify-start gap-2 self-stretch">
+          <TriangleAlert className="h-[20px] w-[20px] text-[#F54900] flex-shrink-0 mt-0.5" />
+          <div className="flex flex-col gap-1">
+            <span className="text-[16px] text-[#F54900] font-medium">
+              Active Dockets Found
+            </span>
+            <span className="text-[14px] font-normal text-[#CA3500]">
+              Line items can only be removed when there are no active dockets
+              associated with them. Invoice, cancel or void the active dockets
+              first.
+            </span>
           </div>
         </div>
-      )}
+      </div>
 
       <div className="flex flex-col gap-2">
-        <span className="text-[14px] font-semibold text-gray-900">
-          Required actions:
+        <span className="text-[14px] font-semibold text-[#101828]">
+          To remove this line item:
         </span>
         <ul className="flex flex-col gap-1 pl-1">
-          {[
-            'Invoice, cancel or void all active dockets linked to this line item',
-          ].map((item) => (
-            <li key={item} className="flex gap-2 text-[14px] text-[#6A7282]">
-              <span className="mt-[6px] h-[5px] w-[5px] rounded-full bg-[#6A7282] flex-shrink-0" />
-              {item}
-            </li>
-          ))}
+          <li className="flex gap-2 text-[14px] text-[#6A7282]">
+            <span className="mt-[6px] h-[5px] w-[5px] rounded-full bg-[#6A7282] flex-shrink-0" />
+            Invoice, cancel or void all active dockets linked to this line item
+          </li>
         </ul>
       </div>
     </div>

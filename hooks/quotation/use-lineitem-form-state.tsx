@@ -1150,10 +1150,8 @@ export function useLineItemFormState({
     pricingBreakdown,
     handleSubmit,
     onSubmit,
-    isPending:
-      isLineItemLoading ||
-      createQuoteItem.isPending ||
-      updateQuoteItem.isPending,
+    isPending: createQuoteItem.isPending || updateQuoteItem.isPending,
+    isLineItemLoading: isLineItemLoading,
     customerDeliveryAddressSuggestions,
     handleDeleteDeliveryAddress,
   };
