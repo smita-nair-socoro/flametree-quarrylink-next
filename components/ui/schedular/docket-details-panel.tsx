@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { X, User, MapPin, ExternalLink, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { calculateGrossWeight } from '@/lib/utils/docket-helper';
 import { formatTimeRange } from '@/lib/utils/dispatch-helper';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
@@ -529,35 +528,6 @@ export function DocketDetailsPanel({
                         </Button>
                       )}
                     </div>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div
-                      className={cn(
-                        'text-xs mb-1',
-                        gvmExceeded ? 'text-[#DC2626]' : 'text-gray-500',
-                      )}
-                    >
-                      Calculated Gross Weight (TN)
-                    </div>
-                    <Input
-                      type="text"
-                      readOnly
-                      suffix="TN"
-                      className={cn(
-                        gvmExceeded &&
-                          'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
-                      )}
-                      value={
-                        calculatedGrossWeight != null
-                          ? calculatedGrossWeight.toFixed(2)
-                          : ''
-                      }
-                      isNumber
-                      allowDecimal
-                      maxDecimals={2}
-                      minDecimals={1}
-                    />
                   </div>
 
                   {gvmExceeded && (
