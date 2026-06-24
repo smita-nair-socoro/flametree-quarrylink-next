@@ -43,7 +43,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -76,7 +76,7 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
+  const businessName = useTenantStore((state) => state.businessName);
   const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
 
   const haulierItems = React.useMemo(

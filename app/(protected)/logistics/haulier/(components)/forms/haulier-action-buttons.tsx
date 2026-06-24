@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
 
 interface HaulierActionButtonsProps {
@@ -25,7 +25,7 @@ export function HaulierActionButtons({
   onDelete,
 }: HaulierActionButtonsProps) {
   const { actions } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
-  const businessName = useClientStore((state) => state.businessName);
+  const businessName = useTenantStore((state) => state.businessName);
   const isSubcontractor =
     !businessName || haulier?.haulierName !== businessName;
 

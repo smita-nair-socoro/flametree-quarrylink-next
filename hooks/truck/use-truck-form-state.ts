@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TruckByIdQueryOptions } from '@/lib/api/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
 
 export function useTruckFormState(id: number | undefined, isEditing: boolean) {
@@ -12,7 +12,7 @@ export function useTruckFormState(id: number | undefined, isEditing: boolean) {
   });
 
   const setSelectedTruck = useTruckStore((s) => s.setSelectedTruck);
-  const businessName = useClientStore((s) => s.getBusinessName());
+  const businessName = useTenantStore((s) => s.businessName);
 
   // Backend doesn't send truckBusinessType — derive it from haulier name vs tenant business name
   // and push onto the store so FormDialog's secondary badge can render.

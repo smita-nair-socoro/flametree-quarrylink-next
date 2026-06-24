@@ -36,7 +36,7 @@ import {
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -92,7 +92,7 @@ export default function TruckForm({
   const updateTruck = useUpdateTruck();
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
+  const businessName = useTenantStore((state) => state.businessName);
   const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
 
   const haulierItems = React.useMemo(

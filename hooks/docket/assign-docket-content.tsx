@@ -15,7 +15,7 @@ import {
   HaulierTrucksQueryOptions,
   HaulierDriversQueryOptions,
 } from '@/lib/api/haulier';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
 import { ConflictingDocket } from '@/lib/types/docket';
 import { calculateConvertedQty, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
@@ -212,7 +212,7 @@ export function AssignDocketContent({
     ...HaulierDriversQueryOptions(haulerSelection ?? 0),
     enabled: !!haulerSelection && !!truckSelection,
   });
-  const businessName = useClientStore((state) => state.getBusinessName());
+  const businessName = useTenantStore((state) => state.businessName);
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
   const availableTrucks = React.useMemo(

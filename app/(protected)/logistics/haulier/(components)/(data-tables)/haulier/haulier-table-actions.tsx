@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 interface HaulierTableActionsProps {
   haulier: HaulierDTO;
@@ -22,7 +22,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, viewDialog } = useHaulierActions(haulier);
 
-  const businessName = useClientStore((state) => state.businessName);
+  const businessName = useTenantStore((state) => state.businessName);
   const isSubcontractor =
     !businessName || haulier.haulierName !== businessName;
 

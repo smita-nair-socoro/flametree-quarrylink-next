@@ -12,10 +12,10 @@ import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
 import { FormDialog } from '@/components/form-dialog';
 import HaulierForm from './(components)/forms/haulier-form';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 export default function HaulierPage() {
-  const businessName = useClientStore((state) => state.businessName);
+  const businessName = useTenantStore((state) => state.businessName);
   const { data: hauliers } = useQuery(HauliersListQueryOptions());
   const { data: trucks } = useQuery(TrucksListQueryOptions());
   const { data: drivers } = useQuery(DriversListQueryOptions());
