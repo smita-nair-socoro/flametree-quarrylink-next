@@ -1,6 +1,7 @@
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Eye, Trash2, Truck, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +23,7 @@ interface HaulierTableActionsProps {
 export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, viewDialog } = useHaulierActions(haulier);
+  const router = useRouter();
 
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier.emailAddress, tenantEmail);
@@ -46,11 +48,21 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             View Details
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
+          <DropdownMenuItem
+            onClick={() => {
+              setDropdownOpen(false);
+              router.push(`/logistics/trucks?haulierId=${haulier.id}`);
+            }}
+          >
             <Truck className="h-4 w-4 mr-2" />
             Linked Trucks
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
+          <DropdownMenuItem
+            onClick={() => {
+              setDropdownOpen(false);
+              router.push(`/logistics/drivers?haulierId=${haulier.id}`);
+            }}
+          >
             <Users className="h-4 w-4 mr-2" />
             Linked Drivers
           </DropdownMenuItem>

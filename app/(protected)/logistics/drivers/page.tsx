@@ -40,9 +40,12 @@ export default function DriversPage() {
   }, [users]);
   // END TEMP
 
+  const haulierId = searchParams.get('haulierId');
+
   const items: DriverDTO[] = React.useMemo(() => {
-    return Array.isArray(drivers) ? drivers : [];
-  }, [drivers]);
+    const all = Array.isArray(drivers) ? drivers : [];
+    return haulierId ? all.filter((d) => d.haulierId === Number(haulierId)) : all;
+  }, [drivers, haulierId]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'driverStatus', title: 'Status' },
@@ -133,6 +136,18 @@ export default function DriversPage() {
         mobileGridCols={1}
         desktopGridCols={4}
       />
+
+      {haulierId && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm w-fit">
+          <span>Filtered by haulier</span>
+          <button
+            onClick={() => router.replace('/logistics/drivers')}
+            className="ml-1 font-medium underline hover:no-underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient

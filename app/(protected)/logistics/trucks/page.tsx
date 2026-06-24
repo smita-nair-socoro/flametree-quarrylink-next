@@ -66,9 +66,12 @@ export default function TrucksPage() {
     },
   ];
 
+  const haulierId = searchParams.get('haulierId');
+
   const items: TruckDTO[] = React.useMemo(() => {
-    return Array.isArray(trucks) ? trucks : [];
-  }, [trucks]);
+    const all = Array.isArray(trucks) ? trucks : [];
+    return haulierId ? all.filter((t) => t.haulierId === Number(haulierId)) : all;
+  }, [trucks, haulierId]);
 
   // Auto-open truck view when navigated from inspection failed email link
   React.useEffect(() => {
@@ -114,6 +117,18 @@ export default function TrucksPage() {
         mobileGridCols={1}
         desktopGridCols={4}
       />
+
+      {haulierId && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm w-fit">
+          <span>Filtered by haulier</span>
+          <button
+            onClick={() => router.replace('/logistics/trucks')}
+            className="ml-1 font-medium underline hover:no-underline"
+          >
+            Clear filter
+          </button>
+        </div>
+      )}
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient

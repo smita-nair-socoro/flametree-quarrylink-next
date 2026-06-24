@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Truck, Users, MoreHorizontal, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -26,8 +27,12 @@ export function HaulierActionButtons({
   const { actions } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier?.emailAddress, tenantEmail);
+  const router = useRouter();
 
   if (!haulier?.id) return null;
+
+  const handleLinkedTrucks = () => router.push(`/logistics/trucks?haulierId=${haulier.id}`);
+  const handleLinkedDrivers = () => router.push(`/logistics/drivers?haulierId=${haulier.id}`);
 
   return (
     <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
@@ -35,6 +40,7 @@ export function HaulierActionButtons({
         variant="ghost"
         size="sm"
         type="button"
+        onClick={handleLinkedTrucks}
         className="!rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
       >
         <Truck className="h-4 w-4 mr-1.5" />
@@ -44,7 +50,8 @@ export function HaulierActionButtons({
         variant="ghost"
         size="sm"
         type="button"
-        className="!rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+        onClick={handleLinkedDrivers}
+        className="!rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
       >
         <Users className="h-4 w-4 mr-1.5" />
         Linked Drivers
