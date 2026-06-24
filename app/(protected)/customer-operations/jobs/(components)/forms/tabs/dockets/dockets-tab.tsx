@@ -30,7 +30,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'docketNumber', desc: false },
+    { id: 'deliveryCollectionDate', desc: true },
   ]);
 
   const apiSortParams = React.useMemo(
@@ -56,7 +56,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
     setSorting(
       newSorting.length > 0
         ? newSorting
-        : [{ id: 'docketNumber', desc: false }],
+        : [{ id: 'deliveryCollectionDate', desc: true }],
     );
     setPageIndex(0);
   }, []);
@@ -92,7 +92,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
           columns={docketsColumns}
           data={items}
           simpleTable={true}
-          defaultSorting={[{ id: 'docketNumber', desc: false }]}
+          defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
           totalElements={totalElements}
           totalPages={totalPages}
           externalPageIndex={pageIndex}

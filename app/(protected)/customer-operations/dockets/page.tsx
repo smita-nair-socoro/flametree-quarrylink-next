@@ -51,7 +51,7 @@ export default function DocketsPage() {
   const [search, setSearch] = React.useState('');
   const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'docketNumber', desc: false },
+    { id: 'deliveryCollectionDate', desc: true },
   ]);
 
   const apiSortParams = React.useMemo(
@@ -125,7 +125,7 @@ export default function DocketsPage() {
     setSorting(
       newSorting.length > 0
         ? newSorting
-        : [{ id: 'docketNumber', desc: false }],
+        : [{ id: 'deliveryCollectionDate', desc: true }],
     );
     setPageIndex(0);
   }, []);
@@ -325,7 +325,7 @@ export default function DocketsPage() {
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
-                  defaultSorting={[{ id: 'docketNumber', desc: false }]}
+                  defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
                   totalElements={totalElements}
                   totalPages={totalPages}
                   externalPageIndex={pageIndex}

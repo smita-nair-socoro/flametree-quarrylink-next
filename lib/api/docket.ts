@@ -75,7 +75,7 @@ export function toDocketApiSortParams(
 ): Pick<DocketsListParams, 'sortBy' | 'sortOrder'> {
   const sort = sorting[0];
   if (!sort) {
-    return { sortBy: 'docketNumber', sortOrder: 'asc' };
+    return { sortBy: 'deliveryCollectionDate', sortOrder: 'asc' };
   }
 
   return {
