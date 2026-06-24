@@ -26,6 +26,8 @@ import {
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 
 interface HaulierFormProps {
   editingItem?: SelectCreateEditItem | null;
@@ -43,8 +45,10 @@ export default function HaulierForm({
   const createHaulier = useCreateHaulier();
   const updateHaulier = useUpdateHaulier();
   const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
 
   const { data: haulierData } = useQuery(HaulierDetailQueryOptions(editingId));
+  const isInternal = isInternalHaulier(haulierData?.emailAddress, tenantEmail);
 
   const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
@@ -131,7 +135,7 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Name*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter Haulier Name" {...field} />
+                <Input placeholder="Enter Haulier Name" disabled={isInternal} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -145,7 +149,7 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Email*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter email" type="email" {...field} />
+                <Input placeholder="Enter email" type="email" disabled={isInternal} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -162,6 +166,7 @@ export default function HaulierForm({
                 <PhoneInput
                   defaultCountry="AU"
                   placeholder="Enter phone number"
+                  disabled={isInternal}
                   {...field}
                 />
               </FormControl>
@@ -181,7 +186,7 @@ export default function HaulierForm({
           <Button
             type="submit"
             variant="default"
-            disabled={createHaulier.isPending || updateHaulier.isPending}
+            disabled={isInternal || createHaulier.isPending || updateHaulier.isPending}
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}
           </Button>
