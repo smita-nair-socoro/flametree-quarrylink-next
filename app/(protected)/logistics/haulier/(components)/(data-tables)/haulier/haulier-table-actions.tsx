@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2, Truck, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,7 @@ import {
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
 import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 
 interface HaulierTableActionsProps {
   haulier: HaulierDTO;
@@ -22,9 +23,8 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, viewDialog } = useHaulierActions(haulier);
 
-  const businessName = useTenantStore((state) => state.businessName);
-  const isSubcontractor =
-    !businessName || haulier.haulierName !== businessName;
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const isSubcontractor = !isInternalHaulier(haulier.emailAddress, tenantEmail);
 
   return (
     <div>
@@ -35,7 +35,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuItem
             onClick={() => {
               setDropdownOpen(false);
@@ -44,6 +44,15 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
           >
             <Eye className="h-4 w-4 mr-2" />
             View Details
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
+            <Truck className="h-4 w-4 mr-2" />
+            Linked Trucks
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDropdownOpen(false)}>
+            <Users className="h-4 w-4 mr-2" />
+            Linked Drivers
           </DropdownMenuItem>
           {isSubcontractor && (
             <>

@@ -12,41 +12,39 @@ import {
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 
 interface HaulierActionButtonsProps {
   haulier: HaulierDTO | null | undefined;
-  onScrollTo: (section: string) => void;
   onDelete?: () => void;
 }
 
 export function HaulierActionButtons({
   haulier,
-  onScrollTo,
   onDelete,
 }: HaulierActionButtonsProps) {
   const { actions } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
-  const businessName = useTenantStore((state) => state.businessName);
-  const isSubcontractor =
-    !businessName || haulier?.haulierName !== businessName;
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const isSubcontractor = !isInternalHaulier(haulier?.emailAddress, tenantEmail);
 
   if (!haulier?.id) return null;
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         type="button"
-        onClick={() => onScrollTo('trucks')}
+        className="!rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
       >
         <Truck className="h-4 w-4 mr-1.5" />
         Linked Trucks
       </Button>
       <Button
-        variant="outline"
+        variant="ghost"
         size="sm"
         type="button"
-        onClick={() => onScrollTo('drivers')}
+        className="!rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
       >
         <Users className="h-4 w-4 mr-1.5" />
         Linked Drivers
@@ -54,7 +52,12 @@ export function HaulierActionButtons({
       {isSubcontractor && (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" type="button">
+            <Button
+              variant="ghost"
+              size="sm"
+              type="button"
+              className="!rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
+            >
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

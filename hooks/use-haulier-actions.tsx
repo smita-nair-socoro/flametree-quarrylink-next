@@ -6,16 +6,15 @@ import HaulierForm from '@/app/(protected)/logistics/haulier/(components)/forms/
 import { HaulierActionButtons } from '@/app/(protected)/logistics/haulier/(components)/forms/haulier-action-buttons';
 
 export function useHaulierActions(
-  haulierData?: HaulierDTO | null,
+  initialData?: HaulierDTO | null,
   { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
 ) {
   const [viewOpen, setViewOpen] = React.useState(false);
-  const [scrollToSection, setScrollToSection] = React.useState<
-    string | undefined
-  >();
+  const [haulierData, setHaulierData] = React.useState<HaulierDTO | null | undefined>(initialData);
 
   const actions = {
-    view: () => {
+    view: (data?: HaulierDTO | null) => {
+      if (data) setHaulierData(data);
       setViewOpen(true);
     },
     delete: () => {
@@ -29,21 +28,17 @@ export function useHaulierActions(
       id={haulierData?.id}
       dialogTitle={haulierData?.haulierName}
       open={viewOpen}
-      onOpenChangeAction={(open) => {
-        setViewOpen(open);
-        if (!open) setScrollToSection(undefined);
-      }}
+      onOpenChangeAction={(open) => setViewOpen(open)}
       hideTrigger
       headerButtonsAlign="center"
       headerButtons={
         <HaulierActionButtons
           haulier={haulierData}
-          onScrollTo={setScrollToSection}
           onDelete={() => setViewOpen(false)}
         />
       }
     >
-      <HaulierForm scrollToSection={scrollToSection} />
+      <HaulierForm />
     </FormDialog>
   ) : null;
 

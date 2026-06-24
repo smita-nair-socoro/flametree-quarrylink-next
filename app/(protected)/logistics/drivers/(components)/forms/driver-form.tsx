@@ -43,8 +43,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
@@ -76,19 +78,19 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useTenantStore((state) => state.businessName);
-  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const createDriver = useCreateDriver();
@@ -240,7 +242,8 @@ export default function DriverForm({
   const complianceSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id) return;
+    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id)
+      return;
 
     const element = complianceSectionRef.current;
     if (!element) return;
@@ -361,7 +364,6 @@ export default function DriverForm({
                 <Input
                   value={
                     internalHaulier?.haulierName ??
-                    businessName ??
                     'My Company Haulier'
                   }
                   disabled

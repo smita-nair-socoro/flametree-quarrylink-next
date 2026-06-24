@@ -13,10 +13,14 @@ import { FormDialog } from '@/components/form-dialog';
 import HaulierForm from './(components)/forms/haulier-form';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useTenantStore } from '@/app/stores/tenant-store';
+import { useHaulierActions } from '@/hooks/use-haulier-actions';
 
 export default function HaulierPage() {
-  const businessName = useTenantStore((state) => state.businessName);
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const { data: hauliers } = useQuery(HauliersListQueryOptions());
+
+  const { actions, viewDialog } = useHaulierActions();
+  const handleRowClick = (haulier: HaulierDTO) => actions.view(haulier);
   const { data: trucks } = useQuery(TrucksListQueryOptions());
   const { data: drivers } = useQuery(DriversListQueryOptions());
 
@@ -67,6 +71,7 @@ export default function HaulierPage() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Hauliers</h1>
@@ -88,7 +93,8 @@ export default function HaulierPage() {
         <DataTableClient
           tableId="haulier_main_data_table"
           data={items}
-          columns={haulierColumns(businessName)}
+          columns={haulierColumns(tenantEmail)}
+          onRowClick={handleRowClick}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
         />

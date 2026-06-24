@@ -5,8 +5,9 @@ import { ColumnDef } from '@tanstack/react-table';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { HaulierTableActions } from './haulier-table-actions';
 import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 
-export const haulierColumns = (businessName: string | null): ColumnDef<HaulierDTO>[] => [
+export const haulierColumns = (tenantEmail: string | null | undefined): ColumnDef<HaulierDTO>[] => [
   {
     id: 'haulierName',
     accessorFn: (row) => row.haulierName,
@@ -45,7 +46,7 @@ export const haulierColumns = (businessName: string | null): ColumnDef<HaulierDT
   {
     id: 'haulierType',
     accessorFn: (row) =>
-      businessName && row.haulierName === businessName ? 'INTERNAL' : 'SUBCONTRACTOR',
+      isInternalHaulier(row.emailAddress, tenantEmail) ? 'INTERNAL' : 'SUBCONTRACTOR',
     header: ({ column }) => (
       <TableClientSortableHeader column={column} title="Type" />
     ),

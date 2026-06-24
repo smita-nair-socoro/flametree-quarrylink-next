@@ -22,20 +22,15 @@ import {
   useCreateHaulier,
   HaulierDetailQueryOptions,
   useUpdateHaulier,
-  HaulierDriversQueryOptions,
-  HaulierTrucksQueryOptions,
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { TableBadges } from '@/components/table-badges';
-import { Spinner } from '@/components/ui/spinner';
 
 interface HaulierFormProps {
   id?: number;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
-  scrollToSection?: string;
 }
 
 export default function HaulierForm({
@@ -43,22 +38,12 @@ export default function HaulierForm({
   onCancel,
   onSuccess,
   onDirtyChange,
-  scrollToSection,
 }: HaulierFormProps) {
   const isEditing = Boolean(id && id > 0);
   const createHaulier = useCreateHaulier();
   const updateHaulier = useUpdateHaulier();
 
-  const trucksRef = React.useRef<HTMLDivElement>(null);
-  const driversRef = React.useRef<HTMLDivElement>(null);
-
   const { data: haulierData } = useQuery(HaulierDetailQueryOptions(id ?? 0));
-  const { data: linkedTrucks, isLoading: trucksLoading } = useQuery(
-    HaulierTrucksQueryOptions(id ?? 0),
-  );
-  const { data: linkedDrivers, isLoading: driversLoading } = useQuery(
-    HaulierDriversQueryOptions(id ?? 0),
-  );
 
   const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
@@ -87,15 +72,6 @@ export default function HaulierForm({
       form.reset({ name: '', email: '', phone: '' });
     }
   }, [isEditing, form]);
-
-  React.useEffect(() => {
-    if (!scrollToSection) return;
-    if (scrollToSection === 'trucks') {
-      trucksRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    } else if (scrollToSection === 'drivers') {
-      driversRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [scrollToSection]);
 
   async function onSubmit(values: z.infer<typeof HaulierFormSchema>) {
     try {
@@ -179,85 +155,6 @@ export default function HaulierForm({
             </FormItem>
           )}
         />
-
-        {isEditing && (
-          <>
-            <div ref={trucksRef}>
-              <Separator className="my-4" />
-              <h3 className="text-base font-medium mb-3">Linked Trucks</h3>
-              {trucksLoading ? (
-                <div className="flex justify-center py-4">
-                  <Spinner size="small" />
-                </div>
-              ) : (linkedTrucks?.trucks ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">
-                  No trucks linked to this haulier.
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {linkedTrucks?.trucks?.map((truck) => (
-                    <div
-                      key={truck.id}
-                      className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
-                    >
-                      <span className="font-medium text-sm">
-                        {truck.licensePlate}
-                      </span>
-                      <div className="flex gap-2">
-                        <TableBadges names={[truck.truckType]} visibleCount={1} />
-                        {truck.truckStatus && (
-                          <TableBadges
-                            names={[truck.truckStatus]}
-                            visibleCount={1}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div ref={driversRef}>
-              <Separator className="my-4" />
-              <h3 className="text-base font-medium mb-3">Linked Drivers</h3>
-              {driversLoading ? (
-                <div className="flex justify-center py-4">
-                  <Spinner size="small" />
-                </div>
-              ) : (linkedDrivers?.drivers ?? []).length === 0 ? (
-                <p className="text-sm text-muted-foreground py-2">
-                  No drivers linked to this haulier.
-                </p>
-              ) : (
-                <div className="flex flex-col gap-2">
-                  {linkedDrivers?.drivers?.map((driver) => (
-                    <div
-                      key={driver.id}
-                      className="flex items-center justify-between p-3 rounded-md border bg-muted/30"
-                    >
-                      <span className="font-medium text-sm">
-                        {driver.driverName}
-                      </span>
-                      <div className="flex gap-2">
-                        <TableBadges
-                          names={[driver.driverType]}
-                          visibleCount={1}
-                        />
-                        {driver.driverStatus && (
-                          <TableBadges
-                            names={[driver.driverStatus]}
-                            visibleCount={1}
-                          />
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </>
-        )}
 
         <div className="flex justify-end gap-3 mt-4 pb-4">
           <Button type="button" variant="outline" onClick={onCancel}>
