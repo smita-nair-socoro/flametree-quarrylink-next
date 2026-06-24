@@ -846,13 +846,6 @@ export default function DocketForm({
   const gvmOverBy =
     gvmExceeded && truckGvm != null ? calculatedGrossWeight! - truckGvm : 0;
 
-  const handleSaveTareWeight = () => {
-    // const tareWeight = parseFloat(tareWeightInput) || 0;
-    // TODO(QLINK-2824): persist tare weight once the backend exposes a
-    // tareWeight field. UI-only for now — the edited value already lives in
-    // local state and drives the calculated gross weight / GVM check.
-  };
-
   return (
     <>
       <ImagePreviewDialog
@@ -1326,28 +1319,17 @@ export default function DocketForm({
                             <FormItem>
                               <FormLabel>Truck Tare Weight (TN)*</FormLabel>
                               <FormControl>
-                                <div className="flex gap-2">
-                                  <Input
-                                    className="w-full"
-                                    isNumber
-                                    allowDecimal
-                                    minDecimals={2}
-                                    maxDecimals={2}
-                                    value={tareWeightInput}
-                                    onChange={(e) =>
-                                      setTareWeightInput(e.target.value)
-                                    }
-                                    disabled={isReadOnly}
-                                  />
-                                  {!isReadOnly && (
-                                    <Button
-                                      type="button"
-                                      onClick={handleSaveTareWeight}
-                                    >
-                                      Save
-                                    </Button>
-                                  )}
-                                </div>
+                                <Input
+                                  isNumber
+                                  allowDecimal
+                                  minDecimals={2}
+                                  maxDecimals={2}
+                                  value={tareWeightInput}
+                                  onChange={(e) =>
+                                    setTareWeightInput(e.target.value)
+                                  }
+                                  disabled={isReadOnly}
+                                />
                               </FormControl>
                             </FormItem>
                             <FormItem>
