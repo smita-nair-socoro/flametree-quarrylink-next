@@ -49,7 +49,7 @@ export function calculateGrossWeight({
     'TN',
     density,
   );
-  return parseFloat(String(tareWeight)) + loadInTn;
+  return parseFloat(String(tareWeight)) + parseFloat(String(loadInTn));
 }
 
 export function convertTruckVolumeToProductUom(
