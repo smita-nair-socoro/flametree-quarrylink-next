@@ -28,9 +28,11 @@ import {
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { notifyWarning } from '@/lib/toast';
 
 interface DocketActionButtonsProps {
   docket: DocketDTO | null | undefined;
+  hasUnsavedChanges?: boolean;
 }
 
 type ActionType =
@@ -187,8 +189,19 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
 };
 
-export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
+export function DocketActionButtons({
+  docket,
+  hasUnsavedChanges = false,
+}: DocketActionButtonsProps) {
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
+
+  const handleAction = (action: ActionType) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    actions[action]?.();
+  };
 
   if (!docket || !docket.id) {
     return null;
@@ -223,7 +236,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => actions[primaryAction.action]?.()}
+          onClick={() => handleAction(primaryAction.action)}
           className={`rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800 ${primaryAction.className || ''}`}
         >
           <primaryAction.icon className="h-4 w-4 mr-2" />
@@ -244,7 +257,7 @@ export function DocketActionButtons({ docket }: DocketActionButtonsProps) {
               <React.Fragment key={`${item.label}-${index}`}>
                 {item.separator && <DropdownMenuSeparator />}
                 <DropdownMenuItem
-                  onSelect={() => actions[item.action]?.()}
+                  onSelect={() => handleAction(item.action)}
                   className={item.className}
                 >
                   <item.icon

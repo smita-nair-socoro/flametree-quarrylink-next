@@ -148,6 +148,8 @@ interface AddProductDrawerDialogProps {
 
   /** When true, shows a confirm dialog on close if the child form is dirty. Defaults to true. */
   confirmOnCloseIfDirty?: boolean;
+  /** Called whenever the child form's dirty state changes */
+  onUnsavedChangesChange?: (isDirty: boolean) => void;
   /** Optional customization for the unsaved-changes confirm dialog title */
   unsavedConfirmTitle?: string;
   /** Optional customization for the unsaved-changes confirm dialog description */
@@ -208,6 +210,7 @@ export function FormDialog({
   children,
   preserveEmptyBadgeSpace = true,
   confirmOnCloseIfDirty = true,
+  onUnsavedChangesChange,
   unsavedConfirmTitle,
   unsavedConfirmDescription,
   unsavedConfirmConfirmText,
@@ -421,6 +424,7 @@ export function FormDialog({
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setHasUnsavedChanges(false);
+      onUnsavedChangesChange?.(false);
       setOpen(true);
       return;
     }
@@ -430,16 +434,19 @@ export function FormDialog({
 
   const handleChildSuccess = React.useCallback(() => {
     setHasUnsavedChanges(false);
+    onUnsavedChangesChange?.(false);
     forceClose();
-  }, [forceClose]);
+  }, [forceClose, onUnsavedChangesChange]);
 
   const handleChildDirtyChange = React.useCallback((dirty: boolean) => {
     setHasUnsavedChanges(dirty);
-  }, []);
+    onUnsavedChangesChange?.(dirty);
+  }, [onUnsavedChangesChange]);
 
   const handleChildSaved = React.useCallback(() => {
     setHasUnsavedChanges(false);
-  }, []);
+    onUnsavedChangesChange?.(false);
+  }, [onUnsavedChangesChange]);
 
   const contentNode = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
