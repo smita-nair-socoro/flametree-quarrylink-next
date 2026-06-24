@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions, TruckStatisticsQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
@@ -70,7 +71,7 @@ export default function TrucksPage() {
 
   const items: TruckDTO[] = React.useMemo(() => {
     const all = Array.isArray(trucks) ? trucks : [];
-    return haulierId ? all.filter((t) => t.haulierId === Number(haulierId)) : all;
+    return haulierId ? all.filter((t) => t.haulier?.id === Number(haulierId)) : all;
   }, [trucks, haulierId]);
 
   // Auto-open truck view when navigated from inspection failed email link
@@ -119,20 +120,28 @@ export default function TrucksPage() {
       />
 
       {haulierId && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm w-fit">
-          <span>Filtered by haulier</span>
-          <button
-            onClick={() => router.replace('/logistics/trucks')}
-            className="ml-1 font-medium underline hover:no-underline"
+        <div className="flex flex-row items-center gap-5 mb-3">
+          <div className="mt-1 text-sm text-muted-foreground">
+            <span>
+              Showing{' '}
+              {items.length === 1 ? '1 truck' : `${items.length} trucks`} for
+              this haulier
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/logistics/trucks')}
           >
-            Clear filter
-          </button>
+            Reset Filter
+          </Button>
         </div>
       )}
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
-          tableId="truck_main_data_table"
+          key={haulierId ? `truck_haulier_${haulierId}` : 'truck_main_data_table'}
+          tableId={haulierId ? `truck_haulier_${haulierId}` : 'truck_main_data_table'}
           data={items}
           columns={truckColumns}
           facetDefinition={facetDefs}

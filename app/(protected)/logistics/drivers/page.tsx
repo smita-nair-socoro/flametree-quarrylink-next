@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions, DriverStatisticsQueryOptions } from '@/lib/api/driver';
 import { UsersListQueryOptions } from '@/lib/api/user';
@@ -44,7 +45,7 @@ export default function DriversPage() {
 
   const items: DriverDTO[] = React.useMemo(() => {
     const all = Array.isArray(drivers) ? drivers : [];
-    return haulierId ? all.filter((d) => d.haulierId === Number(haulierId)) : all;
+    return haulierId ? all.filter((d) => d.haulier?.id === Number(haulierId)) : all;
   }, [drivers, haulierId]);
 
   const facetDefs: FacetDefinition[] = [
@@ -138,20 +139,28 @@ export default function DriversPage() {
       />
 
       {haulierId && (
-        <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-blue-50 border border-blue-200 text-blue-800 text-sm w-fit">
-          <span>Filtered by haulier</span>
-          <button
-            onClick={() => router.replace('/logistics/drivers')}
-            className="ml-1 font-medium underline hover:no-underline"
+        <div className="flex flex-row items-center gap-5 mb-3">
+          <div className="mt-1 text-sm text-muted-foreground">
+            <span>
+              Showing{' '}
+              {items.length === 1 ? '1 driver' : `${items.length} drivers`} for
+              this haulier
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/logistics/drivers')}
           >
-            Clear filter
-          </button>
+            Reset Filter
+          </Button>
         </div>
       )}
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
-          tableId="driver_main_data_table"
+          key={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
+          tableId={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
           data={items}
           columns={driverColumns(emailToSubMap)}
           facetDefinition={facetDefs}
