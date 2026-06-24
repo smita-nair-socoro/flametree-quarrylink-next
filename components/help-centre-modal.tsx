@@ -49,8 +49,8 @@ export function HelpCentreButton() {
       </SidebarMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-xl p-0 overflow-hidden gap-0 rounded-2xl">
-          <div className="h-2 w-full bg-[linear-gradient(to_right,#6D28D9,#A78BFA,#6D28D9)]" />
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0 rounded-2xl">
+          <div className="h-[10px] w-full bg-[linear-gradient(to_right,#6D28D9,#A78BFA,#6D28D9)]" />
           <div className="p-6 pb-4">
             <div className="flex items-center gap-2 mb-5">
               <Image
