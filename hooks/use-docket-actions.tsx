@@ -129,6 +129,7 @@ interface SelectedAction {
 export function useDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [deliveredProductsConfirmed, setDeliveredProductsConfirmed] =
     React.useState(false);
   const [unloadedPhoto, setUnloadedPhoto] = React.useState<File | null>(null);
@@ -947,14 +948,19 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       onOpenChangeAction={(open) => {
         setViewOpen(open);
         if (!open) {
+          setIsFormDirty(false);
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
         }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       headerButtons={
-        <DocketActionButtons docket={docketData ?? selectedDocket} />
+        <DocketActionButtons
+          docket={docketData ?? selectedDocket}
+          hasUnsavedChanges={isFormDirty}
+        />
       }
       headerInfo={{
         useSelectedDocket: true,
