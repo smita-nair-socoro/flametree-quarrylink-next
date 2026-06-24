@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
@@ -47,7 +46,6 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => {
               setDropdownOpen(false);
@@ -68,7 +66,6 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
           </DropdownMenuItem>
           {isSubcontractor && (
             <>
-              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   setDropdownOpen(false);
