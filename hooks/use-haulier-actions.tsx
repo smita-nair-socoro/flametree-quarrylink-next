@@ -30,6 +30,7 @@ export function useHaulierActions(
       open={viewOpen}
       onOpenChangeAction={(open) => setViewOpen(open)}
       hideTrigger
+      dialogWidth="800px"
       headerButtonsAlign="center"
       headerButtons={
         <HaulierActionButtons
