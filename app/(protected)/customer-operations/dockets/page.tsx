@@ -12,9 +12,7 @@ import {
   DocketStatisticsQueryOptions,
   toDocketApiFilterParams,
   toDocketApiSortParams,
-  getDocketsPageFromListResponse,
   buildDocketFacetOptions,
-  isDocketsListResponse,
 } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
@@ -67,7 +65,7 @@ export default function DocketsPage() {
   );
 
   const {
-    data: allDockets,
+    data: docketsList,
     isLoading: isAllDocketsLoading,
     isFetching: isAllDocketsFetching,
     error: allDocketsError,
@@ -83,17 +81,11 @@ export default function DocketsPage() {
     enabled: !linkedJobId,
   });
 
-  const docketPage = React.useMemo(
-    () => getDocketsPageFromListResponse(allDockets),
-    [allDockets],
-  );
+  const docketPage = docketsList?.dockets;
 
   const facetOptions = React.useMemo(
-    () =>
-      buildDocketFacetOptions(
-        isDocketsListResponse(allDockets) ? allDockets : null,
-      ),
-    [allDockets],
+    () => buildDocketFacetOptions(docketsList ?? null),
+    [docketsList],
   );
 
   const isLoading = isAllDocketsLoading;
@@ -274,7 +266,7 @@ export default function DocketsPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !allDockets ? (
+        {isLoading && !docketsList ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>

@@ -9,10 +9,13 @@ import { docketsColumns } from './(data-tables)/columns';
 import { FormDialog } from '@/components/form-dialog';
 import DocketForm from '@/app/(protected)/customer-operations/dockets/(components)/forms/docket-form';
 import { JobDetails } from '@/lib/types/job';
-import { DocketDTO } from '@/lib/types/docket';
 import { useQuery } from '@tanstack/react-query';
-import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import {
+  DocketsByJobIdQueryOptions,
+  toDocketApiSortParams,
+} from '@/lib/api/docket';
 import { JOB_STATUS } from '@/lib/types/job-enums';
+import type { SortingState } from '@tanstack/react-table';
 
 interface DocketsTabProps {
   selectedJob: JobDetails | null;
@@ -24,20 +27,47 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
-  const { data: dockets } = useQuery({
-    ...DocketsByJobIdQueryOptions(jobId),
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'docketNumber', desc: false },
+  ]);
+
+  const apiSortParams = React.useMemo(
+    () => toDocketApiSortParams(sorting),
+    [sorting],
+  );
+
+  const { data: docketPage, isFetching } = useQuery({
+    ...DocketsByJobIdQueryOptions(jobId, {
+      page: pageIndex,
+      pageSize,
+      ...apiSortParams,
+    }),
     enabled: !!jobId,
   });
 
-  const items: DocketDTO[] = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets)
-      ? dockets
-      : (dockets?.content ?? []);
-    return list.map((docket) => ({
-      ...docket,
-    })) as DocketDTO[];
-  }, [dockets]);
+  const items = docketPage?.content ?? [];
+  const totalElements = docketPage?.totalElements ?? 0;
+  const totalPages =
+    docketPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0
+        ? newSorting
+        : [{ id: 'docketNumber', desc: false }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
 
   return (
     <div className="flex flex-col gap-4 mt-6">
@@ -58,10 +88,19 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
+          tableId={`job_dockets_${jobId}`}
           columns={docketsColumns}
           data={items}
           simpleTable={true}
           defaultSorting={[{ id: 'docketNumber', desc: false }]}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          externalPageIndex={pageIndex}
+          externalPageSize={pageSize}
+          externalSorting={sorting}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          isLoading={isFetching}
         />
       </div>
     </div>

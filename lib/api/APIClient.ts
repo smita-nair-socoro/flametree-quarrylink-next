@@ -852,10 +852,10 @@ export const APIClient = {
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
 
-      const response = await appClient.Get<
-        DocketDTO[] | DocketsListResponse | DocketsPage
-      >(`/socoro/quarrylink/api/dockets`, {
-        queryString: {
+      const response = await appClient.Get<DocketsListResponse>(
+        `/socoro/quarrylink/api/dockets`,
+        {
+          queryString: {
           page: params?.page?.toString(),
           pageSize: pageSize?.toString(),
           size: isPaginated
@@ -875,6 +875,8 @@ export const APIClient = {
     getByJobId: async (
       jobId: number,
       params?: {
+        sortBy?: string;
+        sortOrder?: string;
         page?: number;
         pageSize?: number;
         size?: number;
@@ -883,22 +885,20 @@ export const APIClient = {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
-
-      const response = await appClient.Get<
-        | DocketDTO[]
-        | {
-            content: DocketDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
-        queryString: {
-          page: params?.page?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
+      const response = await appClient.Get<DocketsPage>(
+        `/socoro/quarrylink/api/dockets/job/${jobId}`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+          },
         },
-      });
+      );
       return response;
     },
     getById: (id: number) => {
@@ -1369,7 +1369,10 @@ export const APIClient = {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) =>
-      appClient.Post<CreateInvoiceResponseDTO>(`/socoro/quarrylink/api/invoices`, { body: data }),
+      appClient.Post<CreateInvoiceResponseDTO>(
+        `/socoro/quarrylink/api/invoices`,
+        { body: data },
+      ),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(
         `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,
