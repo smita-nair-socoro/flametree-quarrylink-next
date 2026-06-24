@@ -9,5 +9,6 @@ export interface HaulierDTO {
   haulierName: string;
   emailAddress: string;
   phoneNumber: string;
+  haulierType?: string;
   version: number;
 }

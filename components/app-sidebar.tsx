@@ -44,6 +44,7 @@ export const navItems = [
     items: [
       { title: 'Drivers', url: '/logistics/drivers' },
       { title: 'Trucks', url: '/logistics/trucks' },
+      { title: 'Hauliers', url: '/logistics/haulier' },
       { title: 'Dispatch', url: '/logistics/dispatch' },
     ],
   },
