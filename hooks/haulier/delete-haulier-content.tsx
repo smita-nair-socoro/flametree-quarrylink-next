@@ -44,15 +44,15 @@ export function DeleteHaulierContent() {
         </span>
       </div>
 
-      {/* Historical data preserved */}
+      {/* Impact warning */}
       <div className="rounded-md border border-[#E5E7EB] bg-[#F9FAFB] p-4 flex flex-col gap-2">
         <span className="text-[14px] font-medium text-[#101828]">
-          Historical data preserved
+          What happens when deleted:
         </span>
         <ul className="flex flex-col gap-1 pl-1">
           {[
-            'Details remain on all past dockets and delivery records',
-            'Job history and completed deliveries remain accessible',
+            'You will not be able to create drivers under this haulier',
+            'You will not be able to create trucks under this haulier',
           ].map((item) => (
             <li key={item} className="flex gap-2 text-[14px] text-[#6A7282]">
               <span className="mt-[6px] h-[5px] w-[5px] rounded-full bg-[#6A7282] flex-shrink-0" />

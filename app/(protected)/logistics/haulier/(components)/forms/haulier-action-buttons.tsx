@@ -24,7 +24,7 @@ export function HaulierActionButtons({
   haulier,
   onDelete,
 }: HaulierActionButtonsProps) {
-  const { actions } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
+  const { actions, confirmDialogs } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier?.emailAddress, tenantEmail);
   const router = useRouter();
@@ -35,6 +35,8 @@ export function HaulierActionButtons({
   const handleLinkedDrivers = () => router.push(`/logistics/drivers?haulierId=${haulier.id}`);
 
   return (
+    <>
+      {confirmDialogs}
     <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
       <Button
         variant="ghost"
@@ -80,5 +82,6 @@ export function HaulierActionButtons({
         </DropdownMenu>
       )}
     </div>
+    </>
   );
 }

@@ -21,7 +21,7 @@ interface HaulierTableActionsProps {
 
 export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, viewDialog } = useHaulierActions(haulier);
+  const { actions, confirmDialogs, viewDialog } = useHaulierActions(haulier);
   const router = useRouter();
 
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
@@ -30,6 +30,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   return (
     <div>
       {viewDialog}
+      {confirmDialogs}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
