@@ -1,6 +1,6 @@
 'use client';
 import * as React from 'react';
-import { MoreHorizontal, Pencil } from 'lucide-react';
+import { MoreHorizontal, Eye, Trash2 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -8,10 +8,11 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
-import { FormDialog } from '@/components/form-dialog';
-import HaulierForm from '../../forms/haulier-form';
+import { useHaulierActions } from '@/hooks/use-haulier-actions';
+import { useClientStore } from '@/app/stores/client-store';
 
 interface HaulierTableActionsProps {
   haulier: HaulierDTO;
@@ -19,35 +20,46 @@ interface HaulierTableActionsProps {
 
 export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const [editOpen, setEditOpen] = React.useState(false);
+  const { actions, viewDialog } = useHaulierActions(haulier);
+
+  const businessName = useClientStore((state) => state.businessName);
+  const isSubcontractor =
+    !businessName || haulier.haulierName !== businessName;
 
   return (
     <div>
-      <FormDialog
-        id={haulier.id}
-        dialogTitle="Edit Haulier"
-        open={editOpen}
-        onOpenChangeAction={setEditOpen}
-        hideTrigger
-      >
-        <HaulierForm />
-      </FormDialog>
+      {viewDialog}
       <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-40">
+        <DropdownMenuContent align="end" className="w-44">
           <DropdownMenuItem
             onClick={() => {
               setDropdownOpen(false);
-              setEditOpen(true);
+              actions.view();
             }}
           >
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit Haulier
+            <Eye className="h-4 w-4 mr-2" />
+            View Details
           </DropdownMenuItem>
+          {isSubcontractor && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setDropdownOpen(false);
+                  actions.delete();
+                }}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-4 w-4 mr-2 text-red-600" />
+                Delete Haulier
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
