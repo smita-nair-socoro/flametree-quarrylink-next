@@ -83,8 +83,8 @@ export default function TrucksPage() {
     const truck = items.find((t) => t.id === Number(openTruckId));
     if (truck) {
       actions.view(truck, { scrollToSection: section ?? undefined });
-      router.replace('/logistics/trucks');
     }
+    router.replace('/logistics/trucks');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
@@ -141,7 +141,7 @@ export default function TrucksPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           key={haulierId ? `truck_haulier_${haulierId}` : 'truck_main_data_table'}
-          tableId={haulierId ? `truck_haulier_${haulierId}` : 'truck_main_data_table'}
+          tableId="truck_main_data_table"
           data={items}
           columns={truckColumns}
           facetDefinition={facetDefs}

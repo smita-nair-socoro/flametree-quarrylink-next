@@ -65,8 +65,8 @@ export default function DriversPage() {
     const driver = items.find((d) => d.id === Number(openDriverId));
     if (driver) {
       actions.view(driver, { scrollToSection: section ?? undefined });
-      router.replace('/logistics/drivers');
     }
+    router.replace('/logistics/drivers');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
@@ -160,7 +160,7 @@ export default function DriversPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
           key={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
-          tableId={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
+          tableId="driver_main_data_table"
           data={items}
           columns={driverColumns(emailToSubMap)}
           facetDefinition={facetDefs}
