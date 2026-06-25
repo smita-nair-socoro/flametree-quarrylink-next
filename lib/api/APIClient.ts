@@ -9,6 +9,8 @@ import {
 import {
   CustomerDTO,
   CustomerReporting,
+  CustomersListResponse,
+  CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
 } from '../types/customer';
@@ -613,8 +615,40 @@ export const APIClient = {
       appClient.Get<CustomerReporting>(
         `/socoro/quarrylink/api/customer/reporting`,
       ),
-    getAll: () =>
-      appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      status?: string;
+      type?: string;
+      accountManagerSub?: string;
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      const response = await appClient.Get<
+        CustomerDTO[] | CustomersListResponse | CustomersPage
+      >(`/socoro/quarrylink/api/customer`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: pageSize?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          status: params?.status,
+          type: params?.type,
+          accountManagerSub: params?.accountManagerSub,
+        },
+      });
+      return response;
+    },
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`,

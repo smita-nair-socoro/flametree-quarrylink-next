@@ -14,12 +14,10 @@ import {
   useCreateJob,
   useUpdateJob,
 } from '@/lib/api/job';
-import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { useCustomersForForm } from '@/hooks/customer/use-customers-for-form';
 import { calculateJobPricing } from '@/lib/utils/job-helpers';
 import { JobDTO, JobItem } from '@/lib/types/job';
-import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { FormSelectOption } from '@/components/ui/form-select';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { formatCalendarDate, parseCalendarDate } from '@/lib/utils/date';
 import {
@@ -82,8 +80,16 @@ export function useJobFormState({
     enabled: isEditing && jobId > 0,
   });
 
-  const { data: customersData } = useQuery(CustomersListQueryOptions());
-  const customers = React.useMemo(() => customersData || [], [customersData]);
+  const {
+    customers,
+    customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
+  } = useCustomersForForm({
+    isEditing,
+    customerId: jobDetails?.customerId,
+  });
 
   const createJob = useCreateJob();
   const updateJob = useUpdateJob();
@@ -101,29 +107,6 @@ export function useJobFormState({
 
     return calculateJobPricing(jobItems);
   }, [isEditing, jobItems]);
-
-  const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    return customers
-      .filter(
-        (customer) =>
-          customer.id !== undefined &&
-          customer.customerStatus !== CUSTOMER_STATUS.ARCHIVED,
-      )
-      .map((customer) => {
-        if (customer.customerType === 'BUSINESS') {
-          return {
-            label: customer.businessName as string,
-            value: customer.id!,
-          };
-        }
-
-        return {
-          label: customer.individualContactName ?? '',
-          value: customer.id!,
-        };
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [customers]);
 
   React.useEffect(() => {
     hasHydratedJobRef.current = false;
@@ -366,6 +349,9 @@ export function useJobFormState({
     selectedJob,
     customers,
     customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
     tabs,
     isPending,
     onSubmit,

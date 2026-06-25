@@ -117,6 +117,31 @@ export interface CustomerReporting {
   individualCustomerQuotesPercent: number;
 }
 
+export interface CustomerListAccountManager {
+  id: string;
+  name: string;
+}
+
+export interface CustomersPage {
+  content: CustomerDTO[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+/** Paginated customers list with facet metadata from GET /customer. */
+export interface CustomersListResponse {
+  customers: CustomersPage;
+  accountManagers?: CustomerListAccountManager[];
+  statuses?: string[];
+  types?: string[];
+}
+
 export interface ArchiveCustomerBlockingQuote {
   id: number;
   quoteNumber: string;
