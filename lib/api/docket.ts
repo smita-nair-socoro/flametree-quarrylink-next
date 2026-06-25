@@ -75,7 +75,7 @@ export function toDocketApiSortParams(
 ): Pick<DocketsListParams, 'sortBy' | 'sortOrder'> {
   const sort = sorting[0];
   if (!sort) {
-    return { sortBy: 'docketNumber', sortOrder: 'asc' };
+    return { sortBy: 'deliveryCollectionDate', sortOrder: 'asc' };
   }
 
   return {
@@ -134,40 +134,21 @@ function formatFacetEnumLabel(value: string): string {
 }
 
 export function getDocketsPageFromListResponse(
-  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+  data: DocketsListResponse | null | undefined,
 ): DocketsPage | null {
-  if (!data) return null;
-  if (Array.isArray(data)) {
-    return {
-      content: data,
-      totalElements: data.length,
-      totalPages: 1,
-    };
-  }
-  if ('dockets' in data && data.dockets) {
-    return data.dockets;
-  }
-  if ('content' in data) {
-    return data;
-  }
-  return null;
+  return data?.dockets ?? null;
 }
 
 export function getDocketItemsFromListResponse(
-  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+  data: DocketsListResponse | null | undefined,
 ): DocketDTO[] {
-  return getDocketsPageFromListResponse(data)?.content ?? [];
+  return data?.dockets?.content ?? [];
 }
 
-export function isDocketsListResponse(
-  data: unknown,
-): data is DocketsListResponse {
-  return (
-    typeof data === 'object' &&
-    data != null &&
-    'dockets' in data &&
-    typeof (data as DocketsListResponse).dockets === 'object'
-  );
+export function getDocketItemsFromJobPage(
+  page: DocketsPage | null | undefined,
+): DocketDTO[] {
+  return page?.content ?? [];
 }
 
 export function buildDocketFacetOptions(response?: DocketsListResponse | null) {
@@ -246,10 +227,22 @@ export const useCreateDocket = () => {
   });
 };
 
-export const DocketsByJobIdQueryOptions = (jobId: number) =>
+export type DocketsByJobIdParams = Pick<
+  DocketsListParams,
+  'page' | 'pageSize' | 'size' | 'sortBy' | 'sortOrder'
+>;
+
+export const DocketsByJobIdQueryOptions = (
+  jobId: number,
+  params?: DocketsByJobIdParams,
+) =>
   queryOptions({
-    queryKey: [...DocketKeys.byJobId(jobId)],
-    queryFn: () => APIClient.dockets.getByJobId(jobId),
+    queryKey: [...DocketKeys.byJobId(jobId), params],
+    queryFn: () =>
+      APIClient.dockets.getByJobId(jobId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
