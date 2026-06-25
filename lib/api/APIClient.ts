@@ -985,6 +985,14 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${id}/duplicate`,
         { body: data },
       ),
+    getDocketsByTruckId: (truckId: number) =>
+      appClient.Get<DocketDTO[]>(
+        `/socoro/quarrylink/api/dockets/truck/${truckId}`,
+      ),
+    getDocketsByDriverId: (driverId: number) =>
+      appClient.Get<DocketDTO[]>(
+        `/socoro/quarrylink/api/dockets/driver/${driverId}`,
+      ),
   },
 
   checklists: {
@@ -1403,7 +1411,10 @@ export const APIClient = {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) =>
-      appClient.Post<CreateInvoiceResponseDTO>(`/socoro/quarrylink/api/invoices`, { body: data }),
+      appClient.Post<CreateInvoiceResponseDTO>(
+        `/socoro/quarrylink/api/invoices`,
+        { body: data },
+      ),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(
         `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,

@@ -435,3 +435,17 @@ export const DocketConflictCheckQueryOptions = (
     enabled: !!request && !!docketId,
     staleTime: 0,
   });
+
+export const DocketsByTruckIdQueryOptions = (truckId: number) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByTruckId(truckId)],
+    queryFn: () => APIClient.dockets.getDocketsByTruckId(truckId),
+    enabled: !!truckId,
+  });
+
+export const DocketsByDriverIdQueryOptions = (driverId: number) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByDriverId(driverId)],
+    queryFn: () => APIClient.dockets.getDocketsByDriverId(driverId),
+    enabled: !!driverId,
+  });
