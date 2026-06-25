@@ -141,8 +141,8 @@ export function ScheduleMobileMonthlyView({
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-[#F8FAFC]">
-      <div className="shrink-0 border-b border-gray-200 bg-white">
+    <div className="min-h-0 flex-1 overflow-y-auto bg-[#F8FAFC]">
+      <div className="border-b border-gray-200 bg-white">
         <div className="flex items-center justify-between px-4 py-3">
           <button
             type="button"
@@ -236,7 +236,7 @@ export function ScheduleMobileMonthlyView({
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
+      <div className="px-4 py-4">
         <div className="mb-3 flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
             Agenda

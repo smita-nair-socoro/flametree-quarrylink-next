@@ -350,6 +350,8 @@ export interface DispatchDriverResource {
   driverType?: string;
   /** Present when the scheduler API returns driver roster status. */
   driverStatus?: DRIVER_STATUS;
+  haulierId?: number;
+  haulier?: HaulierDTO;
   trucks: DispatchBoardTruckRef[];
   dockets?: DispatchAssignedDocket[];
 }

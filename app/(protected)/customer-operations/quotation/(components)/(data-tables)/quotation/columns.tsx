@@ -23,6 +23,7 @@ import { HelpCircle } from 'lucide-react';
 export const getQuotationColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
+  onViewDetails?: (quotation: Quotation) => void,
 ): ColumnDef<Quotation>[] => [
   {
     id: 'quote_number',
@@ -138,7 +139,10 @@ export const getQuotationColumns = (
       const quotation = row.original;
       return (
         <div>
-          <QuotationTableActions quotation={quotation} />
+          <QuotationTableActions
+            quotation={quotation}
+            onViewDetails={onViewDetails}
+          />
         </div>
       );
     },

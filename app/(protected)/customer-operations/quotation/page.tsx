@@ -179,57 +179,60 @@ export default function QuotationsPage() {
     setSelectedQuotations(selected);
   };
   // Mobile card renderer
-  const renderQuotationCard = React.useCallback((quotation: Quotation) => {
-    const formattedTotal = quotation.totalSellPrice
-      ? `${currencySymbol}${centsToDollars(quotation.totalSellPrice)}`
-      : `${currencySymbol}0.00`;
-    const expiryDate = quotation.expiryDate || '-';
+  const renderQuotationCard = React.useCallback(
+    (quotation: Quotation) => {
+      const formattedTotal = quotation.totalSellPrice
+        ? `${currencySymbol}${centsToDollars(quotation.totalSellPrice)}`
+        : `${currencySymbol}0.00`;
+      const expiryDate = quotation.expiryDate || '-';
 
-    const date = parseISO(expiryDate);
-    const formattedExpiryDate = format(date, 'dd MMM yyyy');
+      const date = parseISO(expiryDate);
+      const formattedExpiryDate = format(date, 'dd MMM yyyy');
 
-    return (
-      <MobileCard
-        title={quotation.projectName || 'Untitled Project'}
-        description={
-          <>
-            <Hash className="h-3.5 w-3.5" />
-            <span className="truncate">{quotation.quoteNumber}</span>
-          </>
-        }
-        badges={
-          <>
-            {quotation.quoteStatus && (
-              <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
-            )}
-          </>
-        }
-        actions={<QuotationTableActions quotation={quotation} />}
-        fields={[
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Customer',
-            value: quotation.customerName,
-          },
-          {
-            icon: <DollarSign className="h-4 w-4" />,
-            label: 'Total',
-            value: formattedTotal,
-          },
-          {
-            icon: <Calendar className="h-4 w-4" />,
-            label: 'Expiry',
-            value: formattedExpiryDate,
-          },
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Account Manager',
-            value: quotation.accountManagerName || '-',
-          },
-        ]}
-      />
-    );
-  }, [currencySymbol]);
+      return (
+        <MobileCard
+          title={quotation.projectName || 'Untitled Project'}
+          description={
+            <>
+              <Hash className="h-3.5 w-3.5" />
+              <span className="truncate">{quotation.quoteNumber}</span>
+            </>
+          }
+          badges={
+            <>
+              {quotation.quoteStatus && (
+                <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
+              )}
+            </>
+          }
+          actions={<QuotationTableActions quotation={quotation} />}
+          fields={[
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Customer',
+              value: quotation.customerName,
+            },
+            {
+              icon: <DollarSign className="h-4 w-4" />,
+              label: 'Total',
+              value: formattedTotal,
+            },
+            {
+              icon: <Calendar className="h-4 w-4" />,
+              label: 'Expiry',
+              value: formattedExpiryDate,
+            },
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Account Manager',
+              value: quotation.accountManagerName || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [currencySymbol],
+  );
 
   // const handleRowSelectionChange = (selected: Quotation[]) => {
   //   setSelectedQuotations(selected);
@@ -307,7 +310,11 @@ export default function QuotationsPage() {
                   : 'quotation_main_data_table'
               }
               data={filteredItems ?? []}
-              columns={getQuotationColumns(currencyCode, taxLabel)}
+              columns={getQuotationColumns(
+                currencyCode,
+                taxLabel,
+                handleRowClick,
+              )}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}

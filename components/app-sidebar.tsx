@@ -21,6 +21,8 @@ import { useAuth } from '@/hooks/use-auth';
 import { TenantLogoQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useClientStore } from '@/app/stores/client-store';
+import { HelpCentreButton } from '@/components/help-centre-modal';
+import { SidebarSeparator } from '@/components/ui/sidebar';
 
 export const navItems = [
   {
@@ -168,6 +170,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
+        <SidebarSeparator />
+        <HelpCentreButton />
         <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />

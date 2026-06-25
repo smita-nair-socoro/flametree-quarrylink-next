@@ -60,6 +60,11 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import {
+  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
+  isDeliveryTimeWindowEndOptionDisabled,
+  isDeliveryTimeWindowStartOptionDisabled,
+} from '@/lib/utils/time';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -511,8 +516,7 @@ export default function DocketForm({
         data: payload,
       });
       notifySuccess('Docket updated successfully');
-      onSaved?.();
-      onSuccess?.();
+
     } catch (error) {
       notifyError(extractErrorMessage(error));
     } finally {
@@ -610,15 +614,13 @@ export default function DocketForm({
             data: { ...assignedPayload, checkWindowTimeConflict: false },
           });
           notifySuccess('Docket updated successfully');
-          onSaved?.();
-          onSuccess?.();
+
         });
         setConflictingDocketIds(result.conflictingDocketIds);
         setTimeConflictOpen(true);
       } else {
         notifySuccess('Docket updated successfully');
-        onSaved?.();
-        onSuccess?.();
+
       }
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -795,10 +797,10 @@ export default function DocketForm({
           addNewRecordId('docket_main_data_table', newDocket.id);
         }
         notifySuccess('Docket created successfully');
+        onSaved?.();
+        onSuccess?.();
       }
 
-      onSaved?.();
-      onSuccess?.();
     } catch (error) {
       console.error('Error creating docket:', error);
       notifyError(extractErrorMessage(error));
@@ -1680,14 +1682,18 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  const hour = String(i).padStart(2, '0');
-                                  return (
-                                    <SelectItem key={hour} value={`${hour}:00`}>
-                                      {hour}:00
-                                    </SelectItem>
-                                  );
-                                })}
+                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    disabled={isDeliveryTimeWindowStartOptionDisabled(
+                                      time,
+                                      newEnd,
+                                    )}
+                                  >
+                                    {time}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormControl>
@@ -1717,14 +1723,18 @@ export default function DocketForm({
                               </SelectTrigger>
 
                               <SelectContent>
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  const hour = String(i).padStart(2, '0');
-                                  return (
-                                    <SelectItem key={hour} value={`${hour}:00`}>
-                                      {hour}:00
-                                    </SelectItem>
-                                  );
-                                })}
+                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
+                                  <SelectItem
+                                    key={time}
+                                    value={time}
+                                    disabled={isDeliveryTimeWindowEndOptionDisabled(
+                                      time,
+                                      newStart,
+                                    )}
+                                  >
+                                    {time}
+                                  </SelectItem>
+                                ))}
                               </SelectContent>
                             </Select>
                           </FormControl>

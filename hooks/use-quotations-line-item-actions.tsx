@@ -8,9 +8,9 @@ import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-opera
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 import { useDeleteQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 
 interface DialogConfig {
@@ -19,11 +19,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -42,7 +42,8 @@ const getDialogConfigs = (
   const productCode = lineItemData?.supplierProductName;
 
   const totalSellPrice = centsToDollars(
-    (lineItemData?.totalProductSellPrice ?? 0) + (lineItemData?.totalTruckSellPrice ?? 0),
+    (lineItemData?.totalProductSellPrice ?? 0) +
+      (lineItemData?.totalTruckSellPrice ?? 0),
   );
 
   const productQty = lineItemData?.productSellQty;
@@ -132,19 +133,15 @@ export function useQuotationLineItemActions(
 ) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [viewLineItem, setViewLineItem] =
+    React.useState<QuotationLineItem | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
-  const selectedLineItem = useQuotationLineItemStore(
-    (state) => state.selectedLineItem,
-  );
-  const setSelectedLineItem = useQuotationLineItemStore(
-    (state) => state.setSelectedLineItem,
-  );
-
   const isDuplicate = useQuotationStore((state) => state.getIsDuplicate());
 
-  const lineItemId = lineItemData?.id ?? selectedLineItem?.id;
+  const activeLineItem = viewLineItem ?? lineItemData;
+  const lineItemId = activeLineItem?.id;
 
   // Get selected quotation to check status
   const selectedQuotation = useSelectedQuotation();
@@ -171,7 +168,7 @@ export function useQuotationLineItemActions(
     view: (lineItem?: QuotationLineItem | null) => {
       const toSelect = lineItem ?? lineItemData;
       if (toSelect) {
-        setSelectedLineItem(toSelect);
+        setViewLineItem(toSelect);
       }
       setViewOpen(true);
     },
@@ -245,11 +242,18 @@ export function useQuotationLineItemActions(
         }
       }}
       headerButtons={
-        <QuotationLineItemActionButtons quotationLineItem={lineItemData} />
+        <QuotationLineItemActionButtons quotationLineItem={activeLineItem} />
       }
       hideTrigger
       headerInfo={{
-        useSelectedLineItem: true,
+        // Cannot use Store so directly pass the data to the form dialog
+        customId: activeLineItem?.productName,
+        primaryBadges: activeLineItem?.quarryName
+          ? [activeLineItem.quarryName]
+          : [],
+        secondaryBadges: activeLineItem?.supplierProductName
+          ? [activeLineItem.supplierProductName]
+          : [],
       }}
     >
       <QuotationLineItemForm

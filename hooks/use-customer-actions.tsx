@@ -28,11 +28,11 @@ interface DialogConfig {
   cancelText?: string;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
