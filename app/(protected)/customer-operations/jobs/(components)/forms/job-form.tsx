@@ -67,6 +67,9 @@ export default function JobForm({
     selectedJob,
     customers,
     customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
     tabs,
     isPending,
     onSubmit,
@@ -172,6 +175,9 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
+              hasMoreOptions={hasMoreCustomerOptions}
+              isLoadingMoreOptions={isLoadingMoreCustomerOptions}
             />
 
             <FormField

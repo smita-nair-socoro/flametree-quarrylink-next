@@ -11,7 +11,6 @@ import {
   UserCheck,
   Activity,
   Building2,
-  Loader2,
   User,
   Mail,
   CreditCard,
@@ -20,9 +19,13 @@ import { useQuery } from '@tanstack/react-query';
 import {
   CustomersListQueryOptions,
   CustomerReportingQueryOptions,
+  toCustomerApiFilterParams,
+  toCustomerApiSortParams,
+  getCustomersPageFromListResponse,
+  buildCustomerFacetOptions,
+  isCustomersListResponse,
 } from '@/lib/api/customer';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
-import { TableSkeleton } from '@/components/table-skeleton';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -37,21 +40,107 @@ import {
 } from '@/components/ui/data-table-client';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
   const { currencyCode } = useTenantCurrencyTax();
 
-  // Use React Query to fetch customers data
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [search, setSearch] = React.useState('');
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'customer_name', desc: false },
+  ]);
+
+  const apiSortParams = React.useMemo(
+    () => toCustomerApiSortParams(sorting),
+    [sorting],
+  );
+
+  const apiFilterParams = React.useMemo(
+    () => toCustomerApiFilterParams(facetFilters),
+    [facetFilters],
+  );
+
   const {
     data: customersData,
     isLoading,
     isFetching,
     error,
     isError,
-  } = useQuery(CustomersListQueryOptions());
+  } = useQuery(
+    CustomersListQueryOptions({
+      page: pageIndex,
+      pageSize,
+      search: search.trim() || undefined,
+      ...apiSortParams,
+      ...apiFilterParams,
+    }),
+  );
 
   const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
+
+  const customerPage = React.useMemo(
+    () => getCustomersPageFromListResponse(customersData),
+    [customersData],
+  );
+
+  const facetOptions = React.useMemo(
+    () =>
+      buildCustomerFacetOptions(
+        isCustomersListResponse(customersData) ? customersData : null,
+      ),
+    [customersData],
+  );
+
+  const items: CustomerDTO[] = React.useMemo(() => {
+    return (customerPage?.content ?? []).map((customer) => ({
+      ...customer,
+      customerType: customer.customerType as CUSTOMER_TYPE,
+      customerStatus: customer.customerStatus as CUSTOMER_STATUS,
+    })) as CustomerDTO[];
+  }, [customerPage]);
+
+  const totalElements = customerPage?.totalElements ?? items.length;
+  const totalPages =
+    customerPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const facetFiltersKeyRef = React.useRef('[]');
+  const handleFacetFiltersChange = React.useCallback(
+    (filters: ColumnFiltersState) => {
+      const serialized = JSON.stringify(filters);
+      if (facetFiltersKeyRef.current !== serialized) {
+        facetFiltersKeyRef.current = serialized;
+        setPageIndex(0);
+      }
+      setFacetFilters(filters);
+    },
+    [],
+  );
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0
+        ? newSorting
+        : [{ id: 'customer_name', desc: false }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
 
   // Statistics cards data
   const statsCards: StatsCardData[] = [
@@ -108,12 +197,10 @@ export default function CustomersPage() {
     }
   }, [isError, error]);
 
-  // Handle row click: pass clicked customer so store updates before dialog opens
   const handleRowClick = (customer: CustomerDTO) => {
     actions.view(customer);
   };
 
-  // Mobile card renderer
   const renderCustomerCard = React.useCallback((customer: CustomerDTO) => {
     const formattedStatus = formatCustomerStatus(
       customer.customerStatus as CUSTOMER_STATUS,
@@ -160,23 +247,26 @@ export default function CustomersPage() {
     );
   }, []);
 
-  // Transform the API data to match our component expectations
-  const items: CustomerDTO[] =
-    customersData?.map((customer) => {
-      // Convert API response to snake_case if needed
-
-      return {
-        ...customer,
-        customerType: customer.customerType as CUSTOMER_TYPE,
-        customerStatus: customer.customerStatus as CUSTOMER_STATUS,
-      };
-    }) || [];
-
-  const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status' },
-    { column: 'customer_type', title: 'Customer Type' },
-    { column: 'account_manager', title: 'Account Manager' },
-  ];
+  const facetDefs: FacetDefinition[] = React.useMemo(
+    () => [
+      {
+        column: 'status',
+        title: 'Status',
+        options: facetOptions.statuses,
+      },
+      {
+        column: 'customer_type',
+        title: 'Customer Type',
+        options: facetOptions.types,
+      },
+      {
+        column: 'account_manager',
+        title: 'Account Manager',
+        options: facetOptions.accountManagers,
+      },
+    ],
+    [facetOptions],
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -198,17 +288,21 @@ export default function CustomersPage() {
         </div>
       </div>
 
-      {/* Statistics Cards */}
       <StatsCards
         cards={statsCards}
-        isLoading={isLoading}
+        isLoading={isLoading && !customersData}
         mobileGridCols={1}
         desktopGridCols={4}
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading ? (
-          <TableSkeleton rows={10} columns={6} />
+        {isLoading && !customersData ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+              <p>Loading customers...</p>
+            </div>
+          </div>
         ) : isError ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center text-destructive">
@@ -216,24 +310,26 @@ export default function CustomersPage() {
             </div>
           </div>
         ) : (
-          <div className="relative">
-            {/* Subtle loading indicator during background refresh */}
-            {isFetching && !isLoading && (
-              <div className="absolute top-2 right-2 z-10">
-                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              </div>
-            )}
-            <DataTableClient
-              tableId="customer_main_data_table"
-              data={items ?? []}
-              columns={getCustomerColumns(currencyCode)}
-              facetDefinition={facetDefs}
-              searchPlaceHolder="Search customers..."
-              onRowClick={handleRowClick}
-              defaultSorting={[{ id: 'customer_name', desc: false }]}
-              mobileCardRenderer={renderCustomerCard}
-            />
-          </div>
+          <DataTableClient
+            tableId="customer_main_data_table"
+            data={items ?? []}
+            columns={getCustomerColumns(currencyCode)}
+            facetDefinition={facetDefs}
+            searchPlaceHolder="Search customers..."
+            onRowClick={handleRowClick}
+            defaultSorting={[{ id: 'customer_name', desc: false }]}
+            mobileCardRenderer={renderCustomerCard}
+            totalElements={totalElements}
+            totalPages={totalPages}
+            externalPageIndex={pageIndex}
+            externalPageSize={pageSize}
+            externalSorting={sorting}
+            onPaginationChange={handlePaginationChange}
+            onSearchChange={handleSearchChange}
+            onFacetFiltersChange={handleFacetFiltersChange}
+            onSortingChange={handleSortingChange}
+            isLoading={isFetching}
+          />
         )}
       </div>
     </div>

@@ -148,6 +148,18 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * @default false
    */
   disabled?: boolean;
+
+  /**
+   * Called when the options list is scrolled near the bottom.
+   * Use with paginated/infinite option loading.
+   */
+  onOptionsListScrollEnd?: () => void;
+
+  /** Whether more options can be loaded via `onOptionsListScrollEnd`. */
+  hasMoreOptions?: boolean;
+
+  /** Whether a next page of options is currently loading. */
+  isLoadingMoreOptions?: boolean;
 }
 
 /**
@@ -174,8 +186,28 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onChange,
   disabled = false,
   showErrorMessage = true,
+  onOptionsListScrollEnd,
+  hasMoreOptions = false,
+  isLoadingMoreOptions = false,
 }: FormSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
+
+  const handleOptionsListScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      if (!onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
+        return;
+      }
+
+      const target = event.currentTarget;
+      const distanceFromBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight;
+
+      if (distanceFromBottom <= 24) {
+        onOptionsListScrollEnd();
+      }
+    },
+    [hasMoreOptions, isLoadingMoreOptions, onOptionsListScrollEnd],
+  );
 
   return (
     <FormField
@@ -226,7 +258,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     className="h-9"
                   />
                 )}
-                <CommandList>
+                <CommandList onScroll={handleOptionsListScroll}>
                   <CommandEmpty>No {label} found.</CommandEmpty>
                   <CommandGroup>
                     {options.map((opt) => (
@@ -266,6 +298,12 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         />
                       </CommandItem>
                     ))}
+
+                    {isLoadingMoreOptions && (
+                      <CommandItem disabled className="justify-center text-muted-foreground">
+                        Loading more...
+                      </CommandItem>
+                    )}
 
                     {onAddClick && (
                       <>
