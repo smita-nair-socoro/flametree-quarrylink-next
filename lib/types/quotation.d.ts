@@ -197,6 +197,8 @@ export interface QuotationDisplayData {
     projectName: string;
     deliveryDate: string;
     deliveryWindow: string;
+    /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
+    timeZone?: string;
   };
   products: Array<{
     name: string;

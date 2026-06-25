@@ -173,6 +173,7 @@ export function transformQuoteData(
       projectName: projectName || 'N/A',
       deliveryDate: formatDateWithOrdinal(deliveryStartDate),
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),
+      timeZone: tenantProfile?.timeZoneId,
     },
     products,
     summary: {
