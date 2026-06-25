@@ -15,7 +15,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
-import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
+import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
@@ -47,9 +47,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { useQuery } from '@tanstack/react-query';
-import { CustomersListQueryOptions } from '@/lib/api/customer';
-import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
+import { useCustomersForForm } from '@/hooks/customer/use-customers-for-form';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
@@ -136,27 +134,17 @@ export default function QuotationForm({
   }, [quotationForm.formState.isDirty, onDirtyChange]);
 
   // Fetch customers from API
-  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
-
-  const customerOptions: FormSelectOption[] = React.useMemo(() => {
-    if (!customers) return [];
-    return customers
-      .filter((customer) => customer.id !== undefined && customer.customerStatus !== CUSTOMER_STATUS.ARCHIVED)
-      .map((customer) => {
-        if (customer.customerType === 'BUSINESS') {
-          return {
-            label: customer.businessName as string,
-            value: customer.id!,
-          };
-        } else {
-          return {
-            label: customer.individualContactName ?? '',
-            value: customer.id!,
-          };
-        }
-      })
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [customers]);
+  const {
+    customers,
+    customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
+  } = useCustomersForForm({
+    isEditing,
+    isDuplicate,
+    customerId: currentQuotation?.customerId,
+  });
 
   const getCustomerNameById = React.useCallback(
     (customerId: number) => {
@@ -517,6 +505,9 @@ export default function QuotationForm({
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
               disabled={isEditing && !canEdit}
+              onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
+              hasMoreOptions={hasMoreCustomerOptions}
+              isLoadingMoreOptions={isLoadingMoreCustomerOptions}
             />
 
             <FormField
