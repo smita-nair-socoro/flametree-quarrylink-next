@@ -22,6 +22,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from '@/lib/types/truck-enums';
+import type { TruckResource } from '@/lib/types/truck';
 import {
   DispatchBoardDocketRow,
   DispatchTruckResource,
@@ -38,8 +40,12 @@ import {
   buildSchedulerFilterTruckOptions,
   docketMatchesScheduleJobFilters,
   driverRowMatchesFilters,
+  inferDriverBusinessType,
+  inferTruckBusinessType,
   isDispatchDriverResource,
   isDispatchTruckResource,
+  sortDispatchBoardTruckColumns,
+  sortDispatchDriverList,
   truckMatchesFleetFilters,
 } from '@/lib/utils/dispatch-helper';
 import { Button } from '@/components/ui/button';
@@ -47,6 +53,13 @@ import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TableBadges } from '@/components/table-badges';
 
 type ViewType = 'trucks' | 'drivers';
+
+export type ScheduleWeekViewProps = {
+  date: Date;
+  viewType: ViewType;
+  filter: DispatchBoardFilterState;
+  onFilterChange: (next: DispatchBoardFilterState) => void;
+};
 
 type WeekViewDocket = DispatchBoardDocketRow & {
   driverName?: string;
@@ -59,8 +72,35 @@ type ResourceRow = {
   companyLine?: string;
   weekSummaryLine: string;
   typeLabel: 'INTERNAL' | 'EXTERNAL';
+  businessType: TRUCK_BUSINESS_TYPE;
   dockets: WeekViewDocket[];
 };
+
+function sortWeekViewResourceRows(
+  rows: ResourceRow[],
+  viewType: ViewType,
+): ResourceRow[] {
+  const asTruckResource: TruckResource[] = rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    capacity: 0,
+    status: TRUCK_STATUS.ACTIVE,
+    businessType: row.businessType,
+    trips: 0,
+    drivers: '',
+    haulierName: row.companyLine,
+  }));
+
+  const sorted =
+    viewType === 'trucks'
+      ? sortDispatchBoardTruckColumns(asTruckResource)
+      : sortDispatchDriverList(asTruckResource);
+
+  const order = new Map(sorted.map((resource, index) => [resource.id, index]));
+  return [...rows].sort(
+    (a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+  );
+}
 
 const GRID_TEMPLATE = 'minmax(200px,1fr) repeat(7,minmax(0,1fr))';
 
@@ -107,11 +147,6 @@ function formatLoadLine(d: WeekViewDocket): string {
   const u = formatSellUomLabel(d.productSellUom);
   const loadSize = d.actualLoadSize || d.plannedLoadSize;
   return `${formatNumberThousandSeparator(loadSize)} ${u}`.trim();
-}
-
-function driverTypeToFleetLabel(driverType?: string): 'INTERNAL' | 'EXTERNAL' {
-  if (driverType === 'SUBCONTRACTOR') return 'EXTERNAL';
-  return 'INTERNAL';
 }
 
 function buildWeekSummaryLine(dockets: WeekViewDocket[]): string {
@@ -180,12 +215,7 @@ export function ScheduleWeekView({
   viewType,
   filter,
   onFilterChange,
-}: {
-  date: Date;
-  viewType: ViewType;
-  filter: DispatchBoardFilterState;
-  onFilterChange: (next: DispatchBoardFilterState) => void;
-}) {
+}: ScheduleWeekViewProps) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
   );
@@ -218,17 +248,21 @@ export function ScheduleWeekView({
           truckName: truck.licensePlate,
           driverName: truck.drivers?.[0]?.driverName,
         }));
-        const firstDriver = truck.drivers?.[0];
-        const companyLine =
-          firstDriver?.haulier?.haulierName?.trim() || undefined;
-        const typeLabel = driverTypeToFleetLabel(firstDriver?.driverType);
+        const haulierName =
+          truck.haulier?.haulierName?.trim() || undefined;
+        const businessType = inferTruckBusinessType(truck);
+        const typeLabel =
+          businessType === TRUCK_BUSINESS_TYPE.INTERNAL
+            ? 'INTERNAL'
+            : 'EXTERNAL';
 
         return {
           id: String(truck.id),
           name: truck.licensePlate,
-          companyLine,
+          companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
+          businessType,
           dockets,
         };
       });
@@ -242,14 +276,21 @@ export function ScheduleWeekView({
           driverName: driver.driverName,
           truckName: driver.trucks?.[0]?.licensePlate,
         }));
-        const typeLabel = driverTypeToFleetLabel(driver.driverType);
+        const businessType = inferDriverBusinessType(driver);
+        const typeLabel =
+          businessType === TRUCK_BUSINESS_TYPE.INTERNAL
+            ? 'INTERNAL'
+            : 'EXTERNAL';
+        const haulierName =
+          driver.haulier?.haulierName?.trim() || undefined;
 
         return {
           id: String(driver.id),
           name: driver.driverName,
-          companyLine: undefined,
+          companyLine: haulierName,
           weekSummaryLine: buildWeekSummaryLine(dockets),
           typeLabel,
+          businessType,
           dockets,
         };
       });
@@ -288,8 +329,9 @@ export function ScheduleWeekView({
   );
 
   const filterHaulierOptions = useMemo(
-    () => buildSchedulerFilterHaulierOptions(trucksData),
-    [trucksData],
+    () =>
+      buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
+    [viewType, trucksData, driversData],
   );
 
   const filteredResources = useMemo(() => {
@@ -322,7 +364,7 @@ export function ScheduleWeekView({
       result = result.filter((r) => r.dockets.length > 0);
     }
 
-    return result;
+    return sortWeekViewResourceRows(result, viewType);
   }, [resources, viewType, trucksData, driversData, filter]);
 
   const allDockets = useMemo(() => {
@@ -457,10 +499,10 @@ export function ScheduleWeekView({
                   className="grid border-b border-[#E2E8F0] last:border-b-0 bg-white"
                   style={{ gridTemplateColumns: GRID_TEMPLATE }}
                 >
-                  <div className="px-4 py-3 border-r border-[#E2E8F0] flex flex-col justify-between gap-2 bg-[#FAFBFC]">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight">
+                  <div className="px-4 py-3 border-r border-[#E2E8F0] flex flex-col justify-between gap-2 bg-[#FAFBFC] min-w-0 overflow-hidden">
+                    <div className="min-w-0">
+                      <div className="flex flex-col items-start gap-1 min-w-0">
+                        <span className="text-[15px] font-bold text-[#0F172A] tracking-tight break-words min-w-0">
                           {resource.name}
                         </span>
                         <TableBadges

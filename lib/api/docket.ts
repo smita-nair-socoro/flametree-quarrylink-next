@@ -63,7 +63,7 @@ const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
   customer: 'customer',
   product: 'product',
   deliveryDate: 'deliveryCollectionDate',
-  loadSize: 'plannedLoadSize',
+  loadSize: 'actualLoadSize',
   totalInvoice: 'totalInvoiceAmount',
 };
 

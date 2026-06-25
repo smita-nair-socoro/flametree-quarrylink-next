@@ -59,20 +59,20 @@ export function CannotDeleteEligibilityCheckContent({
   const quotationsHref =
     blockingQuotationIds.length > 0
       ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuotationIds.join(','),
-        )}`
+        blockingQuotationIds.join(','),
+      )}`
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
       ? `/customer-operations/jobs?jobId=${encodeURIComponent(
-          blockingJobIds.join(','),
-        )}`
+        blockingJobIds.join(','),
+      )}`
       : undefined;
   const docketsHref =
     blockingDocketIds.length > 0
       ? `/customer-operations/dockets/?docketId=${encodeURIComponent(
-          blockingDocketIds.join(','),
-        )}`
+        blockingDocketIds.join(','),
+      )}`
       : undefined;
 
   return (

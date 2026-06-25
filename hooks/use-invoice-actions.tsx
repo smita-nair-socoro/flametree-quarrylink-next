@@ -49,6 +49,16 @@ export function InvoiceDetailsDialog() {
   const [isDownloading, setIsDownloading] = React.useState(false);
 
   React.useEffect(() => {
+    console.log('[InvoiceDetails] Dialog state changed', {
+      open,
+      invoiceId,
+      isLoading,
+      hasInvoice: Boolean(invoice),
+      invoiceNumber: invoice?.invoiceNumber,
+    });
+  }, [open, invoiceId, isLoading, invoice]);
+
+  React.useEffect(() => {
     if (!open) setIsDownloading(false);
   }, [open]);
 
@@ -275,9 +285,15 @@ export function useInvoiceActions(invoiceId: number | undefined) {
 
   const actions = {
     viewDetails: () => {
+      console.log('[InvoiceDetails] viewDetails action called', { invoiceId });
       if (invoiceId != null) {
+        console.log('[InvoiceDetails] opening shared dialog', { invoiceId });
         openDialog(invoiceId);
+        return;
       }
+      console.warn('[InvoiceDetails] cannot open dialog: invoiceId is missing', {
+        invoiceId,
+      });
     },
   };
 

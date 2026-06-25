@@ -1,5 +1,9 @@
 import { normalizePhoneNumber } from './phone-helper';
 import { parseCalendarDate } from './date';
+import {
+  normalizeDeliveryTimeWindowEnd,
+  normalizeDeliveryTimeWindowStart,
+} from './time';
 import type { Quotation } from '../types/quotation';
 
 /**
@@ -25,24 +29,6 @@ export function quotationToFormValues(
     };
   }
 
-  const formatTimeString = (timeStr?: string | null) => {
-    if (!timeStr) return '';
-
-    if (/^\d{2}:\d{2}(:\d{2})?$/.test(timeStr)) {
-      return timeStr.substring(0, 5);
-    }
-
-    if (timeStr.includes('T')) {
-      return timeStr.split('T')[1]?.substring(0, 5) ?? '';
-    }
-
-    if (timeStr.includes(' ')) {
-      return timeStr.split(' ')[1]?.substring(0, 5) ?? '';
-    }
-
-    return timeStr.substring(0, 5);
-  };
-
   return {
     customerId: quotation?.customerId || 0,
     accountManagerSub: quotation?.accountManagerSub || '',
@@ -50,8 +36,12 @@ export function quotationToFormValues(
     deliveryStartDate: quotation?.deliveryStartDate
       ? parseCalendarDate(quotation.deliveryStartDate)
       : undefined,
-    deliveryWindowStart: formatTimeString(quotation?.deliveryWindowStart),
-    deliveryWindowEnd: formatTimeString(quotation?.deliveryWindowEnd),
+    deliveryWindowStart: normalizeDeliveryTimeWindowStart(
+      quotation?.deliveryWindowStart,
+    ),
+    deliveryWindowEnd: normalizeDeliveryTimeWindowEnd(
+      quotation?.deliveryWindowEnd,
+    ),
     expiryDate: quotation?.expiryDate
       ? parseCalendarDate(quotation.expiryDate)
       : undefined,

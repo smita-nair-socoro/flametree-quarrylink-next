@@ -33,6 +33,7 @@ import {
   useAssignDocket,
   useUnassignDocket,
 } from '@/lib/api/docket';
+import { notifySuccess } from '@/lib/toast';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
   SchedulerTrucksQueryOptions,
@@ -41,17 +42,19 @@ import {
 
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import {
+  buildDispatchAssignmentWindows,
   DispatchDocket,
   mapSchedulerUnassignedDocketsToBoardRows,
+  mapSchedulerAssignedDocketToBoardRow,
   isDispatchTruckResource,
   isDispatchDriverResource,
   truckMatchesFleetFilters,
   driverRowMatchesFilters,
+  buildSchedulerFilterHaulierOptions,
   matchesBoardJobFilter,
   formatCargoLineForUnassign,
   assignmentDateDisplayForUnassign,
   resolveUnassignAssignmentLabels,
-  formatTime,
   formatTimeRange,
   formatLocalISO,
   isDocketOnSelectedLocalDay,
@@ -195,27 +198,9 @@ export function DispatchView({
 
     if (viewType === 'trucks' && trucksData) {
       const assigned = (trucksData.resources || []).flatMap((r) =>
-        (r.dockets || []).map((d) => {
-          let duration = 2;
-          if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(
-              d.deliveryCollectionStartTime.replace('Z', ''),
-            ).getTime();
-            const end = new Date(
-              d.deliveryCollectionEndTime.replace('Z', ''),
-            ).getTime();
-            duration = Math.max(
-              1,
-              Math.round((end - start) / (1000 * 60 * 60)),
-            );
-          }
-          return {
-            ...d,
-            uiAssignedTruckId: String(r.id),
-            uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
-            uiAssignedDuration: duration,
-          };
-        }),
+        (r.dockets || []).map((d) =>
+          mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+        ),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
       const unassigned = mapSchedulerUnassignedDocketsToBoardRows(
@@ -225,27 +210,9 @@ export function DispatchView({
       newDockets = [...assigned, ...unassigned];
     } else if (viewType === 'drivers' && driversData) {
       const assigned = (driversData.resources || []).flatMap((r) =>
-        (r.dockets || []).map((d) => {
-          let duration = 2;
-          if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-            const start = new Date(
-              d.deliveryCollectionStartTime.replace('Z', ''),
-            ).getTime();
-            const end = new Date(
-              d.deliveryCollectionEndTime.replace('Z', ''),
-            ).getTime();
-            duration = Math.max(
-              1,
-              Math.round((end - start) / (1000 * 60 * 60)),
-            );
-          }
-          return {
-            ...d,
-            uiAssignedTruckId: String(r.id), // We map driver id to truckId for the UI to reuse the same component
-            uiAssignedTime: formatTime(d.deliveryCollectionStartTime),
-            uiAssignedDuration: duration,
-          };
-        }),
+        (r.dockets || []).map((d) =>
+          mapSchedulerAssignedDocketToBoardRow(d, String(r.id)),
+        ),
       );
       const assignedIds = new Set(assigned.map((a) => a.id));
       const unassigned = mapSchedulerUnassignedDocketsToBoardRows(
@@ -357,22 +324,11 @@ export function DispatchView({
     }));
   }, [viewType, trucksData]);
 
-  const filterHaulierOptions = useMemo(() => {
-    if (viewType !== 'trucks' || !trucksData?.resources) return [];
-    const byId = new Map<number, string>();
-    for (const r of trucksData.resources) {
-      if (!isDispatchTruckResource(r)) continue;
-      for (const d of r.drivers || []) {
-        const h = d.haulier;
-        if (h?.id != null && h.haulierName) {
-          byId.set(h.id, h.haulierName);
-        }
-      }
-    }
-    return [...byId.entries()]
-      .sort((a, b) => a[1].localeCompare(b[1]))
-      .map(([id, label]) => ({ id: String(id), label }));
-  }, [viewType, trucksData]);
+  const filterHaulierOptions = useMemo(
+    () =>
+      buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
+    [viewType, trucksData, driversData],
+  );
 
   const filterCustomerOptions = useMemo(() => {
     const names = new Set<string>();
@@ -665,21 +621,11 @@ export function DispatchView({
     const time = docket.uiAssignedTime;
     if (!time) return;
 
-    const [hours, minutes] = time.split(':').map(Number);
-    const startWindow = new Date(date);
-    startWindow.setHours(hours, minutes, 0, 0);
-
-    let endWindow = new Date(startWindow);
-    endWindow.setHours(startWindow.getHours() + newDuration);
-
-    if (
-      endWindow.getDate() !== startWindow.getDate() ||
-      endWindow.getMonth() !== startWindow.getMonth() ||
-      endWindow.getFullYear() !== startWindow.getFullYear()
-    ) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(23, 59, 59, 999);
-    }
+    const { startWindow, endWindow } = buildDispatchAssignmentWindows(
+      date,
+      time,
+      newDuration,
+    );
 
     assignMutation.mutate(
       {
@@ -771,10 +717,12 @@ export function DispatchView({
     return {
       docketNumber: pendingUnassignDocket.docketNumber,
       cargoSummary: formatCargoLineForUnassign(pendingUnassignDocket),
-      destination:
-        pendingUnassignDocket.deliverySuburb +
-        ', ' +
-        pendingUnassignDocket.deliveryState || '',
+      destination: [
+        pendingUnassignDocket.deliverySuburb,
+        pendingUnassignDocket.deliveryState,
+      ]
+        .filter(Boolean)
+        .join(', '),
       customerName: pendingUnassignDocket.customerName || '',
       truckLabel: truck,
       driverLabel: driver,
@@ -830,25 +778,12 @@ export function DispatchView({
     const plannedLoad =
       adjustedLoadSize ?? docket?.plannedLoadSize ?? docket?.loadSize ?? 0;
 
-    // Parse time to ISO strings for start and end windows
     // The time variable is like "11:00"
-    const [hours, minutes] = time.split(':').map(Number);
-    const startWindow = new Date(date);
-    startWindow.setHours(hours, minutes, 0, 0);
-
-    // Assuming 2 hours duration for now, or use docket.uiAssignedDuration
-    const duration = docket?.uiAssignedDuration || 2;
-    let endWindow = new Date(startWindow);
-    endWindow.setHours(startWindow.getHours() + duration);
-
-    if (
-      endWindow.getDate() !== startWindow.getDate() ||
-      endWindow.getMonth() !== startWindow.getMonth() ||
-      endWindow.getFullYear() !== startWindow.getFullYear()
-    ) {
-      endWindow = new Date(startWindow);
-      endWindow.setHours(23, 59, 59, 999);
-    }
+    const { startWindow, endWindow } = buildDispatchAssignmentWindows(
+      date,
+      time,
+      docket?.uiAssignedDuration || 2,
+    );
 
     const truckId = viewType === 'trucks' ? Number(targetId) : selectedId;
     const driverId = viewType === 'trucks' ? selectedId : Number(targetId);
@@ -906,6 +841,7 @@ export function DispatchView({
             return prev;
           });
           setAssignModalData(null);
+          notifySuccess('Successfully assigned.');
         },
       },
     );

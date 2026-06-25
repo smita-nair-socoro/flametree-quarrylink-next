@@ -192,4 +192,4 @@ function Tab({
   );
 }
 
-export { Tab };
+export { Tab, Tabs, TabsList, TabsTrigger, TabsContent };

@@ -45,6 +45,13 @@ type MonthViewDocket = DispatchBoardDocketRow & {
   truckName?: string;
 };
 
+export type ScheduleMonthViewProps = {
+  date: Date;
+  onDateChange: (date: Date) => void;
+  filter: DispatchBoardFilterState;
+  onFilterChange: (next: DispatchBoardFilterState) => void;
+};
+
 function getChipColor(status: DOCKET_STATUS) {
   switch (status) {
     case DOCKET_STATUS.UNASSIGNED:
@@ -136,12 +143,7 @@ export function ScheduleMonthView({
   onDateChange,
   filter,
   onFilterChange,
-}: {
-  date: Date;
-  onDateChange: (date: Date) => void;
-  filter: DispatchBoardFilterState;
-  onFilterChange: (next: DispatchBoardFilterState) => void;
-}) {
+}: ScheduleMonthViewProps) {
   const [selectedDocketId, setSelectedDocketId] = useState<number | undefined>(
     undefined,
   );
@@ -217,7 +219,7 @@ export function ScheduleMonthView({
   );
 
   const filterHaulierOptions = useMemo(
-    () => buildSchedulerFilterHaulierOptions(trucksData),
+    () => buildSchedulerFilterHaulierOptions('trucks', trucksData),
     [trucksData],
   );
 
