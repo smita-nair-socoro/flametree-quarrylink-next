@@ -4,6 +4,15 @@ export const mockQuotationData = {
   // Include delivery cost flag
   inclDeliveryCost: true,
 
+  // Currency & tax labels (AUD / GST / 10% defaults for the mock)
+  currencyTax: {
+    currencySymbol: '$',
+    taxLabel: 'GST',
+    taxPercentage: 10,
+    exTaxLabel: '(ex-GST)',
+    taxRateLabel: 'GST (10%)',
+  },
+
   // Navbar data
   navbar: {
     quoteNumber: 'QPO001',
