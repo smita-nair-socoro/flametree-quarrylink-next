@@ -263,31 +263,33 @@ export default function DriverForm({
   const complianceRecords = checklistsData?.content ?? [];
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button
-        variant="outline"
-        type="button"
-        className="cursor-pointer"
-        onClick={onCancel}
-      >
-        Cancel
-      </Button>
-      <Button
-        form="driver-form"
-        type="submit"
-        disabled={isPending}
-        className="cursor-pointer"
-      >
-        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isPending
-          ? isEditing
-            ? 'Saving Changes...'
-            : 'Adding Driver...'
-          : isEditing
-            ? 'Update Driver'
-            : 'Add Driver'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="driver-form"
+          type="submit"
+          disabled={isPending}
+          className="cursor-pointer"
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Driver...'
+            : isEditing
+              ? 'Update Driver'
+              : 'Add Driver'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -591,6 +593,34 @@ export default function DriverForm({
               createdAt={driverData?.createdAt}
               updatedAt={driverData?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              <Button
+                form="driver-form"
+                type="submit"
+                disabled={isPending}
+                className="cursor-pointer"
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Driver...'
+                  : isEditing
+                    ? 'Update Driver'
+                    : 'Add Driver'}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
 
         </form>

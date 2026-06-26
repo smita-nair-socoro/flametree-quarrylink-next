@@ -205,17 +205,19 @@ export function EditTeamMemberForm({
   const isSubmitting = updateUserMutation.isPending;
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button type="button" variant="outline" onClick={handleCancel}>
-        Cancel
-      </Button>
-      <Button form="edit-team-member-form" type="submit" disabled={isSubmitting}>
-        {isSubmitting && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button form="edit-team-member-form" type="submit" disabled={isSubmitting}>
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   // Show loading state while fetching details
@@ -429,6 +431,20 @@ export function EditTeamMemberForm({
               </div>
             </div>
           </section> */}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3">
+              <Button form="edit-team-member-form" type="submit" disabled={isSubmitting}>
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+              </Button>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
+          )}
 
         </form>
       </Form>

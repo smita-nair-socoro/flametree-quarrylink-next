@@ -312,33 +312,35 @@ export default function TruckForm({
     useTruckActions(truckData);
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button
-        variant="outline"
-        type="button"
-        className="cursor-pointer"
-        onClick={onCancel}
-      >
-        Cancel
-      </Button>
-      <Button
-        form="truck-form"
-        type="submit"
-        disabled={isSubmitting}
-        className="cursor-pointer"
-      >
-        {isSubmitting && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        {isSubmitting
-          ? isEditing
-            ? 'Saving Changes...'
-            : 'Adding Truck...'
-          : isEditing
-            ? 'Update Truck'
-            : 'Add Truck'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="truck-form"
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer"
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Truck...'
+            : isEditing
+              ? 'Update Truck'
+              : 'Add Truck'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -718,6 +720,36 @@ export default function TruckForm({
               createdAt={truckData?.createdAt}
               updatedAt={truckData?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              <Button
+                form="truck-form"
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Truck...'
+                  : isEditing
+                    ? 'Update Truck'
+                    : 'Add Truck'}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
 
         </form>

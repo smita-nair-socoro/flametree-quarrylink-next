@@ -461,28 +461,30 @@ export default function CustomerForm({
   }
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" type="button" onClick={onCancel}>
-        {isEditing ? 'Close' : 'Cancel'}
-      </Button>
-      <Button
-        form="add-new-customer-form"
-        className="cursor-pointer"
-        type="submit"
-        disabled={isSubmitting || isFormBlocked}
-      >
-        {isSubmitting && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        {isSubmitting
-          ? isEditing
-            ? 'Saving Changes...'
-            : 'Adding Customer...'
-          : isEditing
-            ? 'Save Changes'
-            : 'Add Customer'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-new-customer-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isSubmitting || isFormBlocked}
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Customer...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Customer'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   // Show loading when editing and customer is still being fetched by id
@@ -1219,6 +1221,30 @@ export default function CustomerForm({
                 createdAt={selectedCustomer?.createdAt}
                 updatedAt={selectedCustomer?.updatedAt}
               />
+            )}
+
+            {!isDesktop && (
+              <div className="flex flex-col col-span-2 gap-3 mb-6">
+                <Button
+                  type="submit"
+                  className="cursor-pointer"
+                  disabled={isSubmitting || isFormBlocked}
+                >
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isSubmitting
+                    ? isEditing
+                      ? 'Saving Changes...'
+                      : 'Adding Customer...'
+                    : isEditing
+                      ? 'Save Changes'
+                      : 'Add Customer'}
+                </Button>
+                <Button variant="outline" type="button" onClick={onCancel}>
+                  {isEditing ? 'Close' : 'Cancel'}
+                </Button>
+              </div>
             )}
 
           </form>

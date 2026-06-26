@@ -113,31 +113,33 @@ export default function JobForm({
   }, [isEditing, jobDetails, selectedJob]);
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        className="cursor-pointer"
-        onClick={onCancel}
-      >
-        Cancel
-      </Button>
-      <Button
-        form="add-new-job-form"
-        className="cursor-pointer"
-        type="submit"
-        disabled={isPending}
-      >
-        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {isPending
-          ? isEditing
-            ? 'Saving Changes...'
-            : 'Adding Job...'
-          : isEditing
-            ? 'Save Changes'
-            : 'Add Job'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="add-new-job-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isPending}
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Job...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Job'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -469,6 +471,34 @@ export default function JobForm({
               createdAt={jobDetails?.createdAt}
               updatedAt={jobDetails?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <Button
+                form="add-new-job-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Job...'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Job'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </form>
       </Form>

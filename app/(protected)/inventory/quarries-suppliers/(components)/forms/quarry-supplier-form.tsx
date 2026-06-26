@@ -230,21 +230,23 @@ export default function QuarrySupplierForm({
   }
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" type="button" onClick={onCancel}>
-        {isEditing ? 'Close' : 'Cancel'}
-      </Button>
-      <Button
-        form="add-quarry-supplier-form"
-        className="cursor-pointer"
-        type="submit"
-        disabled={isSubmitting}
-      >
-        {isEditing
-          ? 'Save Changes'
-          : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-quarry-supplier-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isEditing
+            ? 'Save Changes'
+            : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -591,6 +593,24 @@ export default function QuarrySupplierForm({
               createdAt={selectedQuarrySupplier?.createdAt}
               updatedAt={selectedQuarrySupplier?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col col-span-full gap-3 mb-6">
+              <Button
+                form="add-quarry-supplier-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                {isEditing
+                  ? 'Save Changes'
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
           )}
 
         </form>

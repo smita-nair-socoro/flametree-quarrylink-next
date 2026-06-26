@@ -329,28 +329,30 @@ export default function QuotationForm({
   }, []);
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" type="button" onClick={onCancel}>
-        {isEditing ? 'Close' : 'Cancel'}
-      </Button>
-      <Button
-        form={formId}
-        className="cursor-pointer"
-        type="submit"
-        disabled={
-          (isEditing && !isDuplicate && !canEdit) ||
-          createQuotation.isPending ||
-          updateQuotation.isPending ||
-          duplicateQuotation.isPending
-        }
-      >
-        {isDuplicate
-          ? 'Create Duplicate'
-          : isEditing
-            ? 'Save Changes'
-            : 'Add Quote'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form={formId}
+          className="cursor-pointer"
+          type="submit"
+          disabled={
+            (isEditing && !isDuplicate && !canEdit) ||
+            createQuotation.isPending ||
+            updateQuotation.isPending ||
+            duplicateQuotation.isPending
+          }
+        >
+          {isDuplicate
+            ? 'Create Duplicate'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Quote'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   // Show loading state while fetching quotation details
@@ -1008,6 +1010,30 @@ export default function QuotationForm({
             )}
 
           </div>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 my-6">
+              <Button
+                form={formId}
+                className="cursor-pointer"
+                type="submit"
+                disabled={
+                  (isEditing && !isDuplicate && !canEdit) ||
+                  createQuotation.isPending ||
+                  updateQuotation.isPending ||
+                  duplicateQuotation.isPending
+                }
+              >
+                {isDuplicate
+                  ? 'Create Duplicate'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

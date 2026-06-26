@@ -194,12 +194,14 @@ export function EditClientUserForm({
   };
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button type="button" variant="outline" onClick={handleCancel}>
-        Cancel
-      </Button>
-      <Button form="edit-client-user-form" type="submit">Save Changes</Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button form="edit-client-user-form" type="submit">Save Changes</Button>
+      </div>
+    ) : null,
   );
 
   if (!initialData) {
@@ -418,6 +420,17 @@ export function EditClientUserForm({
               </div>
             </div>
           </section>
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3">
+              <Button form="edit-client-user-form" type="submit">
+                Save Changes
+              </Button>
+              <Button type="button" variant="outline" onClick={handleCancel}>
+                Cancel
+              </Button>
+            </div>
+          )}
 
         </form>
       </Form>

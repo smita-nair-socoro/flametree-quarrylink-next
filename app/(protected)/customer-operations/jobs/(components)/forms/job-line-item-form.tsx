@@ -176,19 +176,21 @@ export default function JobLineItemForm({
   );
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" type="button" onClick={onCancel}>
-        {isEditing ? 'Close' : 'Cancel'}
-      </Button>
-      <Button
-        form="add-new-job-line-item-form"
-        className="cursor-pointer"
-        type="submit"
-        disabled={isPending}
-      >
-        {isEditing ? 'Save Changes' : 'Add Product'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-new-job-line-item-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isPending}
+        >
+          {isEditing ? 'Save Changes' : 'Add Product'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -1094,6 +1096,21 @@ export default function JobLineItemForm({
             </div>
 
           </div>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 my-6">
+              <Button
+                form="add-new-job-line-item-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isPending}
+              >
+                {isEditing ? 'Save Changes' : 'Add Product'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
 

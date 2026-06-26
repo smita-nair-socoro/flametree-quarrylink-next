@@ -521,37 +521,39 @@ export default function SupplierForm({
     }
   }
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button variant="outline" type="button" onClick={onCancel}>
-        <X className="w-4 h-4 mr-2" />
-        Cancel
-      </Button>
-      {!isEditing && (
-        <Button
-          form="add-new-supplier-form"
-          className="cursor-pointer"
-          type="submit"
-          disabled={isSubmitting}
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          <X className="w-4 h-4 mr-2" />
+          Cancel
         </Button>
-      )}
-      {isEditing && (
-        <Button
-          form="add-new-supplier-form"
-          type="submit"
-          className="cursor-pointer"
-          onClick={(e) => {
-            e.stopPropagation();
-          }}
-        >
-          Save Changes
-        </Button>
-      )}
-    </div>,
+        {!isEditing && (
+          <Button
+            form="add-new-supplier-form"
+            className="cursor-pointer"
+            type="submit"
+            disabled={isSubmitting}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
+          </Button>
+        )}
+        {isEditing && (
+          <Button
+            form="add-new-supplier-form"
+            type="submit"
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            Save Changes
+          </Button>
+        )}
+      </div>
+    ) : null,
   );
 
   // Show loading state when fetching data
@@ -700,6 +702,40 @@ export default function SupplierForm({
               </div>
             );
           })()}
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              {!isEditing && (
+                <Button
+                  form="add-new-supplier-form"
+                  className="cursor-pointer"
+                  type="submit"
+                  disabled={isSubmitting}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
+                </Button>
+              )}
+              {isEditing && (
+                <Button
+                  form="add-new-supplier-form"
+                  type="submit"
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  Save Changes
+                </Button>
+              )}
+              <Button variant="outline" type="button" onClick={onCancel}>
+                <X className="w-4 h-4 mr-2" />
+                Cancel
+              </Button>
+            </div>
+          )}
 
         </form>
       </Form>

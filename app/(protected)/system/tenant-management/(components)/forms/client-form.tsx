@@ -323,7 +323,7 @@ export default function ClientForm({
   ];
 
   useFormDialogFooter(
-    isEditing ? (
+    isEditing && isDesktop ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           Close
@@ -538,6 +538,22 @@ export default function ClientForm({
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {isEditing && !isDesktop && (
+            <div className="flex flex-col col-span-full gap-3 mb-6">
+              <Button
+                form="add-new-client-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isSubmitting}
+              >
+                Save Changes
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Close
+              </Button>
             </div>
           )}
 

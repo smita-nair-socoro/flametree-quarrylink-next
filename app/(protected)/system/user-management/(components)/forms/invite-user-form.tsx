@@ -149,26 +149,28 @@ export default function InviteUserForm({
   const isSubmitting = createUserMutation.isPending;
 
   useFormDialogFooter(
-    <div className="flex justify-end gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={onCancel}
-      >
-        Cancel
-      </Button>
-      <Button
-        form="invite-user-form"
-        type="submit"
-        className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
-        disabled={isSubmitting}
-      >
-        {isSubmitting && (
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-        )}
-        {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
-      </Button>
-    </div>,
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="invite-user-form"
+          type="submit"
+          className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
+          disabled={isSubmitting}
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -289,6 +291,29 @@ export default function InviteUserForm({
               </div>
             </div>
           </div>
+
+          {!isDesktop && (
+            <div className="flex flex-col gap-3">
+              <Button
+                form="invite-user-form"
+                type="submit"
+                className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
+                disabled={isSubmitting}
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
 
         </form>
       </Form>
