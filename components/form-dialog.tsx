@@ -524,6 +524,58 @@ export function FormDialog({
     );
   };
 
+  const renderConnectedEntities = () => {
+    const links: { label: string; href: string }[] = [];
+
+    // Only show when the quote has actually been converted — jobId is populated at that point
+    if (
+      headerInfo?.useSelectedQuotation &&
+      selectedQuotation?.quoteStatus === 'CONVERTED_TO_JOB' &&
+      selectedQuotation.jobId > 0
+    ) {
+      links.push({
+        label: `#${selectedQuotation.jobId}`,
+        href: `/customer-operations/jobs?openJobId=${selectedQuotation.jobId}`,
+      });
+    }
+
+    // Only show when the job originated from a quote
+    if (headerInfo?.useSelectedJob && selectedJob?.quoteId && selectedJob.quoteId > 0) {
+      links.push({
+        label: `#${selectedJob.quoteId}`,
+        href: `/customer-operations/quotation?openQuoteId=${selectedJob.quoteId}`,
+      });
+    }
+
+    // Every docket belongs to a job — always show
+    if (headerInfo?.useSelectedDocket && selectedDocket?.jobId && selectedDocket.jobId > 0) {
+      links.push({
+        label: selectedDocket.job?.jobNumber ?? `#${selectedDocket.jobId}`,
+        href: `/customer-operations/jobs?openJobId=${selectedDocket.jobId}`,
+      });
+    }
+
+    if (links.length === 0) return null;
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-1">
+        {links.map((link, i) => (
+          <a
+            key={i}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline"
+            style={{ color: '#8E51FF' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    );
+  };
+
   // For ScrollArea, use max-height instead of fixed height
   const getScrollAreaMaxHeight = (): string => {
     // Calculate available space: viewport height minus header space (approx 8rem)
@@ -552,6 +604,7 @@ export function FormDialog({
               {dialogDescription}
             </DialogDescription>
           )}
+          {renderConnectedEntities()}
           {renderBadges()}
         </div>
         {headerButtons && (
@@ -656,6 +709,7 @@ export function FormDialog({
                 {dialogDescription}
               </DrawerDescription>
             )}
+            {renderConnectedEntities()}
             {renderBadges()}
           </div>
           {headerButtons && (

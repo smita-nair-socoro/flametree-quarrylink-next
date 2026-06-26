@@ -169,6 +169,21 @@ export default function QuotationsPage() {
     selectedQuotationForActions,
   );
 
+  // Auto-open quote view when navigated with openQuoteId param
+  React.useEffect(() => {
+    const openQuoteId = searchParams.get('openQuoteId');
+    if (!openQuoteId || items.length === 0) return;
+
+    const quotation = items.find((q) => q.id === Number(openQuoteId));
+    if (quotation) {
+      setSelectedQuotation(quotation);
+      setSelectedQuotationId(quotation.id);
+      actions.view(quotation);
+      router.replace('/customer-operations/quotation');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, items]);
+
   const handleRowClick = (quotation: Quotation) => {
     setSelectedQuotation(quotation);
     setSelectedQuotationId(quotation.id);
