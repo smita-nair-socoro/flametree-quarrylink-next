@@ -100,10 +100,33 @@ export interface StripeTenantDetailsSnapshot {
   contactNumber: string;
 }
 
+/**
+ * Tenant currency/tax profile returned alongside the quote on the public/
+ * preview endpoints. Used to render the correct currency symbol and tax label
+ * on the public quote-review page, where the in-memory tenant store is not
+ * populated. `currency` is an ISO code (e.g. "AUD"), `taxType` a label (e.g.
+ * "GST") and `taxAmount` a percentage as a string (e.g. "10").
+ */
+export interface TenantProfileSnapshot {
+  tenantId?: string;
+  tenantName?: string;
+  businessName?: string;
+  address?: string;
+  email?: string;
+  phone?: string;
+  abn?: string;
+  website?: string;
+  currency?: string;
+  taxType?: string;
+  taxAmount?: string;
+  timeZoneId?: string;
+}
+
 export interface PublicQuoteLinkResponse {
   quoteDto: QuotationDTO;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
   tenantLogoDto?: TenantLogoResponse;
+  tenantProfile?: TenantProfileSnapshot;
 }
 
 /** Quote summary returned after a public approve/decline decision. */
@@ -136,8 +159,20 @@ export interface PublicQuoteDecisionResponse {
   deleted: boolean;
 }
 
+/** Currency symbol + tax labels resolved for rendering a quote. */
+export interface QuoteCurrencyTax {
+  currencySymbol: string;
+  taxLabel: string;
+  taxPercentage: number;
+  /** e.g. "(ex-GST)" */
+  exTaxLabel: string;
+  /** e.g. "GST (10%)" */
+  taxRateLabel: string;
+}
+
 export interface QuotationDisplayData {
   inclDeliveryCost: boolean;
+  currencyTax: QuoteCurrencyTax;
   navbar: {
     quoteNumber: string;
     dateIssued: string;
@@ -162,6 +197,8 @@ export interface QuotationDisplayData {
     projectName: string;
     deliveryDate: string;
     deliveryWindow: string;
+    /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
+    timeZone?: string;
   };
   products: Array<{
     name: string;

@@ -3,6 +3,7 @@ import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { centsToDollars } from '@/lib/utils/currency';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
+import { QuoteCurrencyTax } from '@/lib/types/quotation';
 
 export interface Product {
   name: string;
@@ -17,6 +18,7 @@ export interface Product {
 
 export interface ProductsTablePdfProps {
   products: Product[];
+  currencyTax: QuoteCurrencyTax;
   includeDeliveryPrices?: boolean;
 }
 
@@ -35,8 +37,10 @@ const getTypeBadgeStyle = (type: string) => {
 
 export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
   products,
+  currencyTax,
   includeDeliveryPrices = false,
 }) => {
+  const { currencySymbol, exTaxLabel } = currencyTax;
   // Dynamic column widths based on whether delivery prices are shown
   const isCollection =
     products.length > 0 &&
@@ -110,7 +114,7 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
             { width: colWidths.price, textAlign: 'right' },
           ]}
         >
-          {includeDeliveryPrices ? 'Product Price' : 'Total Price'} (ex-GST)
+          {includeDeliveryPrices ? 'Product Price' : 'Total Price'} {exTaxLabel}
         </Text>
       </View>
 
@@ -152,7 +156,8 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
               >
                 <View style={styles.deliveryPriceBadge}>
                   <Text style={styles.deliveryPriceText}>
-                    ${centsToDollars(product.deliveryPrice || 0)}
+                    {currencySymbol}
+                    {centsToDollars(product.deliveryPrice || 0)}
                   </Text>
                 </View>
               </View>
@@ -194,7 +199,10 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
                 justifyContent: 'center',
               }}
             >
-              <Text style={styles.price}>${centsToDollars(displayPrice)}</Text>
+              <Text style={styles.price}>
+                {currencySymbol}
+                {centsToDollars(displayPrice)}
+              </Text>
             </View>
           </View>
         );

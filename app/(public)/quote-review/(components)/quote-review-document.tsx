@@ -96,7 +96,7 @@ export default function QuoteReviewDocument({
   }, [declineReason, declineNotes]);
 
   const approveDialogDescription = useMemo(() => {
-    const { project, navbar, customer, summary } = quotationData;
+    const { project, navbar, customer, summary, currencyTax } = quotationData;
     const approvalNotes = [
       'Quote status changes from Pending to Approved',
       'Your account manager is notified of approval',
@@ -160,9 +160,10 @@ export default function QuoteReviewDocument({
 
         <div className="rounded-xl border border-slate-100 bg-[#E5E5E5] p-3 space-y-2">
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
-            <span>Quote Total (Incl. GST):</span>
+            <span>Quote Total (Incl. {currencyTax.taxLabel}):</span>
             <span className="text-base font-medium text-[#101828]">
-              ${centsToDollars(summary.total)}
+              {currencyTax.currencySymbol}
+              {centsToDollars(summary.total)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
@@ -508,12 +509,14 @@ export default function QuoteReviewDocument({
           {/* Products & Services */}
           <ProductsServices
             products={quotationData.products}
+            currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
           <SummaryPayment
             {...quotationData.summary}
+            currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>

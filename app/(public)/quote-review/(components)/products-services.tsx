@@ -5,6 +5,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { ColumnDef } from '@tanstack/react-table';
 import { TableBadges } from '@/components/table-badges';
+import { QuoteCurrencyTax } from '@/lib/types/quotation';
 
 export interface Product {
   name: string;
@@ -19,11 +20,13 @@ export interface Product {
 
 export interface ProductsServicesProps {
   products: Product[];
+  currencyTax: QuoteCurrencyTax;
   includeDeliveryPrices?: boolean;
 }
 
 const createColumns = (
   includeDeliveryPrices: boolean,
+  currencySymbol: string,
 ): ColumnDef<Product>[] => {
   const columns: ColumnDef<Product>[] = [
     {
@@ -64,7 +67,8 @@ const createColumns = (
       header: 'Delivery',
       cell: ({ row }) => (
         <span className="inline-block px-2 py-1 rounded-md bg-[#F3EEFF] text-[#8E51FF] font-semibold text-sm">
-          ${centsToDollars(row.original.deliveryPrice || 0)}
+          {currencySymbol}
+          {centsToDollars(row.original.deliveryPrice || 0)}
         </span>
       ),
       size: 100,
@@ -95,7 +99,8 @@ const createColumns = (
         : row.original.totalPrice + (row.original.deliveryPrice || 0);
       return (
         <p className="font-semibold text-gray-900 text-sm">
-          ${centsToDollars(price)}
+          {currencySymbol}
+          {centsToDollars(price)}
         </p>
       );
     },
@@ -107,11 +112,12 @@ const createColumns = (
 
 export function ProductsServices({
   products,
+  currencyTax,
   includeDeliveryPrices = false,
 }: ProductsServicesProps) {
   const columns = React.useMemo(
-    () => createColumns(includeDeliveryPrices),
-    [includeDeliveryPrices],
+    () => createColumns(includeDeliveryPrices, currencyTax.currencySymbol),
+    [includeDeliveryPrices, currencyTax.currencySymbol],
   );
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
