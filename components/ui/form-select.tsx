@@ -316,7 +316,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                           if (opt.disabled) return;
                           field.onChange(opt.value);
                           onChange?.(String(opt.value));
-                          setOpen(false);
+                          handleOpenChange(false);
                         }}
                         className={cn(
                           'cursor-pointer',
@@ -362,7 +362,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                         <CommandItem
                           onSelect={() => {
                             onAddClick();
-                            setOpen(false);
+                            handleOpenChange(false);
                           }}
                           className={cn(
                             'text-primary cursor-pointer',

@@ -186,7 +186,7 @@ export function useCustomersForForm({
     isFetching,
   } = useInfiniteQuery({
     ...CustomersInfiniteListQueryOptions({
-      pageSize: 5,
+      pageSize: 25,
       status: CUSTOMER_STATUS.ACTIVE,
       search: debouncedCustomerSearch.trim() || undefined,
     }),
