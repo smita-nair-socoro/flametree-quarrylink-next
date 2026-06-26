@@ -198,7 +198,7 @@ export function EditClientUserForm({
       <Button type="button" variant="outline" onClick={handleCancel}>
         Cancel
       </Button>
-      <Button type="submit">Save Changes</Button>
+      <Button form="edit-client-user-form" type="submit">Save Changes</Button>
     </div>,
   );
 
@@ -239,6 +239,7 @@ export function EditClientUserForm({
 
       <Form {...form}>
         <form
+          id="edit-client-user-form"
           onSubmit={form.handleSubmit(handleSubmit)}
           className="flex flex-col gap-4"
         >

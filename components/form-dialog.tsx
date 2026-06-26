@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -123,17 +124,6 @@ interface AddProductDrawerDialogProps {
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
-  /**
-   * When set, used for customer header (title/badges) instead of store's selectedCustomer.
-   * Use when the dialog is driven by get-customer-by-id (caller fetches and passes the customer).
-   */
-  headerCustomer?: {
-    businessName?: string;
-    contactName?: string;
-    customerStatus?: string;
-    customerType?: string;
-  } | null;
-
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
 
@@ -242,7 +232,7 @@ export function FormDialog({
   preventAutoFocus,
   footer,
   footerClassName,
-}: AddProductDrawerDialogProps) {
+}: Readonly<AddProductDrawerDialogProps>) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
   const [slottedFooter, setSlottedFooter] = React.useState<React.ReactNode>(null);
@@ -274,10 +264,10 @@ export function FormDialog({
   // Cleanup on close (after Radix unmounts its layers)
   React.useEffect(() => {
     if (open) return;
-    const raf = window.requestAnimationFrame(() => {
+    const raf = globalThis.requestAnimationFrame(() => {
       unlockBodyPointerEvents();
     });
-    return () => window.cancelAnimationFrame(raf);
+    return () => globalThis.cancelAnimationFrame(raf);
   }, [open, unlockBodyPointerEvents]);
 
   // Cleanup on unmount (e.g. route change while closing)
@@ -420,32 +410,37 @@ export function FormDialog({
     }
   }, [open]);
 
-  const triggerNode = trigger ? (
-    React.isValidElement(trigger) ? (
-      React.cloneElement(trigger, { onClick: () => handleOpen(false) })
-    ) : (
-      <span onClick={() => handleOpen(false)}>{trigger}</span>
-    )
-  ) : (
-    !hideTrigger && (
+  let triggerNode: React.ReactNode;
+  if (trigger) {
+    if (React.isValidElement(trigger)) {
+      triggerNode = React.cloneElement(trigger, { onClick: () => handleOpen(false) });
+    } else {
+      triggerNode = (
+        <button type="button" className="contents" onClick={() => handleOpen(false)}>
+          {trigger}
+        </button>
+      );
+    }
+  } else {
+    triggerNode = !hideTrigger && (
       <Button onClick={() => handleOpen(true)} variant="default">
         <Plus className="h-4 w-4" /> {triggerTitle}
       </Button>
-    )
-  );
+    );
+  }
 
   const forceClose = React.useCallback(() => {
     setOpen(false);
     setEffectiveId(id);
   }, [setOpen, id]);
 
-  const close = () => {
+  const close = React.useCallback(() => {
     if (confirmOnCloseIfDirty && hasUnsavedChanges) {
       setShowUnsavedConfirm(true);
       return;
     }
     forceClose();
-  };
+  }, [confirmOnCloseIfDirty, hasUnsavedChanges, forceClose]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
@@ -474,15 +469,19 @@ export function FormDialog({
     onUnsavedChangesChange?.(false);
   }, [onUnsavedChangesChange]);
 
-  const clonedChild = React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: effectiveId,
-        onCancel: close,
-        onSuccess: handleChildSuccess,
-        onDirtyChange: handleChildDirtyChange,
-        onSaved: handleChildSaved,
-      })
-    : children;
+  const clonedChild = React.useMemo(
+    () =>
+      React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
+            id: effectiveId,
+            onCancel: close,
+            onSuccess: handleChildSuccess,
+            onDirtyChange: handleChildDirtyChange,
+            onSaved: handleChildSaved,
+          })
+        : children,
+    [children, effectiveId, close, handleChildSuccess, handleChildDirtyChange, handleChildSaved],
+  );
 
   const contentNode = (
     <FormDialogFooterContext.Provider value={setSlottedFooter}>
@@ -497,7 +496,7 @@ export function FormDialog({
       return '';
     }
     const stringValue = typeof text === 'string' ? text : String(text);
-    return stringValue.replace(/_/g, ' ');
+    return stringValue.replaceAll('_', ' ');
   };
 
   const renderBadges = () => {
@@ -513,14 +512,14 @@ export function FormDialog({
     return (
       <div className="flex flex-wrap gap-2 mt-2">
         {/* Render primary badges */}
-        {finalPrimaryBadges?.map((badge, index) => {
+        {finalPrimaryBadges?.map((badge) => {
           const isFailedInvoice =
             headerInfo?.useSelectedDocket &&
             badge === 'INVOICED' &&
             selectedDocket?.invoiceStatus === 'FAILED';
           return (
             <Badge
-              key={`primary-${index}`}
+              key={`primary-${badge}`}
               variant="outline"
               className={
                 BADGE_COLORS[badge] ||
@@ -536,9 +535,9 @@ export function FormDialog({
         })}
 
         {/* Render secondary badges */}
-        {finalSecondaryBadges?.map((badge, index) => (
+        {finalSecondaryBadges?.map((badge) => (
           <Badge
-            key={`secondary-${index}`}
+            key={`secondary-${badge}`}
             variant="outline"
             className={
               BADGE_COLORS[badge] || 'bg-gray-100 text-gray-800 border-gray-300'
@@ -549,8 +548,8 @@ export function FormDialog({
         ))}
 
         {/* Render third badges */}
-        {finalThirdBadges?.map((badge, index) => (
-          <Badge key={`third-${index}`} variant="outline">
+        {finalThirdBadges?.map((badge) => (
+          <Badge key={`third-${badge}`} variant="outline">
             {formatBadgeText(badge)}
           </Badge>
         ))}
@@ -598,17 +597,26 @@ export function FormDialog({
         {contentNode}
       </div>
       {activeFooter && (
-        <div
+        <DialogFooter
           className={clsx(
-            'flex-shrink-0 border-t px-5 py-4',
+            'px-5 py-4',
             footerClassName,
           )}
         >
           {activeFooter}
-        </div>
+        </DialogFooter>
       )}
     </>
   );
+
+  let dialogMaxWidth: string;
+  if (dialogWidth) {
+    dialogMaxWidth = `min(${dialogWidth}, 95vw)`;
+  } else if (isEditing) {
+    dialogMaxWidth = 'min(95vw, 1100px)';
+  } else {
+    dialogMaxWidth = 'min(90vw, 800px)';
+  }
 
   if (isDesktop) {
     return (
@@ -622,11 +630,7 @@ export function FormDialog({
           )}
           style={{
             width: '100%',
-            maxWidth: dialogWidth
-              ? `min(${dialogWidth}, 95vw)`
-              : isEditing
-                ? 'min(95vw, 1100px)'
-                : 'min(90vw, 800px)',
+            maxWidth: dialogMaxWidth,
             maxHeight: '95vh',
           }}
           onOpenAutoFocus={
@@ -707,7 +711,7 @@ export function FormDialog({
         {activeFooter && (
           <div
             className={clsx(
-              'flex-shrink-0 border-t px-4 py-4',
+              'flex-shrink-0 px-4 py-4',
               footerClassName,
             )}
           >

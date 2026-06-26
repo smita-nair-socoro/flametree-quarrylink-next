@@ -181,6 +181,7 @@ export default function JobLineItemForm({
         {isEditing ? 'Close' : 'Cancel'}
       </Button>
       <Button
+        form="add-new-job-line-item-form"
         className="cursor-pointer"
         type="submit"
         disabled={isPending}

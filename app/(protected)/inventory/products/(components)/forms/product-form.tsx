@@ -274,6 +274,66 @@ export default function ProductForm({
     }
   }
 
+  useFormDialogFooter(
+    isEditing ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          form="add-new-product-form"
+          type="submit"
+          className="cursor-pointer"
+        >
+          Save Changes
+        </Button>
+      </div>
+    ) : createStep === 1 ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        {!productJustCreated && (
+          <Button
+            form="add-new-product-form"
+            className="cursor-pointer"
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding Product...' : 'Create Product'}
+          </Button>
+        )}
+        {productJustCreated && (
+          <>
+            <Button
+              variant="outline"
+              disabled
+              className="cursor-not-allowed"
+            >
+              ✓ Product Created
+            </Button>
+            <Button type="button" onClick={() => setCreateStep(2)}>
+              Next
+            </Button>
+          </>
+        )}
+      </div>
+    ) : (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => setCreateStep(1)}
+        >
+          Back to Details
+        </Button>
+        <Button type="button" onClick={onCancel}>
+          Save Changes
+        </Button>
+      </div>
+    ),
+  );
+
   // Show loading state when fetching product details or materials
   if (
     isLoadingMaterials ||
@@ -334,66 +394,6 @@ export default function ProductForm({
           'Update all attached product supplier records with the new density value',
       },
     ];
-
-  useFormDialogFooter(
-    isEditing ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          form="add-new-product-form"
-          type="submit"
-          className="cursor-pointer"
-        >
-          Save Changes
-        </Button>
-      </div>
-    ) : createStep === 1 ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        {!productJustCreated && (
-          <Button
-            form="add-new-product-form"
-            className="cursor-pointer"
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Adding Product...' : 'Create Product'}
-          </Button>
-        )}
-        {productJustCreated && (
-          <>
-            <Button
-              variant="outline"
-              disabled
-              className="cursor-not-allowed"
-            >
-              ✓ Product Created
-            </Button>
-            <Button type="button" onClick={() => setCreateStep(2)}>
-              Next
-            </Button>
-          </>
-        )}
-      </div>
-    ) : (
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          type="button"
-          onClick={() => setCreateStep(1)}
-        >
-          Back to Details
-        </Button>
-        <Button type="button" onClick={onCancel}>
-          Save Changes
-        </Button>
-      </div>
-    ),
-  );
 
   return (
     <div className="w-full relative">

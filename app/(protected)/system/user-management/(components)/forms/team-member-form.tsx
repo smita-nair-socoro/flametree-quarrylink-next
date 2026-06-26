@@ -209,7 +209,7 @@ export function EditTeamMemberForm({
       <Button type="button" variant="outline" onClick={handleCancel}>
         Cancel
       </Button>
-      <Button type="submit" disabled={isSubmitting}>
+      <Button form="edit-team-member-form" type="submit" disabled={isSubmitting}>
         {isSubmitting && (
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
         )}
@@ -300,6 +300,7 @@ export function EditTeamMemberForm({
 
       <Form {...form}>
         <form
+          id="edit-team-member-form"
           onSubmit={form.handleSubmit(handleSubmit, handleError)}
           className={cn(
             'flex flex-col gap-2 mt-2',

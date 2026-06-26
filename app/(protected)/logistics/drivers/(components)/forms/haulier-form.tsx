@@ -124,6 +124,7 @@ export default function HaulierForm({
         Cancel
       </Button>
       <Button
+        form="haulier-form"
         type="submit"
         variant="default"
         disabled={createHaulier.isPending || updateHaulier.isPending}
@@ -136,6 +137,7 @@ export default function HaulierForm({
   return (
     <Form {...form}>
       <form
+        id="haulier-form"
         onSubmit={(e) => {
           e.stopPropagation();
           void form.handleSubmit(onSubmit)(e);
