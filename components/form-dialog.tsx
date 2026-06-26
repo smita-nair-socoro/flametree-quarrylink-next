@@ -143,6 +143,12 @@ interface AddProductDrawerDialogProps {
   /** Optional custom class for the DialogHeader container (e.g., "px-5 pt-6 pb-2" or "px-5 pt-4 pb-0") */
   headerClassName?: string;
 
+  /** Optional footer content rendered as a sticky bar at the bottom (e.g. Save/Cancel buttons) */
+  footer?: React.ReactNode;
+
+  /** Optional class applied to the footer container */
+  footerClassName?: string;
+
   /** Whether to preserve empty badge space in renderBadges */
   preserveEmptyBadgeSpace?: boolean;
 
@@ -188,6 +194,23 @@ interface ChildFormProps {
   onSaved?: () => void;
 }
 
+export const FormDialogFooterContext = React.createContext<
+  React.Dispatch<React.SetStateAction<React.ReactNode>> | null
+>(null);
+
+/**
+ * Call inside any form rendered as a FormDialog child to slot content
+ * into the dialog's sticky footer (replaces inline Cancel/Save buttons).
+ * Runs after every render so the content always reflects current state.
+ */
+export function useFormDialogFooter(content: React.ReactNode) {
+  const setFooter = React.useContext(FormDialogFooterContext);
+  React.useLayoutEffect(() => {
+    setFooter?.(content);
+    return () => setFooter?.(null);
+  });
+}
+
 export function FormDialog({
   id,
   dialogTitle,
@@ -217,9 +240,12 @@ export function FormDialog({
   unsavedConfirmCancelText,
   unsavedConfirmDetails,
   preventAutoFocus,
+  footer,
+  footerClassName,
 }: AddProductDrawerDialogProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
+  const [slottedFooter, setSlottedFooter] = React.useState<React.ReactNode>(null);
 
   const open = openProp ?? uncontrolledOpen;
   const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
@@ -448,7 +474,7 @@ export function FormDialog({
     onUnsavedChangesChange?.(false);
   }, [onUnsavedChangesChange]);
 
-  const contentNode = React.isValidElement(children)
+  const clonedChild = React.isValidElement(children)
     ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
         id: effectiveId,
         onCancel: close,
@@ -457,6 +483,14 @@ export function FormDialog({
         onSaved: handleChildSaved,
       })
     : children;
+
+  const contentNode = (
+    <FormDialogFooterContext.Provider value={setSlottedFooter}>
+      {clonedChild}
+    </FormDialogFooterContext.Provider>
+  );
+
+  const activeFooter = footer ?? slottedFooter;
 
   const formatBadgeText = (text?: string | number | null): string => {
     if (text === undefined || text === null) {
@@ -524,12 +558,6 @@ export function FormDialog({
     );
   };
 
-  // For ScrollArea, use max-height instead of fixed height
-  const getScrollAreaMaxHeight = (): string => {
-    // Calculate available space: viewport height minus header space (approx 8rem)
-    return 'max-h-[calc(95vh-8rem)]';
-  };
-
   const dialogInner = (
     <>
       <DialogHeader
@@ -563,13 +591,22 @@ export function FormDialog({
       {headerSeparator && <Separator className="-mt-3" />}
       <div
         className={clsx(
-          getScrollAreaMaxHeight(),
-          'overflow-y-auto overflow-x-hidden px-5',
+          'flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5',
           contentClass,
         )}
       >
         {contentNode}
       </div>
+      {activeFooter && (
+        <div
+          className={clsx(
+            'flex-shrink-0 border-t px-5 py-4',
+            footerClassName,
+          )}
+        >
+          {activeFooter}
+        </div>
+      )}
     </>
   );
 
@@ -664,12 +701,19 @@ export function FormDialog({
         </DrawerHeader>
         {headerSeparator && <Separator />}
 
-        <div
-          className="flex-1 overflow-y-auto px-4 pt-2"
-          style={{ maxHeight: 'calc(95vh - 12rem)' }}
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-2">
           {contentNode}
         </div>
+        {activeFooter && (
+          <div
+            className={clsx(
+              'flex-shrink-0 border-t px-4 py-4',
+              footerClassName,
+            )}
+          >
+            {activeFooter}
+          </div>
+        )}
         <ActionDialog
           open={showUnsavedConfirm}
           onOpenChangeAction={setShowUnsavedConfirm}

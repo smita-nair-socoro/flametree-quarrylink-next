@@ -24,6 +24,7 @@ import { useSelectedTeamMember } from '@/app/stores/team-member-store';
 import { useUserStore } from '@/app/stores/user-store';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { TableBadges } from '@/components/table-badges';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { cn } from '@/lib/utils';
@@ -202,6 +203,20 @@ export function EditTeamMemberForm({
 
   // Use mutation's pending state for loading indicator
   const isSubmitting = updateUserMutation.isPending;
+
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button type="button" variant="outline" onClick={handleCancel}>
+        Cancel
+      </Button>
+      <Button type="submit" disabled={isSubmitting}>
+        {isSubmitting && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
+      </Button>
+    </div>,
+  );
 
   // Show loading state while fetching details
   if (isLoadingDetails) {
@@ -414,35 +429,6 @@ export function EditTeamMemberForm({
             </div>
           </section> */}
 
-          {isDesktop && <Separator />}
-
-          {isDesktop && (
-            <div className="flex flex-row justify-end gap-2 mb-3">
-              <Button type="button" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col gap-3 mb-3">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {isSubmitting ? 'Saving Changes...' : 'Save Changes'}
-              </Button>
-              <Button type="button" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-            </div>
-          )}
         </form>
       </Form>
     </div>

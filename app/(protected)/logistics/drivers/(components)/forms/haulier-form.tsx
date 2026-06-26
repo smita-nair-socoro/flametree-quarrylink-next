@@ -26,6 +26,7 @@ import {
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useFormDialogFooter } from '@/components/form-dialog';
 
 interface HaulierFormProps {
   editingItem?: SelectCreateEditItem | null;
@@ -113,6 +114,25 @@ export default function HaulierForm({
     }
   }
 
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        variant="default"
+        disabled={createHaulier.isPending || updateHaulier.isPending}
+      >
+        {isEditing ? 'Update Haulier' : 'Add Haulier'}
+      </Button>
+    </div>,
+  );
+
   return (
     <Form {...form}>
       <form
@@ -170,22 +190,6 @@ export default function HaulierForm({
           )}
         />
 
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="default"
-            disabled={createHaulier.isPending || updateHaulier.isPending}
-          >
-            {isEditing ? 'Update Haulier' : 'Add Haulier'}
-          </Button>
-        </div>
       </form>
     </Form>
   );

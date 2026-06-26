@@ -28,7 +28,7 @@ import {
 } from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { FormDialog } from '@/components/form-dialog';
+import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -327,6 +327,31 @@ export default function QuotationForm({
     const d = GetTodaysDate();
     return d;
   }, []);
+
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button variant="outline" type="button" onClick={onCancel}>
+        {isEditing ? 'Close' : 'Cancel'}
+      </Button>
+      <Button
+        form={formId}
+        className="cursor-pointer"
+        type="submit"
+        disabled={
+          (isEditing && !isDuplicate && !canEdit) ||
+          createQuotation.isPending ||
+          updateQuotation.isPending ||
+          duplicateQuotation.isPending
+        }
+      >
+        {isDuplicate
+          ? 'Create Duplicate'
+          : isEditing
+            ? 'Save Changes'
+            : 'Add Quote'}
+      </Button>
+    </div>,
+  );
 
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
@@ -982,55 +1007,6 @@ export default function QuotationForm({
               </div>
             )}
 
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 my-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  form={formId}
-                  className="cursor-pointer"
-                  type="submit"
-                  disabled={
-                    (isEditing && !isDuplicate && !canEdit) ||
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    duplicateQuotation.isPending
-                  }
-                >
-                  {isDuplicate
-                    ? 'Create Duplicate'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
-                </Button>
-              </div>
-            )}
-
-            {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 my-6">
-                <Button
-                  form={formId}
-                  type="submit"
-                  className="cursor-pointer"
-                  disabled={
-                    (isEditing && !isDuplicate && !canEdit) ||
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    duplicateQuotation.isPending
-                  }
-                >
-                  {isDuplicate
-                    ? 'Create Duplicate'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
-                </Button>
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-              </div>
-            )}
           </div>
         </form>
       </Form>

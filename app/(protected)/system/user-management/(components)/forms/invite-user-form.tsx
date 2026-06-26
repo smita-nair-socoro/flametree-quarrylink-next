@@ -15,6 +15,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -147,6 +148,29 @@ export default function InviteUserForm({
 
   const isSubmitting = createUserMutation.isPending;
 
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        onClick={onCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        form="invite-user-form"
+        type="submit"
+        className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
+        disabled={isSubmitting}
+      >
+        {isSubmitting && (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        )}
+        {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
+      </Button>
+    </div>,
+  );
+
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
@@ -266,27 +290,6 @@ export default function InviteUserForm({
             </div>
           </div>
 
-          <div className="flex justify-between gap-2 mb-4 mt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              form="invite-user-form"
-              type="submit"
-              className="flex-1 bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
-              disabled={isSubmitting}
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
-            </Button>
-          </div>
         </form>
       </Form>
     </div>

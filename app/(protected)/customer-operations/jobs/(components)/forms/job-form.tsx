@@ -15,6 +15,7 @@ import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { cn, scrollToFirstError } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { useIsMutating } from '@tanstack/react-query';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -110,6 +111,34 @@ export default function JobForm({
       </div>
     );
   }, [isEditing, jobDetails, selectedJob]);
+
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button
+        type="button"
+        variant="outline"
+        className="cursor-pointer"
+        onClick={onCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        form="add-new-job-form"
+        className="cursor-pointer"
+        type="submit"
+        disabled={isPending}
+      >
+        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isPending
+          ? isEditing
+            ? 'Saving Changes...'
+            : 'Adding Job...'
+          : isEditing
+            ? 'Save Changes'
+            : 'Add Job'}
+      </Button>
+    </div>,
+  );
 
   return (
     <div className="w-full relative">
@@ -418,65 +447,6 @@ export default function JobForm({
               }}
             />
           </div>
-
-          {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                className="cursor-pointer"
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                type="submit"
-                className="cursor-pointer"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                disabled={isPending}
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
 
           {isEditing && <Separator className="my-4" />}
 

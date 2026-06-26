@@ -19,6 +19,7 @@ import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from './haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { NewDriverFormSchema } from './schemas/driver-form-schema';
 import z from 'zod';
 import { DataTableClient } from '@/components/ui/data-table-client';
@@ -260,6 +261,34 @@ export default function DriverForm({
     enabled: isEditing && !!id,
   });
   const complianceRecords = checklistsData?.content ?? [];
+
+  useFormDialogFooter(
+    <div className="flex justify-end gap-2">
+      <Button
+        variant="outline"
+        type="button"
+        className="cursor-pointer"
+        onClick={onCancel}
+      >
+        Cancel
+      </Button>
+      <Button
+        form="driver-form"
+        type="submit"
+        disabled={isPending}
+        className="cursor-pointer"
+      >
+        {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {isPending
+          ? isEditing
+            ? 'Saving Changes...'
+            : 'Adding Driver...'
+          : isEditing
+            ? 'Update Driver'
+            : 'Add Driver'}
+      </Button>
+    </div>,
+  );
 
   return (
     <div className="w-full relative">
@@ -564,31 +593,6 @@ export default function DriverForm({
             />
           )}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
-            <Button
-              variant="outline"
-              type="button"
-              className="cursor-pointer flex-1 sm:flex-none"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              form="driver-form"
-              type="submit"
-              disabled={isPending}
-              className="cursor-pointer flex-1 sm:flex-none"
-            >
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Driver...'
-                : isEditing
-                  ? 'Update Driver'
-                  : 'Add Driver'}
-            </Button>
-          </div>
         </form>
       </Form>
     </div>
