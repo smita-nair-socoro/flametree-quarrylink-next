@@ -54,6 +54,7 @@ type UseJobFormStateProps = {
   onDirtyChange?: (isDirty: boolean) => void;
   onSaved?: () => void;
   onSuccess?: () => void;
+  loadMoreEnabled?: boolean;
 };
 
 export function useJobFormState({
@@ -61,6 +62,7 @@ export function useJobFormState({
   onDirtyChange,
   onSaved,
   onSuccess,
+  loadMoreEnabled = false,
 }: UseJobFormStateProps) {
   const isEditing = Boolean(id);
   const jobId = id ?? 0;
@@ -80,15 +82,22 @@ export function useJobFormState({
     enabled: isEditing && jobId > 0,
   });
 
+  const selectedCustomerId = jobForm.watch('customerId');
+
   const {
     customers,
     customerOptions,
     hasMoreCustomerOptions,
     isLoadingMoreCustomerOptions,
     onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
   } = useCustomersForForm({
     isEditing,
     customerId: jobDetails?.customerId,
+    loadMoreEnabled,
+    selectedCustomerId,
   });
 
   const createJob = useCreateJob();
@@ -352,6 +361,9 @@ export function useJobFormState({
     hasMoreCustomerOptions,
     isLoadingMoreCustomerOptions,
     onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
     tabs,
     isPending,
     onSubmit,

@@ -59,6 +59,7 @@ export default function JobForm({
   onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
 
   const {
     jobForm,
@@ -70,6 +71,9 @@ export default function JobForm({
     hasMoreCustomerOptions,
     isLoadingMoreCustomerOptions,
     onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
     tabs,
     isPending,
     onSubmit,
@@ -78,6 +82,7 @@ export default function JobForm({
     onDirtyChange,
     onSaved,
     onSuccess: id ? undefined : onSuccess,
+    loadMoreEnabled: customerSelectOpen,
   });
 
   const isSyncing = useIsMutating({ mutationKey: ['retrySync'] }) > 0;
@@ -175,9 +180,14 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              onDropdownOpenChange={setCustomerSelectOpen}
+              searchValue={customerSearch}
+              onSearchChange={onCustomerSearchChange}
+              isSearchingOptions={isSearchingCustomers}
               onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
               hasMoreOptions={hasMoreCustomerOptions}
               isLoadingMoreOptions={isLoadingMoreCustomerOptions}
+              disabled={isEditing}
             />
 
             <FormField

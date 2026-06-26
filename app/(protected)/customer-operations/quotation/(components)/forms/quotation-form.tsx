@@ -47,7 +47,7 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { useCustomersForForm } from '@/hooks/customer/use-customers-for-form';
+import { useCustomersForForm, customerDtoFromQuotation } from '@/hooks/customer/use-customers-for-form';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
@@ -134,16 +134,33 @@ export default function QuotationForm({
   }, [quotationForm.formState.isDirty, onDirtyChange]);
 
   // Fetch customers from API
+  const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
+
+  const linkedCustomerFromQuotation = React.useMemo(
+    () =>
+      currentQuotation ? customerDtoFromQuotation(currentQuotation) : null,
+    [currentQuotation],
+  );
+
+  const selectedCustomerId = quotationForm.watch('customerId');
+
   const {
     customers,
     customerOptions,
     hasMoreCustomerOptions,
     isLoadingMoreCustomerOptions,
     onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
   } = useCustomersForForm({
     isEditing,
     isDuplicate,
     customerId: currentQuotation?.customerId,
+    allowCustomerChangeWhileEditing: isEditing && !isDuplicate,
+    linkedCustomer: linkedCustomerFromQuotation,
+    loadMoreEnabled: customerSelectOpen,
+    selectedCustomerId,
   });
 
   const getCustomerNameById = React.useCallback(
@@ -505,6 +522,10 @@ export default function QuotationForm({
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
               disabled={isEditing && !canEdit}
+              onDropdownOpenChange={setCustomerSelectOpen}
+              searchValue={customerSearch}
+              onSearchChange={onCustomerSearchChange}
+              isSearchingOptions={isSearchingCustomers}
               onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
               hasMoreOptions={hasMoreCustomerOptions}
               isLoadingMoreOptions={isLoadingMoreCustomerOptions}

@@ -160,6 +160,26 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
 
   /** Whether a next page of options is currently loading. */
   isLoadingMoreOptions?: boolean;
+
+  /** Called when the dropdown open state changes. */
+  onDropdownOpenChange?: (open: boolean) => void;
+
+  /**
+   * Controlled search input value. Pair with `onSearchChange` for server-side search.
+   */
+  searchValue?: string;
+
+  /** Called when the search input changes. */
+  onSearchChange?: (value: string) => void;
+
+  /**
+   * When true, disables cmdk client-side filtering so options come from the server.
+   * Defaults to true when `onSearchChange` is provided.
+   */
+  serverSideSearch?: boolean;
+
+  /** Whether options are being loaded for the current search query. */
+  isSearchingOptions?: boolean;
 }
 
 /**
@@ -189,24 +209,42 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onOptionsListScrollEnd,
   hasMoreOptions = false,
   isLoadingMoreOptions = false,
+  onDropdownOpenChange,
+  searchValue,
+  onSearchChange,
+  serverSideSearch,
+  isSearchingOptions = false,
 }: FormSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
+  const useServerSideSearch = serverSideSearch ?? Boolean(onSearchChange);
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      onDropdownOpenChange?.(nextOpen);
+    },
+    [onDropdownOpenChange],
+  );
+
+  const tryLoadMoreOptions = React.useCallback(() => {
+    if (!open || !onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
+      return;
+    }
+    onOptionsListScrollEnd();
+  }, [open, hasMoreOptions, isLoadingMoreOptions, onOptionsListScrollEnd]);
 
   const handleOptionsListScroll = React.useCallback(
     (event: React.UIEvent<HTMLDivElement>) => {
-      if (!onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
-        return;
-      }
-
       const target = event.currentTarget;
+      const isScrollable = target.scrollHeight > target.clientHeight + 1;
       const distanceFromBottom =
         target.scrollHeight - target.scrollTop - target.clientHeight;
 
-      if (distanceFromBottom <= 24) {
-        onOptionsListScrollEnd();
+      if (isScrollable && distanceFromBottom <= 24) {
+        tryLoadMoreOptions();
       }
     },
-    [hasMoreOptions, isLoadingMoreOptions, onOptionsListScrollEnd],
+    [tryLoadMoreOptions],
   );
 
   return (
@@ -227,7 +265,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
         return (
         <FormItem className={formItemClassName}>
           {label && <FormLabel>{label}</FormLabel>}
-          <Popover open={open} onOpenChange={setOpen} modal={true}>
+          <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
@@ -247,19 +285,27 @@ export function FormSelect<TFieldValues extends FieldValues>({
                 </Button>
               </FormControl>
             </PopoverTrigger>
+            {open && (
             <PopoverContent
               className={cn(popoverWidthClass, 'p-1 w-auto')}
               align="start"
             >
-              <Command>
+              <Command shouldFilter={!useServerSideSearch}>
                 {showSearch && (
                   <CommandInput
                     placeholder={`Search ${searchLabel}...`}
                     className="h-9"
+                    value={searchValue}
+                    onValueChange={onSearchChange}
                   />
                 )}
-                <CommandList onScroll={handleOptionsListScroll}>
-                  <CommandEmpty>No {label} found.</CommandEmpty>
+                <CommandList
+                  onScroll={handleOptionsListScroll}
+                  onWheel={(event) => event.stopPropagation()}
+                >
+                  <CommandEmpty>
+                    {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
+                  </CommandEmpty>
                   <CommandGroup>
                     {options.map((opt) => (
                       <CommandItem
@@ -299,9 +345,14 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       </CommandItem>
                     ))}
 
-                    {isLoadingMoreOptions && (
-                      <CommandItem disabled className="justify-center text-muted-foreground">
-                        Loading more...
+                    {hasMoreOptions && (
+                      <CommandItem
+                        value="__load_more_options__"
+                        onSelect={tryLoadMoreOptions}
+                        disabled={isLoadingMoreOptions}
+                        className="justify-center text-primary cursor-pointer"
+                      >
+                        {isLoadingMoreOptions ? 'Loading more...' : 'Load more...'}
                       </CommandItem>
                     )}
 
@@ -326,6 +377,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                 </CommandList>
               </Command>
             </PopoverContent>
+            )}
           </Popover>
           {showErrorMessage && <FormMessage />}
         </FormItem>
