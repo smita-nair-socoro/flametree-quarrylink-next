@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { UserPlus, AlertTriangle, ChevronsUpDown, Check } from 'lucide-react';
-import { DocketDTO } from '@/lib/types/docket';
+import { DocketDTO, ConflictingDocket } from '@/lib/types/docket';
 import { SelectOptions } from '@/components/ui/select-options';
 import {
   ColorSelect,
@@ -11,15 +11,14 @@ import {
 } from '@/components/ui/color-select';
 import { useQuery } from '@tanstack/react-query';
 import {
-  HauliersListQueryOptions,
   HaulierTrucksQueryOptions,
   HaulierDriversQueryOptions,
 } from '@/lib/api/haulier';
+import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
-import { ConflictingDocket } from '@/lib/types/docket';
-import { calculateConvertedQty, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
+import { calculateConvertedQty } from '@/lib/utils/docket-helper';
 import { appendUtcSuffix } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
@@ -103,12 +102,12 @@ function ConflictWarning({
   dockets,
   isLoading,
   onClose,
-}: {
+}: Readonly<{
   label: string;
   dockets: ConflictingDocket[];
   isLoading?: boolean;
   onClose?: () => void;
-}) {
+}>) {
   const router = useRouter();
 
   if (isLoading) {
@@ -143,15 +142,16 @@ function ConflictWarning({
               color: '#364153',
             }}
           >
-            <span
-              className="font-medium underline cursor-pointer text-[#155DFC]"
+            <button
+              type="button"
+              className="font-medium underline cursor-pointer text-[#155DFC] text-xs"
               onClick={() => {
                 onClose?.();
                 router.push(`/customer-operations/dockets/?docketId=${ids}`);
               }}
             >
               Conflict Dockets
-            </span>
+            </button>
           </div>
         </div>
       </div>
@@ -161,9 +161,17 @@ function ConflictWarning({
 
 export function AssignDocketDescription({
   docket,
-}: {
+}: Readonly<{
   docket?: DocketDTO | null;
-}) {
+}>) {
+  const uom = docket?.jobItem?.productSellUom;
+  let uomLabel: string | undefined;
+  if (uom === 'M3' || uom === 'm3') uomLabel = 'm³';
+  else if (uom === 'KG_20') uomLabel = 'x 20kg';
+  else if (uom === 'TN') uomLabel = 'TN';
+  else if (uom === 'BULKA') uomLabel = 'Bulka';
+  else uomLabel = uom;
+
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-13 w-13 flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
@@ -177,16 +185,10 @@ export function AssignDocketDescription({
           <span>{docket?.jobItem?.product?.productName ?? '—'}</span>
           <span className="font-bold">•</span>
           <span>
-            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatNumberThousandSeparator(
+              docket?.actualLoadSize || docket?.plannedLoadSize,
+            )}{' '}
+            {uomLabel}
           </span>
         </div>
       </div>
@@ -204,12 +206,13 @@ export function AssignDocketContent({
   onDriverChange,
   onClose,
   onExceedsCapacity,
-}: AssignDocketContentProps) {
-  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
-  const hauliers = React.useMemo(
-    () => hauliersData?.content ?? [],
-    [hauliersData],
-  );
+}: Readonly<AssignDocketContentProps>) {
+  const {
+    hauliers,
+    hasMoreHauliers,
+    isLoadingMoreHauliers,
+    onHaulierScrollEnd,
+  } = useHauliersForForm();
   const { data: haulierTrucksData } = useQuery(
     HaulierTrucksQueryOptions(haulerSelection ?? 0),
   );
@@ -291,7 +294,9 @@ export function AssignDocketContent({
   ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
   const internalOptions = React.useMemo(() => {
-    const h = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
+    const h = hauliers.find((h) =>
+      isInternalHaulier(h.emailAddress, tenantEmail),
+    );
     return h ? [{ label: `${h.haulierName} (Internal)`, value: h.id }] : [];
   }, [hauliers, tenantEmail]);
 
@@ -356,11 +361,11 @@ export function AssignDocketContent({
 
   const driverOptions = React.useMemo(
     () =>
-      !truckSelection
-        ? []
-        : availableDrivers
+      truckSelection
+        ? availableDrivers
           .filter((d) => d.truckIds.includes(truckSelection))
-          .map((d) => ({ label: d.driverName, value: d.id })),
+          .map((d) => ({ label: d.driverName, value: d.id }))
+        : [],
     [availableDrivers, truckSelection],
   );
 
@@ -405,7 +410,14 @@ export function AssignDocketContent({
           >
             <Command>
               <CommandInput placeholder="Search hauliers..." className="h-9" />
-              <CommandList>
+              <CommandList
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  if (el.scrollHeight - el.scrollTop - el.clientHeight < 80) {
+                    onHaulierScrollEnd();
+                  }
+                }}
+              >
                 <CommandEmpty>No hauliers found.</CommandEmpty>
                 {[
                   { heading: 'Internal', opts: internalOptions },
@@ -433,6 +445,11 @@ export function AssignDocketContent({
                         ))}
                       </CommandGroup>
                     ),
+                )}
+                {hasMoreHauliers && (
+                  <p className="py-2 text-center text-xs text-muted-foreground">
+                    {isLoadingMoreHauliers ? 'Loading...' : 'Scroll for more'}
+                  </p>
                 )}
               </CommandList>
             </Command>

@@ -83,7 +83,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HauliersPage } from '../types/haulier';
+import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -1294,13 +1294,34 @@ export const APIClient = {
       appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
         body: data,
       }),
-    getAll: () => appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier'),
+    getAll: (params?: {
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier', {
+        queryString: {
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString(),
+        },
+      }),
     getById: (id: number) =>
       appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
     update: (id: number, data: HaulierCreateDTO) =>
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
+    getStatistics: () =>
+      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+    delete: (id: number) =>
+      appClient.Delete<HaulierDeleteResponse>(
+        `/socoro/quarrylink/api/haulier/${id}`,
+      ),
     getDrivers: (haulierId: number) =>
       appClient.Get<{ drivers: DriverDTO[] }>(
         `/socoro/quarrylink/api/haulier/${haulierId}/drivers`,

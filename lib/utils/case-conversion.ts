@@ -27,7 +27,7 @@ export function convertKeysToSnakeCase<T>(obj: T): T {
   if (typeof obj === 'object' && obj.constructor === Object) {
     const converted: Record<string, unknown> = {};
     for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (Object.hasOwn(obj, key)) {
         const snakeKey = camelToSnake(key);
         converted[snakeKey] = convertKeysToSnakeCase(
           (obj as Record<string, unknown>)[key],
@@ -55,7 +55,7 @@ export function convertKeysToCamelCase<T>(obj: T): T {
   if (typeof obj === 'object' && obj.constructor === Object) {
     const converted: Record<string, unknown> = {};
     for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (Object.hasOwn(obj, key)) {
         const camelKey = snakeToCamel(key);
         converted[camelKey] = convertKeysToCamelCase(
           (obj as Record<string, unknown>)[key],
