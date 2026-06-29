@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Truck, Users, MoreHorizontal, Trash2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -27,12 +26,11 @@ export function HaulierActionButtons({
   const { actions, confirmDialogs } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier?.emailAddress, tenantEmail);
-  const router = useRouter();
 
   if (!haulier?.id) return null;
 
-  const handleLinkedTrucks = () => router.push(`/logistics/trucks?haulierId=${haulier.id}`);
-  const handleLinkedDrivers = () => router.push(`/logistics/drivers?haulierId=${haulier.id}`);
+  const handleLinkedTrucks = () => globalThis.open(`/logistics/trucks?haulierId=${haulier.id}`, '_blank');
+  const handleLinkedDrivers = () => globalThis.open(`/logistics/drivers?haulierId=${haulier.id}`, '_blank');
 
   return (
     <>
