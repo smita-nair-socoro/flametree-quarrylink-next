@@ -5,11 +5,10 @@ import { Building2, Truck, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
   HauliersListQueryOptions,
+  HaulierStatisticsQueryOptions,
   toHaulierApiSortParams,
   getHaulierItemsFromListResponse,
 } from '@/lib/api/haulier';
-import { TrucksListQueryOptions } from '@/lib/api/truck';
-import { DriversListQueryOptions } from '@/lib/api/driver';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
@@ -25,8 +24,7 @@ export default function HaulierPage() {
   const { actions, viewDialog } = useHaulierActions();
   const handleRowClick = (haulier: HaulierDTO) => actions.view(haulier);
 
-  const { data: trucks } = useQuery(TrucksListQueryOptions());
-  const { data: drivers } = useQuery(DriversListQueryOptions());
+  const { data: statistics } = useQuery(HaulierStatisticsQueryOptions());
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -81,20 +79,10 @@ export default function HaulierPage() {
     [],
   );
 
-  const trucksManaged = React.useMemo(
-    () => (Array.isArray(trucks) ? trucks.filter((t) => t.haulierId).length : 0),
-    [trucks],
-  );
-
-  const driversManaged = React.useMemo(
-    () => (Array.isArray(drivers) ? drivers.filter((d) => d.haulierId).length : 0),
-    [drivers],
-  );
-
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Hauliers',
-      value: totalElements,
+      value: statistics?.totalHauliers ?? totalElements,
       description: 'External haulage companies',
       icon: Building2,
       iconBgColor: 'bg-[#DBEAFE]',
@@ -103,7 +91,7 @@ export default function HaulierPage() {
     },
     {
       title: 'Trucks Managed',
-      value: trucksManaged,
+      value: statistics?.trucksManaged ?? 0,
       description: 'Across all hauliers',
       icon: Truck,
       iconBgColor: 'bg-[#DCFCE7]',
@@ -112,7 +100,7 @@ export default function HaulierPage() {
     },
     {
       title: 'Drivers Managed',
-      value: driversManaged,
+      value: statistics?.driversManaged ?? 0,
       description: 'Across all hauliers',
       icon: Users,
       iconBgColor: 'bg-[#EDE9FE]',

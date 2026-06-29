@@ -86,6 +86,7 @@ export function useHaulierActions(
         onOpenChangeAction={(open) => {
           if (!open) setDeleteState({ mode: 'idle' });
         }}
+        preventOutsideClose
         title="Cannot Delete Haulier"
         description={<CannotDeleteHaulierDescription haulier={haulierData} />}
         content={

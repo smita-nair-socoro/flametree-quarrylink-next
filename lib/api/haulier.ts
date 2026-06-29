@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { HaulierKeys } from './keys';
-import type { HaulierDTO, HauliersPage, HaulierCreateDTO, HaulierDeleteResponse } from '../types/haulier';
+import type { HaulierDTO, HauliersPage, HaulierCreateDTO, HaulierDeleteResponse, HaulierStatistics } from '../types/haulier';
 
 export type HauliersListParams = {
   /** 0-based page index from UI tables (converted to 1-based for the API). */
@@ -103,6 +103,13 @@ export const HauliersInfiniteListQueryOptions = (
     staleTime: 5_000,
   });
 
+export const HaulierStatisticsQueryOptions = () =>
+  queryOptions<HaulierStatistics>({
+    queryKey: HaulierKeys.statistics(),
+    queryFn: () => APIClient.hauliers.getStatistics(),
+    staleTime: 30_000,
+  });
+
 export const HaulierDetailQueryOptions = (id: number) =>
   queryOptions({
     queryKey: HaulierKeys.detail(id),
@@ -148,6 +155,7 @@ export const useDeleteHaulier = () => {
     mutationFn: (id) => APIClient.hauliers.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: HaulierKeys.list() });
+      queryClient.invalidateQueries({ queryKey: HaulierKeys.statistics() });
     },
   });
 };
