@@ -13,9 +13,12 @@ export interface Product {
   deliveryAddress: string;
   truckType: string;
   capacity: string;
+  unit: string;
   quantity: string;
+  rawQty: number;
+  unitPrice: number;
   totalPrice: number;
-  deliveryPrice?: number; // Optional delivery price
+  deliveryPrice?: number;
 }
 
 export interface ProductsServicesProps {
@@ -24,59 +27,50 @@ export interface ProductsServicesProps {
   includeDeliveryPrices?: boolean;
 }
 
+const calcUnitPriceCents = (product: Product, includeDeliveryPrices: boolean): number => {
+  if (includeDeliveryPrices) return product.unitPrice;
+  const combinedPrice = product.totalPrice + (product.deliveryPrice || 0);
+  return product.rawQty > 0 ? combinedPrice / product.rawQty : 0;
+};
+
+const deliveryCol = (currencySymbol: string): ColumnDef<Product> => ({
+  accessorKey: 'deliveryPrice',
+  header: 'Delivery',
+  cell: ({ row }) => (
+    <span className="inline-block px-2 py-1 rounded-md bg-[#F3EEFF] text-[#8E51FF] font-semibold text-sm">
+      {currencySymbol}
+      {centsToDollars(row.original.deliveryPrice || 0)}
+    </span>
+  ),
+  size: 100,
+});
+
 const createColumns = (
   includeDeliveryPrices: boolean,
   currencySymbol: string,
-): ColumnDef<Product>[] => {
-  const columns: ColumnDef<Product>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Product',
-      cell: ({ row }) => (
-        <div className="min-w-0">
-          <p
-            className="font-semibold text-gray-900 text-sm"
-            title={row.original.name}
-          >
-            {row.original.name}
-          </p>
-          <p
-            className="text-gray-500 text-xs whitespace-normal"
-            title={row.original.deliveryAddress}
-          >
-            {row.original.deliveryAddress}
-          </p>
-        </div>
-      ),
-      size: 250,
-    },
-    {
-      accessorKey: 'quantity',
-      header: 'Quantity',
-      cell: ({ row }) => (
-        <p className="text-gray-900 text-sm">{row.original.quantity}</p>
-      ),
-      size: 100,
-    },
-  ];
-
-  // Add Delivery column if includeDeliveryPrices is true
-  if (includeDeliveryPrices) {
-    columns.push({
-      accessorKey: 'deliveryPrice',
-      header: 'Delivery',
-      cell: ({ row }) => (
-        <span className="inline-block px-2 py-1 rounded-md bg-[#F3EEFF] text-[#8E51FF] font-semibold text-sm">
-          {currencySymbol}
-          {centsToDollars(row.original.deliveryPrice || 0)}
-        </span>
-      ),
-      size: 100,
-    });
-  }
-
-  // Add Type column between Delivery and Product Price
-  columns.push({
+): ColumnDef<Product>[] => [
+  {
+    accessorKey: 'name',
+    header: 'Product',
+    cell: ({ row }) => (
+      <div className="min-w-0">
+        <p
+          className="font-semibold text-gray-900 text-sm"
+          title={row.original.name}
+        >
+          {row.original.name}
+        </p>
+        <p
+          className="text-gray-500 text-xs whitespace-normal"
+          title={row.original.deliveryAddress}
+        >
+          {row.original.deliveryAddress}
+        </p>
+      </div>
+    ),
+    size: 250,
+  },
+  {
     accessorKey: 'type',
     header: 'Type',
     cell: ({ row }) => (
@@ -85,12 +79,29 @@ const createColumns = (
       </div>
     ),
     size: 140,
-  });
-
-  // Add Price column
-  // When includeDeliveryPrices is true: show only product price (delivery is separate column)
-  // When includeDeliveryPrices is false: show total price (product + delivery combined)
-  columns.push({
+  },
+  {
+    accessorKey: 'quantity',
+    header: 'Quantity',
+    cell: ({ row }) => (
+      <p className="text-gray-900 text-sm whitespace-nowrap">{row.original.quantity}</p>
+    ),
+    size: 140,
+  },
+  ...(includeDeliveryPrices ? [deliveryCol(currencySymbol)] : []),
+  {
+    accessorKey: 'unitPrice',
+    header: 'Unit Price',
+    cell: ({ row }) => (
+      <p className="text-gray-900 text-sm">
+        {currencySymbol}
+        {centsToDollars(calcUnitPriceCents(row.original, includeDeliveryPrices))}
+        {row.original.unit ? `/${row.original.unit}` : ''}
+      </p>
+    ),
+    size: 120,
+  },
+  {
     accessorKey: 'totalPrice',
     header: includeDeliveryPrices ? 'Product Price' : 'Total Price',
     cell: ({ row }) => {
@@ -105,16 +116,14 @@ const createColumns = (
       );
     },
     size: 100,
-  });
-
-  return columns;
-};
+  },
+];
 
 export function ProductsServices({
   products,
   currencyTax,
   includeDeliveryPrices = false,
-}: ProductsServicesProps) {
+}: Readonly<ProductsServicesProps>) {
   const columns = React.useMemo(
     () => createColumns(includeDeliveryPrices, currencyTax.currencySymbol),
     [includeDeliveryPrices, currencyTax.currencySymbol],

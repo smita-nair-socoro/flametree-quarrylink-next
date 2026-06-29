@@ -45,7 +45,10 @@ export interface QuotationData {
     deliveryAddress: string;
     truckType: string;
     capacity: string;
+    unit: string;
     quantity: string;
+    rawQty: number;
+    unitPrice: number;
     totalPrice: number;
     deliveryPrice?: number;
   }>;

@@ -11,7 +11,10 @@ export interface Product {
   deliveryAddress: string;
   truckType: string;
   capacity: string;
+  unit: string;
   quantity: string;
+  rawQty: number;
+  unitPrice: number;
   totalPrice: number;
   deliveryPrice?: number;
 }
@@ -48,25 +51,15 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
       (product) =>
         String(product.type || '').toUpperCase() === QUOTE_ITEM_TYPE.COLLECTION,
     );
-  const colWidths = isCollection
-    ? includeDeliveryPrices
-      ? {
-          product: '35%',
-          qty: '20%',
-          delivery: '20%',
-          type: '10%',
-          price: '15%',
-        }
-      : { product: '40%', qty: '25%', type: '15%', price: '20%' }
-    : includeDeliveryPrices
-      ? {
-          product: '40%',
-          qty: '12%',
-          delivery: '15%',
-          type: '15%',
-          price: '18%',
-        }
-      : { product: '45%', qty: '15%', type: '20%', price: '20%' };
+  const colWidths = (() => {
+    if (isCollection && includeDeliveryPrices)
+      return { product: '30%', type: '10%', qty: '15%', delivery: '15%', unitPrice: '15%', price: '15%' };
+    if (isCollection)
+      return { product: '35%', type: '15%', qty: '20%', delivery: undefined, unitPrice: '15%', price: '15%' };
+    if (includeDeliveryPrices)
+      return { product: '30%', type: '12%', qty: '10%', delivery: '13%', unitPrice: '17%', price: '18%' };
+    return { product: '35%', type: '15%', qty: '15%', delivery: undefined, unitPrice: '17%', price: '18%' };
+  })();
 
   return (
     <View style={styles.section}>
@@ -81,6 +74,14 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
           ]}
         >
           Product
+        </Text>
+        <Text
+          style={[
+            styles.tableHeaderText,
+            { width: colWidths.type, paddingRight: 8 },
+          ]}
+        >
+          Type
         </Text>
         <Text
           style={[
@@ -103,10 +104,10 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
         <Text
           style={[
             styles.tableHeaderText,
-            { width: colWidths.type, paddingRight: 8 },
+            { width: colWidths.unitPrice, paddingRight: 8 },
           ]}
         >
-          Type
+          Unit Price
         </Text>
         <Text
           style={[
@@ -119,18 +120,47 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
       </View>
 
       {/* Table Rows */}
-      {products.map((product, index) => {
-        // Calculate the price to display
-        const displayPrice = includeDeliveryPrices
-          ? product.totalPrice
-          : product.totalPrice + (product.deliveryPrice || 0);
+      {products.map((product) => {
+        const combinedPrice = product.totalPrice + (product.deliveryPrice || 0);
+        const displayPrice = includeDeliveryPrices ? product.totalPrice : combinedPrice;
+        const combinedUnitPrice = product.rawQty > 0 ? combinedPrice / product.rawQty : 0;
+        const unitPriceCents = includeDeliveryPrices ? product.unitPrice : combinedUnitPrice;
+        const rowKey = `${product.name}-${product.deliveryAddress}-${product.totalPrice}`;
 
         return (
-          <View key={index} style={styles.tableRow}>
+          <View key={rowKey} style={styles.tableRow}>
             {/* Product Column */}
             <View style={{ width: colWidths.product, paddingRight: 8 }}>
               <Text style={styles.productName}>{product.name}</Text>
               <Text style={styles.productCode}>{product.deliveryAddress}</Text>
+            </View>
+
+            {/* Type Column */}
+            <View
+              style={{
+                width: colWidths.type,
+                paddingRight: 8,
+                justifyContent: 'center',
+              }}
+            >
+              {product.type ? (() => {
+                const badgeStyle = getTypeBadgeStyle(product.type);
+                return (
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      {
+                        backgroundColor: badgeStyle.backgroundColor,
+                        borderColor: badgeStyle.borderColor,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.statusBadgeText, { color: badgeStyle.color }]}>
+                      {product.type.replaceAll('_', ' ')}
+                    </Text>
+                  </View>
+                );
+              })() : <Text style={styles.quantity}>—</Text>}
             </View>
 
             {/* Quantity Column */}
@@ -163,32 +193,19 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
               </View>
             )}
 
-            {/* Type Column */}
+            {/* Unit Price Column */}
             <View
               style={{
-                width: colWidths.type,
+                width: colWidths.unitPrice,
                 paddingRight: 8,
                 justifyContent: 'center',
               }}
             >
-              {product.type ? (() => {
-                const badgeStyle = getTypeBadgeStyle(product.type);
-                return (
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      {
-                        backgroundColor: badgeStyle.backgroundColor,
-                        borderColor: badgeStyle.borderColor,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.statusBadgeText, { color: badgeStyle.color }]}>
-                      {product.type.replace(/_/g, ' ')}
-                    </Text>
-                  </View>
-                );
-              })() : <Text style={styles.quantity}>—</Text>}
+              <Text style={styles.quantity}>
+                {currencySymbol}
+                {centsToDollars(unitPriceCents)}
+                {product.unit ? `/${product.unit}` : ''}
+              </Text>
             </View>
 
             {/* Price Column */}
