@@ -13,7 +13,6 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
-  Copy,
   RotateCcw,
   Send,
   Eye,
@@ -866,7 +865,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const { data: sendDialogCustomer } = useQuery({
     ...CustomerDetailQueryOptions(quotationData?.customerId ?? 0),
-    enabled: !!quotationData?.customerId,
+    enabled:
+      !!quotationData?.customerId &&
+      selectedAction?.key === 'sendToCustomer',
   });
   const sendDialogCustomerEmail = sendDialogCustomer?.contactPersonEmail || '';
 
