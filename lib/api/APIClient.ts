@@ -83,7 +83,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
+import { HaulierCreateDTO, HaulierDTO, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -890,20 +890,21 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets`,
         {
           queryString: {
-          page: params?.page?.toString(),
-          pageSize: pageSize?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
-          search: params?.search?.trim() || undefined,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          customerId: params?.customerId?.toString(),
-          productId: params?.productId?.toString(),
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            type: params?.type,
+            customerId: params?.customerId?.toString(),
+            productId: params?.productId?.toString(),
+          },
         },
-      });
+      );
       return response;
     },
     getByJobId: async (
@@ -1293,7 +1294,7 @@ export const APIClient = {
       appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
         body: data,
       }),
-    getAll: () => appClient.Get<HaulierDTO[]>('/socoro/quarrylink/api/haulier'),
+    getAll: () => appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier'),
     getById: (id: number) =>
       appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
     update: (id: number, data: HaulierCreateDTO) =>

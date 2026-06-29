@@ -15,9 +15,8 @@ import {
 } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { PhoneInput } from '@/components/ui/phone-input';
-import { HaulierFormSchema } from './schemas/haulier-form-schema';
+import { HaulierFormSchema } from '@/app/(protected)/logistics/drivers/(components)/forms/schemas/haulier-form-schema';
 import z from 'zod';
-import type { SelectCreateEditItem } from '@/components/ui/select-create-edit';
 import { useQuery } from '@tanstack/react-query';
 import {
   useCreateHaulier,
@@ -28,45 +27,43 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
-import { useFormDialogFooter } from '@/components/form-dialog';
-import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface HaulierFormProps {
-  editingItem?: SelectCreateEditItem | null;
-  isEditing: boolean;
-  onSave: (item: SelectCreateEditItem) => void;
-  onCancel: () => void;
+  id?: number;
+  onCancel?: () => void;
+  onSuccess?: () => void;
+  onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function HaulierForm({
-  editingItem,
-  isEditing,
-  onSave,
+  id,
   onCancel,
+  onSuccess,
+  onDirtyChange,
 }: HaulierFormProps) {
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isEditing = Boolean(id && id > 0);
   const createHaulier = useCreateHaulier();
   const updateHaulier = useUpdateHaulier();
-  const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
-  const tenantEmail = useTenantStore((state) => state.tenantEmail);
 
-  const { data: haulierData } = useQuery(HaulierDetailQueryOptions(editingId));
+  const { data: haulierData } = useQuery(HaulierDetailQueryOptions(id ?? 0));
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isInternal = isInternalHaulier(haulierData?.emailAddress, tenantEmail);
 
   const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
     mode: 'onChange',
-    defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-    },
+    defaultValues: { name: '', email: '', phone: '' },
   });
 
-  // Populate form with fetched data when editing (mirrors docket form pattern)
+  React.useEffect(() => {
+    const subscription = form.watch(() => {
+      onDirtyChange?.(form.formState.isDirty);
+    });
+    return () => subscription.unsubscribe();
+  }, [form, onDirtyChange]);
+
   React.useEffect(() => {
     if (!isEditing || !haulierData) return;
-
     form.reset({
       name: haulierData.haulierName,
       email: haulierData.emailAddress,
@@ -74,7 +71,6 @@ export default function HaulierForm({
     });
   }, [isEditing, haulierData, form]);
 
-  // Clear form when switching to add mode
   React.useEffect(() => {
     if (!isEditing) {
       form.reset({ name: '', email: '', phone: '' });
@@ -82,10 +78,10 @@ export default function HaulierForm({
   }, [isEditing, form]);
 
   async function onSubmit(values: z.infer<typeof HaulierFormSchema>) {
-    if (isEditing) {
-      try {
-        const result = await updateHaulier.mutateAsync({
-          id: editingId,
+    try {
+      if (isEditing && id) {
+        await updateHaulier.mutateAsync({
+          id,
           data: {
             haulierName: values.name,
             haulierEmailAddress: values.email,
@@ -93,59 +89,23 @@ export default function HaulierForm({
           },
         });
         notifySuccess('Haulier updated successfully.');
-        onSave({
-          id: result.id,
-          label: result.haulierName,
-          fields: { email: result.emailAddress, phone: result.phoneNumber },
-        });
-      } catch (error: unknown) {
-        notifyError(extractErrorMessage(error));
-      }
-    } else {
-      try {
-        const result = await createHaulier.mutateAsync({
+      } else {
+        await createHaulier.mutateAsync({
           haulierName: values.name,
           haulierEmailAddress: values.email,
           haulierPhoneNumber: values.phone,
         });
         notifySuccess('Haulier created successfully.');
-        onSave({
-          id: String(result.id),
-          label: result.haulierName,
-          fields: { email: result.emailAddress, phone: result.phoneNumber },
-        });
-      } catch (error: unknown) {
-        notifyError(extractErrorMessage(error));
       }
+      onSuccess?.();
+    } catch (error: unknown) {
+      notifyError(extractErrorMessage(error));
     }
   }
-
-  useFormDialogFooter(
-    isDesktop ? (
-      <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
-          Cancel
-        </Button>
-        <Button
-          form="haulier-form"
-          type="submit"
-          variant="default"
-          disabled={createHaulier.isPending || updateHaulier.isPending}
-        >
-          {isEditing ? 'Update Haulier' : 'Add Haulier'}
-        </Button>
-      </div>
-    ) : null,
-  );
 
   return (
     <Form {...form}>
       <form
-        id="haulier-form"
         onSubmit={(e) => {
           e.stopPropagation();
           void form.handleSubmit(onSubmit)(e);
@@ -201,26 +161,18 @@ export default function HaulierForm({
           )}
         />
 
-        {!isDesktop && (
-          <div className="flex flex-col gap-3 mt-4">
-            <Button
-              form="haulier-form"
-              type="submit"
-              variant="default"
-              disabled={createHaulier.isPending || updateHaulier.isPending}
-            >
-              {isEditing ? 'Update Haulier' : 'Add Haulier'}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-          </div>
-        )}
-
+        <div className="flex justify-end gap-3 mt-4 pb-4">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            variant="default"
+            disabled={isInternal || createHaulier.isPending || updateHaulier.isPending}
+          >
+            {isEditing ? 'Update Haulier' : 'Add Haulier'}
+          </Button>
+        </div>
       </form>
     </Form>
   );

@@ -1,0 +1,68 @@
+'use client';
+import * as React from 'react';
+import { ActionDialog } from '@/components/action-dialog';
+import { FormDialog } from '@/components/form-dialog';
+import { HaulierDTO } from '@/lib/types/haulier';
+import HaulierForm from '@/app/(protected)/logistics/haulier/(components)/forms/haulier-form';
+import { HaulierActionButtons } from '@/app/(protected)/logistics/haulier/(components)/forms/haulier-action-buttons';
+import {
+  DeleteHaulierDescription,
+  DeleteHaulierContent,
+} from '@/hooks/haulier/delete-haulier-content';
+
+export function useHaulierActions(
+  initialData?: HaulierDTO | null,
+  { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
+) {
+  const [viewOpen, setViewOpen] = React.useState(false);
+  const [haulierData, setHaulierData] = React.useState<HaulierDTO | null | undefined>(initialData);
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+
+  const actions = {
+    view: (data?: HaulierDTO | null) => {
+      if (data) setHaulierData(data);
+      setViewOpen(true);
+    },
+    delete: () => setDeleteOpen(true),
+  };
+
+  const confirmDialogs = (
+    <ActionDialog
+      open={deleteOpen}
+      onOpenChangeAction={(open) => setDeleteOpen(open)}
+      title="Delete Haulier"
+      description={<DeleteHaulierDescription haulier={haulierData} />}
+      content={<DeleteHaulierContent />}
+      confirmText="Delete Haulier"
+      confirmVariant="destructive"
+      confirmCustomColor="#E7000B"
+      cancelText="Cancel"
+      onConfirmAction={() => {
+        setDeleteOpen(false);
+        onDeleteSuccess?.();
+      }}
+    />
+  );
+
+  const viewDialog = viewOpen ? (
+    <FormDialog
+      id={haulierData?.id}
+      dialogTitle={haulierData?.haulierName}
+      open={viewOpen}
+      onOpenChangeAction={(open) => setViewOpen(open)}
+      hideTrigger
+      dialogWidth="800px"
+      headerButtonsAlign="center"
+      headerButtons={
+        <HaulierActionButtons
+          haulier={haulierData}
+          onDelete={() => setViewOpen(false)}
+        />
+      }
+    >
+      <HaulierForm />
+    </FormDialog>
+  ) : null;
+
+  return { actions, confirmDialogs, viewDialog };
+}

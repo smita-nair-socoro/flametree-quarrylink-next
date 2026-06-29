@@ -44,8 +44,10 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useClientStore } from '@/app/stores/client-store';
+
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
@@ -76,20 +78,24 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
+  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
+  const hauliers = React.useMemo(
+    () => hauliersData?.content ?? [],
+    [hauliersData],
+  );
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const createDriver = useCreateDriver();
@@ -189,7 +195,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -241,7 +247,8 @@ export default function DriverForm({
   const complianceSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id) return;
+    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id)
+      return;
 
     const element = complianceSectionRef.current;
     if (!element) return;
@@ -392,7 +399,6 @@ export default function DriverForm({
                 <Input
                   value={
                     internalHaulier?.haulierName ??
-                    businessName ??
                     'My Company Haulier'
                   }
                   disabled

@@ -37,7 +37,8 @@ import {
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -92,20 +93,24 @@ export default function TruckForm({
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
 
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
+  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
+  const hauliers = React.useMemo(
+    () => hauliersData?.content ?? [],
+    [hauliersData],
+  );
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
@@ -182,9 +187,7 @@ export default function TruckForm({
 
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck =
-        !!truckData.haulier?.haulierName &&
-        truckData.haulier.haulierName === businessName;
+      const isInternalTruck = isInternalHaulier(truckData.haulier?.emailAddress, tenantEmail);
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -204,7 +207,7 @@ export default function TruckForm({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, truckData, businessName]);
+  }, [isEditing, truckData, tenantEmail]);
 
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
@@ -406,7 +409,6 @@ export default function TruckForm({
                       <Input
                         value={
                           selectedHaulierInfo?.haulierName ??
-                          businessName ??
                           'My Company Haulier'
                         }
                         disabled
@@ -438,7 +440,6 @@ export default function TruckForm({
                     <Input
                       value={
                         internalHaulier?.haulierName ??
-                        businessName ??
                         'My Company Haulier'
                       }
                       disabled

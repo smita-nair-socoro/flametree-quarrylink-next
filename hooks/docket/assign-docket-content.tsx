@@ -15,7 +15,8 @@ import {
   HaulierTrucksQueryOptions,
   HaulierDriversQueryOptions,
 } from '@/lib/api/haulier';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
 import { ConflictingDocket } from '@/lib/types/docket';
 import { calculateConvertedQty, convertTruckVolumeToProductUom } from '@/lib/utils/docket-helper';
@@ -204,7 +205,11 @@ export function AssignDocketContent({
   onClose,
   onExceedsCapacity,
 }: AssignDocketContentProps) {
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
+  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
+  const hauliers = React.useMemo(
+    () => hauliersData?.content ?? [],
+    [hauliersData],
+  );
   const { data: haulierTrucksData } = useQuery(
     HaulierTrucksQueryOptions(haulerSelection ?? 0),
   );
@@ -212,7 +217,7 @@ export function AssignDocketContent({
     ...HaulierDriversQueryOptions(haulerSelection ?? 0),
     enabled: !!haulerSelection && !!truckSelection,
   });
-  const businessName = useClientStore((state) => state.getBusinessName());
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const [haulerOpen, setHaulerOpen] = React.useState(false);
 
   const availableTrucks = React.useMemo(
@@ -286,16 +291,16 @@ export function AssignDocketContent({
   ).filter((d) => d.docketStatus !== DOCKET_STATUS.DELIVERED);
 
   const internalOptions = React.useMemo(() => {
-    const h = hauliers.find((h) => h.haulierName === businessName);
+    const h = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
     return h ? [{ label: `${h.haulierName} (Internal)`, value: h.id }] : [];
-  }, [hauliers, businessName]);
+  }, [hauliers, tenantEmail]);
 
   const externalOptions = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({ label: h.haulierName, value: h.id })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const selectedHaulerLabel = [...internalOptions, ...externalOptions].find(

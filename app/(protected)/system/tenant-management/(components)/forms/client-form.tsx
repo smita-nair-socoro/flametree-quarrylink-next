@@ -3,7 +3,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { ClientFormSchema } from './schemas/client-form-schema';
-import { useSelectedClient } from '@/app/stores/client-store';
+import { useSelectedClient } from '@/app/stores/tenant-store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
