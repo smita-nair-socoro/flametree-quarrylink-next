@@ -270,6 +270,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           <AssignDriverContent
             drivers={allDrivers}
             assignedDriverIds={assignedDriverIds}
+            haulierName={truckData?.haulier?.haulierName}
             onSelectionChange={setSelectedDriverIds}
           />
         ),

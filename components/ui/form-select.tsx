@@ -148,6 +148,38 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
    * @default false
    */
   disabled?: boolean;
+
+  /**
+   * Called when the options list is scrolled near the bottom.
+   * Use with paginated/infinite option loading.
+   */
+  onOptionsListScrollEnd?: () => void;
+
+  /** Whether more options can be loaded via `onOptionsListScrollEnd`. */
+  hasMoreOptions?: boolean;
+
+  /** Whether a next page of options is currently loading. */
+  isLoadingMoreOptions?: boolean;
+
+  /** Called when the dropdown open state changes. */
+  onDropdownOpenChange?: (open: boolean) => void;
+
+  /**
+   * Controlled search input value. Pair with `onSearchChange` for server-side search.
+   */
+  searchValue?: string;
+
+  /** Called when the search input changes. */
+  onSearchChange?: (value: string) => void;
+
+  /**
+   * When true, disables cmdk client-side filtering so options come from the server.
+   * Defaults to true when `onSearchChange` is provided.
+   */
+  serverSideSearch?: boolean;
+
+  /** Whether options are being loaded for the current search query. */
+  isSearchingOptions?: boolean;
 }
 
 /**
@@ -174,8 +206,46 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onChange,
   disabled = false,
   showErrorMessage = true,
+  onOptionsListScrollEnd,
+  hasMoreOptions = false,
+  isLoadingMoreOptions = false,
+  onDropdownOpenChange,
+  searchValue,
+  onSearchChange,
+  serverSideSearch,
+  isSearchingOptions = false,
 }: FormSelectProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
+  const useServerSideSearch = serverSideSearch ?? Boolean(onSearchChange);
+
+  const handleOpenChange = React.useCallback(
+    (nextOpen: boolean) => {
+      setOpen(nextOpen);
+      onDropdownOpenChange?.(nextOpen);
+    },
+    [onDropdownOpenChange],
+  );
+
+  const tryLoadMoreOptions = React.useCallback(() => {
+    if (!open || !onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
+      return;
+    }
+    onOptionsListScrollEnd();
+  }, [open, hasMoreOptions, isLoadingMoreOptions, onOptionsListScrollEnd]);
+
+  const handleOptionsListScroll = React.useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const target = event.currentTarget;
+      const isScrollable = target.scrollHeight > target.clientHeight + 1;
+      const distanceFromBottom =
+        target.scrollHeight - target.scrollTop - target.clientHeight;
+
+      if (isScrollable && distanceFromBottom <= 24) {
+        tryLoadMoreOptions();
+      }
+    },
+    [tryLoadMoreOptions],
+  );
 
   return (
     <FormField
@@ -195,7 +265,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
         return (
         <FormItem className={formItemClassName}>
           {label && <FormLabel>{label}</FormLabel>}
-          <Popover open={open} onOpenChange={setOpen} modal={true}>
+          <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
             <PopoverTrigger asChild>
               <FormControl>
                 <Button
@@ -215,19 +285,27 @@ export function FormSelect<TFieldValues extends FieldValues>({
                 </Button>
               </FormControl>
             </PopoverTrigger>
+            {open && (
             <PopoverContent
               className={cn(popoverWidthClass, 'p-1 w-auto')}
               align="start"
             >
-              <Command>
+              <Command shouldFilter={!useServerSideSearch}>
                 {showSearch && (
                   <CommandInput
                     placeholder={`Search ${searchLabel}...`}
                     className="h-9"
+                    value={searchValue}
+                    onValueChange={onSearchChange}
                   />
                 )}
-                <CommandList>
-                  <CommandEmpty>No {label} found.</CommandEmpty>
+                <CommandList
+                  onScroll={handleOptionsListScroll}
+                  onWheel={(event) => event.stopPropagation()}
+                >
+                  <CommandEmpty>
+                    {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
+                  </CommandEmpty>
                   <CommandGroup>
                     {options.map((opt) => (
                       <CommandItem
@@ -238,7 +316,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                           if (opt.disabled) return;
                           field.onChange(opt.value);
                           onChange?.(String(opt.value));
-                          setOpen(false);
+                          handleOpenChange(false);
                         }}
                         className={cn(
                           'cursor-pointer',
@@ -267,13 +345,24 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       </CommandItem>
                     ))}
 
+                    {hasMoreOptions && (
+                      <CommandItem
+                        value="__load_more_options__"
+                        onSelect={tryLoadMoreOptions}
+                        disabled={isLoadingMoreOptions}
+                        className="justify-center text-primary cursor-pointer"
+                      >
+                        {isLoadingMoreOptions ? 'Loading more...' : 'Load more...'}
+                      </CommandItem>
+                    )}
+
                     {onAddClick && (
                       <>
                         <CommandSeparator className="mb-1" />
                         <CommandItem
                           onSelect={() => {
                             onAddClick();
-                            setOpen(false);
+                            handleOpenChange(false);
                           }}
                           className={cn(
                             'text-primary cursor-pointer',
@@ -288,6 +377,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                 </CommandList>
               </Command>
             </PopoverContent>
+            )}
           </Popover>
           {showErrorMessage && <FormMessage />}
         </FormItem>

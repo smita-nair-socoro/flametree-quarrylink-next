@@ -9,6 +9,8 @@ import {
 import {
   CustomerDTO,
   CustomerReporting,
+  CustomersListResponse,
+  CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
 } from '../types/customer';
@@ -81,7 +83,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO } from '../types/haulier';
+import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -613,8 +615,40 @@ export const APIClient = {
       appClient.Get<CustomerReporting>(
         `/socoro/quarrylink/api/customer/reporting`,
       ),
-    getAll: () =>
-      appClient.Get<CustomerDTO[]>(`/socoro/quarrylink/api/customer`),
+    getAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      status?: string;
+      type?: string;
+      accountManagerSub?: string;
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      const response = await appClient.Get<
+        CustomerDTO[] | CustomersListResponse | CustomersPage
+      >(`/socoro/quarrylink/api/customer`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: pageSize?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          status: params?.status,
+          type: params?.type,
+          accountManagerSub: params?.accountManagerSub,
+        },
+      });
+      return response;
+    },
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`,
@@ -852,29 +886,32 @@ export const APIClient = {
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
 
-      const response = await appClient.Get<
-        DocketDTO[] | DocketsListResponse | DocketsPage
-      >(`/socoro/quarrylink/api/dockets`, {
-        queryString: {
-          page: params?.page?.toString(),
-          pageSize: pageSize?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
-          search: params?.search?.trim() || undefined,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          customerId: params?.customerId?.toString(),
-          productId: params?.productId?.toString(),
+      const response = await appClient.Get<DocketsListResponse>(
+        `/socoro/quarrylink/api/dockets`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            type: params?.type,
+            customerId: params?.customerId?.toString(),
+            productId: params?.productId?.toString(),
+          },
         },
-      });
+      );
       return response;
     },
     getByJobId: async (
       jobId: number,
       params?: {
+        sortBy?: string;
+        sortOrder?: string;
         page?: number;
         pageSize?: number;
         size?: number;
@@ -883,22 +920,20 @@ export const APIClient = {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
-
-      const response = await appClient.Get<
-        | DocketDTO[]
-        | {
-            content: DocketDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/dockets/job/${jobId}`, {
-        queryString: {
-          page: params?.page?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
+      const response = await appClient.Get<DocketsPage>(
+        `/socoro/quarrylink/api/dockets/job/${jobId}`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+          },
         },
-      });
+      );
       return response;
     },
     getById: (id: number) => {
@@ -1259,13 +1294,34 @@ export const APIClient = {
       appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
         body: data,
       }),
-    getAll: () => appClient.Get<HaulierDTO[]>('/socoro/quarrylink/api/haulier'),
+    getAll: (params?: {
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier', {
+        queryString: {
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString(),
+        },
+      }),
     getById: (id: number) =>
       appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
     update: (id: number, data: HaulierCreateDTO) =>
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
+    getStatistics: () =>
+      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+    delete: (id: number) =>
+      appClient.Delete<HaulierDeleteResponse>(
+        `/socoro/quarrylink/api/haulier/${id}`,
+      ),
     getDrivers: (haulierId: number) =>
       appClient.Get<{ drivers: DriverDTO[] }>(
         `/socoro/quarrylink/api/haulier/${haulierId}/drivers`,
@@ -1369,7 +1425,10 @@ export const APIClient = {
       docketIds: number[];
       inclDeliveryCost: boolean;
     }) =>
-      appClient.Post<CreateInvoiceResponseDTO>(`/socoro/quarrylink/api/invoices`, { body: data }),
+      appClient.Post<CreateInvoiceResponseDTO>(
+        `/socoro/quarrylink/api/invoices`,
+        { body: data },
+      ),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(
         `/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`,

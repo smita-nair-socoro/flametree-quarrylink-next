@@ -13,7 +13,6 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
-  Copy,
   RotateCcw,
   Send,
   Eye,
@@ -48,10 +47,10 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { useQuery } from '@tanstack/react-query';
-import { CustomersListQueryOptions } from '@/lib/api/customer';
+import { CustomerDetailQueryOptions } from '@/lib/api/customer';
 
 interface DialogConfig {
   title?: string;
@@ -864,13 +863,15 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
 
-  const { data: customers = [] } = useQuery(CustomersListQueryOptions());
-  const sendDialogCustomerEmail = React.useMemo(() => {
-    const customer = customers.find((c) => c.id === quotationData?.customerId);
-    return customer?.contactPersonEmail || '';
-  }, [customers, quotationData]);
+  const { data: sendDialogCustomer } = useQuery({
+    ...CustomerDetailQueryOptions(quotationData?.customerId ?? 0),
+    enabled:
+      !!quotationData?.customerId &&
+      selectedAction?.key === 'sendToCustomer',
+  });
+  const sendDialogCustomerEmail = sendDialogCustomer?.contactPersonEmail || '';
 
-  const user = useClientStore((state) => state.user);
+  const user = useTenantStore((state) => state.user);
   const router = useRouter();
 
   // Decline form validation
@@ -921,7 +922,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         : existing;
       setAdditionalRecipientEmails(emails);
     }
-  }, [selectedAction?.key]);
+  }, [selectedAction?.key, quotationData?.emailRecipients, sendDialogCustomerEmail]);
 
   // Sync includeDeliveryPrices with backend value when quotation data changes
   React.useEffect(() => {

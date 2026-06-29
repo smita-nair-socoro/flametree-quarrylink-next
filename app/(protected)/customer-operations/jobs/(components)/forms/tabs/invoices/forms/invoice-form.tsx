@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DocketDTO } from '@/lib/types/docket';
-import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import { DocketsByJobIdQueryOptions, getDocketItemsFromJobPage } from '@/lib/api/docket';
 import { DataTableClient } from '@/components/ui/data-table-client';
 // import { Spinner } from '@/components/ui/spinner';
 import { getCreateInvoiceColumns } from '../(data-tables)/create-invoice-columns';
@@ -26,18 +26,25 @@ export default function InvoiceForm({
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const [activeTab, setActiveTab] = React.useState<'all' | 'delivery' | 'collection'>('all');
 
-  const { data: dockets = [] } = useQuery(DocketsByJobIdQueryOptions(jobId));
+  const { data: docketPage } = useQuery(DocketsByJobIdQueryOptions(jobId));
 
-  const items: DocketDTO[] = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets)
-      ? dockets
-      : (dockets?.content ?? []);
-    return list
-      .filter(
+  const docketList = React.useMemo(
+    () => getDocketItemsFromJobPage(docketPage),
+    [docketPage],
+  );
+
+  const invoiceEligibleDockets = React.useMemo(
+    () =>
+      docketList.filter(
         (docket) =>
           docket.docketStatus === DOCKET_STATUS.DELIVERED ||
           docket.docketStatus === DOCKET_STATUS.COLLECTED,
-      )
+      ),
+    [docketList],
+  );
+
+  const items: DocketDTO[] = React.useMemo(() => {
+    return invoiceEligibleDockets
       .filter((docket) => {
         if (activeTab === 'all') return true;
         if (activeTab === 'delivery') return docket.jobItem?.jobItemType === 'DELIVERY';
@@ -47,30 +54,25 @@ export default function InvoiceForm({
       .map((docket) => ({
         ...docket,
       })) as DocketDTO[];
-  }, [dockets, activeTab]);
+  }, [invoiceEligibleDockets, activeTab]);
 
-  const allCount = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : (dockets?.content ?? []);
-    return list.filter(
-      (d) => d.docketStatus === DOCKET_STATUS.DELIVERED || d.docketStatus === DOCKET_STATUS.COLLECTED
-    ).length;
-  }, [dockets]);
+  const allCount = invoiceEligibleDockets.length;
 
-  const deliveryCount = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : (dockets?.content ?? []);
-    return list.filter(
-      (d) => (d.docketStatus === DOCKET_STATUS.DELIVERED || d.docketStatus === DOCKET_STATUS.COLLECTED) &&
-        d.jobItem?.jobItemType === 'DELIVERY'
-    ).length;
-  }, [dockets]);
+  const deliveryCount = React.useMemo(
+    () =>
+      invoiceEligibleDockets.filter(
+        (d) => d.jobItem?.jobItemType === 'DELIVERY',
+      ).length,
+    [invoiceEligibleDockets],
+  );
 
-  const collectionCount = React.useMemo(() => {
-    const list: DocketDTO[] = Array.isArray(dockets) ? dockets : (dockets?.content ?? []);
-    return list.filter(
-      (d) => (d.docketStatus === DOCKET_STATUS.DELIVERED || d.docketStatus === DOCKET_STATUS.COLLECTED) &&
-        d.jobItem?.jobItemType === 'COLLECTION'
-    ).length;
-  }, [dockets]);
+  const collectionCount = React.useMemo(
+    () =>
+      invoiceEligibleDockets.filter(
+        (d) => d.jobItem?.jobItemType === 'COLLECTION',
+      ).length,
+    [invoiceEligibleDockets],
+  );
 
 
   const [selectedDockets, setSelectedDockets] = React.useState<DocketDTO[]>([]);

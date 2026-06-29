@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions, DriverStatisticsQueryOptions } from '@/lib/api/driver';
 import { UsersListQueryOptions } from '@/lib/api/user';
@@ -40,9 +41,12 @@ export default function DriversPage() {
   }, [users]);
   // END TEMP
 
+  const haulierId = searchParams.get('haulierId');
+
   const items: DriverDTO[] = React.useMemo(() => {
-    return Array.isArray(drivers) ? drivers : [];
-  }, [drivers]);
+    const all = Array.isArray(drivers) ? drivers : [];
+    return haulierId ? all.filter((d) => d.haulier?.id === Number(haulierId)) : all;
+  }, [drivers, haulierId]);
 
   const facetDefs: FacetDefinition[] = [
     { column: 'driverStatus', title: 'Status' },
@@ -61,8 +65,8 @@ export default function DriversPage() {
     const driver = items.find((d) => d.id === Number(openDriverId));
     if (driver) {
       actions.view(driver, { scrollToSection: section ?? undefined });
-      router.replace('/logistics/drivers');
     }
+    router.replace('/logistics/drivers');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
@@ -134,8 +138,28 @@ export default function DriversPage() {
         desktopGridCols={4}
       />
 
+      {haulierId && (
+        <div className="flex flex-row items-center gap-5 mb-3">
+          <div className="mt-1 text-sm text-muted-foreground">
+            <span>
+              Showing{' '}
+              {items.length === 1 ? '1 driver' : `${items.length} drivers`} for
+              this haulier
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/logistics/drivers')}
+          >
+            Reset Filter
+          </Button>
+        </div>
+      )}
+
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
+          key={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
           tableId="driver_main_data_table"
           data={items}
           columns={driverColumns(emailToSubMap)}

@@ -6,12 +6,15 @@ export interface ProjectDetailsProps {
   projectName: string;
   deliveryDate: string;
   deliveryWindow: string;
+  /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
+  timeZone?: string;
 }
 
 export function ProjectDetails({
   projectName,
   deliveryDate,
   deliveryWindow,
+  timeZone,
 }: ProjectDetailsProps) {
   return (
     <div className="px-8 py-4 pt-10 mb-4 bg-white">
@@ -42,7 +45,10 @@ export function ProjectDetails({
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
             Timeframe
           </h3>
-          <p className="text-sm text-gray-600">{deliveryWindow}</p>
+          <p className="text-sm text-gray-600">
+            {deliveryWindow}
+            {timeZone ? ` (${timeZone})` : ''}
+          </p>
         </div>
       </div>
     </div>

@@ -27,7 +27,10 @@ import {
 } from '@/components/ui/tooltip';
 import { useInvoiceDetailsDialogStore } from '@/app/stores/invoice-details-dialog-store';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
-import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareLabel,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 
 /** Single shared invoice details dialog — mount once per page (e.g. dockets page, invoices tab). */
 export function InvoiceDetailsDialog() {
@@ -36,6 +39,7 @@ export function InvoiceDetailsDialog() {
   const invoiceId = useInvoiceDetailsDialogStore((s) => s.invoiceId);
   const closeDialog = useInvoiceDetailsDialogStore((s) => s.closeDialog);
   const accSoftware = useAccountingSoftwareLabel();
+  const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
 
   const { data: invoice, isLoading } = useQuery({
     ...InvoiceByIdQueryOptions(invoiceId as number),
@@ -133,12 +137,13 @@ export function InvoiceDetailsDialog() {
                         <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>(ex-GST)</p>
+                        <p>{exTaxLabel}</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                   <p className="font-semibold text-gray-900">
-                    ${centsToDollars(invoice.totalAmount)}
+                    {currencySymbol}
+                    {centsToDollars(invoice.totalAmount)}
                   </p>
                 </div>
                 <div className="space-y-1">

@@ -8,6 +8,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -30,7 +31,7 @@ import { BADGE_COLORS } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { useSelectedProduct } from '@/app/stores/product-store';
 import { useSelectedQuarrySupplier } from '@/app/stores/quarry-supplier-store';
-import { useSelectedClient } from '@/app/stores/client-store';
+import { useSelectedClient } from '@/app/stores/tenant-store';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 import { ActionDialog } from './action-dialog';
@@ -123,17 +124,6 @@ interface AddProductDrawerDialogProps {
   /** Optional header info for custom ID and badges */
   headerInfo?: HeaderInfo;
 
-  /**
-   * When set, used for customer header (title/badges) instead of store's selectedCustomer.
-   * Use when the dialog is driven by get-customer-by-id (caller fetches and passes the customer).
-   */
-  headerCustomer?: {
-    businessName?: string;
-    contactName?: string;
-    customerStatus?: string;
-    customerType?: string;
-  } | null;
-
   /** Optional header separator to display between the title and the content  */
   headerSeparator?: boolean;
 
@@ -143,11 +133,19 @@ interface AddProductDrawerDialogProps {
   /** Optional custom class for the DialogHeader container (e.g., "px-5 pt-6 pb-2" or "px-5 pt-4 pb-0") */
   headerClassName?: string;
 
+  /** Optional footer content rendered as a sticky bar at the bottom (e.g. Save/Cancel buttons) */
+  footer?: React.ReactNode;
+
+  /** Optional class applied to the footer container */
+  footerClassName?: string;
+
   /** Whether to preserve empty badge space in renderBadges */
   preserveEmptyBadgeSpace?: boolean;
 
   /** When true, shows a confirm dialog on close if the child form is dirty. Defaults to true. */
   confirmOnCloseIfDirty?: boolean;
+  /** Called whenever the child form's dirty state changes */
+  onUnsavedChangesChange?: (isDirty: boolean) => void;
   /** Optional customization for the unsaved-changes confirm dialog title */
   unsavedConfirmTitle?: string;
   /** Optional customization for the unsaved-changes confirm dialog description */
@@ -186,6 +184,23 @@ interface ChildFormProps {
   onSaved?: () => void;
 }
 
+export const FormDialogFooterContext = React.createContext<
+  React.Dispatch<React.SetStateAction<React.ReactNode>> | null
+>(null);
+
+/**
+ * Call inside any form rendered as a FormDialog child to slot content
+ * into the dialog's sticky footer (replaces inline Cancel/Save buttons).
+ * Runs after every render so the content always reflects current state.
+ */
+export function useFormDialogFooter(content: React.ReactNode) {
+  const setFooter = React.useContext(FormDialogFooterContext);
+  React.useLayoutEffect(() => {
+    setFooter?.(content);
+    return () => setFooter?.(null);
+  });
+}
+
 export function FormDialog({
   id,
   dialogTitle,
@@ -208,15 +223,19 @@ export function FormDialog({
   children,
   preserveEmptyBadgeSpace = true,
   confirmOnCloseIfDirty = true,
+  onUnsavedChangesChange,
   unsavedConfirmTitle,
   unsavedConfirmDescription,
   unsavedConfirmConfirmText,
   unsavedConfirmCancelText,
   unsavedConfirmDetails,
   preventAutoFocus,
-}: AddProductDrawerDialogProps) {
+  footer,
+  footerClassName,
+}: Readonly<AddProductDrawerDialogProps>) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
+  const [slottedFooter, setSlottedFooter] = React.useState<React.ReactNode>(null);
 
   const open = openProp ?? uncontrolledOpen;
   const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
@@ -245,10 +264,10 @@ export function FormDialog({
   // Cleanup on close (after Radix unmounts its layers)
   React.useEffect(() => {
     if (open) return;
-    const raf = window.requestAnimationFrame(() => {
+    const raf = globalThis.requestAnimationFrame(() => {
       unlockBodyPointerEvents();
     });
-    return () => window.cancelAnimationFrame(raf);
+    return () => globalThis.cancelAnimationFrame(raf);
   }, [open, unlockBodyPointerEvents]);
 
   // Cleanup on unmount (e.g. route change while closing)
@@ -391,36 +410,42 @@ export function FormDialog({
     }
   }, [open]);
 
-  const triggerNode = trigger ? (
-    React.isValidElement(trigger) ? (
-      React.cloneElement(trigger, { onClick: () => handleOpen(false) })
-    ) : (
-      <span onClick={() => handleOpen(false)}>{trigger}</span>
-    )
-  ) : (
-    !hideTrigger && (
+  let triggerNode: React.ReactNode;
+  if (trigger) {
+    if (React.isValidElement(trigger)) {
+      triggerNode = React.cloneElement(trigger, { onClick: () => handleOpen(false) });
+    } else {
+      triggerNode = (
+        <button type="button" className="contents" onClick={() => handleOpen(false)}>
+          {trigger}
+        </button>
+      );
+    }
+  } else {
+    triggerNode = !hideTrigger && (
       <Button onClick={() => handleOpen(true)} variant="default">
         <Plus className="h-4 w-4" /> {triggerTitle}
       </Button>
-    )
-  );
+    );
+  }
 
   const forceClose = React.useCallback(() => {
     setOpen(false);
     setEffectiveId(id);
   }, [setOpen, id]);
 
-  const close = () => {
+  const close = React.useCallback(() => {
     if (confirmOnCloseIfDirty && hasUnsavedChanges) {
       setShowUnsavedConfirm(true);
       return;
     }
     forceClose();
-  };
+  }, [confirmOnCloseIfDirty, hasUnsavedChanges, forceClose]);
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (nextOpen) {
       setHasUnsavedChanges(false);
+      onUnsavedChangesChange?.(false);
       setOpen(true);
       return;
     }
@@ -430,33 +455,48 @@ export function FormDialog({
 
   const handleChildSuccess = React.useCallback(() => {
     setHasUnsavedChanges(false);
+    onUnsavedChangesChange?.(false);
     forceClose();
-  }, [forceClose]);
+  }, [forceClose, onUnsavedChangesChange]);
 
   const handleChildDirtyChange = React.useCallback((dirty: boolean) => {
     setHasUnsavedChanges(dirty);
-  }, []);
+    onUnsavedChangesChange?.(dirty);
+  }, [onUnsavedChangesChange]);
 
   const handleChildSaved = React.useCallback(() => {
     setHasUnsavedChanges(false);
-  }, []);
+    onUnsavedChangesChange?.(false);
+  }, [onUnsavedChangesChange]);
 
-  const contentNode = React.isValidElement(children)
-    ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-        id: effectiveId,
-        onCancel: close,
-        onSuccess: handleChildSuccess,
-        onDirtyChange: handleChildDirtyChange,
-        onSaved: handleChildSaved,
-      })
-    : children;
+  const clonedChild = React.useMemo(
+    () =>
+      React.isValidElement(children)
+        ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
+            id: effectiveId,
+            onCancel: close,
+            onSuccess: handleChildSuccess,
+            onDirtyChange: handleChildDirtyChange,
+            onSaved: handleChildSaved,
+          })
+        : children,
+    [children, effectiveId, close, handleChildSuccess, handleChildDirtyChange, handleChildSaved],
+  );
+
+  const contentNode = (
+    <FormDialogFooterContext.Provider value={setSlottedFooter}>
+      {clonedChild}
+    </FormDialogFooterContext.Provider>
+  );
+
+  const activeFooter = footer ?? slottedFooter;
 
   const formatBadgeText = (text?: string | number | null): string => {
     if (text === undefined || text === null) {
       return '';
     }
     const stringValue = typeof text === 'string' ? text : String(text);
-    return stringValue.replace(/_/g, ' ');
+    return stringValue.replaceAll('_', ' ');
   };
 
   const renderBadges = () => {
@@ -472,14 +512,14 @@ export function FormDialog({
     return (
       <div className="flex flex-wrap gap-2 mt-2">
         {/* Render primary badges */}
-        {finalPrimaryBadges?.map((badge, index) => {
+        {finalPrimaryBadges?.map((badge) => {
           const isFailedInvoice =
             headerInfo?.useSelectedDocket &&
             badge === 'INVOICED' &&
             selectedDocket?.invoiceStatus === 'FAILED';
           return (
             <Badge
-              key={`primary-${index}`}
+              key={`primary-${badge}`}
               variant="outline"
               className={
                 BADGE_COLORS[badge] ||
@@ -495,9 +535,9 @@ export function FormDialog({
         })}
 
         {/* Render secondary badges */}
-        {finalSecondaryBadges?.map((badge, index) => (
+        {finalSecondaryBadges?.map((badge) => (
           <Badge
-            key={`secondary-${index}`}
+            key={`secondary-${badge}`}
             variant="outline"
             className={
               BADGE_COLORS[badge] || 'bg-gray-100 text-gray-800 border-gray-300'
@@ -508,19 +548,13 @@ export function FormDialog({
         ))}
 
         {/* Render third badges */}
-        {finalThirdBadges?.map((badge, index) => (
-          <Badge key={`third-${index}`} variant="outline">
+        {finalThirdBadges?.map((badge) => (
+          <Badge key={`third-${badge}`} variant="outline">
             {formatBadgeText(badge)}
           </Badge>
         ))}
       </div>
     );
-  };
-
-  // For ScrollArea, use max-height instead of fixed height
-  const getScrollAreaMaxHeight = (): string => {
-    // Calculate available space: viewport height minus header space (approx 8rem)
-    return 'max-h-[calc(95vh-8rem)]';
   };
 
   const dialogInner = (
@@ -556,15 +590,33 @@ export function FormDialog({
       {headerSeparator && <Separator className="-mt-3" />}
       <div
         className={clsx(
-          getScrollAreaMaxHeight(),
-          'overflow-y-auto overflow-x-hidden px-5',
+          'flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-5',
           contentClass,
         )}
       >
         {contentNode}
       </div>
+      {activeFooter && (
+        <DialogFooter
+          className={clsx(
+            'px-5 py-4',
+            footerClassName,
+          )}
+        >
+          {activeFooter}
+        </DialogFooter>
+      )}
     </>
   );
+
+  let dialogMaxWidth: string;
+  if (dialogWidth) {
+    dialogMaxWidth = `min(${dialogWidth}, 95vw)`;
+  } else if (isEditing) {
+    dialogMaxWidth = 'min(95vw, 1100px)';
+  } else {
+    dialogMaxWidth = 'min(90vw, 800px)';
+  }
 
   if (isDesktop) {
     return (
@@ -578,11 +630,7 @@ export function FormDialog({
           )}
           style={{
             width: '100%',
-            maxWidth: dialogWidth
-              ? `min(${dialogWidth}, 95vw)`
-              : isEditing
-                ? 'min(95vw, 1100px)'
-                : 'min(90vw, 800px)',
+            maxWidth: dialogMaxWidth,
             maxHeight: '95vh',
           }}
           onOpenAutoFocus={
@@ -657,12 +705,19 @@ export function FormDialog({
         </DrawerHeader>
         {headerSeparator && <Separator />}
 
-        <div
-          className="flex-1 overflow-y-auto px-4 pt-2"
-          style={{ maxHeight: 'calc(95vh - 12rem)' }}
-        >
+        <div className="flex-1 min-h-0 overflow-y-auto px-4 pt-2">
           {contentNode}
         </div>
+        {activeFooter && (
+          <div
+            className={clsx(
+              'flex-shrink-0 px-4 py-4',
+              footerClassName,
+            )}
+          >
+            {activeFooter}
+          </div>
+        )}
         <ActionDialog
           open={showUnsavedConfirm}
           onOpenChangeAction={setShowUnsavedConfirm}

@@ -15,6 +15,7 @@ import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { cn, scrollToFirstError } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { useIsMutating } from '@tanstack/react-query';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -59,6 +60,7 @@ export default function JobForm({
   onSuccess,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
 
   const {
     jobForm,
@@ -67,6 +69,12 @@ export default function JobForm({
     selectedJob,
     customers,
     customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
     tabs,
     isPending,
     onSubmit,
@@ -75,6 +83,7 @@ export default function JobForm({
     onDirtyChange,
     onSaved,
     onSuccess: id ? undefined : onSuccess,
+    loadMoreEnabled: customerSelectOpen,
   });
 
   const isSyncing = useIsMutating({ mutationKey: ['retrySync'] }) > 0;
@@ -107,6 +116,36 @@ export default function JobForm({
       </div>
     );
   }, [isEditing, jobDetails, selectedJob]);
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="add-new-job-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isPending}
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Job...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Job'}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <div className="w-full relative">
@@ -172,6 +211,14 @@ export default function JobForm({
               formItemClassName={
                 isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
               }
+              onDropdownOpenChange={setCustomerSelectOpen}
+              searchValue={customerSearch}
+              onSearchChange={onCustomerSearchChange}
+              isSearchingOptions={isSearchingCustomers}
+              onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
+              hasMoreOptions={hasMoreCustomerOptions}
+              isLoadingMoreOptions={isLoadingMoreCustomerOptions}
+              disabled={isEditing}
             />
 
             <FormField
@@ -413,65 +460,6 @@ export default function JobForm({
             />
           </div>
 
-          {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                className="cursor-pointer"
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                type="submit"
-                className="cursor-pointer"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                disabled={isPending}
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
-
           {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
@@ -493,6 +481,34 @@ export default function JobForm({
               createdAt={jobDetails?.createdAt}
               updatedAt={jobDetails?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <Button
+                form="add-new-job-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Job...'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Job'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </form>
       </Form>

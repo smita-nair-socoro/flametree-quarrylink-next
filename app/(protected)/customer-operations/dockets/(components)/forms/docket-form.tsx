@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form';
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
@@ -815,6 +816,29 @@ export default function DocketForm({
       : newStart && newEnd
         ? `${newStart} – ${newEnd}`
         : 'the new time';
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          className="cursor-pointer"
+          type="button"
+          onClick={() =>
+            docketForm.handleSubmit(onSubmit, scrollToFirstError)()
+          }
+          disabled={
+            (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
+            isSubmitting
+          }
+        >
+          {isEditing ? 'Save Changes' : 'Create Docket'}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <>
@@ -2102,27 +2126,6 @@ export default function DocketForm({
                 </p>
               )}
 
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="button"
-                  onClick={() =>
-                    docketForm.handleSubmit(onSubmit, scrollToFirstError)()
-                  }
-                  disabled={
-                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
-                    isSubmitting
-                  }
-                >
-                  {isEditing ? 'Save Changes' : 'Create Docket'}
-                </Button>
-              </div>
-            )}
-
             {!isDesktop && (
               <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
@@ -2143,6 +2146,7 @@ export default function DocketForm({
                 </Button>
               </div>
             )}
+
           </form>
         </Form>
       </div>
