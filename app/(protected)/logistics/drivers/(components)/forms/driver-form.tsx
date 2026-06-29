@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -28,16 +28,14 @@ import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import {
   useCreateDriver,
   useUpdateDriver,
   DriverPreStartChecklistsQueryOptions,
 } from '@/lib/api/driver';
-import {
-  HauliersListQueryOptions,
-  HaulierTrucksQueryOptions,
-} from '@/lib/api/haulier';
+import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
+import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
@@ -46,7 +44,6 @@ import {
 } from '@/components/ui/tooltip';
 
 import { useTenantStore } from '@/app/stores/tenant-store';
-import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
@@ -54,7 +51,6 @@ import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { AuditInformation } from '@/components/audit-information';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
-import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -74,15 +70,11 @@ export default function DriverForm({
   className,
   onSuccess,
   scrollToSection,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
-  const hauliers = React.useMemo(
-    () => hauliersData?.content ?? [],
-    [hauliersData],
-  );
+  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
@@ -244,6 +236,10 @@ export default function DriverForm({
     licensePlate: t.licensePlate,
     status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
   }));
+  const pendingLabel = isEditing ? 'Saving Changes...' : 'Adding Driver...';
+  const idleLabel = isEditing ? 'Update Driver' : 'Add Driver';
+  const buttonLabel = isPending ? pendingLabel : idleLabel;
+
   const complianceSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
@@ -253,14 +249,14 @@ export default function DriverForm({
     const element = complianceSectionRef.current;
     if (!element) return;
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
     }, 400);
 
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [scrollToSection, isEditing, driverData?.id]);
 
   const { data: checklistsData } = useQuery({
@@ -287,13 +283,7 @@ export default function DriverForm({
           className="cursor-pointer"
         >
           {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending
-            ? isEditing
-              ? 'Saving Changes...'
-              : 'Adding Driver...'
-            : isEditing
-              ? 'Update Driver'
-              : 'Add Driver'}
+          {buttonLabel}
         </Button>
       </div>
     ) : null,
@@ -610,13 +600,7 @@ export default function DriverForm({
                 className="cursor-pointer"
               >
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Driver...'
-                  : isEditing
-                    ? 'Update Driver'
-                    : 'Add Driver'}
+                {buttonLabel}
               </Button>
               <Button
                 variant="outline"
