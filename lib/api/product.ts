@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
   useMutation,
@@ -126,6 +127,31 @@ export function getProductItemsFromListResponse(
   return getProductsPageFromListResponse(data)?.content ?? [];
 }
 
+export function getProductItemsFromInfinitePages(
+  pages:
+    | (
+        | ProductsListResponse
+        | ProductsPage
+        | ProductListItem[]
+        | null
+        | undefined
+      )[]
+    | undefined,
+): ProductListItem[] {
+  const seenIds = new Set<number>();
+  const result: ProductListItem[] = [];
+
+  for (const page of pages ?? []) {
+    for (const product of getProductItemsFromListResponse(page)) {
+      if (product.id == null || seenIds.has(product.id)) continue;
+      seenIds.add(product.id);
+      result.push(product);
+    }
+  }
+
+  return result;
+}
+
 export const ProductsListQueryOptions = (params?: ProductsListParams) =>
   queryOptions({
     queryKey: [...ProductKeys.list(), params],
@@ -140,6 +166,30 @@ export const ProductsListQueryOptions = (params?: ProductsListParams) =>
 
 export const ProductsSelectListQueryOptions = () =>
   ProductsListQueryOptions({ page: 0, pageSize: 1000 });
+
+export const ProductsInfiniteListQueryOptions = (
+  params: Omit<ProductsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...ProductKeys.list(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.products.getAll({
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getProductsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      const content = page.content ?? [];
+      if (content.length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
 
 export const ProductDetailWithMaterialQueryOptions = (productId: number) =>
   queryOptions({

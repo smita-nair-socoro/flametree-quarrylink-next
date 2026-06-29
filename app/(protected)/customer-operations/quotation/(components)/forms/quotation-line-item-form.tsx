@@ -60,6 +60,7 @@ export default function QuoteLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const {
     currencySymbol,
     taxPercentage,
@@ -80,6 +81,12 @@ export default function QuoteLineItemForm({
     addressSearchInput,
     setAddressSearchInput,
     productOptions,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
     quarryOptions,
     truckTypeOptions,
     productUnitOptions,
@@ -99,6 +106,7 @@ export default function QuoteLineItemForm({
     onSuccess,
     onSaved,
     taxPercentage,
+    loadMoreEnabled: productSelectOpen,
   });
 
   // Report dirty-state to parent dialog
@@ -332,6 +340,13 @@ export default function QuoteLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={isReadOnly}
+                onDropdownOpenChange={setProductSelectOpen}
+                searchValue={productSearch}
+                onSearchChange={onProductSearchChange}
+                isSearchingOptions={isSearchingProducts}
+                onOptionsListScrollEnd={onProductOptionsScrollEnd}
+                hasMoreOptions={hasMoreProductOptions}
+                isLoadingMoreOptions={isLoadingMoreProductOptions}
               />
 
               <FormSelect

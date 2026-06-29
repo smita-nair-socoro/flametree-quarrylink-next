@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,10 +8,12 @@ import { useQuery } from '@tanstack/react-query';
 
 import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
-  ProductsSelectListQueryOptions,
-  getProductItemsFromListResponse,
   ProductDetailWithQuarrySupplierProductQueryOptions,
 } from '@/lib/api/product';
+import {
+  useProductsForForm,
+  productListItemFromJobItem,
+} from '@/hooks/product/use-products-for-form';
 import {
   CustomerDeliveryAddressesQueryOptions,
   useUpdateDeliveryAddressUsage,
@@ -52,6 +56,7 @@ type Props = {
   onSuccess?: () => void;
   onSaved?: () => void;
   taxPercentage?: number;
+  loadMoreEnabled?: boolean;
 };
 
 type PricingBreakdown = {
@@ -76,6 +81,7 @@ export function useJobLineItemFormState({
   onSuccess,
   onSaved,
   taxPercentage = DEFAULT_TAX_PERCENTAGE,
+  loadMoreEnabled = false,
 }: Props) {
   const isEditing = Boolean(id && id > 0);
   const jobLineItemId = Number(id || 0);
@@ -236,17 +242,30 @@ export function useJobLineItemFormState({
   }, [jobItemType, form]);
 
   // Products
-  const { data: productsData } = useQuery(ProductsSelectListQueryOptions());
-  const productOptions: SelectOption[] = React.useMemo(() => {
-    const products = getProductItemsFromListResponse(productsData);
-    if (!products.length) return [];
-    return products
-      .map((product) => ({
-        label: product.productName,
-        value: product.id,
-      }))
-      .sort((a, b) => a.label.localeCompare(b.label));
-  }, [productsData]);
+  const selectedProductId = Number(form.watch('productId') || 0);
+
+  const linkedProductFromLineItem = React.useMemo(
+    () =>
+      jobLineItemData ? productListItemFromJobItem(jobLineItemData) : null,
+    [jobLineItemData],
+  );
+
+  const {
+    products,
+    productOptions,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
+  } = useProductsForForm({
+    isEditing,
+    productId: jobLineItemData?.productId,
+    linkedProduct: linkedProductFromLineItem,
+    loadMoreEnabled,
+    selectedProductId,
+  });
 
   // Customer delivery addresses (for DELIVERY quote type)
   const customerId =
@@ -300,9 +319,6 @@ export function useJobLineItemFormState({
         customerDeliveryAddress: addr,
       }));
   }, [deliveryAddresses, billingAddressFormatted]);
-
-  // Selected product id
-  const selectedProductId = Number(form.watch('productId') || 0);
 
   // Product details (to get quarry/supplier list and QSPs)
   const productDetailsQuery = useQuery(
@@ -1169,6 +1185,13 @@ export function useJobLineItemFormState({
     addressSearchInput,
     setAddressSearchInput,
     productOptions,
+    products,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
     quarryOptions,
     truckTypeOptions,
     productUnitOptions,
