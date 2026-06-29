@@ -7,7 +7,7 @@ import {
   ProductsInfiniteListQueryOptions,
   getProductItemsFromInfinitePages,
 } from '@/lib/api/product';
-import { ProductListItem } from '@/lib/types/product';
+import { ProductDetails, ProductListItem } from '@/lib/types/product';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { JobItem } from '@/lib/types/job';
@@ -124,6 +124,19 @@ type UseProductsForFormOptions = {
   selectedProductId?: number;
 };
 
+function selectAsProductListItem(data: ProductDetails): ProductListItem {
+  return {
+    id: data.id,
+    productName: data.productName,
+    productCode: data.productCode,
+    material: data.material,
+    densityTonnagePerM3: data.densityTonnagePerM3,
+    productDescription: data.productDescription,
+    isActive: data.isActive,
+    version: data.version,
+  };
+}
+
 export function useProductsForForm({
   isEditing,
   productId,
@@ -157,38 +170,14 @@ export function useProductsForForm({
   const { data: singleProduct, isLoading: isLoadingSingle } = useQuery({
     ...ProductDetailWithMaterialQueryOptions(productId ?? 0),
     enabled: loadSingleProductOnly,
-    select: (data): ProductListItem | null =>
-      data
-        ? {
-            id: data.id,
-            productName: data.productName,
-            productCode: data.productCode,
-            material: data.material,
-            densityTonnagePerM3: data.densityTonnagePerM3,
-            productDescription: data.productDescription,
-            isActive: data.isActive,
-            version: data.version,
-          }
-        : null,
+    select: selectAsProductListItem,
   });
 
   const { data: fetchedLinkedProduct, isLoading: isLoadingLinkedProduct } =
     useQuery({
       ...ProductDetailWithMaterialQueryOptions(productId ?? 0),
       enabled: mergeLinkedProduct && !linkedProductProp,
-      select: (data): ProductListItem | null =>
-        data
-          ? {
-              id: data.id,
-              productName: data.productName,
-              productCode: data.productCode,
-              material: data.material,
-              densityTonnagePerM3: data.densityTonnagePerM3,
-              productDescription: data.productDescription,
-              isActive: data.isActive,
-              version: data.version,
-            }
-          : null,
+      select: selectAsProductListItem,
     });
 
   const resolvedLinkedProduct =
@@ -282,7 +271,8 @@ export function useProductsForForm({
     mergeLinkedProduct && !linkedProductProp && isLoadingLinkedProduct;
 
   const isSearchingProducts =
-    productSearch.trim() !== debouncedProductSearch.trim();
+    productSearch.trim() !== debouncedProductSearch.trim() ||
+    (debouncedProductSearch.trim().length > 0 && isFetching);
 
   return {
     products,
