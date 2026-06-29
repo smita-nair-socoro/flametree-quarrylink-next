@@ -24,10 +24,13 @@ export default function HaulierPage() {
   const { data: trucks } = useQuery(TrucksListQueryOptions());
   const { data: drivers } = useQuery(DriversListQueryOptions());
 
-  const items: HaulierDTO[] = React.useMemo(
-    () => (Array.isArray(hauliers) ? hauliers : []),
-    [hauliers],
-  );
+
+  const items: HaulierDTO[] = React.useMemo(() => {
+    return (hauliers?.content ?? []).map((haulier) => ({
+      ...haulier,
+    })) as HaulierDTO[];
+  }, [hauliers]);
+
 
   const trucksManaged = React.useMemo(
     () => (Array.isArray(trucks) ? trucks.filter((t) => t.haulierId).length : 0),

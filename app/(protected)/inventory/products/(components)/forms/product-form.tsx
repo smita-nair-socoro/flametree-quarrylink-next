@@ -27,7 +27,7 @@ import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';
 import { SupplierTableActions } from '../(data-tables)/supplier/supplier-table-actions';
 import { ChartColumn, Check } from 'lucide-react';
-import { FormDialog } from '@/components/form-dialog';
+import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import SupplierForm from './supplier-form';
 import { ActionDialog } from '@/components/action-dialog';
 import { CompareSupplierTable } from '../(data-tables)/supplier-comparison/compare-supplier-table';
@@ -273,6 +273,66 @@ export default function ProductForm({
       setIsSubmitting(false);
     }
   }
+
+  useFormDialogFooter(
+    isDesktop && isEditing ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button
+          form="add-new-product-form"
+          type="submit"
+          className="cursor-pointer"
+        >
+          Save Changes
+        </Button>
+      </div>
+    ) : isDesktop && createStep === 1 ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Cancel
+        </Button>
+        {!productJustCreated && (
+          <Button
+            form="add-new-product-form"
+            className="cursor-pointer"
+            type="submit"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Adding Product...' : 'Create Product'}
+          </Button>
+        )}
+        {productJustCreated && (
+          <>
+            <Button
+              variant="outline"
+              disabled
+              className="cursor-not-allowed"
+            >
+              ✓ Product Created
+            </Button>
+            <Button type="button" onClick={() => setCreateStep(2)}>
+              Next
+            </Button>
+          </>
+        )}
+      </div>
+    ) : isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          onClick={() => setCreateStep(1)}
+        >
+          Back to Details
+        </Button>
+        <Button type="button" onClick={onCancel}>
+          Save Changes
+        </Button>
+      </div>
+    ) : null,
+  );
 
   // Show loading state when fetching product details or materials
   if (
@@ -586,58 +646,6 @@ export default function ProductForm({
                 />
               </div>
 
-              {!isEditing && <Separator className="w-full" />}
-
-              <div
-                className={cn(
-                  'flex items-center gap-2',
-                  isEditing
-                    ? 'justify-end -mt-5 mb-3 '
-                    : 'justify-between mb-5',
-                )}
-              >
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  Cancel
-                </Button>
-
-                {isEditing ? (
-                  <Button
-                    form="add-new-product-form"
-                    type="submit"
-                    className="cursor-pointer"
-                  >
-                    Save Changes
-                  </Button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    {!productJustCreated && (
-                      <Button
-                        form="add-new-product-form"
-                        className="cursor-pointer"
-                        type="submit"
-                        disabled={isSubmitting}
-                      >
-                        {isSubmitting ? 'Adding Product...' : 'Create Product'}
-                      </Button>
-                    )}
-
-                    {productJustCreated && (
-                      <>
-                        <Button
-                          variant="outline"
-                          disabled
-                          className="cursor-not-allowed"
-                        >
-                          ✓ Product Created
-                        </Button>
-                        <Button type="button" onClick={() => setCreateStep(2)}>
-                          Next
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
             </>
           )}
 
@@ -784,23 +792,6 @@ export default function ProductForm({
                 )}
               </div>
 
-              {/* Create flow footer buttons (Step 2) */}
-              {!isEditing && <Separator className="w-full mt-5 mb-2" />}
-
-              {!isEditing && createStep === 2 && (
-                <div className="flex justify-between items-center -mb-3">
-                  <Button
-                    variant="outline"
-                    type="button"
-                    onClick={() => setCreateStep(1)}
-                  >
-                    Back to Details
-                  </Button>
-                  <Button type="button" onClick={onCancel}>
-                    Save Changes
-                  </Button>
-                </div>
-              )}
             </div>
           )}
 
@@ -811,6 +802,68 @@ export default function ProductForm({
               createdAt={selectedProduct?.createdAt}
               updatedAt={latestAuditData?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <>
+              {isEditing ? (
+                <div className="flex flex-col col-span-full gap-3 mb-6">
+                  <Button
+                    form="add-new-product-form"
+                    type="submit"
+                    className="cursor-pointer"
+                  >
+                    Save Changes
+                  </Button>
+                  <Button variant="outline" type="button" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : createStep === 1 ? (
+                <div className="flex flex-col col-span-full gap-3 mb-6">
+                  {!productJustCreated && (
+                    <Button
+                      form="add-new-product-form"
+                      className="cursor-pointer"
+                      type="submit"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? 'Adding Product...' : 'Create Product'}
+                    </Button>
+                  )}
+                  {productJustCreated && (
+                    <>
+                      <Button type="button" onClick={() => setCreateStep(2)}>
+                        Next
+                      </Button>
+                      <Button
+                        variant="outline"
+                        disabled
+                        className="cursor-not-allowed"
+                      >
+                        ✓ Product Created
+                      </Button>
+                    </>
+                  )}
+                  <Button variant="outline" type="button" onClick={onCancel}>
+                    Cancel
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex flex-col col-span-full gap-3 mb-6">
+                  <Button type="button" onClick={onCancel}>
+                    Save Changes
+                  </Button>
+                  <Button
+                    variant="outline"
+                    type="button"
+                    onClick={() => setCreateStep(1)}
+                  >
+                    Back to Details
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </form>
       </Form>

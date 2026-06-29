@@ -205,7 +205,11 @@ export function AssignDocketContent({
   onClose,
   onExceedsCapacity,
 }: AssignDocketContentProps) {
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
+  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
+  const hauliers = React.useMemo(
+    () => hauliersData?.content ?? [],
+    [hauliersData],
+  );
   const { data: haulierTrucksData } = useQuery(
     HaulierTrucksQueryOptions(haulerSelection ?? 0),
   );

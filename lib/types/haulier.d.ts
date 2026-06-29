@@ -12,3 +12,15 @@ export interface HaulierDTO {
   haulierType?: string;
   version: number;
 }
+
+export interface HauliersPage {
+  content: HaulierDTO[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}

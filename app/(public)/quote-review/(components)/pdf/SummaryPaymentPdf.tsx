@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
 import { centsToDollars } from '@/lib/utils/currency';
+import { QuoteCurrencyTax } from '@/lib/types/quotation';
 
 export interface SummaryPaymentPdfProps {
   totalProducts: number;
@@ -9,6 +10,7 @@ export interface SummaryPaymentPdfProps {
   subtotal: number;
   gst: number;
   total: number;
+  currencyTax: QuoteCurrencyTax;
   validUntil: string;
   accountManager: string;
   quoteId: string;
@@ -24,10 +26,12 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   subtotal,
   gst,
   total,
+  currencyTax,
   includeDeliveryPrices = false,
   productSubtotal,
   deliverySubtotal,
 }) => {
+  const { currencySymbol, taxLabel, taxRateLabel, exTaxLabel } = currencyTax;
   return (
     <View style={styles.section} wrap={false}>
       <View style={styles.separator} />
@@ -57,7 +61,8 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                 <View style={styles.paymentRow}>
                   <Text style={styles.paymentLabel}>Product Subtotal:</Text>
                   <Text style={styles.paymentValue}>
-                    ${centsToDollars(productSubtotal || 0)}
+                    {currencySymbol}
+                    {centsToDollars(productSubtotal || 0)}
                   </Text>
                 </View>
 
@@ -67,15 +72,17 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                     Delivery Subtotal:
                   </Text>
                   <Text style={styles.deliverySubtotalValue}>
-                    ${centsToDollars(deliverySubtotal || 0)}
+                    {currencySymbol}
+                    {centsToDollars(deliverySubtotal || 0)}
                   </Text>
                 </View>
 
                 {/* GST */}
                 <View style={styles.paymentRow}>
-                  <Text style={styles.paymentLabel}>GST (10%):</Text>
+                  <Text style={styles.paymentLabel}>{taxRateLabel}:</Text>
                   <Text style={styles.paymentValue}>
-                    ${centsToDollars(gst)}
+                    {currencySymbol}
+                    {centsToDollars(gst)}
                   </Text>
                 </View>
 
@@ -84,7 +91,8 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                   <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>TOTAL AMOUNT:</Text>
                     <Text style={styles.totalAmount}>
-                      ${centsToDollars(total)}
+                      {currencySymbol}
+                      {centsToDollars(total)}
                     </Text>
                   </View>
                 </View>
@@ -93,17 +101,19 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
               <>
                 {/* Subtotal */}
                 <View style={styles.paymentRow}>
-                  <Text style={styles.paymentLabel}>Subtotal (ex-GST):</Text>
+                  <Text style={styles.paymentLabel}>Subtotal {exTaxLabel}:</Text>
                   <Text style={styles.paymentValue}>
-                    ${centsToDollars(subtotal)}
+                    {currencySymbol}
+                    {centsToDollars(subtotal)}
                   </Text>
                 </View>
 
                 {/* GST */}
                 <View style={styles.paymentRow}>
-                  <Text style={styles.paymentLabel}>GST (10%):</Text>
+                  <Text style={styles.paymentLabel}>{taxRateLabel}:</Text>
                   <Text style={styles.paymentValue}>
-                    ${centsToDollars(gst)}
+                    {currencySymbol}
+                    {centsToDollars(gst)}
                   </Text>
                 </View>
 
@@ -111,10 +121,11 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
                 <View style={styles.totalSeparator}>
                   <View style={styles.totalRow}>
                     <Text style={styles.totalLabel}>
-                      TOTAL AMOUNT (Incl. GST):
+                      TOTAL AMOUNT (Incl. {taxLabel}):
                     </Text>
                     <Text style={styles.totalAmount}>
-                      ${centsToDollars(total)}
+                      {currencySymbol}
+                      {centsToDollars(total)}
                     </Text>
                   </View>
                 </View>

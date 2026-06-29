@@ -24,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { FormDialogFooterContext } from '@/components/form-dialog';
 import {
   FormField,
   FormItem,
@@ -31,6 +32,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ChevronsUpDown, Plus } from 'lucide-react';
+
+function FooterSlot({ children }: { children: React.ReactNode }) {
+  const [footer, setFooter] = React.useState<React.ReactNode>(null);
+  return (
+    <FormDialogFooterContext.Provider value={setFooter}>
+      {children}
+      {footer && (
+        <div className="flex-shrink-0 border-t pt-4 mt-2">{footer}</div>
+      )}
+    </FormDialogFooterContext.Provider>
+  );
+}
 
 export interface SelectCreateEditItem {
   id: number | string;
@@ -214,9 +227,11 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
               {isEditing ? `Edit ${entityName}` : `Add New ${entityName}`}
             </DialogTitle>
           </DialogHeader>
-          {renderForm(editingItem, isEditing, handleSave, () =>
-            setDialogOpen(false),
-          )}
+          <FooterSlot>
+            {renderForm(editingItem, isEditing, handleSave, () =>
+              setDialogOpen(false),
+            )}
+          </FooterSlot>
         </DialogContent>
       </Dialog>
     </>

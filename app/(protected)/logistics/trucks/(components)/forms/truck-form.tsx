@@ -19,6 +19,7 @@ import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from '@/app/(protected)/logistics/drivers/(components)/forms/haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
@@ -92,7 +93,11 @@ export default function TruckForm({
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
 
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
+  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
+  const hauliers = React.useMemo(
+    () => hauliersData?.content ?? [],
+    [hauliersData],
+  );
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
@@ -308,6 +313,38 @@ export default function TruckForm({
 
   const { actions: driverActions, confirmDialogs: driverDialogs } =
     useTruckActions(truckData);
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="truck-form"
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer"
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Truck...'
+            : isEditing
+              ? 'Update Truck'
+              : 'Add Truck'}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <div className="w-full relative">
@@ -686,33 +723,36 @@ export default function TruckForm({
             />
           )}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
-            <Button
-              variant="outline"
-              type="button"
-              className="cursor-pointer flex-1 sm:flex-none"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              form="truck-form"
-              type="submit"
-              disabled={isSubmitting}
-              className="cursor-pointer flex-1 sm:flex-none"
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Truck...'
-                : isEditing
-                  ? 'Update Truck'
-                  : 'Add Truck'}
-            </Button>
-          </div>
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              <Button
+                form="truck-form"
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Truck...'
+                  : isEditing
+                    ? 'Update Truck'
+                    : 'Add Truck'}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
         </form>
       </Form>
     </div>

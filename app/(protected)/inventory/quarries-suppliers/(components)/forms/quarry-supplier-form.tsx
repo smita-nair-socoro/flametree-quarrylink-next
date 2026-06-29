@@ -18,6 +18,7 @@ import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { QuarrySupplierFormSchema } from './schemas/quarry-supplier-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
@@ -227,6 +228,26 @@ export default function QuarrySupplierForm({
       setIsSubmitting(false);
     }
   }
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-quarry-supplier-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isEditing
+            ? 'Save Changes'
+            : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <div className="w-full relative">
@@ -574,12 +595,8 @@ export default function QuarrySupplierForm({
             />
           )}
 
-          {/* Form Actions */}
-          {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 my-6">
-              <Button variant="outline" type="button" onClick={onCancel}>
-                {isEditing ? 'Close' : 'Cancel'}
-              </Button>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-full gap-3 mb-6">
               <Button
                 form="add-quarry-supplier-form"
                 className="cursor-pointer"
@@ -588,25 +605,14 @@ export default function QuarrySupplierForm({
               >
                 {isEditing
                   ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 my-6">
-              <Button type="submit" className="cursor-pointer">
-                {isEditing
-                  ? 'Save Changes'
-                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'
-                  }`}
+                  : `Add ${selectedType === QuarryType.QUARRY ? 'Quarry' : 'Supplier'}`}
               </Button>
               <Button variant="outline" type="button" onClick={onCancel}>
                 {isEditing ? 'Close' : 'Cancel'}
               </Button>
             </div>
           )}
+
         </form>
       </Form>
     </div>
