@@ -7,17 +7,139 @@ import {
 import { APIClient } from './APIClient';
 import { ProductKeys } from './keys';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
-import { Product } from '../types/product';
+import {
+  Product,
+  ProductListItem,
+  ProductsListResponse,
+  ProductsPage,
+} from '../types/product';
+import { Material } from '../types/material';
 import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { removeNewRecordId } from '../utils';
 
-export const ProductsListQueryOptions = () =>
+export type ProductsListParams = {
+  /** 0-based page index from UI tables (converted to 1-based for the API). */
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  materialId?: number;
+  isActive?: boolean;
+};
+
+const PRODUCT_COLUMN_TO_API_SORT: Record<string, string> = {
+  product_name: 'productName',
+  product_code: 'productCode',
+  material_type: 'materialName',
+  status: 'isActive',
+};
+
+export function toProductApiSortParams(
+  sorting: {
+    id: string;
+    desc: boolean;
+  }[],
+): Pick<ProductsListParams, 'sortBy' | 'sortOrder'> {
+  const sort = sorting[0];
+  if (!sort) {
+    return { sortBy: 'productName', sortOrder: 'asc' };
+  }
+
+  return {
+    sortBy: PRODUCT_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+    sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
+function getFacetFilterValues(
+  filters: { id: string; value: unknown }[],
+  columnId: string,
+): string[] {
+  const filter = filters.find((f) => f.id === columnId);
+  if (!filter || !Array.isArray(filter.value)) return [];
+  return filter.value.map((v) => String(v));
+}
+
+export function toProductApiFilterParams(
+  filters: { id: string; value: unknown }[],
+  materials?: Material[],
+): Pick<ProductsListParams, 'materialId' | 'isActive'> {
+  const statusValues = getFacetFilterValues(filters, 'status');
+  const materialValues = getFacetFilterValues(filters, 'material_type');
+
+  let isActive: boolean | undefined;
+  if (statusValues.length === 1) {
+    if (statusValues[0] === 'AVAILABLE') isActive = true;
+    else if (statusValues[0] === 'UNAVAILABLE') isActive = false;
+  }
+
+  let materialId: number | undefined;
+  if (materialValues.length === 1 && materials?.length) {
+    const selected = materialValues[0].toUpperCase();
+    materialId = materials.find(
+      (material) => material.name.toUpperCase() === selected,
+    )?.id;
+  }
+
+  return { materialId, isActive };
+}
+
+/** Products API pagination is 1-based (page 1 = first page). */
+function toApiPage(page: number): number {
+  return page + 1;
+}
+
+export function getProductsPageFromListResponse(
+  data:
+    | ProductsListResponse
+    | ProductsPage
+    | ProductListItem[]
+    | null
+    | undefined,
+): ProductsPage | null {
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return {
+      content: data,
+      totalElements: data.length,
+      totalPages: 1,
+    };
+  }
+  if ('products' in data && data.products) {
+    return data.products;
+  }
+  if ('content' in data) {
+    return data;
+  }
+  return null;
+}
+
+export function getProductItemsFromListResponse(
+  data:
+    | ProductsListResponse
+    | ProductsPage
+    | ProductListItem[]
+    | null
+    | undefined,
+): ProductListItem[] {
+  return getProductsPageFromListResponse(data)?.content ?? [];
+}
+
+export const ProductsListQueryOptions = (params?: ProductsListParams) =>
   queryOptions({
-    queryKey: ProductKeys.list(),
-    queryFn: () => APIClient.products.getAll(),
+    queryKey: [...ProductKeys.list(), params],
+    queryFn: () =>
+      APIClient.products.getAll({
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const ProductsSelectListQueryOptions = () =>
+  ProductsListQueryOptions({ page: 0, pageSize: 1000 });
 
 export const ProductDetailWithMaterialQueryOptions = (productId: number) =>
   queryOptions({

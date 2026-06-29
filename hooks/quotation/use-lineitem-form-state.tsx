@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 import { NewQuotationLineItemFormSchema } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/line-item-quotation-schema';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import {
-  ProductsListQueryOptions,
+  ProductsSelectListQueryOptions,
+  getProductItemsFromListResponse,
   ProductDetailWithQuarrySupplierProductQueryOptions,
 } from '@/lib/api/product';
 import {
@@ -225,16 +226,17 @@ export function useLineItemFormState({
   }, [quoteItemType, form]);
 
   // Products
-  const { data: products } = useQuery(ProductsListQueryOptions());
+  const { data: productsData } = useQuery(ProductsSelectListQueryOptions());
   const productOptions: SelectOption[] = React.useMemo(() => {
-    if (!products) return [];
+    const products = getProductItemsFromListResponse(productsData);
+    if (!products.length) return [];
     return products
       .map((product) => ({
         label: product.productName,
         value: product.id,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products]);
+  }, [productsData]);
 
   // Customer delivery addresses (for DELIVERY quote type)
   const customerId =

@@ -6,7 +6,8 @@ import { useQuery } from '@tanstack/react-query';
 
 import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
-  ProductsListQueryOptions,
+  ProductsSelectListQueryOptions,
+  getProductItemsFromListResponse,
   ProductDetailWithQuarrySupplierProductQueryOptions,
 } from '@/lib/api/product';
 import {
@@ -235,16 +236,17 @@ export function useJobLineItemFormState({
   }, [jobItemType, form]);
 
   // Products
-  const { data: products } = useQuery(ProductsListQueryOptions());
+  const { data: productsData } = useQuery(ProductsSelectListQueryOptions());
   const productOptions: SelectOption[] = React.useMemo(() => {
-    if (!products) return [];
+    const products = getProductItemsFromListResponse(productsData);
+    if (!products.length) return [];
     return products
       .map((product) => ({
         label: product.productName,
         value: product.id,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [products]);
+  }, [productsData]);
 
   // Customer delivery addresses (for DELIVERY quote type)
   const customerId =
