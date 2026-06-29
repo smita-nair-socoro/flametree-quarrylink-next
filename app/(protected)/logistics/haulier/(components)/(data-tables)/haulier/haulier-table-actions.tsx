@@ -43,23 +43,25 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setDropdownOpen(false);
-              globalThis.open(`/logistics/trucks?haulierId=${haulier.id}`, '_blank');
-            }}
-          >
-            <Truck className="h-4 w-4 mr-2" />
-            Linked Trucks
+          <DropdownMenuItem asChild>
+            <a
+              href={`/logistics/trucks?haulierId=${haulier.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Truck className="h-4 w-4 mr-2" />
+              Linked Trucks
+            </a>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setDropdownOpen(false);
-              globalThis.open(`/logistics/drivers?haulierId=${haulier.id}`, '_blank');
-            }}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Linked Drivers
+          <DropdownMenuItem asChild>
+            <a
+              href={`/logistics/drivers?haulierId=${haulier.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Linked Drivers
+            </a>
           </DropdownMenuItem>
           {isSubcontractor && (
             <>
