@@ -6,8 +6,114 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys, JobKeys } from './keys';
-import type { JobDTO, JobItem, SettleJobResponse } from '../types/job';
+import type {
+  JobDTO,
+  JobItem,
+  JobsListResponse,
+  JobsPage,
+  SettleJobResponse,
+} from '../types/job';
 import { useJobStore } from '@/app/stores/job-store';
+
+export type JobsListParams = {
+  /** 0-based page index from UI tables (converted to 1-based for the API). */
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  status?: string[];
+  customerId?: number[];
+  accountManagerSub?: string[];
+};
+
+const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
+  jobNumber: 'jobNumber',
+  customerName: 'customerName',
+  projectName: 'projectName',
+  status: 'jobStatus',
+  uninvoicedDockets: 'uninvoicedDocketsAmount',
+  accountManagerName: 'accountManagerName',
+};
+
+export function toJobApiSortParams(
+  sorting: { id: string; desc: boolean }[],
+): Pick<JobsListParams, 'sortBy' | 'sortOrder'> {
+  const sort = sorting[0];
+  if (!sort) return { sortBy: 'jobNumber', sortOrder: 'desc' };
+  return {
+    sortBy: JOB_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+    sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
+function getFacetFilterValues(
+  filters: { id: string; value: unknown }[],
+  columnId: string,
+): string[] {
+  const filter = filters.find((f) => f.id === columnId);
+  if (!filter || !Array.isArray(filter.value)) return [];
+  return filter.value.map((v) => String(v));
+}
+
+export function toJobApiFilterParams(
+  filters: { id: string; value: unknown }[],
+): Pick<JobsListParams, 'status' | 'customerId' | 'accountManagerSub'> {
+  const statusValues = getFacetFilterValues(filters, 'status');
+  const customerValues = getFacetFilterValues(filters, 'customerName');
+  const accountManagerValues = getFacetFilterValues(filters, 'accountManagerName');
+
+  const customerIds = customerValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+
+  return {
+    status: statusValues.length ? statusValues : undefined,
+    customerId: customerIds.length ? customerIds : undefined,
+    accountManagerSub: accountManagerValues.length ? accountManagerValues : undefined,
+  };
+}
+
+/** Jobs API pagination is 1-based (page 1 = first page). */
+function toApiPage(page: number): number {
+  return page + 1;
+}
+
+function formatFacetEnumLabel(value: string): string {
+  return value
+    .split('_')
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+export function getJobsPageFromListResponse(
+  data: JobsListResponse | null | undefined,
+): JobsPage | null {
+  return data?.jobs ?? null;
+}
+
+export function getJobItemsFromListResponse(
+  data: JobsListResponse | null | undefined,
+): JobDTO[] {
+  return data?.jobs?.content ?? [];
+}
+
+export function buildJobFacetOptions(response?: JobsListResponse | null) {
+  return {
+    statuses: (response?.statuses ?? []).map((status) => ({
+      value: status,
+      label: formatFacetEnumLabel(status),
+    })),
+    customers: (response?.customers ?? []).map((customer) => ({
+      value: customer.id,
+      label: customer.name,
+    })),
+    accountManagers: (response?.accountManagers ?? []).map((manager) => ({
+      value: manager.id,
+      label: manager.name,
+    })),
+  };
+}
 
 /**
  * Mutation hook for creating a new job.
@@ -27,10 +133,14 @@ export const useCreateJob = () => {
   });
 };
 
-export const JobsListQueryOptions = () =>
+export const JobsListQueryOptions = (params?: JobsListParams) =>
   queryOptions({
-    queryKey: JobKeys.list(),
-    queryFn: () => APIClient.jobs.getAll(),
+    queryKey: [...JobKeys.list(), params],
+    queryFn: () =>
+      APIClient.jobs.getAll({
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

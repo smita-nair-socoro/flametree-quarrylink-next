@@ -250,3 +250,27 @@ export interface JobStatistics {
   completedDocketsReadyForInvoicing: number;
   pausedJobs: number;
 }
+
+export interface JobsPage {
+  content: JobDTO[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+export interface JobsFacetOption {
+  id: string;
+  name: string;
+}
+
+export interface JobsListResponse {
+  jobs: JobsPage;
+  statuses?: string[];
+  customers?: JobsFacetOption[];
+  accountManagers?: JobsFacetOption[];
+}
