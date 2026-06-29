@@ -13,7 +13,7 @@ import {
 } from '@/hooks/haulier/delete-haulier-content';
 import { useDeleteHaulier } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
 
 type DeleteDialogState =
   | { mode: 'idle' }
@@ -33,21 +33,26 @@ export function useHaulierActions(
   const handleConfirmDelete = async () => {
     if (!haulierData?.id) return;
     try {
-      const result = await deleteHaulier.mutateAsync(haulierData.id);
-      if (result.success) {
-        setDeleteState({ mode: 'idle' });
-        notifySuccess('Haulier deleted successfully.');
-        onDeleteSuccess?.();
-      } else {
+      await deleteHaulier.mutateAsync(haulierData.id);
+      setDeleteState({ mode: 'idle' });
+      notifySuccess('Haulier deleted successfully.');
+      onDeleteSuccess?.();
+    } catch (error) {
+      const data = extractErrorData(error) as {
+        success?: boolean;
+        activeTruckIds?: number[];
+        activeDriverIds?: number[];
+      } | null;
+      if (data?.success === false) {
         setDeleteState({
           mode: 'blocked',
-          activeTruckIds: result.activeTruckIds ?? [],
-          activeDriverIds: result.activeDriverIds ?? [],
+          activeTruckIds: data.activeTruckIds ?? [],
+          activeDriverIds: data.activeDriverIds ?? [],
         });
+      } else {
+        notifyError(extractErrorMessage(error) || 'Failed to delete haulier.');
+        setDeleteState({ mode: 'idle' });
       }
-    } catch (error) {
-      notifyError(extractErrorMessage(error) || 'Failed to delete haulier.');
-      setDeleteState({ mode: 'idle' });
     }
   };
 

@@ -146,10 +146,8 @@ export const useDeleteHaulier = () => {
 
   return useMutation<HaulierDeleteResponse, Error, number>({
     mutationFn: (id) => APIClient.hauliers.delete(id),
-    onSuccess: (data) => {
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: HaulierKeys.list() });
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: HaulierKeys.list() });
     },
   });
 };
