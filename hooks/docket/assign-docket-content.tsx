@@ -166,7 +166,7 @@ export function AssignDocketDescription({
 }>) {
   const uom = docket?.jobItem?.productSellUom;
   let uomLabel: string | undefined;
-  if (uom === 'M3') uomLabel = 'm³';
+  if (uom === 'M3' || uom === 'm3') uomLabel = 'm³';
   else if (uom === 'KG_20') uomLabel = 'x 20kg';
   else if (uom === 'TN') uomLabel = 'TN';
   else if (uom === 'BULKA') uomLabel = 'Bulka';
@@ -250,17 +250,17 @@ export function AssignDocketContent({
 
   const conflictDates =
     docket?.deliveryCollectionDate &&
-    docket.deliveryCollectionStartTime &&
-    docket.deliveryCollectionEndTime
+      docket.deliveryCollectionStartTime &&
+      docket.deliveryCollectionEndTime
       ? {
-          deliveryCollectionDate: appendUtcSuffix(
-            docket.deliveryCollectionDate,
-          ),
-          deliveryStartWindow: appendUtcSuffix(
-            docket.deliveryCollectionStartTime,
-          ),
-          deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
-        }
+        deliveryCollectionDate: appendUtcSuffix(
+          docket.deliveryCollectionDate,
+        ),
+        deliveryStartWindow: appendUtcSuffix(
+          docket.deliveryCollectionStartTime,
+        ),
+        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+      }
       : null;
 
   const truckConflictRequest =
@@ -363,8 +363,8 @@ export function AssignDocketContent({
     () =>
       truckSelection
         ? availableDrivers
-            .filter((d) => d.truckIds.includes(truckSelection))
-            .map((d) => ({ label: d.driverName, value: d.id }))
+          .filter((d) => d.truckIds.includes(truckSelection))
+          .map((d) => ({ label: d.driverName, value: d.id }))
         : [],
     [availableDrivers, truckSelection],
   );

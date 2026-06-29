@@ -7,7 +7,13 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { HaulierKeys } from './keys';
-import type { HaulierDTO, HauliersPage, HaulierCreateDTO, HaulierDeleteResponse, HaulierStatistics } from '../types/haulier';
+import type {
+  HaulierDTO,
+  HauliersPage,
+  HaulierCreateDTO,
+  HaulierDeleteResponse,
+  HaulierStatistics,
+} from '../types/haulier';
 
 export type HauliersListParams = {
   /** 0-based page index from UI tables (converted to 1-based for the API). */
@@ -21,8 +27,6 @@ export type HauliersListParams = {
 const HAULIER_COLUMN_TO_API_SORT: Record<string, string> = {
   haulierName: 'haulierName',
   emailAddress: 'emailAddress',
-  phoneNumber: 'phoneNumber',
-  haulierType: 'haulierType',
 };
 
 export function toHaulierApiSortParams(

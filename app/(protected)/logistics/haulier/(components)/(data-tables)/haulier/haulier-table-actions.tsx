@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
@@ -43,6 +44,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
               href={`/logistics/trucks?haulierId=${haulier.id}`}
@@ -53,6 +55,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
               Linked Trucks
             </a>
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
               href={`/logistics/drivers?haulierId=${haulier.id}`}
@@ -65,6 +68,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
           </DropdownMenuItem>
           {isSubcontractor && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   setDropdownOpen(false);
