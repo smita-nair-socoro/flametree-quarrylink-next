@@ -7,6 +7,7 @@ import { useSelectedClient } from '@/app/stores/client-store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { cn } from '@/lib/utils';
 import { Spinner } from '@/components/ui/spinner';
 import { Form } from '@/components/ui/form';
@@ -321,6 +322,24 @@ export default function ClientForm({
     },
   ];
 
+  useFormDialogFooter(
+    isEditing && isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          Close
+        </Button>
+        <Button
+          form="add-new-client-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isSubmitting}
+        >
+          Save Changes
+        </Button>
+      </div>
+    ) : null,
+  );
+
   return (
     <div className="w-full relative">
       {/* Loading Overlay */}
@@ -522,11 +541,8 @@ export default function ClientForm({
             </div>
           )}
 
-          {isEditing && (
-            <div className="flex justify-end space-x-2 my-6">
-              <Button variant="outline" type="button" onClick={onCancel}>
-                Close
-              </Button>
+          {isEditing && !isDesktop && (
+            <div className="flex flex-col col-span-full gap-3 mb-6">
               <Button
                 form="add-new-client-form"
                 className="cursor-pointer"
@@ -535,8 +551,12 @@ export default function ClientForm({
               >
                 Save Changes
               </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                Close
+              </Button>
             </div>
           )}
+
         </form>
       </Form>
     </div>
