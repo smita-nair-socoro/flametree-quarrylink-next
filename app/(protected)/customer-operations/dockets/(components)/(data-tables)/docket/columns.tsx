@@ -88,7 +88,7 @@ export const getDocketColumns = (
     id: 'status',
     accessorFn: (row) => row.docketStatus,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+      return <div>Status</div>;
     },
     cell: ({ row }) => {
       const status =
