@@ -72,7 +72,7 @@ export const getJobColumns = (
     id: 'status',
     accessorFn: (row) => row.jobStatus,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+      return <div>Status</div>;
     },
     cell: ({ getValue }) => {
       const names = getValue<string>() as JOB_STATUS;

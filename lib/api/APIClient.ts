@@ -85,6 +85,7 @@ import {
   InvoiceUrlResponse,
   JobStatistics,
   CreateInvoiceResponseDTO,
+  JobsListResponse,
 } from '../types/job';
 import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
@@ -1095,23 +1096,25 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      status?: string[];
+      customerId?: number[];
+      accountManagerSub?: string[];
     }) => {
-      const response = await appClient.Get<
-        | JobDTO[]
-        | {
-            content: JobDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/job`, {
-        queryString: {
-          page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
-          search: params?.search,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
+      const response = await appClient.Get<JobsListResponse>(
+        `/socoro/quarrylink/api/job`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            customerId: params?.customerId?.map(String),
+            accountManagerSub: params?.accountManagerSub,
+          },
         },
-      });
+      );
       return response;
     },
     getJobItems: async (jobId: number) => {
