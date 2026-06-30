@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { FileText, Truck } from 'lucide-react';
 
 import {
@@ -10,9 +10,7 @@ import {
   useAddUserToOperations,
   useRemoveUserFromOperations,
 } from '@/lib/api/user';
-import { UserKeys } from '@/lib/api/keys';
 import { getRoleLabel } from '@/lib/utils/user-helper';
-import { notifyError, notifySuccess } from '@/lib/toast';
 import { PermissionMatrix } from './roles/permission-matrix';
 import {
   EmailNotificationGroups,
@@ -161,15 +159,11 @@ const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
 export default function RolesTab() {
   const [managedGroupName, setManagedGroupName] = useState<string | null>(null);
 
-  const queryClient = useQueryClient();
   const { data: users = [] } = useQuery(UsersListQueryOptions());
   const { data: operations = [] } = useQuery(OperationsListQueryOptions());
 
   const addToOperations = useAddUserToOperations();
   const removeFromOperations = useRemoveUserFromOperations();
-
-  const refreshOperations = () =>
-    queryClient.invalidateQueries({ queryKey: UserKeys.operations() });
 
   // Every non-driver user belongs to the Account Manager group.
   const accountManagerCount = users.filter(
@@ -184,15 +178,15 @@ export default function RolesTab() {
     role: getRoleLabel(user.groups),
   }));
 
-  const memberCountByGroup: Record<string, number> = {
-    'Account Manager': accountManagerCount,
-    Operations: operationMembers.length,
-  };
-
   const notificationGroups: NotificationGroup[] = groupDefinitions.map(
     (group) => ({
       ...group,
-      memberCount: memberCountByGroup[group.name] ?? 0,
+      memberCount:
+        group.name === 'Account Manager'
+          ? accountManagerCount
+          : group.name === 'Operations'
+            ? operationMembers.length
+            : 0,
     }),
   );
 
@@ -202,32 +196,14 @@ export default function RolesTab() {
   const managedMembers =
     managedGroupName === 'Operations' ? operationMembers : [];
 
-  const handleAddMembers = async (added: GroupMember[]) => {
-    if (managedGroupName !== 'Operations' || added.length === 0) return;
-    try {
-      await Promise.all(
-        added.map((member) => addToOperations.mutateAsync(member.id)),
-      );
-      notifySuccess(
-        `Added ${added.length} member${added.length > 1 ? 's' : ''} to the Operations group.`,
-      );
-    } catch {
-      notifyError('Failed to add some members to the Operations group.');
-    } finally {
-      refreshOperations();
-    }
+  const handleAddMembers = (added: GroupMember[]) => {
+    if (managedGroupName !== 'Operations') return;
+    added.forEach((member) => addToOperations.mutate(member.id));
   };
 
-  const handleRemoveMember = async (member: GroupMember) => {
+  const handleRemoveMember = (member: GroupMember) => {
     if (managedGroupName !== 'Operations') return;
-    try {
-      await removeFromOperations.mutateAsync(member.id);
-      notifySuccess(`Removed ${member.name} from the Operations group.`);
-    } catch {
-      notifyError(`Failed to remove ${member.name} from the Operations group.`);
-    } finally {
-      refreshOperations();
-    }
+    removeFromOperations.mutate(member.id);
   };
 
   return (
