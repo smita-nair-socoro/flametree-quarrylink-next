@@ -4,7 +4,10 @@ import {
   LinkedProduct,
   Product,
   ProductDetails,
+  ProductListItem,
   ProductReporting,
+  ProductsListResponse,
+  ProductsPage,
 } from '../types/product';
 import {
   CustomerDTO,
@@ -502,10 +505,38 @@ export const APIClient = {
       appClient.Get<ProductReporting>(
         `/socoro/quarrylink/api/product/reporting`,
       ),
-    getAll: () =>
-      appClient.Get<ProductDetails[]>(
-        `/socoro/quarrylink/api/product/material`,
-      ),
+    getAll: async (params?: {
+      materialId?: number;
+      isActive?: boolean;
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+
+      const response = await appClient.Get<
+        ProductListItem[] | ProductsListResponse | ProductsPage
+      >(`/socoro/quarrylink/api/product/material`, {
+        queryString: {
+          materialId: params?.materialId?.toString(),
+          isActive:
+            params?.isActive !== undefined
+              ? String(params.isActive)
+              : undefined,
+          page: params?.page?.toString(),
+          pageSize: isPaginated
+            ? (params?.pageSize?.toString() ?? '10')
+            : (params?.pageSize?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
     getByIdWithMaterial: (productId: number) =>
       appClient.Get<ProductDetails>(
         `/socoro/quarrylink/api/product/${productId}/material`,

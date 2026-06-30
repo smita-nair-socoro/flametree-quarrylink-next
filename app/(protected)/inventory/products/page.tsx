@@ -17,7 +17,11 @@ import { useQuery } from '@tanstack/react-query';
 import {
   ProductsListQueryOptions,
   ProductReportingQueryOptions,
+  getProductsPageFromListResponse,
+  toProductApiFilterParams,
+  toProductApiSortParams,
 } from '@/lib/api/product';
+import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -31,6 +35,7 @@ import { useProductActions } from '@/hooks/use-product-actions';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -38,15 +43,69 @@ export default function ProductsPage() {
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
 
-  // Use React Query to fetch products data
+  const linkedProductIdsParam = searchParams.get('linkedProductIds');
+  const linkedQuarrySupplierIdParam = searchParams.get(
+    'linkedQuarrySupplierId',
+  );
+  const linkedQuarrySupplierNameParam = searchParams.get(
+    'linkedQuarrySupplierName',
+  );
+
+  const linkedProductIdsSet = React.useMemo(() => {
+    if (!linkedProductIdsParam) return null;
+    const ids = linkedProductIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return new Set(ids);
+  }, [linkedProductIdsParam]);
+
+  const isLinkedFilter = !!linkedProductIdsSet;
+
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [search, setSearch] = React.useState('');
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'product_name', desc: false },
+  ]);
+
+  const { data: materialsData } = useQuery(MaterialsListQueryOptions());
+
+  const apiSortParams = React.useMemo(
+    () => toProductApiSortParams(sorting),
+    [sorting],
+  );
+
+  const apiFilterParams = React.useMemo(
+    () => toProductApiFilterParams(facetFilters, materialsData),
+    [facetFilters, materialsData],
+  );
+
   const {
     data: productsData,
     isLoading,
+    isFetching,
     error,
     isError,
-  } = useQuery(ProductsListQueryOptions());
+  } = useQuery(
+    ProductsListQueryOptions({
+      page: isLinkedFilter ? 0 : pageIndex,
+      pageSize: isLinkedFilter ? 1000 : pageSize,
+      search: search.trim() || undefined,
+      ...apiSortParams,
+      ...apiFilterParams,
+    }),
+  );
 
   const { data: reportingData } = useQuery(ProductReportingQueryOptions());
+
+  const productPage = React.useMemo(
+    () => getProductsPageFromListResponse(productsData),
+    [productsData],
+  );
 
   const statsCards: StatsCardData[] = [
     {
@@ -101,12 +160,10 @@ export default function ProductsPage() {
     }
   }, [isError, error]);
 
-  // Handle row click to open product details
   const handleRowClick = (product: ProductDetails) => {
     actions.view(product);
   };
 
-  // Mobile card renderer
   const renderProductCard = React.useCallback((product: ProductDetails) => {
     const materialName = product.material?.name || '';
 
@@ -141,48 +198,88 @@ export default function ProductsPage() {
     );
   }, []);
 
-  // Transform the API data to match our component expectations
   const items: ProductDetails[] = React.useMemo(
     () =>
-      productsData?.map((product) => {
-        // Convert API response to snake_case if needed
-
-        return {
-          ...product,
-          productId: product.id,
-          // Ensure material is properly mapped for facet filtering
-          material: product.material || { id: 0, name: '', version: 0 },
-        } as ProductDetails;
-      }) || [],
-    [productsData],
+      (productPage?.content ?? []).map(
+        (product) =>
+          ({
+            ...product,
+            productId: product.id,
+            material: product.material || { id: 0, name: '', version: 0 },
+          }) as unknown as ProductDetails,
+      ),
+    [productPage],
   );
-
-  const linkedProductIdsParam = searchParams.get('linkedProductIds');
-  const linkedQuarrySupplierIdParam = searchParams.get(
-    'linkedQuarrySupplierId',
-  );
-  const linkedQuarrySupplierNameParam = searchParams.get(
-    'linkedQuarrySupplierName',
-  );
-
-  const linkedProductIdsSet = React.useMemo(() => {
-    if (!linkedProductIdsParam) return null;
-    const ids = linkedProductIdsParam
-      .split(',')
-      .map((v) => Number(v.trim()))
-      .filter((n) => Number.isFinite(n) && n > 0);
-    return new Set(ids);
-  }, [linkedProductIdsParam]);
 
   const filteredItems = React.useMemo(() => {
     if (!linkedProductIdsSet) return items;
     return items.filter((p) => linkedProductIdsSet.has(p.id));
   }, [items, linkedProductIdsSet]);
 
-  const facetDefs: FacetDefinition[] = [
-    { column: 'material_type', title: 'Material Type' },
-    { column: 'status', title: 'Status' },
-  ];
+  const totalElements = isLinkedFilter
+    ? filteredItems.length
+    : (productPage?.totalElements ?? items.length);
+  const totalPages = isLinkedFilter
+    ? 1
+    : (productPage?.totalPages ??
+      Math.max(1, Math.ceil(totalElements / pageSize)));
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const facetFiltersKeyRef = React.useRef('[]');
+  const handleFacetFiltersChange = React.useCallback(
+    (filters: ColumnFiltersState) => {
+      const serialized = JSON.stringify(filters);
+      if (facetFiltersKeyRef.current !== serialized) {
+        facetFiltersKeyRef.current = serialized;
+        setPageIndex(0);
+      }
+      setFacetFilters(filters);
+    },
+    [],
+  );
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0
+        ? newSorting
+        : [{ id: 'product_name', desc: false }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
+
+  const facetDefs: FacetDefinition[] = React.useMemo(
+    () => [
+      {
+        column: 'material_type',
+        title: 'Material Type',
+        options: (materialsData ?? []).map((material) => ({
+          value: material.name.toUpperCase(),
+          label: material.name,
+        })),
+      },
+      {
+        column: 'status',
+        title: 'Status',
+        options: [
+          { value: 'AVAILABLE', label: 'Available' },
+          { value: 'UNAVAILABLE', label: 'Unavailable' },
+        ],
+      },
+    ],
+    [materialsData],
+  );
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -197,7 +294,6 @@ export default function ProductsPage() {
           </FormDialog>
         </div>
       </div>
-      {/* Statistics Cards */}
       <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading ? (
@@ -253,6 +349,16 @@ export default function ProductsPage() {
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'product_name', desc: false }]}
               mobileCardRenderer={renderProductCard}
+              totalElements={totalElements}
+              totalPages={totalPages}
+              externalPageIndex={isLinkedFilter ? 0 : pageIndex}
+              externalPageSize={isLinkedFilter ? filteredItems.length || 10 : pageSize}
+              externalSorting={sorting}
+              onPaginationChange={isLinkedFilter ? undefined : handlePaginationChange}
+              onSearchChange={handleSearchChange}
+              onFacetFiltersChange={handleFacetFiltersChange}
+              onSortingChange={handleSortingChange}
+              isLoading={isFetching}
             />
           </>
         )}
