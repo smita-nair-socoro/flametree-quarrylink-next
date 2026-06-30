@@ -40,33 +40,22 @@ export const OperationsListQueryOptions = () =>
 
 /**
  * Mutation hook for adding a user to the Operations notification group.
- * Invalidates the operations list cache on success.
+ * Cache invalidation is handled by the caller so that batched adds only
+ * trigger a single refetch.
  */
-export const useAddUserToOperations = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const useAddUserToOperations = () =>
+  useMutation({
     mutationFn: (id: string) => APIClient.users.addToOperations(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: UserKeys.operations() });
-    },
   });
-};
 
 /**
  * Mutation hook for removing a user from the Operations notification group.
- * Invalidates the operations list cache on success.
+ * Cache invalidation is handled by the caller.
  */
-export const useRemoveUserFromOperations = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+export const useRemoveUserFromOperations = () =>
+  useMutation({
     mutationFn: (id: string) => APIClient.users.removeFromOperations(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: UserKeys.operations() });
-    },
   });
-};
 
 export const UserDetailQueryOptions = (userId: string) =>
   queryOptions({
