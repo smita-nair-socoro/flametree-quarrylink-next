@@ -60,6 +60,7 @@ export default function JobLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
     useTenantCurrencyTax();
   const {
@@ -74,6 +75,12 @@ export default function JobLineItemForm({
     addressSearchInput,
     setAddressSearchInput,
     productOptions,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
     quarryOptions,
     truckTypeOptions,
     productUnitOptions,
@@ -86,7 +93,14 @@ export default function JobLineItemForm({
     handleDeleteDeliveryAddress,
     isSubmitting,
     isProductDeletedOnCompletedJob,
-  } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved, taxPercentage });
+  } = useJobLineItemFormState({
+    id,
+    canEdit,
+    onSuccess,
+    onSaved,
+    taxPercentage,
+    loadMoreEnabled: productSelectOpen,
+  });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
@@ -353,6 +367,13 @@ export default function JobLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={isReadOnly || isEditing}
+                onDropdownOpenChange={setProductSelectOpen}
+                searchValue={productSearch}
+                onSearchChange={onProductSearchChange}
+                isSearchingOptions={isSearchingProducts}
+                onOptionsListScrollEnd={onProductOptionsScrollEnd}
+                hasMoreOptions={hasMoreProductOptions}
+                isLoadingMoreOptions={isLoadingMoreProductOptions}
               />
 
               <FormSelect

@@ -29,6 +29,7 @@ import {
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
+import { useDocketStore } from '@/app/stores/docket-store';
 
 export const DocketStatisticsQueryOptions = () => {
   const today = new Date();
@@ -260,9 +261,13 @@ export const useUpdateDocket = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<DocketDTO> }) =>
       APIClient.dockets.update(id, data),
-    onSuccess: (data) => {
+    onSuccess: async (data, { id }) => {
+      const updatedDocket = data?.id ? data : await APIClient.dockets.getById(id);
+
+      queryClient.setQueryData(DocketKeys.detail(updatedDocket.id), updatedDocket);
+      useDocketStore.getState().setSelectedDocket(updatedDocket);
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(updatedDocket.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
     },
   });
@@ -383,10 +388,18 @@ export const useOperationalUpdateDocket = () => {
       id: number;
       data: DocketOperationalUpdateRequest;
     }) => APIClient.dockets.operationalUpdate(id, data),
-    onSuccess: (response) => {
-      if (response.docket) {
+    onSuccess: async (response, { id }) => {
+      const updatedDocket =
+        response.docket ?? (await APIClient.dockets.getById(id));
+
+      if (updatedDocket) {
+        queryClient.setQueryData(
+          DocketKeys.detail(updatedDocket.id),
+          updatedDocket,
+        );
+        useDocketStore.getState().setSelectedDocket(updatedDocket);
         queryClient.invalidateQueries({
-          queryKey: DocketKeys.detail(response.docket.id),
+          queryKey: DocketKeys.detail(updatedDocket.id),
         });
       }
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });

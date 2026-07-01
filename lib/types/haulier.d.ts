@@ -13,6 +13,20 @@ export interface HaulierDTO {
   version: number;
 }
 
+export interface HaulierStatistics {
+  totalHauliers: number;
+  trucksManaged: number;
+  driversManaged: number;
+}
+
+export interface HaulierDeleteResponse {
+  success: boolean;
+  message?: string;
+  haulierId?: number;
+  activeTruckIds?: number[];
+  activeDriverIds?: number[];
+}
+
 export interface HauliersPage {
   content: HaulierDTO[];
   totalElements: number;

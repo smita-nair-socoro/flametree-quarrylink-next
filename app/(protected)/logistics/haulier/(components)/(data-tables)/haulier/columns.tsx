@@ -33,9 +33,9 @@ export const haulierColumns = (tenantEmail: string | null | undefined): ColumnDe
   {
     id: 'phoneNumber',
     accessorFn: (row) => row.phoneNumber,
-    header: ({ column }) => (
-      <TableClientSortableHeader column={column} title="Phone Number" />
-    ),
+    header: () => {
+      return <div>Phone Number</div>;
+    },
     cell: ({ row }) => (
       <div className="py-2">
         {formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}
@@ -47,9 +47,9 @@ export const haulierColumns = (tenantEmail: string | null | undefined): ColumnDe
     id: 'haulierType',
     accessorFn: (row) =>
       isInternalHaulier(row.emailAddress, tenantEmail) ? 'INTERNAL' : 'SUBCONTRACTOR',
-    header: ({ column }) => (
-      <TableClientSortableHeader column={column} title="Type" />
-    ),
+    header: () => {
+      return <div>Type</div>;
+    },
     cell: ({ getValue }) => {
       const type = getValue<string>();
       return (

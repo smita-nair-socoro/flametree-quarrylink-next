@@ -511,7 +511,7 @@ export default function DocketForm({
         data: payload,
       });
       notifySuccess('Docket updated successfully');
-
+      onSaved?.();
     } catch (error) {
       notifyError(extractErrorMessage(error));
     } finally {
@@ -609,13 +609,13 @@ export default function DocketForm({
             data: { ...assignedPayload, checkWindowTimeConflict: false },
           });
           notifySuccess('Docket updated successfully');
-
+          onSaved?.();
         });
         setConflictingDocketIds(result.conflictingDocketIds);
         setTimeConflictOpen(true);
       } else {
         notifySuccess('Docket updated successfully');
-
+        onSaved?.();
       }
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -786,6 +786,7 @@ export default function DocketForm({
           data: payload,
         });
         notifySuccess('Docket updated successfully');
+        onSaved?.();
       } else {
         const newDocket = await createDocket.mutateAsync(payload);
         if (newDocket && typeof newDocket.id === 'number') {
@@ -795,7 +796,6 @@ export default function DocketForm({
         onSaved?.();
         onSuccess?.();
       }
-
     } catch (error) {
       console.error('Error creating docket:', error);
       notifyError(extractErrorMessage(error));

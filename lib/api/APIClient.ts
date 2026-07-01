@@ -4,7 +4,10 @@ import {
   LinkedProduct,
   Product,
   ProductDetails,
+  ProductListItem,
   ProductReporting,
+  ProductsListResponse,
+  ProductsPage,
 } from '../types/product';
 import {
   CustomerDTO,
@@ -84,7 +87,7 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HauliersPage } from '../types/haulier';
+import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -503,10 +506,38 @@ export const APIClient = {
       appClient.Get<ProductReporting>(
         `/socoro/quarrylink/api/product/reporting`,
       ),
-    getAll: () =>
-      appClient.Get<ProductDetails[]>(
-        `/socoro/quarrylink/api/product/material`,
-      ),
+    getAll: async (params?: {
+      materialId?: number;
+      isActive?: boolean;
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+
+      const response = await appClient.Get<
+        ProductListItem[] | ProductsListResponse | ProductsPage
+      >(`/socoro/quarrylink/api/product/material`, {
+        queryString: {
+          materialId: params?.materialId?.toString(),
+          isActive:
+            params?.isActive !== undefined
+              ? String(params.isActive)
+              : undefined,
+          page: params?.page?.toString(),
+          pageSize: isPaginated
+            ? (params?.pageSize?.toString() ?? '10')
+            : (params?.pageSize?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+        },
+      });
+      return response;
+    },
     getByIdWithMaterial: (productId: number) =>
       appClient.Get<ProductDetails>(
         `/socoro/quarrylink/api/product/${productId}/material`,
@@ -1297,13 +1328,34 @@ export const APIClient = {
       appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
         body: data,
       }),
-    getAll: () => appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier'),
+    getAll: (params?: {
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier', {
+        queryString: {
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString(),
+        },
+      }),
     getById: (id: number) =>
       appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
     update: (id: number, data: HaulierCreateDTO) =>
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
+    getStatistics: () =>
+      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+    delete: (id: number) =>
+      appClient.Delete<HaulierDeleteResponse>(
+        `/socoro/quarrylink/api/haulier/${id}`,
+      ),
     getDrivers: (haulierId: number) =>
       appClient.Get<{ drivers: DriverDTO[] }>(
         `/socoro/quarrylink/api/haulier/${haulierId}/drivers`,

@@ -127,6 +127,7 @@ export function useDriverTruckActions(driverData?: DriverDTO | null) {
           <AssignTruckContent
             trucks={availableTrucks}
             assignedTruckIds={(driverData?.trucks ?? []).map((t) => t.id)}
+            haulierName={driverData?.haulier?.haulierName}
             onSelectionChange={setSelectedTruckIds}
           />
         ),

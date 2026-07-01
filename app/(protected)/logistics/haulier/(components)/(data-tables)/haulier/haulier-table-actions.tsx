@@ -1,14 +1,13 @@
 'use client';
 import * as React from 'react';
 import { MoreHorizontal, Eye, Trash2, Truck, Users } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
@@ -22,8 +21,6 @@ interface HaulierTableActionsProps {
 export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useHaulierActions(haulier);
-  const router = useRouter();
-
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier.emailAddress, tenantEmail);
 
@@ -47,26 +44,31 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setDropdownOpen(false);
-              router.push(`/logistics/trucks?haulierId=${haulier.id}`);
-            }}
-          >
-            <Truck className="h-4 w-4 mr-2" />
-            Linked Trucks
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <a
+              href={`/logistics/trucks?haulierId=${haulier.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Truck className="h-4 w-4 mr-2" />
+              Linked Trucks
+            </a>
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setDropdownOpen(false);
-              router.push(`/logistics/drivers?haulierId=${haulier.id}`);
-            }}
-          >
-            <Users className="h-4 w-4 mr-2" />
-            Linked Drivers
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <a
+              href={`/logistics/drivers?haulierId=${haulier.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Linked Drivers
+            </a>
           </DropdownMenuItem>
           {isSubcontractor && (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   setDropdownOpen(false);
