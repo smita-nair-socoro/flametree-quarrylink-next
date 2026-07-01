@@ -130,30 +130,38 @@ export function getDeliveryTimeWindowHour(
   return Number.isNaN(hour) ? null : hour;
 }
 
-/** When end is set, start options after end are disabled. Start cannot be 23:00 (end must be later). */
+/** When end is set, start options at or after end are disabled. Start cannot be 23:xx (end must be later). */
 export function isDeliveryTimeWindowStartOptionDisabled(
   option: string,
   endTime?: string | null,
 ): boolean {
-  const optionHour = getDeliveryTimeWindowHour(option);
-  if (optionHour === null) return false;
-  if (optionHour >= 23) return true;
+  const optionNorm = parseDeliveryTimeWindowValue(option);
+  if (!optionNorm) return false;
 
-  const endHour = getDeliveryTimeWindowHour(endTime);
-  if (endHour === null) return false;
-  return optionHour > endHour;
+  const optionHour = Number.parseInt(optionNorm.split(':')[0], 10);
+  if (Number.isNaN(optionHour) || optionHour >= 23) return true;
+
+  const endNorm = parseDeliveryTimeWindowValue(endTime);
+  if (!endNorm) return false;
+
+  // option must be strictly before end (full HH:MM comparison)
+  return optionNorm >= endNorm;
 }
 
-/** When start is set, end options before start are disabled. End cannot be 04:00 (start must be earlier). */
+/** When start is set, end options at or before start are disabled. End cannot be 04:xx or earlier. */
 export function isDeliveryTimeWindowEndOptionDisabled(
   option: string,
   startTime?: string | null,
 ): boolean {
-  const optionHour = getDeliveryTimeWindowHour(option);
-  if (optionHour === null) return false;
-  if (optionHour <= 4) return true;
+  const optionNorm = parseDeliveryTimeWindowValue(option);
+  if (!optionNorm) return false;
 
-  const startHour = getDeliveryTimeWindowHour(startTime);
-  if (startHour === null) return false;
-  return optionHour < startHour;
+  const optionHour = Number.parseInt(optionNorm.split(':')[0], 10);
+  if (Number.isNaN(optionHour) || optionHour <= 4) return true;
+
+  const startNorm = parseDeliveryTimeWindowValue(startTime);
+  if (!startNorm) return false;
+
+  // option must be strictly after start (full HH:MM comparison)
+  return optionNorm <= startNorm;
 }
