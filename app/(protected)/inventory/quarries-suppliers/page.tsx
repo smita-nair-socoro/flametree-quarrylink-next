@@ -122,7 +122,7 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Top Quarry',
       value: reportingData?.topQuarryOfTheMonth || 'QuarryLink-Quarry',
-      description: `$${centsToDollars(
+      description: `${currencySymbol}${centsToDollars(
         reportingData?.topQuarryQuotedProfitValueThisMonth || 0,
       )} this month`,
       icon: Factory,
