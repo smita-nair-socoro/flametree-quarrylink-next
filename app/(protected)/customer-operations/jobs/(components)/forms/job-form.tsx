@@ -26,18 +26,11 @@ import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import { formatLocalDateTime } from '@/lib/utils/date';
 import {
-  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
   isDeliveryTimeWindowEndOptionDisabled,
   isDeliveryTimeWindowStartOptionDisabled,
 } from '@/lib/utils/time';
 import { AuditInformation } from '@/components/audit-information';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 
@@ -58,7 +51,7 @@ export default function JobForm({
   onSaved,
   onCancel,
   onSuccess,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
 
@@ -160,7 +153,11 @@ export default function JobForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isSyncing ? 'Syncing...' : isEditing ? 'Updating Job...' : 'Adding Job...'}
+              {isSyncing
+                ? 'Syncing...'
+                : isEditing
+                  ? 'Updating Job...'
+                  : 'Adding Job...'}
             </p>
           </div>
         </div>
@@ -357,30 +354,17 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        key={`start-${field.value || 'empty'}`}
-                        value={field.value || ''}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowStartOptionDisabled(
-                                time,
-                                deliveryWindowEnd,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        isOptionDisabled={(time) =>
+                          isDeliveryTimeWindowStartOptionDisabled(
+                            time,
+                            deliveryWindowEnd,
+                          )
+                        }
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -394,30 +378,17 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        key={`end-${field.value || 'empty'}`}
-                        value={field.value || ''}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowEndOptionDisabled(
-                                time,
-                                deliveryWindowStart,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        isOptionDisabled={(time) =>
+                          isDeliveryTimeWindowEndOptionDisabled(
+                            time,
+                            deliveryWindowStart,
+                          )
+                        }
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
