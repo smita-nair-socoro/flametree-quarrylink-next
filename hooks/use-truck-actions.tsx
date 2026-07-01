@@ -46,7 +46,7 @@ import {
   useReactivateTruck,
   useDeleteTruck,
 } from '@/lib/api/truck';
-import { DocketsByTruckIdQueryOptions } from '@/lib/api/docket';
+import { DocketsByTruckIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -237,20 +237,25 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       const dockets = await queryClient.fetchQuery(
         DocketsByTruckIdQueryOptions(targetTruckId),
       );
-      const docketList = Array.isArray(dockets)
-        ? dockets
-        : (dockets as unknown as { content?: typeof dockets }).content ?? [];
+      const docketList = getDocketItemsFromListResponse(dockets);
 
       if (docketList.length === 0) {
         notifyError('There are no linked dockets for this truck.');
         return;
       }
 
-      const docketNumbers = docketList.map((docket) => docket.docketNumber);
-      console.log('[TruckDockets] linked docket numbers', {
-        truckId: targetTruckId,
-        docketNumbers,
-      });
+      const truckName = (
+        truckData?.licensePlate ??
+        selectedTruck?.licensePlate ??
+        ''
+      ).trim();
+      const truckNameParam = truckName
+        ? `&truckName=${encodeURIComponent(truckName)}`
+        : '';
+
+      handleNavigate(
+        `/customer-operations/dockets?truckId=${targetTruckId}${truckNameParam}`,
+      );
     } catch (error) {
       notifyError(extractErrorMessage(error) || 'Failed to load dockets.');
     }

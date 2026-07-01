@@ -436,16 +436,34 @@ export const DocketConflictCheckQueryOptions = (
     staleTime: 0,
   });
 
-export const DocketsByTruckIdQueryOptions = (truckId: number) =>
+export const DocketsByTruckIdQueryOptions = (
+  truckId: number,
+  params?: DocketsListParams,
+) =>
   queryOptions({
-    queryKey: [...DocketKeys.docketsByTruckId(truckId)],
-    queryFn: () => APIClient.dockets.getDocketsByTruckId(truckId),
+    queryKey: [...DocketKeys.docketsByTruckId(truckId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByTruckId(truckId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
     enabled: !!truckId,
   });
 
-export const DocketsByDriverIdQueryOptions = (driverId: number) =>
+export const DocketsByDriverIdQueryOptions = (
+  driverId: number,
+  params?: DocketsListParams,
+) =>
   queryOptions({
-    queryKey: [...DocketKeys.docketsByDriverId(driverId)],
-    queryFn: () => APIClient.dockets.getDocketsByDriverId(driverId),
+    queryKey: [...DocketKeys.docketsByDriverId(driverId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByDriverId(driverId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
     enabled: !!driverId,
   });

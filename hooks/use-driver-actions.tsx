@@ -28,7 +28,7 @@ import {
   UnassignTruckInfo,
 } from '@/hooks/driver/unassign-truck-content';
 import { Spinner } from '@/components/ui/spinner';
-import { DocketsByDriverIdQueryOptions } from '@/lib/api/docket';
+import { DocketsByDriverIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 
 interface DialogConfig {
   title?: string;
@@ -605,20 +605,25 @@ export function useDriverActions(
       const dockets = await queryClient.fetchQuery(
         DocketsByDriverIdQueryOptions(driverIdToFetch),
       );
-      const docketList = Array.isArray(dockets)
-        ? dockets
-        : (dockets as unknown as { content?: typeof dockets }).content ?? [];
+      const docketList = getDocketItemsFromListResponse(dockets);
 
       if (docketList.length === 0) {
         notifyError('There are no assigned dockets for this driver.');
         return;
       }
 
-      const docketNumbers = docketList.map((docket) => docket.docketNumber);
-      console.log('[DriverDockets] assigned docket numbers', {
-        driverId: driverIdToFetch,
-        docketNumbers,
-      });
+      const driverName = (
+        driverData?.driverName ??
+        selectedDriver?.driverName ??
+        ''
+      ).trim();
+      const driverNameParam = driverName
+        ? `&driverName=${encodeURIComponent(driverName)}`
+        : '';
+
+      handleNavigate(
+        `/customer-operations/dockets?driverId=${driverIdToFetch}${driverNameParam}`,
+      );
     } catch (error) {
       notifyError(extractErrorMessage(error) || 'Failed to load dockets.');
     }

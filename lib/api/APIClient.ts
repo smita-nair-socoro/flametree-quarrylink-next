@@ -985,14 +985,82 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${id}/duplicate`,
         { body: data },
       ),
-    getDocketsByTruckId: (truckId: number) =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/dockets/truck/${truckId}`,
-      ),
-    getDocketsByDriverId: (driverId: number) =>
-      appClient.Get<DocketDTO[]>(
-        `/socoro/quarrylink/api/dockets/driver/${driverId}`,
-      ),
+    getDocketsByTruckId: async (
+      truckId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+        status?: string;
+        type?: string;
+        customerId?: number;
+        productId?: number;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<
+        DocketDTO[] | DocketsListResponse | DocketsPage
+      >(`/socoro/quarrylink/api/dockets/truck/${truckId}`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: pageSize?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          status: params?.status,
+          type: params?.type,
+          customerId: params?.customerId?.toString(),
+          productId: params?.productId?.toString(),
+        },
+      });
+    },
+    getDocketsByDriverId: async (
+      driverId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+        status?: string;
+        type?: string;
+        customerId?: number;
+        productId?: number;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<
+        DocketDTO[] | DocketsListResponse | DocketsPage
+      >(`/socoro/quarrylink/api/dockets/driver/${driverId}`, {
+        queryString: {
+          page: params?.page?.toString(),
+          pageSize: pageSize?.toString(),
+          size: isPaginated
+            ? (pageSize?.toString() ?? '10')
+            : (params?.size?.toString() ?? '1000'),
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          status: params?.status,
+          type: params?.type,
+          customerId: params?.customerId?.toString(),
+          productId: params?.productId?.toString(),
+        },
+      });
+    },
   },
 
   checklists: {
