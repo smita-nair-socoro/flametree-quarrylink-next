@@ -35,7 +35,7 @@ export default function DocketsPage() {
   const linkedJobIdParam = searchParams.get('linkedJobId');
   const linkedJobNumberParam = searchParams.get('linkedJobNumber');
 
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, currencySymbol } = useTenantCurrencyTax();
 
   const linkedJobId = React.useMemo(() => {
     const parsed = Number(linkedJobIdParam);
@@ -166,7 +166,7 @@ export default function DocketsPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      value: `${currencySymbol}${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',

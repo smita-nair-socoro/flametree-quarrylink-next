@@ -11,6 +11,7 @@ import {
   UsersRound,
   Palette,
   Plug,
+  CircleDollarSign,
 } from 'lucide-react';
 import SettingsTab from './(components)/tabs/settings-tab';
 import TeamAdminTab from './(components)/tabs/team-admin-tab';
@@ -18,6 +19,7 @@ import RolesTab from './(components)/tabs/roles-tab';
 // import BillingTab from './(components)/tabs/billing-tab';
 import BrandingTab from './(components)/tabs/branding-tab';
 import IntegrationTab from './(components)/tabs/integration-tab';
+import FeeRecoveryTab from './(components)/tabs/fee-recovery-tab';
 import { useIsSuperAdmin, useUserStore } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
@@ -61,6 +63,11 @@ export default function UserRolesPage() {
           },
         ]
       : []),
+    {
+      name: 'Fee Recovery',
+      content: <FeeRecoveryTab />,
+      icon: <CircleDollarSign className="w-4 h-4" />,
+    },
     {
       name: 'Branding',
       content: <BrandingTab />,

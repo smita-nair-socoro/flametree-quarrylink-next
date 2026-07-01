@@ -44,7 +44,7 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
-  const { currencyCode } = useTenantCurrencyTax();
+  const { currencyCode, currencySymbol } = useTenantCurrencyTax();
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -235,7 +235,7 @@ export default function CustomersPage() {
           {
             icon: <CreditCard className="h-4 w-4" />,
             label: 'Credit Limit',
-            value: `$${formattedCreditLimit}`,
+            value: `${currencySymbol}${formattedCreditLimit}`,
           },
           {
             icon: <User className="h-4 w-4" />,

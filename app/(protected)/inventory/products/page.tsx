@@ -26,6 +26,7 @@ import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -38,6 +39,7 @@ import { ProductTableActions } from './(components)/(data-tables)/products/produ
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function ProductsPage() {
+  const { currencySymbol } = useTenantCurrencyTax();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -111,7 +113,7 @@ export default function ProductsPage() {
     {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || 'QuarryLink Product',
-      description: `$${centsToDollars(
+      description: `${currencySymbol}${centsToDollars(
         reportingData?.mostQuotedProductValueThisMonth || 0,
       )} this month`,
       icon: Gem,

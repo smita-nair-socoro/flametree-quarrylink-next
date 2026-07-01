@@ -109,7 +109,7 @@ export default function QuotationsPage() {
     `${value > 0 ? '+' : ''}${value} vs last month`;
 
   const formatValueChange = (value: number) =>
-    `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
+    `${value > 0 ? '+' : value < 0 ? '-' : ''}${currencySymbol}${centsToDollars(Math.abs(value))} vs last month`;
 
   const changeColor = (value: number) => {
     if (value > 0) return 'text-[#00A63E]';
@@ -139,7 +139,7 @@ export default function QuotationsPage() {
     },
     {
       title: 'Total Quote Value',
-      value: `$${centsToDollars(
+      value: `${currencySymbol}${centsToDollars(
         reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
       )}`,
       description: formatValueChange(quotesValueChange),

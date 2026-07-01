@@ -30,7 +30,7 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, currencySymbol } = useTenantCurrencyTax();
 
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
 
@@ -94,7 +94,7 @@ export default function CustomersPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      value: `${currencySymbol}${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
