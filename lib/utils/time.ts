@@ -45,25 +45,11 @@ function isDeliveryTimeWindowHourInRange(hour: number): boolean {
   return hour >= 4 && hour <= 23;
 }
 
-/** Drops minutes so times align to the hour (e.g. 11:30 → 11:00). */
-function snapDeliveryTimeWindowToHour(parsed: string): string {
-  const [hourPart, minutePart] = parsed.split(':');
-  const hour = Number.parseInt(hourPart, 10);
-  const minutes = Number.parseInt(minutePart ?? '0', 10);
-
-  if (Number.isNaN(hour)) return parsed;
-  if (Number.isNaN(minutes) || minutes === 0) return parsed;
-
-  return `${String(hour).padStart(2, '0')}:00`;
-}
-
-/** Clamps out-of-range start times to 04:00. */
+/** Clamps out-of-range start times to 04:00, preserving minutes. */
 export function normalizeDeliveryTimeWindowStart(
   timeStr?: string | null,
 ): string {
-  const parsed = snapDeliveryTimeWindowToHour(
-    parseDeliveryTimeWindowValue(timeStr),
-  );
+  const parsed = parseDeliveryTimeWindowValue(timeStr);
   if (!parsed) return '';
 
   const hour = Number.parseInt(parsed.split(':')[0], 10);
@@ -74,11 +60,9 @@ export function normalizeDeliveryTimeWindowStart(
   return parsed;
 }
 
-/** Clamps out-of-range end times to 23:00. */
+/** Clamps out-of-range end times to 23:00, preserving minutes. */
 export function normalizeDeliveryTimeWindowEnd(timeStr?: string | null): string {
-  const parsed = snapDeliveryTimeWindowToHour(
-    parseDeliveryTimeWindowValue(timeStr),
-  );
+  const parsed = parseDeliveryTimeWindowValue(timeStr);
   if (!parsed) return '';
 
   const hour = Number.parseInt(parsed.split(':')[0], 10);
@@ -101,7 +85,7 @@ function rebuildIsoWithNormalizedTime(
   return `${datePart}T${normalizedTime}:00${fractional}`;
 }
 
-/** Normalizes ISO/local delivery start to allowed window (04:00–23:00, on the hour). */
+/** Normalizes ISO/local delivery start to allowed window (04:00–23:00), preserving minutes. */
 export function normalizeDeliveryCollectionStartIso(
   iso?: string | null,
 ): string | undefined {
@@ -111,7 +95,7 @@ export function normalizeDeliveryCollectionStartIso(
   return rebuildIsoWithNormalizedTime(iso, normalizedTime);
 }
 
-/** Normalizes ISO/local delivery end to allowed window (04:00–23:00, on the hour). */
+/** Normalizes ISO/local delivery end to allowed window (04:00–23:00), preserving minutes. */
 export function normalizeDeliveryCollectionEndIso(
   iso?: string | null,
 ): string | undefined {

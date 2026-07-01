@@ -25,10 +25,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import { formatLocalDateTime } from '@/lib/utils/date';
-import {
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
-} from '@/lib/utils/time';
 import { AuditInformation } from '@/components/audit-information';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
@@ -357,12 +353,8 @@ export default function JobForm({
                       <TimeWindowPicker
                         value={field.value}
                         onChange={field.onChange}
-                        isOptionDisabled={(time) =>
-                          isDeliveryTimeWindowStartOptionDisabled(
-                            time,
-                            deliveryWindowEnd,
-                          )
-                        }
+                        relation="start"
+                        siblingValue={deliveryWindowEnd}
                         aria-invalid={!!fieldState.error}
                       />
                     </FormControl>
@@ -381,12 +373,8 @@ export default function JobForm({
                       <TimeWindowPicker
                         value={field.value}
                         onChange={field.onChange}
-                        isOptionDisabled={(time) =>
-                          isDeliveryTimeWindowEndOptionDisabled(
-                            time,
-                            deliveryWindowStart,
-                          )
-                        }
+                        relation="end"
+                        siblingValue={deliveryWindowStart}
                         aria-invalid={!!fieldState.error}
                       />
                     </FormControl>

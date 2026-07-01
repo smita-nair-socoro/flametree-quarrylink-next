@@ -10,6 +10,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { parseDeliveryTimeWindowValue } from '@/lib/utils/time';
+import { notifyError } from '@/lib/toast';
 
 function ScrollColumn({ children }: { children: React.ReactNode }) {
   const ref = React.useRef<HTMLDivElement>(null);
@@ -66,9 +67,12 @@ function buildTimeString(hour12: number, minute: number, ampm: 'AM' | 'PM'): str
 interface TimeWindowPickerProps {
   value?: string | null;
   onChange: (value: string) => void;
+  /** Whether this is the start or end of the time window. Used for validation and boundary rules. */
+  relation?: 'start' | 'end';
+  /** The other time window value to validate against on close. */
+  siblingValue?: string | null;
   disabled?: boolean;
   readOnly?: boolean;
-  isOptionDisabled?: (time: string) => boolean;
   placeholder?: string;
   'aria-invalid'?: boolean;
 }
@@ -76,25 +80,56 @@ interface TimeWindowPickerProps {
 export function TimeWindowPicker({
   value,
   onChange,
+  relation,
+  siblingValue,
   disabled,
   readOnly,
-  isOptionDisabled,
   placeholder = 'Select time',
   'aria-invalid': ariaInvalid,
 }: Readonly<TimeWindowPickerProps>) {
   const parsed = parseValue(value);
+  const [open, setOpen] = React.useState(false);
+  // Snapshot of value when popover opened, used to revert on invalid close
+  const committedRef = React.useRef<string | null | undefined>(value);
+
+  const currentAmpm = parsed?.ampm ?? 'AM';
+  const hourList = currentAmpm === 'AM' ? AM_HOURS : PM_HOURS;
+
+  // End picker: 11 PM maps to 23:xx — only 23:00 is the boundary, so lock minute to 00
+  const isAt11PM = relation === 'end' && currentAmpm === 'PM' && parsed?.hour === 11;
 
   const displayValue = parsed
     ? `${String(parsed.hour).padStart(2, '0')}:${String(parsed.minute).padStart(2, '0')} ${parsed.ampm}`
     : null;
 
-  const currentAmpm = parsed?.ampm ?? 'AM';
-  const hourList = currentAmpm === 'AM' ? AM_HOURS : PM_HOURS;
+  function handleOpenChange(newOpen: boolean) {
+    if (newOpen) {
+      committedRef.current = value;
+    } else if (relation && siblingValue && value) {
+      const currentNorm = parseDeliveryTimeWindowValue(value);
+      const siblingNorm = parseDeliveryTimeWindowValue(siblingValue);
+
+      if (currentNorm && siblingNorm) {
+        const invalid =
+          (relation === 'start' && currentNorm >= siblingNorm) ||
+          (relation === 'end' && currentNorm <= siblingNorm);
+
+        if (invalid) {
+          notifyError('Start time window must be before end time window');
+          // Revert to pre-open value
+          if (committedRef.current) {
+            onChange(committedRef.current);
+          }
+        }
+      }
+    }
+    setOpen(newOpen);
+  }
 
   function handleChange(type: 'hour' | 'minute' | 'ampm', val: string) {
     const current = parsed ?? { hour: 4, minute: 0, ampm: 'AM' as const };
     let nextHour = type === 'hour' ? Number(val) : current.hour;
-    const nextMinute = type === 'minute' ? Number(val) : current.minute;
+    let nextMinute = type === 'minute' ? Number(val) : current.minute;
     const nextAmpm = (type === 'ampm' ? val : current.ampm) as 'AM' | 'PM';
 
     // When switching to AM, snap invalid AM hours (12, 1, 2, 3) to 4
@@ -102,11 +137,16 @@ export function TimeWindowPicker({
       nextHour = 4;
     }
 
+    // End picker: selecting 11 PM (23:xx) locks minute to 00 (boundary is 23:00)
+    if (relation === 'end' && nextAmpm === 'PM' && nextHour === 11) {
+      nextMinute = 0;
+    }
+
     onChange(buildTimeString(nextHour, nextMinute, nextAmpm));
   }
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           type="button"
@@ -127,64 +167,50 @@ export function TimeWindowPicker({
         <div className="flex divide-x" style={{ height: 300 }}>
           <ScrollColumn>
             <div className="flex flex-col p-2">
-              {hourList.map((hour) => {
-                const timeStr = buildTimeString(hour, parsed?.minute ?? 0, currentAmpm);
-                const optionDisabled = isOptionDisabled?.(timeStr) ?? false;
-                return (
-                  <Button
-                    key={hour}
-                    type="button"
-                    size="icon"
-                    variant={parsed?.hour === hour ? 'default' : 'ghost'}
-                    className="w-full shrink-0 aspect-square"
-                    disabled={optionDisabled}
-                    onClick={() => handleChange('hour', hour.toString())}
-                  >
-                    {hour}
-                  </Button>
-                );
-              })}
+              {hourList.map((hour) => (
+                <Button
+                  key={hour}
+                  type="button"
+                  size="icon"
+                  variant={parsed?.hour === hour ? 'default' : 'ghost'}
+                  className="w-full shrink-0 aspect-square"
+                  onClick={() => handleChange('hour', hour.toString())}
+                >
+                  {hour}
+                </Button>
+              ))}
             </div>
           </ScrollColumn>
           <ScrollColumn>
             <div className="flex flex-col p-2">
-              {MINUTES.map((minute) => {
-                const timeStr = buildTimeString(parsed?.hour ?? 4, minute, currentAmpm);
-                const optionDisabled = isOptionDisabled?.(timeStr) ?? false;
-                return (
-                  <Button
-                    key={minute}
-                    type="button"
-                    size="icon"
-                    variant={parsed?.minute === minute ? 'default' : 'ghost'}
-                    className="w-full shrink-0 aspect-square"
-                    disabled={optionDisabled}
-                    onClick={() => handleChange('minute', minute.toString())}
-                  >
-                    {minute.toString().padStart(2, '0')}
-                  </Button>
-                );
-              })}
+              {MINUTES.map((minute) => (
+                <Button
+                  key={minute}
+                  type="button"
+                  size="icon"
+                  variant={parsed?.minute === minute ? 'default' : 'ghost'}
+                  className="w-full shrink-0 aspect-square"
+                  disabled={isAt11PM && minute !== 0}
+                  onClick={() => handleChange('minute', minute.toString())}
+                >
+                  {minute.toString().padStart(2, '0')}
+                </Button>
+              ))}
             </div>
           </ScrollColumn>
           <div className="flex flex-col p-2">
-            {(['AM', 'PM'] as const).map((ampm) => {
-              const timeStr = buildTimeString(parsed?.hour ?? 4, parsed?.minute ?? 0, ampm);
-              const optionDisabled = isOptionDisabled?.(timeStr) ?? false;
-              return (
-                <Button
-                  key={ampm}
-                  type="button"
-                  size="icon"
-                  variant={parsed?.ampm === ampm ? 'default' : 'ghost'}
-                  className="w-full shrink-0 aspect-square"
-                  disabled={optionDisabled}
-                  onClick={() => handleChange('ampm', ampm)}
-                >
-                  {ampm}
-                </Button>
-              );
-            })}
+            {(['AM', 'PM'] as const).map((ampm) => (
+              <Button
+                key={ampm}
+                type="button"
+                size="icon"
+                variant={parsed?.ampm === ampm ? 'default' : 'ghost'}
+                className="w-full shrink-0 aspect-square"
+                onClick={() => handleChange('ampm', ampm)}
+              >
+                {ampm}
+              </Button>
+            ))}
           </div>
         </div>
       </PopoverContent>

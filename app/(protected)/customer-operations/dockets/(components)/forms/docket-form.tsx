@@ -61,10 +61,6 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import {
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
-} from '@/lib/utils/time';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -1596,10 +1592,9 @@ export default function DocketForm({
                             <TimeWindowPicker
                               value={field.value}
                               onChange={field.onChange}
+                              relation="start"
+                              siblingValue={newEnd}
                               disabled={isReadOnly && !canEditCollectionDate}
-                              isOptionDisabled={(time) =>
-                                isDeliveryTimeWindowStartOptionDisabled(time, newEnd)
-                              }
                               aria-invalid={!!fieldState.error}
                             />
                           </FormControl>
@@ -1618,10 +1613,9 @@ export default function DocketForm({
                             <TimeWindowPicker
                               value={field.value}
                               onChange={field.onChange}
+                              relation="end"
+                              siblingValue={newStart}
                               disabled={isReadOnly && !canEditCollectionDate}
-                              isOptionDisabled={(time) =>
-                                isDeliveryTimeWindowEndOptionDisabled(time, newStart)
-                              }
                               aria-invalid={!!fieldState.error}
                             />
                           </FormControl>

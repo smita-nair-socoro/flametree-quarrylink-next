@@ -27,8 +27,6 @@ import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/li
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
 import {
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
 } from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
@@ -755,13 +753,9 @@ export default function QuotationForm({
                       <TimeWindowPicker
                         value={field.value}
                         onChange={field.onChange}
+                        relation="start"
+                        siblingValue={deliveryWindowEnd}
                         disabled={isEditing && !canEdit}
-                        isOptionDisabled={(time) =>
-                          isDeliveryTimeWindowStartOptionDisabled(
-                            time,
-                            deliveryWindowEnd,
-                          )
-                        }
                         aria-invalid={!!fieldState.error}
                       />
                     </FormControl>
@@ -780,13 +774,9 @@ export default function QuotationForm({
                       <TimeWindowPicker
                         value={field.value}
                         onChange={field.onChange}
+                        relation="end"
+                        siblingValue={deliveryWindowStart}
                         disabled={isEditing && !canEdit}
-                        isOptionDisabled={(time) =>
-                          isDeliveryTimeWindowEndOptionDisabled(
-                            time,
-                            deliveryWindowStart,
-                          )
-                        }
                         aria-invalid={!!fieldState.error}
                       />
                     </FormControl>
