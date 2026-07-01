@@ -108,7 +108,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
   {
     id: 'truckStatus',
     accessorFn: (row) => row.truckStatus,
-    header: ({ column }) => {
+    header: () => {
       return <div>Status</div>;
     },
     cell: ({ getValue }) => {
