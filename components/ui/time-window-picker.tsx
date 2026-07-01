@@ -96,7 +96,7 @@ export function TimeWindowPicker({
   const hourList = currentAmpm === 'AM' ? AM_HOURS : PM_HOURS;
 
   // End picker: 11 PM maps to 23:xx — only 23:00 is the boundary, so lock minute to 00
-  const isAt11PM = relation === 'end' && currentAmpm === 'PM' && parsed?.hour === 11;
+  const isAt11PM = (relation === 'end' || relation === 'start') && currentAmpm === 'PM' && parsed?.hour === 11;
 
   const displayValue = parsed
     ? `${String(parsed.hour).padStart(2, '0')}:${String(parsed.minute).padStart(2, '0')} ${parsed.ampm}`
@@ -138,7 +138,7 @@ export function TimeWindowPicker({
     }
 
     // End picker: selecting 11 PM (23:xx) locks minute to 00 (boundary is 23:00)
-    if (relation === 'end' && nextAmpm === 'PM' && nextHour === 11) {
+    if ((relation === 'end' || relation === 'start') && nextAmpm === 'PM' && nextHour === 11) {
       nextMinute = 0;
     }
 
