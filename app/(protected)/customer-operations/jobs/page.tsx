@@ -15,23 +15,72 @@ import {
 import { getJobColumns } from './(components)/(data-tables)/job/columns';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { useQuery } from '@tanstack/react-query';
-import { JobsListQueryOptions, JobStatisticsQueryOptions } from '@/lib/api/job';
+import {
+  JobsListQueryOptions,
+  JobStatisticsQueryOptions,
+  toJobApiSortParams,
+  toJobApiFilterParams,
+  buildJobFacetOptions,
+} from '@/lib/api/job';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
-  const { data: jobs, isLoading } = useQuery(JobsListQueryOptions());
+
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
-  const items: JobDTO[] = React.useMemo(() => {
-    const list: JobDTO[] = Array.isArray(jobs) ? jobs : (jobs?.content ?? []);
-    return list.map((job) => ({
-      ...job,
-    })) as JobDTO[];
-  }, [jobs]);
+
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [search, setSearch] = React.useState('');
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'jobNumber', desc: true },
+  ]);
+
+  const apiSortParams = React.useMemo(
+    () => toJobApiSortParams(sorting),
+    [sorting],
+  );
+
+  const apiFilterParams = React.useMemo(
+    () => toJobApiFilterParams(facetFilters),
+    [facetFilters],
+  );
+
+  const {
+    data: jobsList,
+    isLoading,
+    isFetching,
+  } = useQuery(
+    JobsListQueryOptions({
+      page: pageIndex,
+      pageSize,
+      search: search.trim() || undefined,
+      ...apiSortParams,
+      ...apiFilterParams,
+    }),
+  );
+
+  const jobsPage = jobsList?.jobs;
+
+  const facetOptions = React.useMemo(
+    () => buildJobFacetOptions(jobsList ?? null),
+    [jobsList],
+  );
+
+  const items: JobDTO[] = React.useMemo(
+    () => (jobsPage?.content ?? []) as JobDTO[],
+    [jobsPage],
+  );
+
+  const totalElements = jobsPage?.totalElements ?? items.length;
+  const totalPages =
+    jobsPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
   const statsCards: StatsCardData[] = [
     {
@@ -70,9 +119,42 @@ export default function CustomersPage() {
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#E7000B]',
     },
-  ]
+  ];
 
   const { actions, viewDialog, confirmDialogs } = useJobActions();
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const facetFiltersKeyRef = React.useRef('[]');
+  const handleFacetFiltersChange = React.useCallback(
+    (filters: ColumnFiltersState) => {
+      const serialized = JSON.stringify(filters);
+      if (facetFiltersKeyRef.current !== serialized) {
+        facetFiltersKeyRef.current = serialized;
+        setPageIndex(0);
+      }
+      setFacetFilters(filters);
+    },
+    [],
+  );
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0 ? newSorting : [{ id: 'jobNumber', desc: true }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
 
   // URL-driven filtering for linked jobs
   const jobIdsParam =
@@ -104,11 +186,26 @@ export default function CustomersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
-  const facetDefs: FacetDefinition[] = [
-    { column: 'status', title: 'Status' },
-    { column: 'customerName', title: 'Customer' },
-    { column: 'accountManagerName', title: 'Account Manager' },
-  ];
+  const facetDefs: FacetDefinition[] = React.useMemo(
+    () => [
+      {
+        column: 'status',
+        title: 'Status',
+        options: facetOptions.statuses,
+      },
+      {
+        column: 'customerName',
+        title: 'Customer',
+        options: facetOptions.customers,
+      },
+      {
+        column: 'accountManagerName',
+        title: 'Account Manager',
+        options: facetOptions.accountManagers,
+      },
+    ],
+    [facetOptions],
+  );
 
   const handleRowClick = (row: JobDTO) => {
     actions.view(row);
@@ -141,7 +238,7 @@ export default function CustomersPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !jobs ? (
+        {isLoading && !jobsList ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
@@ -172,6 +269,16 @@ export default function CustomersPage() {
               searchPlaceHolder="Search jobs..."
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
+              totalElements={totalElements}
+              totalPages={totalPages}
+              externalPageIndex={pageIndex}
+              externalPageSize={pageSize}
+              externalSorting={sorting}
+              onPaginationChange={handlePaginationChange}
+              onSearchChange={handleSearchChange}
+              onFacetFiltersChange={handleFacetFiltersChange}
+              onSortingChange={handleSortingChange}
+              isLoading={isFetching}
             />
           </>
         )}

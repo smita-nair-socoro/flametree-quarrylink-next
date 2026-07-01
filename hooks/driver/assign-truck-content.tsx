@@ -28,10 +28,13 @@ export function AssignTruckDescription({
 export function AssignTruckContent({
   trucks,
   assignedTruckIds = [],
+  haulierName,
   onSelectionChange,
 }: {
   trucks: TruckDTO[];
   assignedTruckIds?: number[];
+  /** Haulier name sourced from the driver's haulier — used as the section header. */
+  haulierName?: string;
   onSelectionChange?: (ids: number[]) => void;
 }) {
   const [open, setOpen] = React.useState(false);
@@ -43,18 +46,13 @@ export function AssignTruckContent({
     [trucks, assignedTruckIds],
   );
 
-  const groups = React.useMemo(() => {
-    const filtered = availableTrucks.filter((t) =>
-      t.licensePlate.toLowerCase().includes(search.toLowerCase()),
-    );
-    const map = new Map<string, TruckDTO[]>();
-    for (const truck of filtered) {
-      const group = truck.haulier?.haulierName ?? 'Trucks';
-      if (!map.has(group)) map.set(group, []);
-      map.get(group)!.push(truck);
-    }
-    return map;
-  }, [trucks, search]);
+  const filteredTrucks = React.useMemo(
+    () =>
+      availableTrucks.filter((t) =>
+        t.licensePlate.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [availableTrucks, search],
+  );
 
   const toggle = (id: number) => {
     const updated = selectedIds.includes(id)
@@ -70,13 +68,14 @@ export function AssignTruckContent({
     onSelectionChange?.(updated);
   };
 
-  const triggerLabel =
-    selectedIds.length === 0
-      ? 'Select trucks...'
-      : selectedIds.length === 1
-        ? (availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ??
-          '1 selected')
-        : `${selectedIds.length} trucks selected`;
+  let triggerLabel: string;
+  if (selectedIds.length === 0) {
+    triggerLabel = 'Select trucks...';
+  } else if (selectedIds.length === 1) {
+    triggerLabel = availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected';
+  } else {
+    triggerLabel = `${selectedIds.length} trucks selected`;
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -107,32 +106,32 @@ export function AssignTruckContent({
           </div>
 
           <div className="max-h-60 overflow-y-auto">
-            {groups.size === 0 ? (
+            {filteredTrucks.length === 0 ? (
               <p className="text-sm text-muted-foreground p-4">
                 No trucks found.
               </p>
             ) : (
-              Array.from(groups.entries()).map(([haulierName, groupTrucks]) => (
-                <div key={haulierName}>
+              <div>
+                {haulierName && (
                   <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
                     {haulierName}
                   </p>
-                  {groupTrucks.map((truck) => (
-                    <label
-                      key={truck.id}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
-                    >
-                      <Checkbox
-                        checked={selectedIds.includes(truck.id ?? 0)}
-                        onCheckedChange={() => toggle(truck.id ?? 0)}
-                      />
-                      <span className="text-sm font-medium">
-                        {truck.licensePlate}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              ))
+                )}
+                {filteredTrucks.map((truck) => (
+                  <label
+                    key={truck.id}
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      checked={selectedIds.includes(truck.id ?? 0)}
+                      onCheckedChange={() => toggle(truck.id ?? 0)}
+                    />
+                    <span className="text-sm font-medium">
+                      {truck.licensePlate}
+                    </span>
+                  </label>
+                ))}
+              </div>
             )}
           </div>
 
@@ -155,7 +154,6 @@ export function AssignTruckContent({
         </PopoverContent>
       </Popover>
 
-      {/* Selected badges */}
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedIds.map((id) => {

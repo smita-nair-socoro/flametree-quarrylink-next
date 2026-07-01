@@ -1,6 +1,8 @@
 import {
   PublicQuoteLinkResponse,
   QuotationDisplayData,
+  QuoteCurrencyTax,
+  TenantProfileSnapshot,
 } from '@/lib/types/quotation';
 import {
   QUOTE_STATUS as QuoteStatus,
@@ -9,6 +11,42 @@ import {
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
+import {
+  DEFAULT_CURRENCY_CODE,
+  DEFAULT_TAX_LABEL,
+  DEFAULT_TAX_PERCENTAGE,
+  getCurrencySymbol,
+  getExTaxLabel,
+  getTaxRateLabel,
+} from '@/lib/utils/tenant-config-helper';
+
+/**
+ * Resolve the currency symbol and tax labels for the quote from the tenant
+ * profile returned by the API. The public quote-review page can't read the
+ * in-memory tenant store, so currency/tax come from `tenantProfile` here,
+ * falling back to AUD/GST/10% when the profile (or a field) is missing.
+ */
+export function buildQuoteCurrencyTax(
+  tenantProfile?: TenantProfileSnapshot,
+): QuoteCurrencyTax {
+  const currencyCode = (
+    tenantProfile?.currency || DEFAULT_CURRENCY_CODE
+  ).toUpperCase();
+  const taxLabel = tenantProfile?.taxType || DEFAULT_TAX_LABEL;
+  const parsedPercentage = Number.parseFloat(tenantProfile?.taxAmount ?? '');
+  const taxPercentage = Number.isNaN(parsedPercentage)
+    ? DEFAULT_TAX_PERCENTAGE
+    : parsedPercentage;
+
+  return {
+    currencySymbol: getCurrencySymbol(currencyCode),
+    taxLabel,
+    taxPercentage,
+    exTaxLabel: getExTaxLabel(taxLabel),
+    taxRateLabel: getTaxRateLabel(taxLabel, taxPercentage),
+  };
+}
 
 /**
  * Transform API response to display format
@@ -16,7 +54,9 @@ import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 export function transformQuoteData(
   apiResponse: PublicQuoteLinkResponse,
 ): QuotationDisplayData {
-  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto } = apiResponse;
+  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto, tenantProfile } =
+    apiResponse;
+  const currencyTax = buildQuoteCurrencyTax(tenantProfile);
   const {
     quoteNumber,
     customerName,
@@ -40,18 +80,18 @@ export function transformQuoteData(
       const rawType =
         item.quoteItemType || (item as { type?: string }).type || 'None';
       const type = String(rawType).toUpperCase();
+      const uomLabel = formatUomLabel(item.productSellUom || '');
       return {
         name: item.productName || 'Unknown Product',
         type,
         deliveryAddress:
           item.customerDeliveryAddress?.address?.formattedAddress || 'N/A',
         truckType: item.truckType || 'N/A',
-        capacity: `${formatNumberThousandSeparator(item.totalQuantityRequired)} ${
-          item.productSellUom === 'KG_20'
-            ? 'x 20kg'
-            : item.productSellUom || 'units'
-        } per delivery`,
-        quantity: `${formatNumberThousandSeparator(item.productSellQty)} ${item.productSellUom === 'KG_20' ? 'x 20kg' : item.productSellUom || ''}`,
+        capacity: `${formatNumberThousandSeparator(item.totalQuantityRequired)} ${formatUomLabel(item.productSellUom || 'units')} per delivery`,
+        unit: uomLabel,
+        quantity: `${formatNumberThousandSeparator(item.productSellQty)} ${uomLabel}`,
+        rawQty: item.productSellQty || 0,
+        unitPrice: item.productSellPrice || 0,
         totalPrice: item.totalProductSellPrice || 0, // Product price only
         deliveryPrice: item.totalTruckSellPrice || 0, // Delivery price separate
       };
@@ -71,11 +111,11 @@ export function transformQuoteData(
     ? quoteItems.reduce((sum, item) => sum + (item.totalTruckSellPrice || 0), 0)
     : 0;
 
-  // Subtotal is the total sell price (ex-GST) - should be product + delivery
+  // Subtotal is the total sell price (ex-tax) - should be product + delivery
   const subtotal = totalSellPrice || 0;
-  // GST is 10% of the subtotal
-  const gst = Math.round(subtotal * 0.1);
-  // Total is subtotal + GST
+  // Tax is the tenant's tax percentage of the subtotal (defaults to 10%)
+  const gst = Math.round(subtotal * (currencyTax.taxPercentage / 100));
+  // Total is subtotal + tax
   const total = subtotal + gst;
 
   const customerBillingAddress = formatAustralianAddress(
@@ -101,6 +141,7 @@ export function transformQuoteData(
   }
   return {
     inclDeliveryCost: inclDeliveryCost ?? false,
+    currencyTax,
     navbar: {
       quoteNumber: quoteNumber || 'N/A',
       dateIssued: formatDateWithOrdinal(createdAt),
@@ -122,17 +163,17 @@ export function transformQuoteData(
       },
     },
     project: {
-      type:
-        products.length > 0 &&
-        products.every((item) => item.type === QuoteItemType.COLLECTION)
-          ? QuoteItemType.COLLECTION
-          : products.length > 0 &&
-              products.every((item) => item.type === QuoteItemType.DELIVERY)
-            ? QuoteItemType.DELIVERY
-            : undefined,
+      type: (() => {
+        if (products.length > 0 && products.every((item) => item.type === QuoteItemType.COLLECTION))
+          return QuoteItemType.COLLECTION;
+        if (products.length > 0 && products.every((item) => item.type === QuoteItemType.DELIVERY))
+          return QuoteItemType.DELIVERY;
+        return undefined;
+      })(),
       projectName: projectName || 'N/A',
       deliveryDate: formatDateWithOrdinal(deliveryStartDate),
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd),
+      timeZone: tenantProfile?.timeZoneId,
     },
     products,
     summary: {

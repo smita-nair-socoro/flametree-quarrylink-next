@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form';
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
@@ -60,11 +61,6 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import {
-  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
-} from '@/lib/utils/time';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -85,13 +81,7 @@ import { STOP_REASON_LABELS } from '@/hooks/docket/stop-transit-content';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
 const truckTypeOptions: FormSelectOption[] = [
@@ -510,7 +500,7 @@ export default function DocketForm({
         data: payload,
       });
       notifySuccess('Docket updated successfully');
-
+      onSaved?.();
     } catch (error) {
       notifyError(extractErrorMessage(error));
     } finally {
@@ -608,13 +598,13 @@ export default function DocketForm({
             data: { ...assignedPayload, checkWindowTimeConflict: false },
           });
           notifySuccess('Docket updated successfully');
-
+          onSaved?.();
         });
         setConflictingDocketIds(result.conflictingDocketIds);
         setTimeConflictOpen(true);
       } else {
         notifySuccess('Docket updated successfully');
-
+        onSaved?.();
       }
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -785,6 +775,7 @@ export default function DocketForm({
           data: payload,
         });
         notifySuccess('Docket updated successfully');
+        onSaved?.();
       } else {
         const newDocket = await createDocket.mutateAsync(payload);
         if (newDocket && typeof newDocket.id === 'number') {
@@ -794,7 +785,6 @@ export default function DocketForm({
         onSaved?.();
         onSuccess?.();
       }
-
     } catch (error) {
       console.error('Error creating docket:', error);
       notifyError(extractErrorMessage(error));
@@ -815,6 +805,29 @@ export default function DocketForm({
       : newStart && newEnd
         ? `${newStart} – ${newEnd}`
         : 'the new time';
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          className="cursor-pointer"
+          type="button"
+          onClick={() =>
+            docketForm.handleSubmit(onSubmit, scrollToFirstError)()
+          }
+          disabled={
+            (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
+            isSubmitting
+          }
+        >
+          {isEditing ? 'Save Changes' : 'Create Docket'}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <>
@@ -1576,34 +1589,14 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
-                            <Select
-                              key={`start-${field.value || 'empty'}`}
-                              value={field.value || ''}
-                              onValueChange={field.onChange}
+                            <TimeWindowPicker
+                              value={field.value}
+                              onChange={field.onChange}
+                              relation="start"
+                              siblingValue={newEnd}
                               disabled={isReadOnly && !canEditCollectionDate}
-                            >
-                              <SelectTrigger
-                                className="w-full"
-                                aria-invalid={!!fieldState.error}
-                              >
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-
-                              <SelectContent>
-                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem
-                                    key={time}
-                                    value={time}
-                                    disabled={isDeliveryTimeWindowStartOptionDisabled(
-                                      time,
-                                      newEnd,
-                                    )}
-                                  >
-                                    {time}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              aria-invalid={!!fieldState.error}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1617,34 +1610,14 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
-                            <Select
-                              key={`end-${field.value || 'empty'}`}
-                              value={field.value || ''}
-                              onValueChange={field.onChange}
+                            <TimeWindowPicker
+                              value={field.value}
+                              onChange={field.onChange}
+                              relation="end"
+                              siblingValue={newStart}
                               disabled={isReadOnly && !canEditCollectionDate}
-                            >
-                              <SelectTrigger
-                                className="w-full"
-                                aria-invalid={!!fieldState.error}
-                              >
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-
-                              <SelectContent>
-                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem
-                                    key={time}
-                                    value={time}
-                                    disabled={isDeliveryTimeWindowEndOptionDisabled(
-                                      time,
-                                      newStart,
-                                    )}
-                                  >
-                                    {time}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              aria-invalid={!!fieldState.error}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -2102,27 +2075,6 @@ export default function DocketForm({
                 </p>
               )}
 
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="button"
-                  onClick={() =>
-                    docketForm.handleSubmit(onSubmit, scrollToFirstError)()
-                  }
-                  disabled={
-                    (isReadOnly && !canActualLoadSize && !canEditDocketEmail && !canEditCollectionDate) ||
-                    isSubmitting
-                  }
-                >
-                  {isEditing ? 'Save Changes' : 'Create Docket'}
-                </Button>
-              </div>
-            )}
-
             {!isDesktop && (
               <div className="flex flex-col col-span-2 gap-3 my-6">
                 <Button
@@ -2143,6 +2095,7 @@ export default function DocketForm({
                 </Button>
               </div>
             )}
+
           </form>
         </Form>
       </div>

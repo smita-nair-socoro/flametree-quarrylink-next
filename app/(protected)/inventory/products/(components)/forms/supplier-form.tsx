@@ -19,6 +19,7 @@ import z from 'zod';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { Spinner } from '@/components/ui/spinner';
 import { NewSupplierFormSchema } from './schemas/supplier-form-schema';
 import { Tab } from '@/components/ui/tabs';
@@ -519,6 +520,42 @@ export default function SupplierForm({
       setIsSubmitting(false);
     }
   }
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          <X className="w-4 h-4 mr-2" />
+          Cancel
+        </Button>
+        {!isEditing && (
+          <Button
+            form="add-new-supplier-form"
+            className="cursor-pointer"
+            type="submit"
+            disabled={isSubmitting}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
+          </Button>
+        )}
+        {isEditing && (
+          <Button
+            form="add-new-supplier-form"
+            type="submit"
+            className="cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            Save Changes
+          </Button>
+        )}
+      </div>
+    ) : null,
+  );
+
   // Show loading state when fetching data
   if (isLoadingQuarries || (isEditing && isLoadingData)) {
     return (
@@ -666,57 +703,40 @@ export default function SupplierForm({
             );
           })()}
 
-          <div
-            className={cn(
-              'mb-6',
-              isDesktop
-                ? 'col-span-2 flex justify-end space-x-2'
-                : 'col-span-1 flex flex-col space-y-2 gap-3',
-            )}
-          >
-            {isDesktop && (
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              {!isEditing && (
+                <Button
+                  form="add-new-supplier-form"
+                  className="cursor-pointer"
+                  type="submit"
+                  disabled={isSubmitting}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
+                </Button>
+              )}
+              {isEditing && (
+                <Button
+                  form="add-new-supplier-form"
+                  type="submit"
+                  className="cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  Save Changes
+                </Button>
+              )}
               <Button variant="outline" type="button" onClick={onCancel}>
                 <X className="w-4 h-4 mr-2" />
                 Cancel
               </Button>
-            )}
-            {!isEditing && (
-              <Button
-                form="add-new-supplier-form"
-                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
-                type="submit"
-                disabled={isSubmitting}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                {isSubmitting ? 'Adding Product...' : 'Add Quarry / Supplier'}
-              </Button>
-            )}
+            </div>
+          )}
 
-            {isEditing && (
-              <Button
-                form="add-new-supplier-form"
-                type="submit"
-                className={!isDesktop ? 'w-full' : 'cursor-pointer'}
-                onClick={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                Save Changes
-              </Button>
-            )}
-            {!isDesktop && (
-              <Button
-                variant="outline"
-                type="button"
-                onClick={onCancel}
-                className="w-full"
-              >
-                Cancel
-              </Button>
-            )}
-          </div>
         </form>
       </Form>
     </div>

@@ -3,6 +3,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { centsToDollars } from '@/lib/utils/currency';
+import { QuoteCurrencyTax } from '@/lib/types/quotation';
 
 export interface SummaryPaymentProps {
   totalProducts: number;
@@ -10,6 +11,7 @@ export interface SummaryPaymentProps {
   subtotal: number;
   gst: number;
   total: number;
+  currencyTax: QuoteCurrencyTax;
   includeDeliveryPrices?: boolean;
   productSubtotal?: number;
   deliverySubtotal?: number;
@@ -21,11 +23,12 @@ export function SummaryPayment({
   subtotal,
   gst,
   total,
+  currencyTax,
   includeDeliveryPrices = false,
   productSubtotal,
   deliverySubtotal,
 }: SummaryPaymentProps) {
-  console.log('[SummaryPayment] includeDeliveryPrices:', includeDeliveryPrices);
+  const { currencySymbol, taxLabel, taxRateLabel, exTaxLabel } = currencyTax;
 
   return (
     <div className="bg-[rgba(245,245,245,0.3)] border-b-[1.25px] border-[rgba(229,229,229,1)] px-8 py-8">
@@ -61,7 +64,8 @@ export function SummaryPayment({
                       Product Subtotal:
                     </span>
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      ${centsToDollars(productSubtotal || 0)}
+                      {currencySymbol}
+                      {centsToDollars(productSubtotal || 0)}
                     </span>
                   </div>
                   {/* Delivery Subtotal */}
@@ -70,17 +74,19 @@ export function SummaryPayment({
                       Delivery Subtotal:
                     </span>
                     <span className="font-semibold text-[#8E51FF] text-base">
-                      ${centsToDollars(deliverySubtotal || 0)}
+                      {currencySymbol}
+                      {centsToDollars(deliverySubtotal || 0)}
                     </span>
                   </div>
                   <Separator />
                   {/* GST */}
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      GST (10%):
+                      {taxRateLabel}:
                     </span>
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      ${centsToDollars(gst)}
+                      {currencySymbol}
+                      {centsToDollars(gst)}
                     </span>
                   </div>
                   <Separator />
@@ -91,7 +97,8 @@ export function SummaryPayment({
                         TOTAL AMOUNT:
                       </span>
                       <span className="font-bold text-[rgba(142,81,255,1)] text-lg">
-                        ${centsToDollars(total)}
+                        {currencySymbol}
+                        {centsToDollars(total)}
                       </span>
                     </div>
                   </div>
@@ -101,20 +108,22 @@ export function SummaryPayment({
                   {/* Subtotal (original layout) */}
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      Subtotal (ex-GST):
+                      Subtotal {exTaxLabel}:
                     </span>
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      ${centsToDollars(subtotal)}
+                      {currencySymbol}
+                      {centsToDollars(subtotal)}
                     </span>
                   </div>
                   <Separator />
                   {/* GST */}
                   <div className="flex justify-between items-center">
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      GST (10%):
+                      {taxRateLabel}:
                     </span>
                     <span className="font-semibold text-[rgba(10,10,10,1)] text-base">
-                      ${centsToDollars(gst)}
+                      {currencySymbol}
+                      {centsToDollars(gst)}
                     </span>
                   </div>
                   <Separator />
@@ -122,10 +131,11 @@ export function SummaryPayment({
                   <div className="border-t-2 border-[rgba(142,81,255,1)] pt-4">
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-[rgba(142,81,255,1)] text-base">
-                        TOTAL AMOUNT (Incl. GST):
+                        TOTAL AMOUNT (Incl. {taxLabel}):
                       </span>
                       <span className="font-bold text-[rgba(142,81,255,1)] text-lg">
-                        ${centsToDollars(total)}
+                        {currencySymbol}
+                        {centsToDollars(total)}
                       </span>
                     </div>
                   </div>

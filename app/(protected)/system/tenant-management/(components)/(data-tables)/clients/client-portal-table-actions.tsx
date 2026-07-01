@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useClientActions } from '@/hooks/use-client-actions';
 import { Client } from '@/lib/types/client';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 interface ClientTableActionsProps {
   client: Client;
@@ -26,7 +26,7 @@ export function ClientTableActions({ client }: ClientTableActionsProps) {
     client
   );
 
-  const setSelectedClient = useClientStore((state) => state.setSelectedClient);
+  const setSelectedClient = useTenantStore((state) => state.setSelectedClient);
 
   const handleView = () => {
     setSelectedClient(client);

@@ -18,6 +18,7 @@ import z from 'zod';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -458,6 +459,33 @@ export default function CustomerForm({
     );
     scrollToFirstError();
   }
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-new-customer-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isSubmitting || isFormBlocked}
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Customer...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Customer'}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   // Show loading when editing and customer is still being fetched by id
   if (isEditing && isCustomerLoading) {
@@ -1195,16 +1223,11 @@ export default function CustomerForm({
               />
             )}
 
-            {/* Form Actions */}
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 mb-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
+            {!isDesktop && (
+              <div className="flex flex-col col-span-2 gap-3 mb-6">
                 <Button
-                  form="add-new-customer-form"
-                  className="cursor-pointer"
                   type="submit"
+                  className="cursor-pointer"
                   disabled={isSubmitting || isFormBlocked}
                 >
                   {isSubmitting && (
@@ -1217,35 +1240,13 @@ export default function CustomerForm({
                     : isEditing
                       ? 'Save Changes'
                       : 'Add Customer'}
+                </Button>
+                <Button variant="outline" type="button" onClick={onCancel}>
+                  {isEditing ? 'Close' : 'Cancel'}
                 </Button>
               </div>
             )}
 
-            {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
-                <Button
-                  // TODO: QLINK-257 Edit Customer Functionality
-                  // form="add-new-customer-form"
-                  type="submit"
-                  className="cursor-pointer"
-                  disabled={isSubmitting || isFormBlocked}
-                >
-                  {isSubmitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isSubmitting
-                    ? isEditing
-                      ? 'Saving Changes...'
-                      : 'Adding Customer...'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Customer'}
-                </Button>
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-              </div>
-            )}
           </form>
         </Form>
       </div>

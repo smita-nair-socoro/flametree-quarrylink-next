@@ -14,6 +14,7 @@ import { cn, scrollToFirstError } from '@/lib/utils';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { CurrencyInput } from '@/components/ui/input-mask';
@@ -59,6 +60,7 @@ export default function QuoteLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const {
     currencySymbol,
     taxPercentage,
@@ -79,6 +81,12 @@ export default function QuoteLineItemForm({
     addressSearchInput,
     setAddressSearchInput,
     productOptions,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
     quarryOptions,
     truckTypeOptions,
     productUnitOptions,
@@ -98,6 +106,7 @@ export default function QuoteLineItemForm({
     onSuccess,
     onSaved,
     taxPercentage,
+    loadMoreEnabled: productSelectOpen,
   });
 
   // Report dirty-state to parent dialog
@@ -176,6 +185,29 @@ export default function QuoteLineItemForm({
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress],
+  );
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          className="cursor-pointer"
+          type="button"
+          disabled={isPending || !canEdit}
+          onClick={() =>
+            quotationLineItemForm.handleSubmit(
+              onSubmit,
+              scrollToFirstError,
+            )()
+          }
+        >
+          {isEditing ? 'Save Changes' : 'Add Product'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -308,6 +340,13 @@ export default function QuoteLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={isReadOnly}
+                onDropdownOpenChange={setProductSelectOpen}
+                searchValue={productSearch}
+                onSearchChange={onProductSearchChange}
+                isSearchingOptions={isSearchingProducts}
+                onOptionsListScrollEnd={onProductOptionsScrollEnd}
+                hasMoreOptions={hasMoreProductOptions}
+                isLoadingMoreOptions={isLoadingMoreProductOptions}
               />
 
               <FormSelect
@@ -1096,48 +1135,27 @@ export default function QuoteLineItemForm({
               </div>
             )}
 
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 my-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="button"
-                  disabled={isPending || !canEdit}
-                  onClick={() =>
-                    quotationLineItemForm.handleSubmit(
-                      onSubmit,
-                      scrollToFirstError,
-                    )()
-                  }
-                >
-                  {isEditing ? 'Save Changes' : 'Add Product'}
-                </Button>
-              </div>
-            )}
-
-            {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 my-6">
-                <Button
-                  type="button"
-                  className="cursor-pointer"
-                  disabled={isPending || !canEdit}
-                  onClick={() =>
-                    quotationLineItemForm.handleSubmit(
-                      onSubmit,
-                      scrollToFirstError,
-                    )()
-                  }
-                >
-                  {isEditing ? 'Save Changes' : 'Add Product'}
-                </Button>
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-              </div>
-            )}
           </div>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 my-6">
+              <Button
+                className="cursor-pointer"
+                type="button"
+                disabled={isPending || !canEdit}
+                onClick={() =>
+                  quotationLineItemForm.handleSubmit(
+                    onSubmit,
+                    scrollToFirstError,
+                  )()
+                }
+              >
+                {isEditing ? 'Save Changes' : 'Add Product'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
 

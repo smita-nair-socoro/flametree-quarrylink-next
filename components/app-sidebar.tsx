@@ -18,9 +18,12 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
-import { TenantLogoQueryOptions } from '@/lib/api/tenant';
+import {
+  TenantLogoQueryOptions,
+  TenantInternalDetailsQueryOptions,
+} from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { HelpCentreButton } from '@/components/help-centre-modal';
 import { SidebarSeparator } from '@/components/ui/sidebar';
 
@@ -44,6 +47,7 @@ export const navItems = [
     items: [
       { title: 'Drivers', url: '/logistics/drivers' },
       { title: 'Trucks', url: '/logistics/trucks' },
+      { title: 'Hauliers', url: '/logistics/haulier' },
       { title: 'Dispatch', url: '/logistics/dispatch' },
     ],
   },
@@ -85,22 +89,15 @@ export const navItems = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
   const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
+  const { data: tenantInternalDetails } = useQuery(
+    TenantInternalDetailsQueryOptions(),
+  );
 
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
   );
 
   const tenantName = tenantLogo?.tenantBusinessName;
-
-  React.useEffect(() => {
-    if (tenantLogo) {
-      console.log('🏢 [AppSidebar] Tenant Logo:', tenantLogo);
-      console.log(
-        '🏷️ [AppSidebar] Tenant Name:',
-        tenantLogo.tenantBusinessName,
-      );
-    }
-  }, [tenantLogo]);
 
   const displayName =
     currentUser?.name ||
@@ -121,31 +118,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     avatar: '/default-user.png',
   };
 
-  // Subscription check no longer needed
-  // const subscriptionPlan =
-  //   tenantCompleteDetails?.subscriptionAndInvoices?.subscriptions
-  //     ?.subscriptions?.[0]?.subscriptionPlan;
-
-  // Set Clarity tags for filtering/segmentation (only after window.clarity is ready)
   React.useEffect(() => {
-    // useClientStore
-    //   .getState()
-    //   .setSubscriptionPlan(subscriptionPlan?.toUpperCase() ?? null);
-    useClientStore.getState().setUser(displayName);
-    useClientStore.getState().setTenantName(tenantName ?? 'Unknown Tenant');
-    useClientStore
-      .getState()
-      .setBusinessName(tenantLogo?.tenantBusinessName ?? null);
-  }, [displayName, tenantName, tenantLogo]);
+    if (tenantInternalDetails) {
+      useTenantStore.getState().setTenantDetails(tenantInternalDetails);
+    }
+  }, [tenantInternalDetails]);
+
+  React.useEffect(() => {
+    useTenantStore.getState().setUser(displayName);
+  }, [displayName]);
 
   React.useEffect(() => {
     claritySafe((c) => {
       if (tenantName) {
         c('set', 'tenantName', tenantName);
       }
-      // if (subscriptionPlan) {
-      //   c('set', 'subscriptionPlan', subscriptionPlan);
-      // }
       if (displayName) {
         c('set', 'userName', displayName);
       }

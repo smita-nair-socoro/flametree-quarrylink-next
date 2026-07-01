@@ -25,6 +25,7 @@ import { getInitials } from '@/lib/utils/user-helper';
 import { EditClientUserFormSchema } from './schemas/client-user-form-schema';
 import { AlertTriangle } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { User } from '@/lib/types/user';
 import { notifyError } from '@/lib/toast';
 import {
@@ -192,6 +193,17 @@ export function EditClientUserForm({
     }
   };
 
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="outline" onClick={handleCancel}>
+          Cancel
+        </Button>
+        <Button form="edit-client-user-form" type="submit">Save Changes</Button>
+      </div>
+    ) : null,
+  );
+
   if (!initialData) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -229,6 +241,7 @@ export function EditClientUserForm({
 
       <Form {...form}>
         <form
+          id="edit-client-user-form"
           onSubmit={form.handleSubmit(handleSubmit)}
           className="flex flex-col gap-4"
         >
@@ -408,25 +421,17 @@ export function EditClientUserForm({
             </div>
           </section>
 
-          {isDesktop && <Separator />}
-
-          {isDesktop && (
-            <div className="flex flex-row justify-end gap-2 mb-3">
-              <Button type="button" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
-            </div>
-          )}
-
           {!isDesktop && (
-            <div className="flex flex-col gap-3 mb-3">
-              <Button type="submit">Save Changes</Button>
+            <div className="flex flex-col gap-3">
+              <Button form="edit-client-user-form" type="submit">
+                Save Changes
+              </Button>
               <Button type="button" variant="outline" onClick={handleCancel}>
                 Cancel
               </Button>
             </div>
           )}
+
         </form>
       </Form>
     </div>

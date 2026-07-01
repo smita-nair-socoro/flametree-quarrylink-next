@@ -10,7 +10,12 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import {
+  cn,
+  splitReasonNote,
+  scrollToFirstError,
+  addNewRecordId,
+} from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -22,13 +27,10 @@ import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/li
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
 import {
-  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
 } from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { FormDialog } from '@/components/form-dialog';
+import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -47,21 +49,17 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from '@/components/ui/tooltip';
-import { useCustomersForForm, customerDtoFromQuotation } from '@/hooks/customer/use-customers-for-form';
+import {
+  useCustomersForForm,
+  customerDtoFromQuotation,
+} from '@/hooks/customer/use-customers-for-form';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { AuditInformation } from '@/components/audit-information';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
@@ -85,10 +83,16 @@ export default function QuotationForm({
   onDirtyChange,
   onSuccess,
   onSaved,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const { currencyCode, currencySymbol, taxLabel, taxPercentage, exTaxLabel, taxRateLabel } =
-    useTenantCurrencyTax();
+  const {
+    currencyCode,
+    currencySymbol,
+    taxLabel,
+    taxPercentage,
+    exTaxLabel,
+    taxRateLabel,
+  } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
@@ -188,7 +192,7 @@ export default function QuotationForm({
           quotationForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-            '',
+              '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -210,9 +214,9 @@ export default function QuotationForm({
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : []),
     ].filter(Boolean);
     const submitCustomer = customers.find((c) => c.id === values.customerId);
@@ -222,7 +226,8 @@ export default function QuotationForm({
         : (submitCustomer?.individualContactName ?? '');
 
     const accountManagerName =
-      customers.find((c) => c.id === values.customerId)?.accountManagerName || '';
+      customers.find((c) => c.id === values.customerId)?.accountManagerName ||
+      '';
 
     if (isDuplicate) {
       try {
@@ -345,6 +350,33 @@ export default function QuotationForm({
     return d;
   }, []);
 
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form={formId}
+          className="cursor-pointer"
+          type="submit"
+          disabled={
+            (isEditing && !isDuplicate && !canEdit) ||
+            createQuotation.isPending ||
+            updateQuotation.isPending ||
+            duplicateQuotation.isPending
+          }
+        >
+          {isDuplicate
+            ? 'Create Duplicate'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Quote'}
+        </Button>
+      </div>
+    ) : null,
+  );
+
   // Show loading state while fetching quotation details
   if (isEditing && isLoadingDetail) {
     return (
@@ -386,24 +418,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
@@ -414,23 +446,26 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
-          {isEditing && !isDuplicate && currentQuotation?.quoteStatus === 'PENDING' && (
-            <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
-              <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
-                <Info className="h-4 w-4" />
-                <span>To edit, decline the quote....</span>
+          {isEditing &&
+            !isDuplicate &&
+            currentQuotation?.quoteStatus === 'PENDING' && (
+              <div className="border border-yellow-600 bg-yellow-50 p-4 rounded-md mb-4 flex flex-col">
+                <div className="flex items-center gap-2 text-yellow-900 font-medium text-sm">
+                  <Info className="h-4 w-4" />
+                  <span>To edit, decline the quote....</span>
+                </div>
+                <span className="text-muted-foreground ml-6 text-sm">
+                  Save your changes and it will return to Draft for sending
+                </span>
               </div>
-              <span className="text-muted-foreground ml-6 text-sm">
-                Save your changes and it will return to Draft for sending
-              </span>
-            </div>
-          )}
+            )}
 
-          {isEditing && !isDuplicate &&
+          {isEditing &&
+            !isDuplicate &&
             currentQuotation?.quoteStatus === 'DECLINED' &&
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
@@ -462,7 +497,8 @@ export default function QuotationForm({
               );
             })()}
 
-          {isEditing && !isDuplicate &&
+          {isEditing &&
+            !isDuplicate &&
             currentQuotation?.quoteStatus === 'APPROVED' &&
             (() => {
               const decisionMaker = currentQuotation?.decisionMakerName || '';
@@ -490,7 +526,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -536,12 +572,15 @@ export default function QuotationForm({
               name="accountManagerSub"
               render={() => {
                 const accountManagerName =
-                  customers.find((c) => c.id === quotationForm.watch('customerId'))
-                    ?.accountManagerName || '';
+                  customers.find(
+                    (c) => c.id === quotationForm.watch('customerId'),
+                  )?.accountManagerName || '';
                 return (
                   <FormItem
                     className={
-                      isEditing && isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'
+                      isEditing && isDesktop
+                        ? 'col-span-1 col-start-2'
+                        : 'col-span-2'
                     }
                   >
                     <FormLabel>Account Manager*</FormLabel>
@@ -711,30 +750,14 @@ export default function QuotationForm({
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={field.onChange}
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        relation="start"
+                        siblingValue={deliveryWindowEnd}
                         disabled={isEditing && !canEdit}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowStartOptionDisabled(
-                                time,
-                                deliveryWindowEnd,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -748,30 +771,14 @@ export default function QuotationForm({
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        value={field.value || undefined}
-                        onValueChange={field.onChange}
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        relation="end"
+                        siblingValue={deliveryWindowStart}
                         disabled={isEditing && !canEdit}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowEndOptionDisabled(
-                                time,
-                                deliveryWindowStart,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -853,8 +860,12 @@ export default function QuotationForm({
                 <div className="flex flex-col gap-8">
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     {(() => {
-                      const quoteItemsData = [...(currentQuotation?.quoteItems ?? [])].sort(
-                        (a, b) => (a.productName ?? '').localeCompare(b.productName ?? ''),
+                      const quoteItemsData = [
+                        ...(currentQuotation?.quoteItems ?? []),
+                      ].sort((a, b) =>
+                        (a.productName ?? '').localeCompare(
+                          b.productName ?? '',
+                        ),
                       );
                       return (
                         <DataTableClient
@@ -888,31 +899,38 @@ export default function QuotationForm({
                                   <div>
                                     <span>Product Cost</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.totalProductCostPrice}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalProductCostPrice}
                                     </span>
                                   </div>
                                   <div>
                                     <span>Truck Cost</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.totalTruckCostPrice}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalTruckCostPrice}
                                     </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span>Subtotal {exTaxLabel}</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.costSubtotalExGST}
+                                      {currencySymbol}
+                                      {pricingBreakdown.costSubtotalExGST}
                                     </span>
                                   </div>
                                   <div>
                                     <span>{taxRateLabel}</span>
-                                    <span>{currencySymbol}{pricingBreakdown.costGst}</span>
+                                    <span>
+                                      {currencySymbol}
+                                      {pricingBreakdown.costGst}
+                                    </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span className="font-bold text-lg">
                                       Total Cost
                                     </span>
                                     <span className="font-bold text-lg">
-                                      {currencySymbol}{pricingBreakdown.totalCost}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalCost}
                                     </span>
                                   </div>
                                 </div>
@@ -926,31 +944,38 @@ export default function QuotationForm({
                                   <div>
                                     <span>Product Sell</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.totalProductSellPrice}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalProductSellPrice}
                                     </span>
                                   </div>
                                   <div>
                                     <span>Truck Sell</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.totalTruckSellPrice}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalTruckSellPrice}
                                     </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span>Subtotal {exTaxLabel}</span>
                                     <span>
-                                      {currencySymbol}{pricingBreakdown.invoiceSubtotalExGST}
+                                      {currencySymbol}
+                                      {pricingBreakdown.invoiceSubtotalExGST}
                                     </span>
                                   </div>
                                   <div>
                                     <span>{taxRateLabel}</span>
-                                    <span>{currencySymbol}{pricingBreakdown.invoiceGst}</span>
+                                    <span>
+                                      {currencySymbol}
+                                      {pricingBreakdown.invoiceGst}
+                                    </span>
                                   </div>
                                   <div className={`pt-2 ${separatorBorder}`}>
                                     <span className="font-bold text-lg">
                                       Total Invoice
                                     </span>
                                     <span className="font-bold text-lg">
-                                      {currencySymbol}{pricingBreakdown.totalInvoice}
+                                      {currencySymbol}
+                                      {pricingBreakdown.totalInvoice}
                                     </span>
                                   </div>
                                 </div>
@@ -1002,57 +1027,31 @@ export default function QuotationForm({
                 )}
               </div>
             )}
-
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 my-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  form={formId}
-                  className="cursor-pointer"
-                  type="submit"
-                  disabled={
-                    (isEditing && !isDuplicate && !canEdit) ||
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    duplicateQuotation.isPending
-                  }
-                >
-                  {isDuplicate
-                    ? 'Create Duplicate'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
-                </Button>
-              </div>
-            )}
-
-            {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 my-6">
-                <Button
-                  form={formId}
-                  type="submit"
-                  className="cursor-pointer"
-                  disabled={
-                    (isEditing && !isDuplicate && !canEdit) ||
-                    createQuotation.isPending ||
-                    updateQuotation.isPending ||
-                    duplicateQuotation.isPending
-                  }
-                >
-                  {isDuplicate
-                    ? 'Create Duplicate'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Quote'}
-                </Button>
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-              </div>
-            )}
           </div>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 my-6">
+              <Button
+                form={formId}
+                className="cursor-pointer"
+                type="submit"
+                disabled={
+                  (isEditing && !isDuplicate && !canEdit) ||
+                  createQuotation.isPending ||
+                  updateQuotation.isPending ||
+                  duplicateQuotation.isPending
+                }
+              >
+                {isDuplicate
+                  ? 'Create Duplicate'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Quote'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
     </div>

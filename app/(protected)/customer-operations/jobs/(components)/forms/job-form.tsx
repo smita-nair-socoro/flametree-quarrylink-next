@@ -15,6 +15,7 @@ import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { cn, scrollToFirstError } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
 import { useIsMutating } from '@tanstack/react-query';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -24,19 +25,8 @@ import { Spinner } from '@/components/ui/spinner';
 import { Separator } from 'react-aria-components';
 import { Tab } from '@/components/ui/tabs';
 import { formatLocalDateTime } from '@/lib/utils/date';
-import {
-  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
-} from '@/lib/utils/time';
 import { AuditInformation } from '@/components/audit-information';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 
@@ -57,7 +47,7 @@ export default function JobForm({
   onSaved,
   onCancel,
   onSuccess,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
 
@@ -116,6 +106,36 @@ export default function JobForm({
     );
   }, [isEditing, jobDetails, selectedJob]);
 
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="add-new-job-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isPending}
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isPending
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Job...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Job'}
+        </Button>
+      </div>
+    ) : null,
+  );
+
   return (
     <div className="w-full relative">
       <InvoiceDetailsDialog />
@@ -129,7 +149,11 @@ export default function JobForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isSyncing ? 'Syncing...' : isEditing ? 'Updating Job...' : 'Adding Job...'}
+              {isSyncing
+                ? 'Syncing...'
+                : isEditing
+                  ? 'Updating Job...'
+                  : 'Adding Job...'}
             </p>
           </div>
         </div>
@@ -326,30 +350,13 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>Start Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        key={`start-${field.value || 'empty'}`}
-                        value={field.value || ''}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowStartOptionDisabled(
-                                time,
-                                deliveryWindowEnd,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        relation="start"
+                        siblingValue={deliveryWindowEnd}
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -363,30 +370,13 @@ export default function JobForm({
                   <FormItem>
                     <FormLabel>End Time Window*</FormLabel>
                     <FormControl>
-                      <Select
-                        key={`end-${field.value || 'empty'}`}
-                        value={field.value || ''}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full" aria-invalid={!!fieldState.error}>
-                          <SelectValue placeholder="Select time" />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                            <SelectItem
-                              key={time}
-                              value={time}
-                              disabled={isDeliveryTimeWindowEndOptionDisabled(
-                                time,
-                                deliveryWindowStart,
-                              )}
-                            >
-                              {time}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <TimeWindowPicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        relation="end"
+                        siblingValue={deliveryWindowStart}
+                        aria-invalid={!!fieldState.error}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -429,65 +419,6 @@ export default function JobForm({
             />
           </div>
 
-          {isDesktop && (
-            <div className="flex justify-end space-x-2 col-span-2 mb-6">
-              <Button
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                className="cursor-pointer"
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-            </div>
-          )}
-
-          {!isDesktop && (
-            <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                type="submit"
-                className="cursor-pointer"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
-
-              <Button
-                form="add-new-job-form"
-                type="button"
-                variant="outline"
-                className="cursor-pointer"
-                disabled={isPending}
-                onClick={onCancel}
-              >
-                Cancel
-              </Button>
-            </div>
-          )}
-
           {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
@@ -509,6 +440,34 @@ export default function JobForm({
               createdAt={jobDetails?.createdAt}
               updatedAt={jobDetails?.updatedAt}
             />
+          )}
+
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <Button
+                form="add-new-job-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isPending}
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isPending
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Job...'
+                  : isEditing
+                    ? 'Save Changes'
+                    : 'Add Job'}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
           )}
         </form>
       </Form>

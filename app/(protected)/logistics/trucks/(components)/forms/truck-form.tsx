@@ -19,6 +19,7 @@ import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from '@/app/(protected)/logistics/drivers/(components)/forms/haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { TruckFormSchema, TruckFormValues } from './schemas/truck-form-schema';
 import { Loader2 } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
@@ -29,14 +30,13 @@ import {
   useUpdateTruck,
   TruckInspectionsQueryOptions,
 } from '@/lib/api/truck';
-import {
-  HauliersListQueryOptions,
-  HaulierDriversQueryOptions,
-} from '@/lib/api/haulier';
+import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
+import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { AuditInformation } from '@/components/audit-information';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -82,7 +82,7 @@ export default function TruckForm({
   className,
   onSuccess,
   scrollToSection,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const [truckOwnerType, setTruckOwnerType] =
@@ -91,20 +91,20 @@ export default function TruckForm({
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
 
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
+  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const isInternal = truckOwnerType === TRUCK_BUSINESS_TYPE.INTERNAL;
@@ -181,9 +181,7 @@ export default function TruckForm({
 
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck =
-        !!truckData.haulier?.haulierName &&
-        truckData.haulier.haulierName === businessName;
+      const isInternalTruck = isInternalHaulier(truckData.haulier?.emailAddress, tenantEmail);
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -203,7 +201,7 @@ export default function TruckForm({
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isEditing, truckData, businessName]);
+  }, [isEditing, truckData, tenantEmail]);
 
   const isSubmitting = createTruck.isPending || updateTruck.isPending;
 
@@ -283,14 +281,14 @@ export default function TruckForm({
     const element = inspectionSectionRef.current;
     if (!element) return;
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
     }, 400);
 
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [scrollToSection, isEditing, truckData?.id]);
 
   const { data: inspectionsData } = useQuery({
@@ -298,6 +296,10 @@ export default function TruckForm({
     enabled: isEditing && !!id,
   });
   const inspectionRecords = inspectionsData?.content ?? [];
+
+  const truckButtonLabel = isSubmitting
+    ? isEditing ? 'Saving Changes...' : 'Adding Truck...'
+    : isEditing ? 'Update Truck' : 'Add Truck';
 
   const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
     id: driver.id!,
@@ -309,6 +311,32 @@ export default function TruckForm({
 
   const { actions: driverActions, confirmDialogs: driverDialogs } =
     useTruckActions(truckData);
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="truck-form"
+          type="submit"
+          disabled={isSubmitting}
+          className="cursor-pointer"
+        >
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {truckButtonLabel}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <div className="w-full relative">
@@ -366,14 +394,13 @@ export default function TruckForm({
                   </RadioGroup>
                 </FormItem>
 
-                {isEditing ? (
+                {isEditing && (
                   <>
                     <FormItem>
                       <FormLabel>Haulier*</FormLabel>
                       <Input
                         value={
                           selectedHaulierInfo?.haulierName ??
-                          businessName ??
                           'My Company Haulier'
                         }
                         disabled
@@ -399,19 +426,20 @@ export default function TruckForm({
                       </FormItem>
                     </div>
                   </>
-                ) : isInternal ? (
+                )}
+                {!isEditing && isInternal && (
                   <FormItem className="mb-5">
                     <FormLabel>Haulier*</FormLabel>
                     <Input
                       value={
                         internalHaulier?.haulierName ??
-                        businessName ??
                         'My Company Haulier'
                       }
                       disabled
                     />
                   </FormItem>
-                ) : (
+                )}
+                {!isEditing && !isInternal && (
                   <SelectCreateEdit
                     control={truckForm.control}
                     name="haulierId"
@@ -689,33 +717,36 @@ export default function TruckForm({
             />
           )}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
-            <Button
-              variant="outline"
-              type="button"
-              className="cursor-pointer flex-1 sm:flex-none"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              form="truck-form"
-              type="submit"
-              disabled={isSubmitting}
-              className="cursor-pointer flex-1 sm:flex-none"
-            >
-              {isSubmitting && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              )}
-              {isSubmitting
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Truck...'
-                : isEditing
-                  ? 'Update Truck'
-                  : 'Add Truck'}
-            </Button>
-          </div>
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              <Button
+                form="truck-form"
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer"
+              >
+                {isSubmitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                {isSubmitting
+                  ? isEditing
+                    ? 'Saving Changes...'
+                    : 'Adding Truck...'
+                  : isEditing
+                    ? 'Update Truck'
+                    : 'Add Truck'}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
         </form>
       </Form>
     </div>

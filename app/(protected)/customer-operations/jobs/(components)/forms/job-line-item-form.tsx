@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { CurrencyInput } from '@/components/ui/input-mask';
@@ -59,6 +60,7 @@ export default function JobLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
     useTenantCurrencyTax();
   const {
@@ -73,6 +75,12 @@ export default function JobLineItemForm({
     addressSearchInput,
     setAddressSearchInput,
     productOptions,
+    productSearch,
+    onProductSearchChange,
+    isSearchingProducts,
+    hasMoreProductOptions,
+    isLoadingMoreProductOptions,
+    onProductOptionsScrollEnd,
     quarryOptions,
     truckTypeOptions,
     productUnitOptions,
@@ -85,7 +93,14 @@ export default function JobLineItemForm({
     handleDeleteDeliveryAddress,
     isSubmitting,
     isProductDeletedOnCompletedJob,
-  } = useJobLineItemFormState({ id, canEdit, onSuccess, onSaved, taxPercentage });
+  } = useJobLineItemFormState({
+    id,
+    canEdit,
+    onSuccess,
+    onSaved,
+    taxPercentage,
+    loadMoreEnabled: productSelectOpen,
+  });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
@@ -172,6 +187,24 @@ export default function JobLineItemForm({
   const pinnedAddressType = React.useMemo(
     () => toAddressType(pinnedAddress),
     [pinnedAddress],
+  );
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" type="button" onClick={onCancel}>
+          {isEditing ? 'Close' : 'Cancel'}
+        </Button>
+        <Button
+          form="add-new-job-line-item-form"
+          className="cursor-pointer"
+          type="submit"
+          disabled={isPending}
+        >
+          {isEditing ? 'Save Changes' : 'Add Product'}
+        </Button>
+      </div>
+    ) : null,
   );
 
   return (
@@ -334,6 +367,13 @@ export default function JobLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={isReadOnly || isEditing}
+                onDropdownOpenChange={setProductSelectOpen}
+                searchValue={productSearch}
+                onSearchChange={onProductSearchChange}
+                isSearchingOptions={isSearchingProducts}
+                onOptionsListScrollEnd={onProductOptionsScrollEnd}
+                hasMoreOptions={hasMoreProductOptions}
+                isLoadingMoreOptions={isLoadingMoreProductOptions}
               />
 
               <FormSelect
@@ -1076,36 +1116,22 @@ export default function JobLineItemForm({
               </div>
             </div>
 
-            {isDesktop && (
-              <div className="flex justify-end space-x-2 col-span-2 my-6">
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-                <Button
-                  className="cursor-pointer"
-                  type="submit"
-                  disabled={isPending}
-                >
-                  {isEditing ? 'Save Changes' : 'Add Product'}
-                </Button>
-              </div>
-            )}
-
-            {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 my-6">
-                <Button
-                  type="submit"
-                  className="cursor-pointer"
-                  disabled={isPending}
-                >
-                  {isEditing ? 'Save Changes' : 'Add Product'}
-                </Button>
-                <Button variant="outline" type="button" onClick={onCancel}>
-                  {isEditing ? 'Close' : 'Cancel'}
-                </Button>
-              </div>
-            )}
           </div>
+          {!isDesktop && (
+            <div className="flex flex-col col-span-2 gap-3 my-6">
+              <Button
+                form="add-new-job-line-item-form"
+                className="cursor-pointer"
+                type="submit"
+                disabled={isPending}
+              >
+                {isEditing ? 'Save Changes' : 'Add Product'}
+              </Button>
+              <Button variant="outline" type="button" onClick={onCancel}>
+                {isEditing ? 'Close' : 'Cancel'}
+              </Button>
+            </div>
+          )}
         </form>
       </Form>
 
