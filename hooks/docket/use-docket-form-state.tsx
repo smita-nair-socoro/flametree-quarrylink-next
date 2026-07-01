@@ -246,9 +246,7 @@ export function useDocketFormState({
   const selectedJobId = docketForm.watch('jobId');
 
   const { data: jobsData } = useQuery(JobsListQueryOptions());
-  const jobsList = Array.isArray(jobsData)
-    ? jobsData
-    : (jobsData?.content ?? []);
+  const jobsList = jobsData?.jobs?.content ?? [];
 
   const allJobs = React.useMemo(
     () =>

@@ -10,7 +10,6 @@ import { ProceedActions } from './proceed-actions';
 import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
 import { CircleX, CircleCheckBig } from 'lucide-react';
-import { mockQuotationData } from './mock-data';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
@@ -34,7 +33,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 
 type QuoteReviewDocumentProps = {
   quoteId: string;
-  quoteData?: PublicQuoteLinkResponse;
+  quoteData: PublicQuoteLinkResponse;
   token: string; // Empty string for preview mode, actual token for public access
 };
 
@@ -42,7 +41,7 @@ export default function QuoteReviewDocument({
   quoteId,
   quoteData,
   token,
-}: QuoteReviewDocumentProps) {
+}: Readonly<QuoteReviewDocumentProps>) {
   const [logoError, setLogoError] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
@@ -52,7 +51,7 @@ export default function QuoteReviewDocument({
   const [declineNotes, setDeclineNotes] = useState<string>('');
   const [showValidationError, setShowValidationError] = useState(false);
 
-  const decisionMakerName = quoteData?.quoteDto?.decisionMakerName || '';
+  const decisionMakerName = quoteData.quoteDto?.decisionMakerName || '';
 
   // Check if we're in preview mode (no token means authenticated preview)
   const isPreviewMode = !token;
@@ -61,9 +60,8 @@ export default function QuoteReviewDocument({
   const { mutate: updateQuoteStatus, isPending: isUpdatingStatus } =
     useUpdatePublicQuoteStatus();
 
-  // Use API data if available, otherwise fall back to mock data
   const quotationData = useMemo(
-    () => (quoteData ? transformQuoteData(quoteData) : mockQuotationData),
+    () => transformQuoteData(quoteData),
     [quoteData],
   );
 
@@ -96,7 +94,7 @@ export default function QuoteReviewDocument({
   }, [declineReason, declineNotes]);
 
   const approveDialogDescription = useMemo(() => {
-    const { project, navbar, customer, summary } = quotationData;
+    const { project, navbar, customer, summary, currencyTax } = quotationData;
     const approvalNotes = [
       'Quote status changes from Pending to Approved',
       'Your account manager is notified of approval',
@@ -160,9 +158,10 @@ export default function QuoteReviewDocument({
 
         <div className="rounded-xl border border-slate-100 bg-[#E5E5E5] p-3 space-y-2">
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
-            <span>Quote Total (Incl. GST):</span>
+            <span>Quote Total (Incl. {currencyTax.taxLabel}):</span>
             <span className="text-base font-medium text-[#101828]">
-              ${centsToDollars(summary.total)}
+              {currencyTax.currencySymbol}
+              {centsToDollars(summary.total)}
             </span>
           </div>
           <div className="flex items-center justify-between text-sm text-[#6A7282]">
@@ -174,10 +173,14 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-2">
-          <label className="text-base font-medium text-[#101828]">
+          <label
+            htmlFor="approve-full-name"
+            className="text-base font-medium text-[#101828]"
+          >
             Full Name*
           </label>
           <Input
+            id="approve-full-name"
             value={approveFullName}
             onChange={(e) => setApproveFullName(e.target.value)}
             placeholder="Please type in your full name to approve"
@@ -237,7 +240,10 @@ export default function QuoteReviewDocument({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-normal text-[#364153]">
+            <label
+              htmlFor="decline-reason"
+              className="text-sm font-normal text-[#364153]"
+            >
               Reason for declining <span className="text-[#E7000B]">*</span>
             </label>
             <Select
@@ -247,7 +253,7 @@ export default function QuoteReviewDocument({
                 setShowValidationError(false);
               }}
             >
-              <SelectTrigger className="w-full">
+              <SelectTrigger id="decline-reason" className="w-full">
                 <SelectValue placeholder="Select a reason..." />
               </SelectTrigger>
               <SelectContent>
@@ -315,10 +321,14 @@ export default function QuoteReviewDocument({
         </div>
 
         <div className="space-y-2">
-          <label className="text-base font-medium text-[#101828]">
+          <label
+            htmlFor="decline-full-name"
+            className="text-base font-medium text-[#101828]"
+          >
             Full Name*
           </label>
           <Input
+            id="decline-full-name"
             value={declineFullName}
             onChange={(e) => setDeclineFullName(e.target.value)}
             placeholder="Please type in your full name to decline"
@@ -508,12 +518,14 @@ export default function QuoteReviewDocument({
           {/* Products & Services */}
           <ProductsServices
             products={quotationData.products}
+            currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
           <Separator className="mb-8" />
           {/* Summary & Payment */}
           <SummaryPayment
             {...quotationData.summary}
+            currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>

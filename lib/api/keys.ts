@@ -133,6 +133,7 @@ export const InvoicesKeys = {
 export const HaulierKeys = {
   all: ['hauliers'] as const,
   list: () => [...HaulierKeys.all, 'list'] as const,
+  statistics: () => [...HaulierKeys.all, 'statistics'] as const,
   detail: (id: number) => [...HaulierKeys.all, 'detail', id] as const,
   drivers: (id: number) => [...HaulierKeys.all, 'drivers', id] as const,
   trucks: (id: number) => [...HaulierKeys.all, 'trucks', id] as const,

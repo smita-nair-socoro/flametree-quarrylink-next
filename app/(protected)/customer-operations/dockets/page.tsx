@@ -16,9 +16,8 @@ import {
   toDocketApiSortParams,
   getDocketsPageFromListResponse,
   buildDocketFacetOptions,
-  isDocketsListResponse,
 } from '@/lib/api/docket';
-import { DocketDTO } from '@/lib/types/docket';
+import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
@@ -69,7 +68,7 @@ export default function DocketsPage() {
   const [search, setSearch] = React.useState('');
   const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'docketNumber', desc: false },
+    { id: 'deliveryCollectionDate', desc: true },
   ]);
 
   const apiSortParams = React.useMemo(
@@ -96,7 +95,7 @@ export default function DocketsPage() {
   const useAllDocketsQuery = !linkedJobId && !driverId && !truckId;
 
   const {
-    data: allDockets,
+    data: docketsList,
     isLoading: isAllDocketsLoading,
     isFetching: isAllDocketsFetching,
     error: allDocketsError,
@@ -132,19 +131,27 @@ export default function DocketsPage() {
     ? driverDockets
     : truckId
       ? truckDockets
-      : allDockets;
+      : docketsList;
+
+  const docketsListResponse = React.useMemo((): DocketsListResponse | null => {
+    if (
+      docketsResponse &&
+      typeof docketsResponse === 'object' &&
+      'dockets' in docketsResponse
+    ) {
+      return docketsResponse as DocketsListResponse;
+    }
+    return null;
+  }, [docketsResponse]);
 
   const docketPage = React.useMemo(
-    () => getDocketsPageFromListResponse(docketsResponse),
-    [docketsResponse],
+    () => getDocketsPageFromListResponse(docketsListResponse),
+    [docketsListResponse],
   );
 
   const facetOptions = React.useMemo(
-    () =>
-      buildDocketFacetOptions(
-        isDocketsListResponse(docketsResponse) ? docketsResponse : null,
-      ),
-    [docketsResponse],
+    () => buildDocketFacetOptions(docketsListResponse),
+    [docketsListResponse],
   );
 
   const isLoading = driverId
@@ -201,7 +208,7 @@ export default function DocketsPage() {
     setSorting(
       newSorting.length > 0
         ? newSorting
-        : [{ id: 'docketNumber', desc: false }],
+        : [{ id: 'deliveryCollectionDate', desc: true }],
     );
     setPageIndex(0);
   }, []);
@@ -419,7 +426,7 @@ export default function DocketsPage() {
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
-                  defaultSorting={[{ id: 'docketNumber', desc: false }]}
+                  defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
                   totalElements={totalElements}
                   totalPages={totalPages}
                   externalPageIndex={pageIndex}

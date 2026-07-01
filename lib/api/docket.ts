@@ -29,6 +29,7 @@ import {
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
+import { useDocketStore } from '@/app/stores/docket-store';
 
 export const DocketStatisticsQueryOptions = () => {
   const today = new Date();
@@ -75,7 +76,7 @@ export function toDocketApiSortParams(
 ): Pick<DocketsListParams, 'sortBy' | 'sortOrder'> {
   const sort = sorting[0];
   if (!sort) {
-    return { sortBy: 'docketNumber', sortOrder: 'asc' };
+    return { sortBy: 'deliveryCollectionDate', sortOrder: 'asc' };
   }
 
   return {
@@ -134,40 +135,26 @@ function formatFacetEnumLabel(value: string): string {
 }
 
 export function getDocketsPageFromListResponse(
-  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+  data: DocketsListResponse | null | undefined,
 ): DocketsPage | null {
-  if (!data) return null;
-  if (Array.isArray(data)) {
-    return {
-      content: data,
-      totalElements: data.length,
-      totalPages: 1,
-    };
-  }
-  if ('dockets' in data && data.dockets) {
-    return data.dockets;
-  }
-  if ('content' in data) {
-    return data;
-  }
-  return null;
+  return data?.dockets ?? null;
 }
 
 export function getDocketItemsFromListResponse(
   data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
 ): DocketDTO[] {
-  return getDocketsPageFromListResponse(data)?.content ?? [];
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if ('dockets' in data) {
+    return data.dockets?.content ?? [];
+  }
+  return data.content ?? [];
 }
 
-export function isDocketsListResponse(
-  data: unknown,
-): data is DocketsListResponse {
-  return (
-    typeof data === 'object' &&
-    data != null &&
-    'dockets' in data &&
-    typeof (data as DocketsListResponse).dockets === 'object'
-  );
+export function getDocketItemsFromJobPage(
+  page: DocketsPage | null | undefined,
+): DocketDTO[] {
+  return page?.content ?? [];
 }
 
 export function buildDocketFacetOptions(response?: DocketsListResponse | null) {
@@ -246,10 +233,22 @@ export const useCreateDocket = () => {
   });
 };
 
-export const DocketsByJobIdQueryOptions = (jobId: number) =>
+export type DocketsByJobIdParams = Pick<
+  DocketsListParams,
+  'page' | 'pageSize' | 'size' | 'sortBy' | 'sortOrder'
+>;
+
+export const DocketsByJobIdQueryOptions = (
+  jobId: number,
+  params?: DocketsByJobIdParams,
+) =>
   queryOptions({
-    queryKey: [...DocketKeys.byJobId(jobId)],
-    queryFn: () => APIClient.dockets.getByJobId(jobId),
+    queryKey: [...DocketKeys.byJobId(jobId), params],
+    queryFn: () =>
+      APIClient.dockets.getByJobId(jobId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
@@ -267,9 +266,13 @@ export const useUpdateDocket = () => {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<DocketDTO> }) =>
       APIClient.dockets.update(id, data),
-    onSuccess: (data) => {
+    onSuccess: async (data, { id }) => {
+      const updatedDocket = data?.id ? data : await APIClient.dockets.getById(id);
+
+      queryClient.setQueryData(DocketKeys.detail(updatedDocket.id), updatedDocket);
+      useDocketStore.getState().setSelectedDocket(updatedDocket);
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(data.id) });
+      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(updatedDocket.id) });
       queryClient.invalidateQueries({ queryKey: DocketKeys.all });
     },
   });
@@ -390,10 +393,18 @@ export const useOperationalUpdateDocket = () => {
       id: number;
       data: DocketOperationalUpdateRequest;
     }) => APIClient.dockets.operationalUpdate(id, data),
-    onSuccess: (response) => {
-      if (response.docket) {
+    onSuccess: async (response, { id }) => {
+      const updatedDocket =
+        response.docket ?? (await APIClient.dockets.getById(id));
+
+      if (updatedDocket) {
+        queryClient.setQueryData(
+          DocketKeys.detail(updatedDocket.id),
+          updatedDocket,
+        );
+        useDocketStore.getState().setSelectedDocket(updatedDocket);
         queryClient.invalidateQueries({
-          queryKey: DocketKeys.detail(response.docket.id),
+          queryKey: DocketKeys.detail(updatedDocket.id),
         });
       }
       queryClient.invalidateQueries({ queryKey: DocketKeys.list() });

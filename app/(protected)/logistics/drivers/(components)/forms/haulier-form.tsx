@@ -26,6 +26,10 @@ import {
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
+import { useFormDialogFooter } from '@/components/form-dialog';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface HaulierFormProps {
   editingItem?: SelectCreateEditItem | null;
@@ -40,11 +44,14 @@ export default function HaulierForm({
   onSave,
   onCancel,
 }: HaulierFormProps) {
+  const isDesktop = useMediaQuery('(min-width: 768px)');
   const createHaulier = useCreateHaulier();
   const updateHaulier = useUpdateHaulier();
   const editingId = isEditing && editingItem?.id ? Number(editingItem.id) : 0;
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
 
   const { data: haulierData } = useQuery(HaulierDetailQueryOptions(editingId));
+  const isInternal = isInternalHaulier(haulierData?.emailAddress, tenantEmail);
 
   const form = useForm<z.infer<typeof HaulierFormSchema>>({
     resolver: zodResolver(HaulierFormSchema),
@@ -113,9 +120,32 @@ export default function HaulierForm({
     }
   }
 
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="haulier-form"
+          type="submit"
+          variant="default"
+          disabled={createHaulier.isPending || updateHaulier.isPending}
+        >
+          {isEditing ? 'Update Haulier' : 'Add Haulier'}
+        </Button>
+      </div>
+    ) : null,
+  );
+
   return (
     <Form {...form}>
       <form
+        id="haulier-form"
         onSubmit={(e) => {
           e.stopPropagation();
           void form.handleSubmit(onSubmit)(e);
@@ -131,7 +161,7 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Name*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter Haulier Name" {...field} />
+                <Input placeholder="Enter Haulier Name" disabled={isInternal} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -145,7 +175,7 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Email*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter email" type="email" {...field} />
+                <Input placeholder="Enter email" type="email" disabled={isInternal} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -162,6 +192,7 @@ export default function HaulierForm({
                 <PhoneInput
                   defaultCountry="AU"
                   placeholder="Enter phone number"
+                  disabled={isInternal}
                   {...field}
                 />
               </FormControl>
@@ -170,22 +201,26 @@ export default function HaulierForm({
           )}
         />
 
-        <div className="flex justify-end gap-3">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="default"
-            disabled={createHaulier.isPending || updateHaulier.isPending}
-          >
-            {isEditing ? 'Update Haulier' : 'Add Haulier'}
-          </Button>
-        </div>
+        {!isDesktop && (
+          <div className="flex flex-col gap-3 mt-4">
+            <Button
+              form="haulier-form"
+              type="submit"
+              variant="default"
+              disabled={createHaulier.isPending || updateHaulier.isPending}
+            >
+              {isEditing ? 'Update Haulier' : 'Add Haulier'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+
       </form>
     </Form>
   );

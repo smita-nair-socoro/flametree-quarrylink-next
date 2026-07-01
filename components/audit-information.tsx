@@ -21,7 +21,7 @@ export function AuditInformation({
   createdAt,
   updatedAt,
   className,
-}: AuditInformationProps) {
+}: Readonly<AuditInformationProps>) {
   return (
     <div className={cn('space-y-6 mb-10 col-span-full', className)}>
       <h2 className="text-[18px] font-bold">Audit Information</h2>

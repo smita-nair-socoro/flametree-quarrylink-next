@@ -20,6 +20,8 @@ export function InvoiceTableActions({ invoiceId }: InvoiceTableActionsProps) {
   const { actions } = useInvoiceActions(invoiceId);
 
   const handleView = () => {
+    console.log('[InvoiceDetails] View Invoice clicked', { invoiceId });
+    setDropdownOpen(false);
     actions.viewDetails();
   };
 

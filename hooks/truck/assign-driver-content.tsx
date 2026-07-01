@@ -14,9 +14,9 @@ import { cn } from '@/lib/utils';
 
 export function AssignDriverDescription({
   driver,
-}: {
+}: Readonly<{
   driver?: DriverDTO | null;
-}) {
+}>) {
   return (
     <div className="flex justify-start items-center gap-2">
       <span className="font-medium">{driver?.driverName}</span>
@@ -27,12 +27,15 @@ export function AssignDriverDescription({
 export function AssignDriverContent({
   drivers,
   assignedDriverIds = [],
+  haulierName,
   onSelectionChange,
-}: {
+}: Readonly<{
   drivers: DriverDTO[];
   assignedDriverIds?: number[];
+  /** Haulier name sourced from the truck's haulier — used as the section header. */
+  haulierName?: string;
   onSelectionChange?: (ids: number[]) => void;
-}) {
+}>) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
@@ -42,18 +45,13 @@ export function AssignDriverContent({
     [drivers, assignedDriverIds],
   );
 
-  const groups = React.useMemo(() => {
-    const filtered = availableDrivers.filter((d) =>
-      d.driverName.toLowerCase().includes(search.toLowerCase()),
-    );
-    const map = new Map<string, DriverDTO[]>();
-    for (const driver of filtered) {
-      const group = driver.haulier?.haulierName ?? 'Drivers';
-      if (!map.has(group)) map.set(group, []);
-      map.get(group)!.push(driver);
-    }
-    return map;
-  }, [drivers, search]);
+  const filteredDrivers = React.useMemo(
+    () =>
+      availableDrivers.filter((d) =>
+        d.driverName.toLowerCase().includes(search.toLowerCase()),
+      ),
+    [availableDrivers, search],
+  );
 
   const toggle = (id: number) => {
     const updated = selectedIds.includes(id)
@@ -69,12 +67,14 @@ export function AssignDriverContent({
     onSelectionChange?.(updated);
   };
 
-  const triggerLabel =
-    selectedIds.length === 0
-      ? 'Select drivers...'
-      : selectedIds.length === 1
-        ? (availableDrivers.find((d) => d.id === selectedIds[0])?.driverName ?? '1 selected')
-        : `${selectedIds.length} drivers selected`;
+  let triggerLabel: string;
+  if (selectedIds.length === 0) {
+    triggerLabel = 'Select drivers...';
+  } else if (selectedIds.length === 1) {
+    triggerLabel = availableDrivers.find((d) => d.id === selectedIds[0])?.driverName ?? '1 selected';
+  } else {
+    triggerLabel = `${selectedIds.length} drivers selected`;
+  }
 
   return (
     <div className="flex flex-col gap-2">
@@ -93,10 +93,7 @@ export function AssignDriverContent({
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent
-          className="p-0 w-72 overflow-hidden"
-          align="start"
-        >
+        <PopoverContent className="p-0 w-72 overflow-hidden" align="start">
           <div className="flex items-center gap-2 border-b px-3">
             <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
             <Input
@@ -108,34 +105,32 @@ export function AssignDriverContent({
           </div>
 
           <div className="max-h-60 overflow-y-auto">
-            {groups.size === 0 ? (
+            {filteredDrivers.length === 0 ? (
               <p className="text-sm text-muted-foreground p-4">
                 No drivers found.
               </p>
             ) : (
-              Array.from(groups.entries()).map(
-                ([haulierName, groupDrivers]) => (
-                  <div key={haulierName}>
-                    <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
-                      {haulierName}
-                    </p>
-                    {groupDrivers.map((driver) => (
-                      <label
-                        key={driver.id}
-                        className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
-                      >
-                        <Checkbox
-                          checked={selectedIds.includes(driver.id ?? 0)}
-                          onCheckedChange={() => toggle(driver.id ?? 0)}
-                        />
-                        <span className="text-sm font-medium">
-                          {driver.driverName}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                ),
-              )
+              <div>
+                {haulierName && (
+                  <p className="text-xs text-muted-foreground px-4 pt-3 pb-1 font-medium">
+                    {haulierName}
+                  </p>
+                )}
+                {filteredDrivers.map((driver) => (
+                  <label
+                    key={driver.id}
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-muted/50"
+                  >
+                    <Checkbox
+                      checked={selectedIds.includes(driver.id ?? 0)}
+                      onCheckedChange={() => toggle(driver.id ?? 0)}
+                    />
+                    <span className="text-sm font-medium">
+                      {driver.driverName}
+                    </span>
+                  </label>
+                ))}
+              </div>
             )}
           </div>
 
@@ -158,7 +153,6 @@ export function AssignDriverContent({
         </PopoverContent>
       </Popover>
 
-      {/* Selected badges */}
       {selectedIds.length > 0 && (
         <div className="flex flex-wrap gap-2 overflow-y-auto">
           {selectedIds.map((id) => {

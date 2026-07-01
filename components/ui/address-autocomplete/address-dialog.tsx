@@ -58,7 +58,7 @@ export function createAddressSchema() {
     address1: z
       .string()
       .max(100, 'Address line 1 must be less than 100 characters')
-      .regex(/^[a-zA-Z0-9\s,.&/()\-.]*$/, 'Address contains invalid characters')
+      .regex(/^[a-zA-Z0-9\s,.&/()-]*$/, 'Address contains invalid characters')
       .optional(),
     address2: z.string().optional(),
     city: z.string().min(1, { message: 'Suburb is required' }),
@@ -262,13 +262,16 @@ export default function AddressDialog(
    */
   const handleLatLngChange = useCallback(
     (field: 'lat' | 'lng', value: string) => {
-      const num = parseFloat(value);
+      const num = Number.parseFloat(value);
       if (value === '' || value === '-') {
         // Allow typing negative numbers or clearing
-        setDraftAddress((prev) => ({ ...prev, [field]: value as unknown as number }));
+        setDraftAddress((prev) => ({
+          ...prev,
+          [field]: value as unknown as number,
+        }));
         return;
       }
-      if (isNaN(num)) return;
+      if (Number.isNaN(num)) return;
       setDraftAddress((prev) => ({ ...prev, [field]: num }));
     },
     [],
@@ -450,9 +453,16 @@ export default function AddressDialog(
     setErrorMap({});
 
     // If address1 is blank, fall back to the coordinate string
-    const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
-    const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
-    const coordFallback = (!isNaN(lat) && !isNaN(lng)) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '';
+    const lat =
+      typeof draftAddress.lat === 'number'
+        ? draftAddress.lat
+        : Number.parseFloat(String(draftAddress.lat));
+    const lng =
+      typeof draftAddress.lng === 'number'
+        ? draftAddress.lng
+        : Number.parseFloat(String(draftAddress.lng));
+    const coordFallback =
+      !Number.isNaN(lat) && !Number.isNaN(lng) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '';
     const finalDraft = {
       ...draftAddress,
       address1: draftAddress.address1?.trim() || coordFallback,
@@ -491,7 +501,10 @@ export default function AddressDialog(
       finalDraft.postalCode !== address.postalCode ||
       finalDraft.country !== address.country
     ) {
-      const newFormattedAddress = updateAndFormatAddress(adrAddressDraft, finalDraft);
+      const newFormattedAddress = updateAndFormatAddress(
+        adrAddressDraft,
+        finalDraft,
+      );
 
       const saved = { ...finalDraft, formattedAddress: newFormattedAddress };
       setAddress({
@@ -525,8 +538,8 @@ export default function AddressDialog(
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+        <DialogHeader className="pb-4">
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
             Review and edit the address details below. Click on the map to set
@@ -535,198 +548,244 @@ export default function AddressDialog(
         </DialogHeader>
 
         {isLoading ? (
-          <div className="h-52 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
-          <form onSubmit={handleSave}>
-            {/* Form Fields */}
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="address1">Address line 1</Label>
-                <Input
-                  value={draftAddress.address1}
-                  onChange={(e) =>
-                    updateDraftField('address1', e.currentTarget.value)
-                  }
-                  disabled={isLoading}
-                  id="address1"
-                  name="address1"
-                  placeholder="Address line 1"
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="address2">
-                  Address line 2
-                </Label>
-                <Input
-                  value={draftAddress.address2}
-                  onChange={(e) =>
-                    updateDraftField('address2', e.currentTarget.value)
-                  }
-                  disabled={isLoading}
-                  id="address2"
-                  name="address2"
-                  placeholder="Address line 2"
-                />
-              </div>
-
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="city">City*</Label>
+          <form
+            onSubmit={handleSave}
+            className="flex-1 min-h-0 flex flex-col overflow-hidden"
+          >
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              {/* Form Fields */}
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="address1">Address line 1</Label>
                   <Input
-                    value={draftAddress.city}
+                    value={draftAddress.address1}
                     onChange={(e) =>
-                      updateDraftField('city', e.currentTarget.value)
+                      updateDraftField('address1', e.currentTarget.value)
                     }
                     disabled={isLoading}
-                    id="city"
-                    name="city"
-                    placeholder="City"
+                    id="address1"
+                    name="address1"
+                    placeholder="Address line 1"
                   />
-                  {errorMap.city && (
-                    <FormMessages
-                      type="error"
-                      className="pt-1 text-sm"
-                      messages={[errorMap.city]}
-                    />
-                  )}
                 </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="region">State / Province / Region*</Label>
-                  <StateSelect
-                    value={draftAddress.region}
-                    onChange={(stateName) =>
-                      updateDraftField('region', stateName)
-                    }
-                    countryCode={countryCode}
-                    disabled={isLoading}
-                    placeholder="Select state/region"
-                  />
-                  {errorMap.region && (
-                    <FormMessages
-                      type="error"
-                      className="pt-1 text-sm"
-                      messages={[errorMap.region]}
-                    />
-                  )}
-                </div>
-              </div>
 
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="postalCode">Postal Code*</Label>
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="address2">Address line 2</Label>
                   <Input
-                    value={draftAddress.postalCode}
+                    value={draftAddress.address2}
                     onChange={(e) =>
-                      updateDraftField('postalCode', e.currentTarget.value)
+                      updateDraftField('address2', e.currentTarget.value)
                     }
                     disabled={isLoading}
-                    id="postalCode"
-                    name="postalCode"
-                    placeholder="Postal Code"
+                    id="address2"
+                    name="address2"
+                    placeholder="Address line 2"
                   />
-                  {errorMap.postalCode && (
-                    <FormMessages
-                      type="error"
-                      className="pt-1 text-sm"
-                      messages={[errorMap.postalCode]}
-                    />
-                  )}
                 </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="country">Country*</Label>
-                  <CountrySelect
-                    value={draftAddress.country}
-                    onChange={handleCountryChange}
-                    disabled={isLoading}
-                    placeholder="Select country"
-                  />
-                  {errorMap.country && (
-                    <FormMessages
-                      type="error"
-                      className="pt-1 text-sm"
-                      messages={[errorMap.country]}
+
+                <div className="flex gap-4">
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label htmlFor="city">City*</Label>
+                    <Input
+                      value={draftAddress.city}
+                      onChange={(e) =>
+                        updateDraftField('city', e.currentTarget.value)
+                      }
+                      disabled={isLoading}
+                      id="city"
+                      name="city"
+                      placeholder="City"
                     />
-                  )}
+                    {errorMap.city && (
+                      <FormMessages
+                        type="error"
+                        className="pt-1 text-sm"
+                        messages={[errorMap.city]}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label htmlFor="region">State / Province / Region*</Label>
+                    <StateSelect
+                      value={draftAddress.region}
+                      onChange={(stateName) =>
+                        updateDraftField('region', stateName)
+                      }
+                      countryCode={countryCode}
+                      disabled={isLoading}
+                      placeholder="Select state/region"
+                    />
+                    {errorMap.region && (
+                      <FormMessages
+                        type="error"
+                        className="pt-1 text-sm"
+                        messages={[errorMap.region]}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label htmlFor="postalCode">Postal Code*</Label>
+                    <Input
+                      value={draftAddress.postalCode}
+                      onChange={(e) =>
+                        updateDraftField('postalCode', e.currentTarget.value)
+                      }
+                      disabled={isLoading}
+                      id="postalCode"
+                      name="postalCode"
+                      placeholder="Postal Code"
+                    />
+                    {errorMap.postalCode && (
+                      <FormMessages
+                        type="error"
+                        className="pt-1 text-sm"
+                        messages={[errorMap.postalCode]}
+                      />
+                    )}
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label htmlFor="country">Country*</Label>
+                    <CountrySelect
+                      value={draftAddress.country}
+                      onChange={handleCountryChange}
+                      disabled={isLoading}
+                      placeholder="Select country"
+                    />
+                    {errorMap.country && (
+                      <FormMessages
+                        type="error"
+                        className="pt-1 text-sm"
+                        messages={[errorMap.country]}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Lat / Lng fields */}
+                <div className="flex gap-4">
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label
+                      htmlFor="lat"
+                      className="text-xs text-muted-foreground"
+                    >
+                      Lat
+                    </Label>
+                    <Input
+                      value={draftAddress.lat}
+                      onChange={(e) =>
+                        handleLatLngChange('lat', e.currentTarget.value)
+                      }
+                      onBlur={() => {
+                        // On blur, trigger reverse geocode if coordinates are valid
+                        const lat =
+                          typeof draftAddress.lat === 'number'
+                            ? draftAddress.lat
+                            : Number.parseFloat(String(draftAddress.lat));
+                        const lng =
+                          typeof draftAddress.lng === 'number'
+                            ? draftAddress.lng
+                            : Number.parseFloat(String(draftAddress.lng));
+                        if (
+                          !Number.isNaN(lat) &&
+                          !Number.isNaN(lng) &&
+                          lat !== 0 &&
+                          lng !== 0
+                        ) {
+                          handleMapLocationChange(lat, lng);
+                        }
+                      }}
+                      disabled={isLoading}
+                      id="lat"
+                      name="lat"
+                      placeholder="Latitude"
+                      type="text"
+                      inputMode="decimal"
+                    />
+                  </div>
+                  <div className="flex-1 flex flex-col gap-2">
+                    <Label
+                      htmlFor="lng"
+                      className="text-xs text-muted-foreground"
+                    >
+                      Long
+                    </Label>
+                    <Input
+                      value={draftAddress.lng}
+                      onChange={(e) =>
+                        handleLatLngChange('lng', e.currentTarget.value)
+                      }
+                      onBlur={() => {
+                        const lat =
+                          typeof draftAddress.lat === 'number'
+                            ? draftAddress.lat
+                            : Number.parseFloat(String(draftAddress.lat));
+                        const lng =
+                          typeof draftAddress.lng === 'number'
+                            ? draftAddress.lng
+                            : Number.parseFloat(String(draftAddress.lng));
+                        if (
+                          !Number.isNaN(lat) &&
+                          !Number.isNaN(lng) &&
+                          lat !== 0 &&
+                          lng !== 0
+                        ) {
+                          handleMapLocationChange(lat, lng);
+                        }
+                      }}
+                      disabled={isLoading}
+                      id="lng"
+                      name="lng"
+                      placeholder="Longitude"
+                      type="text"
+                      inputMode="decimal"
+                    />
+                  </div>
                 </div>
               </div>
 
-              {/* Lat / Lng fields */}
-              <div className="flex gap-4">
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="lat" className="text-xs text-muted-foreground">Lat</Label>
-                  <Input
-                    value={draftAddress.lat}
-                    onChange={(e) => handleLatLngChange('lat', e.currentTarget.value)}
-                    onBlur={() => {
-                      // On blur, trigger reverse geocode if coordinates are valid
-                      const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
-                      const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
-                      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                        handleMapLocationChange(lat, lng);
-                      }
-                    }}
-                    disabled={isLoading}
-                    id="lat"
-                    name="lat"
-                    placeholder="Latitude"
-                    type="text"
-                    inputMode="decimal"
-                  />
-                </div>
-                <div className="flex-1 flex flex-col gap-2">
-                  <Label htmlFor="lng" className="text-xs text-muted-foreground">Long</Label>
-                  <Input
-                    value={draftAddress.lng}
-                    onChange={(e) => handleLatLngChange('lng', e.currentTarget.value)}
-                    onBlur={() => {
-                      const lat = typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat));
-                      const lng = typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng));
-                      if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
-                        handleMapLocationChange(lat, lng);
-                      }
-                    }}
-                    disabled={isLoading}
-                    id="lng"
-                    name="lng"
-                    placeholder="Longitude"
-                    type="text"
-                    inputMode="decimal"
-                  />
-                </div>
+              {/* Embedded Map Panel — at the bottom */}
+              <div className="mt-4">
+                <Label className="mb-2 block">Location on Map</Label>
+                <EmbeddedMapPicker
+                  lat={
+                    typeof draftAddress.lat === 'number'
+                      ? draftAddress.lat
+                      : Number.parseFloat(String(draftAddress.lat)) || 0
+                  }
+                  lng={
+                    typeof draftAddress.lng === 'number'
+                      ? draftAddress.lng
+                      : Number.parseFloat(String(draftAddress.lng)) || 0
+                  }
+                  onLocationChange={handleMapLocationChange}
+                  disabled={isMapDisabled}
+                  markerColor={isCollection ? 'green' : 'red'}
+                />
+                {isReverseGeocoding && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Loader2 className="size-3 animate-spin" />
+                    Getting address...
+                  </p>
+                )}
+                {isForwardGeocoding && (
+                  <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                    <Loader2 className="size-3 animate-spin" />
+                    Updating map...
+                  </p>
+                )}
+                {geocodeError && (
+                  <p className="text-xs text-amber-600 mt-1">{geocodeError}</p>
+                )}
               </div>
             </div>
-
-            {/* Embedded Map Panel — at the bottom */}
-            <div className="mt-4">
-              <Label className="mb-2 block">Location on Map</Label>
-              <EmbeddedMapPicker
-                lat={typeof draftAddress.lat === 'number' ? draftAddress.lat : parseFloat(String(draftAddress.lat)) || 0}
-                lng={typeof draftAddress.lng === 'number' ? draftAddress.lng : parseFloat(String(draftAddress.lng)) || 0}
-                onLocationChange={handleMapLocationChange}
-                disabled={isMapDisabled}
-                markerColor={isCollection ? 'green' : 'red'}
-              />
-              {isReverseGeocoding && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Loader2 className="size-3 animate-spin" />
-                  Getting address...
-                </p>
-              )}
-              {isForwardGeocoding && (
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Loader2 className="size-3 animate-spin" />
-                  Updating map...
-                </p>
-              )}
-              {geocodeError && (
-                <p className="text-xs text-amber-600 mt-1">{geocodeError}</p>
-              )}
-            </div>
-
-            <DialogFooter className="mt-6">
+            <DialogFooter className="pt-4">
               {hasAttemptedSave && !isFormValid && (
                 <div className="mr-auto text-sm text-destructive">
                   {validationSummaryMessage}
