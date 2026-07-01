@@ -14,7 +14,8 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       return <TableClientSortableHeader column={column} title="Registration" />;
     },
     cell: ({ row }) => {
-      if (row.original.model === 'GENERIC') return <div className="py-2">--</div>;
+      if (row.original.model === 'GENERIC')
+        return <div className="py-2">--</div>;
       const value = row.original.licensePlate;
       return <div className="py-2 font-medium">{value || '-'}</div>;
     },
@@ -27,7 +28,8 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       return <TableClientSortableHeader column={column} title="Make & Model" />;
     },
     cell: ({ row }) => {
-      if (row.original.model === 'GENERIC') return <div className="py-2">--</div>;
+      if (row.original.model === 'GENERIC')
+        return <div className="py-2">--</div>;
       const value = row.original.model;
       return <div className="py-2">{value || '-'}</div>;
     },
@@ -41,7 +43,9 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
     },
     cell: ({ row }) => {
       const isGeneric = row.original.model === 'GENERIC';
-      const type = isGeneric ? 'GENERIC' : (row.original.truckType as TRUCK_TYPE);
+      const type = isGeneric
+        ? 'GENERIC'
+        : (row.original.truckType as TRUCK_TYPE);
       return (
         <div className="py-2">
           <TableBadges names={[type]} visibleCount={1} />
@@ -74,7 +78,8 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       return <TableClientSortableHeader column={column} title="Volume" />;
     },
     cell: ({ row }) => {
-      if (row.original.model === 'GENERIC') return <div className="py-2">--</div>;
+      if (row.original.model === 'GENERIC')
+        return <div className="py-2">--</div>;
       const value = row.original.tankVolumeM3;
       if (value == null) return <div className="py-2">-</div>;
       return (
@@ -92,7 +97,8 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
       return <TableClientSortableHeader column={column} title="GVM" />;
     },
     cell: ({ row }) => {
-      if (row.original.model === 'GENERIC') return <div className="py-2">--</div>;
+      if (row.original.model === 'GENERIC')
+        return <div className="py-2">--</div>;
       const value = row.original.combinationGvm;
       if (value == null) return <div className="py-2">-</div>;
       return <div className="py-2">{value} TN</div>;
@@ -102,8 +108,8 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
   {
     id: 'truckStatus',
     accessorFn: (row) => row.truckStatus,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+    header: () => {
+      return <div>Status</div>;
     },
     cell: ({ getValue }) => {
       const raw = getValue<string>();

@@ -3,9 +3,12 @@
 import React from 'react';
 import { Building2, Truck, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { HauliersListQueryOptions } from '@/lib/api/haulier';
-import { TrucksListQueryOptions } from '@/lib/api/truck';
-import { DriversListQueryOptions } from '@/lib/api/driver';
+import {
+  HauliersListQueryOptions,
+  HaulierStatisticsQueryOptions,
+  toHaulierApiSortParams,
+  getHaulierItemsFromListResponse,
+} from '@/lib/api/haulier';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
@@ -14,38 +17,72 @@ import HaulierForm from './(components)/forms/haulier-form';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
+import type { SortingState } from '@tanstack/react-table';
 
 export default function HaulierPage() {
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
-  const { data: hauliers } = useQuery(HauliersListQueryOptions());
-
   const { actions, viewDialog } = useHaulierActions();
   const handleRowClick = (haulier: HaulierDTO) => actions.view(haulier);
-  const { data: trucks } = useQuery(TrucksListQueryOptions());
-  const { data: drivers } = useQuery(DriversListQueryOptions());
 
+  const { data: statistics } = useQuery(HaulierStatisticsQueryOptions());
 
-  const items: HaulierDTO[] = React.useMemo(() => {
-    return (hauliers?.content ?? []).map((haulier) => ({
-      ...haulier,
-    })) as HaulierDTO[];
-  }, [hauliers]);
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [search, setSearch] = React.useState('');
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'haulierName', desc: false },
+  ]);
 
-
-  const trucksManaged = React.useMemo(
-    () => (Array.isArray(trucks) ? trucks.filter((t) => t.haulierId).length : 0),
-    [trucks],
+  const apiSortParams = React.useMemo(
+    () => toHaulierApiSortParams(sorting),
+    [sorting],
   );
 
-  const driversManaged = React.useMemo(
-    () => (Array.isArray(drivers) ? drivers.filter((d) => d.haulierId).length : 0),
-    [drivers],
+  const {
+    data: hauliersData,
+    isFetching,
+  } = useQuery(
+    HauliersListQueryOptions({
+      page: pageIndex,
+      pageSize,
+      search: search.trim() || undefined,
+      ...apiSortParams,
+    }),
+  );
+
+  const items: HaulierDTO[] = React.useMemo(
+    () => getHaulierItemsFromListResponse(hauliersData),
+    [hauliersData],
+  );
+
+  const totalElements = hauliersData?.totalElements ?? items.length;
+  const totalPages =
+    hauliersData?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+
+  const handleSearchChange = React.useCallback((value: string) => {
+    setSearch(value);
+    setPageIndex(0);
+  }, []);
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0 ? newSorting : [{ id: 'haulierName', desc: false }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
   );
 
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Hauliers',
-      value: items.length,
+      value: statistics?.totalHauliers ?? totalElements,
       description: 'External haulage companies',
       icon: Building2,
       iconBgColor: 'bg-[#DBEAFE]',
@@ -54,7 +91,7 @@ export default function HaulierPage() {
     },
     {
       title: 'Trucks Managed',
-      value: trucksManaged,
+      value: statistics?.trucksManaged ?? 0,
       description: 'Across all hauliers',
       icon: Truck,
       iconBgColor: 'bg-[#DCFCE7]',
@@ -63,7 +100,7 @@ export default function HaulierPage() {
     },
     {
       title: 'Drivers Managed',
-      value: driversManaged,
+      value: statistics?.driversManaged ?? 0,
       description: 'Across all hauliers',
       icon: Users,
       iconBgColor: 'bg-[#EDE9FE]',
@@ -100,6 +137,15 @@ export default function HaulierPage() {
           onRowClick={handleRowClick}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          externalPageIndex={pageIndex}
+          externalPageSize={pageSize}
+          externalSorting={sorting}
+          onPaginationChange={handlePaginationChange}
+          onSearchChange={handleSearchChange}
+          onSortingChange={handleSortingChange}
+          isLoading={isFetching}
         />
       </div>
     </div>

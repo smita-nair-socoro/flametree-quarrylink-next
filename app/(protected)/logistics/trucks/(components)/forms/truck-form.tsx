@@ -30,10 +30,8 @@ import {
   useUpdateTruck,
   TruckInspectionsQueryOptions,
 } from '@/lib/api/truck';
-import {
-  HauliersListQueryOptions,
-  HaulierDriversQueryOptions,
-} from '@/lib/api/haulier';
+import { HaulierDriversQueryOptions } from '@/lib/api/haulier';
+import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useQuery } from '@tanstack/react-query';
@@ -84,7 +82,7 @@ export default function TruckForm({
   className,
   onSuccess,
   scrollToSection,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const [truckOwnerType, setTruckOwnerType] =
@@ -93,11 +91,7 @@ export default function TruckForm({
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
 
-  const { data: hauliersData } = useQuery(HauliersListQueryOptions());
-  const hauliers = React.useMemo(
-    () => hauliersData?.content ?? [],
-    [hauliersData],
-  );
+  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
@@ -287,14 +281,14 @@ export default function TruckForm({
     const element = inspectionSectionRef.current;
     if (!element) return;
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
     }, 400);
 
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [scrollToSection, isEditing, truckData?.id]);
 
   const { data: inspectionsData } = useQuery({
@@ -302,6 +296,10 @@ export default function TruckForm({
     enabled: isEditing && !!id,
   });
   const inspectionRecords = inspectionsData?.content ?? [];
+
+  const truckButtonLabel = isSubmitting
+    ? isEditing ? 'Saving Changes...' : 'Adding Truck...'
+    : isEditing ? 'Update Truck' : 'Add Truck';
 
   const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
     id: driver.id!,
@@ -334,13 +332,7 @@ export default function TruckForm({
           {isSubmitting && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          {isSubmitting
-            ? isEditing
-              ? 'Saving Changes...'
-              : 'Adding Truck...'
-            : isEditing
-              ? 'Update Truck'
-              : 'Add Truck'}
+          {truckButtonLabel}
         </Button>
       </div>
     ) : null,
@@ -402,7 +394,7 @@ export default function TruckForm({
                   </RadioGroup>
                 </FormItem>
 
-                {isEditing ? (
+                {isEditing && (
                   <>
                     <FormItem>
                       <FormLabel>Haulier*</FormLabel>
@@ -434,7 +426,8 @@ export default function TruckForm({
                       </FormItem>
                     </div>
                   </>
-                ) : isInternal ? (
+                )}
+                {!isEditing && isInternal && (
                   <FormItem className="mb-5">
                     <FormLabel>Haulier*</FormLabel>
                     <Input
@@ -445,7 +438,8 @@ export default function TruckForm({
                       disabled
                     />
                   </FormItem>
-                ) : (
+                )}
+                {!isEditing && !isInternal && (
                   <SelectCreateEdit
                     control={truckForm.control}
                     name="haulierId"

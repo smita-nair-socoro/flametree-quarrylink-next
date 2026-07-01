@@ -174,6 +174,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
   const duplicateDocketMutation = useDuplicateDocket();
+  const effectiveDocket = selectedDocket ?? docketData;
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
@@ -196,11 +197,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
 
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
-    const mime = header.match(/:(.*?);/)?.[1] ?? 'image/png';
+    const mime = /:(.*?);/.exec(header)?.[1] ?? 'image/png';
     const binary = atob(data);
     const array = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) {
-      array[i] = binary.charCodeAt(i);
+      array[i] = binary.codePointAt(i) ?? 0;
     }
     return new File([array], filename, { type: mime });
   };
@@ -461,17 +462,17 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   };
 
   const handleAssignDocket = async () => {
-    if (!docketData?.id || !assignTruck || !assignDriver) return;
+    if (!effectiveDocket?.id || !assignTruck || !assignDriver) return;
     try {
       const result = await assignDocketMutation.mutateAsync({
-        docketId: docketData.id,
+        docketId: effectiveDocket.id,
         truckId: assignTruck,
         driverId: assignDriver,
-        deliveryStartWindow: docketData.deliveryCollectionStartTime,
-        deliveryEndWindow: docketData.deliveryCollectionEndTime,
+        deliveryStartWindow: effectiveDocket.deliveryCollectionStartTime,
+        deliveryEndWindow: effectiveDocket.deliveryCollectionEndTime,
       });
       setSelectedDocket({
-        ...(selectedDocket as DocketDTO),
+        ...effectiveDocket,
         docketStatus: result.docketStatus,
         truckId: result.truckId,
         driverId: result.driverId,
@@ -519,7 +520,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         addNewRecordId('docket_main_data_table', d.id),
       );
       notifySuccess(
-        `${result.dockets.length} docket${result.dockets.length !== 1 ? 's' : ''} duplicated successfully`,
+        `${result.dockets.length} docket${result.dockets.length === 1 ? '' : 's'} duplicated successfully`,
       );
       setActiveDialog(null);
       resetDuplicateState();
@@ -558,21 +559,21 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const isAssignFormValid = Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
 
   const loadSizeDiffersFromPlanned = React.useMemo(() => {
-    if (!docketData) return false;
-    const planned = docketData.plannedLoadSize;
-    const actual = docketData.actualLoadSize;
+    if (!effectiveDocket) return false;
+    const planned = effectiveDocket.plannedLoadSize;
+    const actual = effectiveDocket.actualLoadSize;
     if (planned == null || actual == null) return false;
     return actual !== planned;
-  }, [docketData]);
+  }, [effectiveDocket]);
 
   const dialogConfigs = React.useMemo<Record<string, DialogConfig>>(
     () => ({
       assign: {
         title: 'Assign docket',
-        description: <AssignDocketDescription docket={docketData} />,
+        description: <AssignDocketDescription docket={effectiveDocket} />,
         content: (
           <AssignDocketContent
-            docket={docketData}
+            docket={effectiveDocket}
             haulerSelection={assignHauler}
             truckSelection={assignTruck}
             driverSelection={assignDriver}
@@ -624,32 +625,32 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       startTransit: {
         title: 'Start Transit',
-        description: <StartTransitDescription docket={docketData} />,
-        content: <StartTransitContent docket={docketData} />,
+        description: <StartTransitDescription docket={effectiveDocket} />,
+        content: <StartTransitContent docket={effectiveDocket} />,
         confirmText: 'Start Transit',
         confirmCustomColor: '#3B82F6',
         cancelText: 'Cancel',
       },
       resumeTransit: {
         title: 'Resume Transit',
-        description: <ResumeTransitDescription docket={docketData} />,
-        content: <ResumeTransitContent docket={docketData} />,
+        description: <ResumeTransitDescription docket={effectiveDocket} />,
+        content: <ResumeTransitContent docket={effectiveDocket} />,
         confirmText: 'Resume Transit',
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
       },
       markReady: {
         title: 'Mark as Ready',
-        description: <MarkReadyDescription docket={docketData} />,
-        content: <MarkReadyContent docket={docketData} />,
+        description: <MarkReadyDescription docket={effectiveDocket} />,
+        content: <MarkReadyContent docket={effectiveDocket} />,
         confirmText: 'Mark as Ready',
         confirmCustomColor: '#10B981',
         cancelText: 'Cancel',
       },
       markCollected: {
         title: 'Mark as Collected',
-        description: <MarkCollectedDescription docket={docketData} />,
-        content: <MarkCollectedContent docket={docketData} />,
+        description: <MarkCollectedDescription docket={effectiveDocket} />,
+        content: <MarkCollectedContent docket={effectiveDocket} />,
         confirmText: 'Mark as Collected',
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
@@ -673,8 +674,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       startPreparing: {
         title: 'Start Preparing',
-        description: <StartPreparingDescription docket={docketData} />,
-        content: <StartPreparingContent docket={docketData} />,
+        description: <StartPreparingDescription docket={effectiveDocket} />,
+        content: <StartPreparingContent docket={effectiveDocket} />,
         confirmText: 'Start Preparing',
         confirmCustomColor: '#F97316',
         cancelText: 'Cancel',
@@ -715,16 +716,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       duplicate: {
         title: 'Duplicate Docket',
-        subtitle: `Create a copy of docket ${docketData?.docketNumber ?? ''}`,
+        subtitle: `Create a copy of docket ${effectiveDocket?.docketNumber ?? ''}`,
         description: (
           <div className="-mt-[18px] flex flex-col gap-6">
             <div className="-mx-[25px] border-t border-[#F3F4F6]" />
-            <DuplicateDocketDescription docket={docketData} copies={duplicateCopies} />
+            <DuplicateDocketDescription docket={effectiveDocket} copies={duplicateCopies} />
           </div>
         ),
         content: (
           <DuplicateDocketContent
-            docket={docketData}
+            docket={effectiveDocket}
             copies={duplicateCopies}
             onCopiesChange={setDuplicateCopies}
             retainPoNumber={duplicateRetainPo}
@@ -748,8 +749,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       },
       unassign: {
         title: 'Confirm unassign',
-        description: <UnassignDocketDescription docket={docketData} />,
-        content: <UnassignDocketContent docket={docketData} />,
+        description: <UnassignDocketDescription docket={effectiveDocket} />,
+        content: <UnassignDocketContent docket={effectiveDocket} />,
         confirmText: 'Unassign docket',
         confirmVariant: 'destructive',
         cancelText: 'Cancel',
@@ -758,6 +759,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     }),
     [
       docketData,
+      effectiveDocket,
       deliveredProductsConfirmed,
       isMarkDeliveredFormValid,
       isStopFormValid,
@@ -919,9 +921,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             case 'cashReceipts':
               console.log('Cash receipts confirmed:', docketData);
               break;
-            case 'assign':
-              console.log('Assign docket confirmed:', docketData);
-              break;
             case 'unassign':
               await handleUnassignDocket();
               break;
@@ -938,7 +937,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   });
 
   const canEdit = ['UNASSIGNED', 'PENDING', 'ASSIGNED'].includes(
-    (docketData ?? selectedDocket)?.docketStatus ?? '',
+    effectiveDocket?.docketStatus ?? '',
   );
   const viewDialog = viewOpen ? (
     <FormDialog
@@ -957,10 +956,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       headerButtons={
-        <DocketActionButtons
-          docket={docketData ?? selectedDocket}
-          hasUnsavedChanges={isFormDirty}
-        />
+        <DocketActionButtons docket={effectiveDocket} hasUnsavedChanges={isFormDirty} />
       }
       headerInfo={{
         useSelectedDocket: true,
@@ -968,7 +964,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     >
       <DocketForm
         canEdit={canEdit}
-        initialDocket={docketData ?? selectedDocket}
+        initialDocket={effectiveDocket}
       />
     </FormDialog>
   ) : null;

@@ -85,8 +85,9 @@ import {
   InvoiceUrlResponse,
   JobStatistics,
   CreateInvoiceResponseDTO,
+  JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HauliersPage } from '../types/haulier';
+import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -1095,23 +1096,25 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      status?: string[];
+      customerId?: number[];
+      accountManagerSub?: string[];
     }) => {
-      const response = await appClient.Get<
-        | JobDTO[]
-        | {
-            content: JobDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/job`, {
-        queryString: {
-          page: params?.page?.toString(),
-          size: params?.pageSize?.toString() || '1000',
-          search: params?.search,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
+      const response = await appClient.Get<JobsListResponse>(
+        `/socoro/quarrylink/api/job`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            customerId: params?.customerId?.map(String),
+            accountManagerSub: params?.accountManagerSub,
+          },
         },
-      });
+      );
       return response;
     },
     getJobItems: async (jobId: number) => {
@@ -1325,13 +1328,34 @@ export const APIClient = {
       appClient.Post<HaulierDTO>('/socoro/quarrylink/api/haulier', {
         body: data,
       }),
-    getAll: () => appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier'),
+    getAll: (params?: {
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<HauliersPage>('/socoro/quarrylink/api/haulier', {
+        queryString: {
+          search: params?.search?.trim() || undefined,
+          sortBy: params?.sortBy,
+          sortOrder: params?.sortOrder,
+          page: params?.page?.toString(),
+          pageSize: params?.pageSize?.toString(),
+        },
+      }),
     getById: (id: number) =>
       appClient.Get<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`),
     update: (id: number, data: HaulierCreateDTO) =>
       appClient.Patch<HaulierDTO>(`/socoro/quarrylink/api/haulier/${id}`, {
         body: data,
       }),
+    getStatistics: () =>
+      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+    delete: (id: number) =>
+      appClient.Delete<HaulierDeleteResponse>(
+        `/socoro/quarrylink/api/haulier/${id}`,
+      ),
     getDrivers: (haulierId: number) =>
       appClient.Get<{ drivers: DriverDTO[] }>(
         `/socoro/quarrylink/api/haulier/${haulierId}/drivers`,
