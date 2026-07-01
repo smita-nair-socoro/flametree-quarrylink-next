@@ -168,7 +168,9 @@ export interface ProductsPage {
   size?: number;
 }
 
-/** Paginated products list from GET /product/material. */
+/** Paginated products list with facet metadata from GET /product/material. */
 export interface ProductsListResponse {
   products: ProductsPage;
+  materials?: MaterialType[];
+  statuses?: boolean[];
 }
