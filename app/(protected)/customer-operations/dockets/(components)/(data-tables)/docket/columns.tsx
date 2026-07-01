@@ -24,265 +24,265 @@ export const getDocketColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
 ): ColumnDef<DocketDTO>[] => [
-    {
-      id: 'docketNumber',
-      accessorFn: (row) => row.docketNumber,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Docket #" />;
-      },
-      cell: (info) => {
-        const value = (info.getValue() as string) || 'N/A';
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block max-w-[120px]">{value}</div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{value}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Docket Number',
+  {
+    id: 'docketNumber',
+    accessorFn: (row) => row.docketNumber,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Docket #" />;
     },
-    {
-      id: 'docketType',
-      accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
-      header: () => {
-        return <div>Type</div>;
-      },
-      cell: ({ row }) => {
-        return (
-          <TableBadges
-            names={[row.original.jobItem?.jobItemType]}
-            visibleCount={1}
-          />
-        );
-      },
-      meta: 'Type',
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{value}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
-    {
-      id: 'jobReference',
-      accessorFn: (row) => row.job.jobNumber,
-      header: ({ column }) => {
-        return (
-          <TableClientSortableHeader column={column} title="Job Reference" />
-        );
-      },
-      cell: ({ row }) => {
-        const jobNumber = row.original.job.jobNumber;
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block max-w-[120px]">{jobNumber}</div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{jobNumber}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Job Reference',
+    meta: 'Docket Number',
+  },
+  {
+    id: 'docketType',
+    accessorFn: (row) => row.jobItem?.jobItemType || 'N/A',
+    header: () => {
+      return <div>Type</div>;
     },
-    {
-      id: 'status',
-      accessorFn: (row) => row.docketStatus,
-      header: () => {
-        return <div>Status</div>;
-      },
-      cell: ({ row }) => {
-        const status =
-          (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
-            ? 'READY'
-            : row.original.docketStatus;
-        if (status === 'INVOICED') {
-          if (row.original.invoiceStatus === 'FAILED') {
-            return (
-              <TableBadges
-                names={[status]}
-                visibleCount={1}
-                icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />}
-              />
-            );
+    cell: ({ row }) => {
+      return (
+        <TableBadges
+          names={[row.original.jobItem?.jobItemType]}
+          visibleCount={1}
+        />
+      );
+    },
+    meta: 'Type',
+  },
+  {
+    id: 'jobReference',
+    accessorFn: (row) => row.job.jobNumber,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Job Reference" />
+      );
+    },
+    cell: ({ row }) => {
+      const jobNumber = row.original.job.jobNumber;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{jobNumber}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{jobNumber}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Job Reference',
+  },
+  {
+    id: 'status',
+    accessorFn: (row) => row.docketStatus,
+    header: () => {
+      return <div>Status</div>;
+    },
+    cell: ({ row }) => {
+      const status =
+        (row.original.docketStatus as string) === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : row.original.docketStatus;
+      if (status === 'INVOICED') {
+        if (row.original.invoiceStatus === 'FAILED') {
+          return (
+            <TableBadges
+              names={[status]}
+              visibleCount={1}
+              icon={<TriangleAlert className="w-4 h-4 mb-0.5 text-red-500" />}
+            />
+          );
+        }
+      }
+      return <TableBadges names={[status]} visibleCount={1} />;
+    },
+    meta: 'Status',
+  },
+  {
+    id: 'customer',
+    accessorFn: (row) => {
+      const customer = row.job?.customerDto;
+      if (!customer?.id) return '';
+      const customerName =
+        customer.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer.businessName || 'N/A'
+          : customer.individualContactName || customer.contactName || 'N/A';
+      return `${customer.id}|${customerName}`;
+    },
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Customer" />;
+    },
+    cell: ({ row }) => {
+      const customer = row.original.job?.customerDto;
+      const customerName =
+        customer?.customerType === CUSTOMER_TYPE.BUSINESS
+          ? customer?.businessName || 'N/A'
+          : customer?.individualContactName || customer?.contactName || 'N/A';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{customerName}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{customerName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Customer',
+  },
+  {
+    id: 'product',
+    accessorFn: (row) => {
+      const product = row.jobItem?.product;
+      if (!product?.id) return '';
+      const productName = product.productName || 'N/A';
+      return `${product.id}|${productName}`;
+    },
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Product" />;
+    },
+    cell: ({ row }) => {
+      const productName = row.original.jobItem.product?.productName || 'N/A';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">{productName}</div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{productName}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Product',
+  },
+  {
+    id: 'deliveryDate',
+    accessorFn: (row) => row.deliveryCollectionDate,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Delivery Date" />
+      );
+    },
+    cell: ({ row }) => {
+      const deliveryDate = row.original.deliveryCollectionDate;
+      return <DateCell dateString={deliveryDate.toString()} side="top" />;
+    },
+    meta: 'Delivery Date',
+  },
+  {
+    id: 'loadSize',
+    accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Quantity" />;
+    },
+    cell: ({ row }) => {
+      let loadSize: number = 0;
+      if (
+        row.original.docketStatus !== 'UNASSIGNED' &&
+        row.original.docketStatus !== 'PENDING' &&
+        row.original.docketStatus !== 'ASSIGNED'
+      ) {
+        loadSize = row.original.actualLoadSize || 0;
+      } else {
+        loadSize = row.original.plannedLoadSize || 0;
+      }
+      const productUom = row.original.jobItem.productSellUom;
+      const formattedQty = formatNumberThousandSeparator(loadSize);
+      const formattedLoadSize =
+        productUom === 'TN'
+          ? `${formattedQty} TN`
+          : productUom === 'M3' || productUom === 'm3'
+            ? `${formattedQty} m³`
+            : productUom === 'KG_20'
+              ? `${formattedQty} x 20kg`
+              : productUom === 'BULKA'
+                ? `${formattedQty} Bulka`
+                : formattedQty;
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="truncate block max-w-[120px]">
+              {formattedLoadSize}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formattedLoadSize}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Load Size',
+  },
+  {
+    id: 'totalInvoice',
+    accessorFn: (row) => row.totalInvoiceAmount,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Total Invoice{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getExTaxLabel(taxLabel)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           }
-        }
-        return <TableBadges names={[status]} visibleCount={1} />;
-      },
-      meta: 'Status',
+        />
+      );
     },
-    {
-      id: 'customer',
-      accessorFn: (row) => {
-        const customer = row.job?.customerDto;
-        if (!customer?.id) return '';
-        const customerName =
-          customer.customerType === CUSTOMER_TYPE.BUSINESS
-            ? customer.businessName || 'N/A'
-            : customer.individualContactName || customer.contactName || 'N/A';
-        return `${customer.id}|${customerName}`;
-      },
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Customer" />;
-      },
-      cell: ({ row }) => {
-        const customer = row.original.job?.customerDto;
-        const customerName =
-          customer?.customerType === CUSTOMER_TYPE.BUSINESS
-            ? customer?.businessName || 'N/A'
-            : customer?.individualContactName || customer?.contactName || 'N/A';
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block max-w-[120px]">{customerName}</div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{customerName}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Customer',
+    cell: ({ row }) => {
+      const cents = parseFloat(row.original.totalInvoiceAmount.toString());
+      const dollars = cents / 100;
+      const formatted = formatCurrency(dollars, currencyCode);
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="py-2 font-medium w-36 max-w-36 truncate">
+              {formatted}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{formatted}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
     },
-    {
-      id: 'product',
-      accessorFn: (row) => {
-        const product = row.jobItem?.product;
-        if (!product?.id) return '';
-        const productName = product.productName || 'N/A';
-        return `${product.id}|${productName}`;
-      },
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Product" />;
-      },
-      cell: ({ row }) => {
-        const productName = row.original.jobItem.product?.productName || 'N/A';
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block max-w-[120px]">{productName}</div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{productName}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Product',
-    },
-    {
-      id: 'deliveryDate',
-      accessorFn: (row) => row.deliveryCollectionDate,
-      header: ({ column }) => {
-        return (
-          <TableClientSortableHeader column={column} title="Delivery Date" />
-        );
-      },
-      cell: ({ row }) => {
-        const deliveryDate = row.original.deliveryCollectionDate;
-        return <DateCell dateString={deliveryDate.toString()} side="top" />;
-      },
-      meta: 'Delivery Date',
-    },
-    {
-      id: 'loadSize',
-      accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Quantity" />;
-      },
-      cell: ({ row }) => {
-        let loadSize: number = 0;
-        if (
-          row.original.docketStatus !== 'UNASSIGNED' &&
-          row.original.docketStatus !== 'PENDING' &&
-          row.original.docketStatus !== 'ASSIGNED'
-        ) {
-          loadSize = row.original.actualLoadSize || 0;
-        } else {
-          loadSize = row.original.plannedLoadSize || 0;
-        }
-        const productUom = row.original.jobItem.productSellUom;
-        const formattedQty = formatNumberThousandSeparator(loadSize);
-        const formattedLoadSize =
-          productUom === 'TN'
-            ? `${formattedQty} TN`
-            : productUom === 'M3' || productUom === 'm3'
-              ? `${formattedQty} m³`
-              : productUom === 'KG_20'
-                ? `${formattedQty} x 20kg`
-                : productUom === 'BULKA'
-                  ? `${formattedQty} Bulka`
-                  : formattedQty;
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block max-w-[120px]">
-                {formattedLoadSize}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{formattedLoadSize}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Load Size',
-    },
-    {
-      id: 'totalInvoice',
-      accessorFn: (row) => row.totalInvoiceAmount,
-      header: ({ column }) => {
-        return (
-          <TableClientSortableHeader
-            column={column}
-            title={
-              <div className="flex items-center gap-1">
-                Total Invoice{' '}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span
-                      className="cursor-help"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{getExTaxLabel(taxLabel)}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            }
-          />
-        );
-      },
-      cell: ({ row }) => {
-        const cents = parseFloat(row.original.totalInvoiceAmount.toString());
-        const dollars = cents / 100;
-        const formatted = formatCurrency(dollars, currencyCode);
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="py-2 font-medium w-36 max-w-36 truncate">
-                {formatted}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{formatted}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Total Invoice',
-    },
+    meta: 'Total Invoice',
+  },
 
-    {
-      id: 'actions',
-      header: () => {
-        return <div></div>;
-      },
-      cell: ({ row }) => {
-        const docket = row.original;
-        return <DocketTableActions docket={docket} />;
-      },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
     },
-  ];
+    cell: ({ row }) => {
+      const docket = row.original;
+      return <DocketTableActions docket={docket} />;
+    },
+  },
+];

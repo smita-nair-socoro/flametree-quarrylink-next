@@ -61,11 +61,6 @@ import {
 } from '@/lib/api/docket';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import {
-  DELIVERY_TIME_WINDOW_HOUR_OPTIONS,
-  isDeliveryTimeWindowEndOptionDisabled,
-  isDeliveryTimeWindowStartOptionDisabled,
-} from '@/lib/utils/time';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import {
@@ -86,13 +81,7 @@ import { STOP_REASON_LABELS } from '@/hooks/docket/stop-transit-content';
 
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
 const truckTypeOptions: FormSelectOption[] = [
@@ -1600,34 +1589,14 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>Start Time Window*</FormLabel>
                           <FormControl>
-                            <Select
-                              key={`start-${field.value || 'empty'}`}
-                              value={field.value || ''}
-                              onValueChange={field.onChange}
+                            <TimeWindowPicker
+                              value={field.value}
+                              onChange={field.onChange}
+                              relation="start"
+                              siblingValue={newEnd}
                               disabled={isReadOnly && !canEditCollectionDate}
-                            >
-                              <SelectTrigger
-                                className="w-full"
-                                aria-invalid={!!fieldState.error}
-                              >
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-
-                              <SelectContent>
-                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem
-                                    key={time}
-                                    value={time}
-                                    disabled={isDeliveryTimeWindowStartOptionDisabled(
-                                      time,
-                                      newEnd,
-                                    )}
-                                  >
-                                    {time}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              aria-invalid={!!fieldState.error}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1641,34 +1610,14 @@ export default function DocketForm({
                         <FormItem>
                           <FormLabel>End Time Window*</FormLabel>
                           <FormControl>
-                            <Select
-                              key={`end-${field.value || 'empty'}`}
-                              value={field.value || ''}
-                              onValueChange={field.onChange}
+                            <TimeWindowPicker
+                              value={field.value}
+                              onChange={field.onChange}
+                              relation="end"
+                              siblingValue={newStart}
                               disabled={isReadOnly && !canEditCollectionDate}
-                            >
-                              <SelectTrigger
-                                className="w-full"
-                                aria-invalid={!!fieldState.error}
-                              >
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-
-                              <SelectContent>
-                                {DELIVERY_TIME_WINDOW_HOUR_OPTIONS.map((time) => (
-                                  <SelectItem
-                                    key={time}
-                                    value={time}
-                                    disabled={isDeliveryTimeWindowEndOptionDisabled(
-                                      time,
-                                      newStart,
-                                    )}
-                                  >
-                                    {time}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                              aria-invalid={!!fieldState.error}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

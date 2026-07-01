@@ -16,104 +16,104 @@ import {
 export const driverColumns = (
   emailToSubMap: Map<string, string>,
 ): ColumnDef<DriverDTO>[] => [
-    {
-      id: 'driverName',
-      accessorFn: (row) => row.driverName,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Driver Name" />;
-      },
-      cell: ({ row }) => {
-        return <div className="py-2">{row.original.driverName}</div>;
-      },
-      meta: 'Name',
+  {
+    id: 'driverName',
+    accessorFn: (row) => row.driverName,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Driver Name" />;
     },
-    {
-      id: 'driverType',
-      accessorFn: (row) => row.driverType,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Driver Type" />;
-      },
-      cell: ({ getValue }) => {
-        const type = getValue<string>() as DRIVER_TYPE;
-        return (
-          <div className="py-2">
-            <TableBadges names={[type]} visibleCount={1} />
-          </div>
-        );
-      },
-      meta: 'Type',
+    cell: ({ row }) => {
+      return <div className="py-2">{row.original.driverName}</div>;
     },
-    {
-      id: 'haulier',
-      accessorFn: (row) => row.haulier?.haulierName,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Haulier" />;
-      },
-      cell: ({ getValue }) => {
-        const haulier = getValue<string>();
-        return (
-          <div className="py-2">
-            <TableBadges names={[haulier]} visibleCount={1} />
-          </div>
-        );
-      },
-      meta: 'Haulier',
+    meta: 'Name',
+  },
+  {
+    id: 'driverType',
+    accessorFn: (row) => row.driverType,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Driver Type" />;
     },
-    {
-      id: 'emailAddress',
-      accessorFn: (row) => row.emailAddress,
-      header: ({ column }) => {
-        return (
-          <TableClientSortableHeader column={column} title="Email Address" />
-        );
-      },
-      cell: ({ row }) => {
-        return <div className="py-2">{row.original.emailAddress}</div>;
-      },
-      meta: 'Email',
+    cell: ({ getValue }) => {
+      const type = getValue<string>() as DRIVER_TYPE;
+      return (
+        <div className="py-2">
+          <TableBadges names={[type]} visibleCount={1} />
+        </div>
+      );
     },
-    {
-      id: 'phoneNumber',
-      accessorFn: (row) => row.phoneNumber,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Phone Number" />;
-      },
-      cell: ({ row }) => {
-        return (
-          <div className="py-2">
-            {formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}
-          </div>
-        );
-      },
-      meta: 'Phone',
+    meta: 'Type',
+  },
+  {
+    id: 'haulier',
+    accessorFn: (row) => row.haulier?.haulierName,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Haulier" />;
     },
-    {
-      id: 'driverStatus',
-      accessorFn: (row) => row.driverStatus,
-      header: () => {
-        return <div>Status</div>;
-      },
-      cell: ({ getValue }) => {
-        const status = getValue<string>() as DRIVER_STATUS;
-        return (
-          <div className="py-2">
-            <TableBadges names={[status]} visibleCount={1} />
-          </div>
-        );
-      },
-      meta: 'Status',
+    cell: ({ getValue }) => {
+      const haulier = getValue<string>();
+      return (
+        <div className="py-2">
+          <TableBadges names={[haulier]} visibleCount={1} />
+        </div>
+      );
     },
-    {
-      id: 'actions',
-      header: () => {
-        return <div></div>;
-      },
-      cell: ({ row }) => {
-        const driver = row.original;
-        const userSub = emailToSubMap.get(
-          driver.emailAddress?.toLowerCase() ?? '',
-        );
-        return <DriverTableActions driver={driver} userSub={userSub} />;
-      },
+    meta: 'Haulier',
+  },
+  {
+    id: 'emailAddress',
+    accessorFn: (row) => row.emailAddress,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Email Address" />
+      );
     },
-  ];
+    cell: ({ row }) => {
+      return <div className="py-2">{row.original.emailAddress}</div>;
+    },
+    meta: 'Email',
+  },
+  {
+    id: 'phoneNumber',
+    accessorFn: (row) => row.phoneNumber,
+    header: ({ column }) => {
+      return <TableClientSortableHeader column={column} title="Phone Number" />;
+    },
+    cell: ({ row }) => {
+      return (
+        <div className="py-2">
+          {formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}
+        </div>
+      );
+    },
+    meta: 'Phone',
+  },
+  {
+    id: 'driverStatus',
+    accessorFn: (row) => row.driverStatus,
+    header: () => {
+      return <div>Status</div>;
+    },
+    cell: ({ getValue }) => {
+      const status = getValue<string>() as DRIVER_STATUS;
+      return (
+        <div className="py-2">
+          <TableBadges names={[status]} visibleCount={1} />
+        </div>
+      );
+    },
+    meta: 'Status',
+  },
+  {
+    id: 'actions',
+    header: () => {
+      return <div></div>;
+    },
+    cell: ({ row }) => {
+      const driver = row.original;
+      const userSub = emailToSubMap.get(
+        driver.emailAddress?.toLowerCase() ?? '',
+      );
+      return <DriverTableActions driver={driver} userSub={userSub} />;
+    },
+  },
+];
