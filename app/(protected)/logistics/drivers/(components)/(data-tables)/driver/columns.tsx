@@ -9,7 +9,6 @@ import {
   formatPhoneNumber,
   normalizePhoneNumber,
 } from '@/lib/utils/phone-helper';
-import { Divide } from 'lucide-react';
 
 // TEMP: emailToSubMap resolves userSub by matching driver.emailAddress → User.email.
 // Once backend adds userSub to DriverDTO, replace this factory with a plain array
@@ -91,7 +90,7 @@ export const driverColumns = (
   {
     id: 'driverStatus',
     accessorFn: (row) => row.driverStatus,
-    header: ({ column }) => {
+    header: () => {
       return <div>Status</div>;
     },
     cell: ({ getValue }) => {

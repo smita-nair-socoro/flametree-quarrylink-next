@@ -87,7 +87,7 @@ export const getDocketColumns = (
   {
     id: 'status',
     accessorFn: (row) => row.docketStatus,
-    header: ({ column }) => {
+    header: () => {
       return <div>Status</div>;
     },
     cell: ({ row }) => {

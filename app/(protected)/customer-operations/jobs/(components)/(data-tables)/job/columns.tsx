@@ -71,7 +71,7 @@ export const getJobColumns = (
   {
     id: 'status',
     accessorFn: (row) => row.jobStatus,
-    header: ({ column }) => {
+    header: () => {
       return <div>Status</div>;
     },
     cell: ({ getValue }) => {

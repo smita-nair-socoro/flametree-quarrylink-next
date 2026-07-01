@@ -18,7 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { Divide, HelpCircle } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 
 export const getQuotationColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
@@ -122,7 +122,7 @@ export const getQuotationColumns = (
   {
     id: 'status',
     accessorFn: (row) => row.quoteStatus,
-    header: ({ column }) => {
+    header: () => {
       return <div>Status</div>;
     },
     cell: ({ row }) => {

@@ -30,7 +30,7 @@ export function parseDeliveryTimeWindowValue(timeStr?: string | null): string {
   }
 
   const date = new Date(timeStr);
-  if (!isNaN(date.getTime())) {
+  if (!Number.isNaN(date.getTime())) {
     return date.toLocaleTimeString('en-US', {
       hour12: false,
       hour: '2-digit',
@@ -61,7 +61,9 @@ export function normalizeDeliveryTimeWindowStart(
 }
 
 /** Clamps out-of-range end times to 23:00, preserving minutes. */
-export function normalizeDeliveryTimeWindowEnd(timeStr?: string | null): string {
+export function normalizeDeliveryTimeWindowEnd(
+  timeStr?: string | null,
+): string {
   const parsed = parseDeliveryTimeWindowValue(timeStr);
   if (!parsed) return '';
 
@@ -81,7 +83,8 @@ function rebuildIsoWithNormalizedTime(
   const datePart = local.includes('T')
     ? local.split('T')[0]
     : local.split(' ')[0];
-  const fractional = local.match(/T\d{2}:\d{2}:\d{2}(\.\d+)/)?.[1] ?? '';
+  const fractional =
+    new RegExp(/T\d{2}:\d{2}:\d{2}(\.\d+)/).exec(local)?.[1] ?? '';
   return `${datePart}T${normalizedTime}:00${fractional}`;
 }
 
