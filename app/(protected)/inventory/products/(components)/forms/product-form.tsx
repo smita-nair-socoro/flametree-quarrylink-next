@@ -36,7 +36,7 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   extractErrorMessage,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
+// import { addNewRecordId } from '@/lib/utils';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -245,9 +245,9 @@ export default function ProductForm({
       console.log('Product created successfully!', createdProduct);
 
       // Add the new record ID to sessionStorage for highlighting
-      if (createdProduct && typeof createdProduct.id === 'number') {
-        addNewRecordId('product_main_data_table', createdProduct.id);
-      }
+      // if (createdProduct && typeof createdProduct.id === 'number') {
+      //   addNewRecordId('product_main_data_table', createdProduct.id);
+      // }
 
       // Store the created product ID and mark as just created
       if (

@@ -72,21 +72,27 @@ export const getQuotationColumns = (
     accessorFn: (row) => row.totalSellPrice,
     header: ({ column }) => {
       return (
-        <TableClientSortableHeader column={column} title={
-          <div className="flex items-center gap-1">
-            Total Sell Price{' '}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="cursor-help" onClick={(e) => e.stopPropagation()}>
-                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{getExTaxLabel(taxLabel)}</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        } />
+        <TableClientSortableHeader
+          column={column}
+          title={
+            <div className="flex items-center gap-1">
+              Total Sell Price{' '}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    className="cursor-help"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{getExTaxLabel(taxLabel)}</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          }
+        />
       );
     },
     cell: ({ row }) => {
@@ -116,8 +122,8 @@ export const getQuotationColumns = (
   {
     id: 'status',
     accessorFn: (row) => row.quoteStatus,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+    header: () => {
+      return <div>Status</div>;
     },
     cell: ({ row }) => {
       const status = row.original.quoteStatus;
