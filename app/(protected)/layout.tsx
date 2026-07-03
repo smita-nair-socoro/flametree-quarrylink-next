@@ -47,10 +47,7 @@ export default function ProtectedLayout({
 
   React.useEffect(() => {
     if (tenantDetails) {
-      // TEMP: forcing NZ timezone to test the timezone banner - revert before merging
-      useTenantStore
-        .getState()
-        .setTenantDetails({ ...tenantDetails, timeZoneId: 'Pacific/Auckland' });
+      useTenantStore.getState().setTenantDetails(tenantDetails);
     }
   }, [tenantDetails]);
 
