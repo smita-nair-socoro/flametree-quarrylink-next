@@ -69,8 +69,11 @@ import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { Separator } from '@/components/ui/separator';
 import AdditionalContactForm from './additional-contact-form';
+import { AddCustomerAttachmentDialog } from './add-customer-attachment-dialog';
 import { getAdditionalContactColumns } from '../(data-tables)/additional-contact/columns';
 import { MOCK_DATA } from '../(data-tables)/additional-contact/mock-data';
+import { getCustomerAttachmentColumns } from '../(data-tables)/attachment/columns';
+import { MOCK_ATTACHMENT_DATA } from '../(data-tables)/attachment/mock-data';
 
 interface FormProps {
   id?: number;
@@ -154,6 +157,7 @@ export default function CustomerForm({
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [addAttachmentOpen, setAddAttachmentOpen] = React.useState(false);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -1252,6 +1256,47 @@ export default function CustomerForm({
                   </div>
                 </div>
               </div>
+            )}
+
+            {isEditing && (
+              <div className="col-span-2 col-start-1 mb-6">
+                <Separator className="my-4" />
+                <div className="flex flex-col gap-4 mt-6">
+                  <div
+                    className={cn(
+                      isDesktop
+                        ? 'flex justify-between items-center'
+                        : 'flex flex-col gap-4',
+                    )}
+                  >
+                    <span className="text-lg font-semibold">Attachments</span>
+                    <Button
+                      type="button"
+                      className="cursor-pointer"
+                      onClick={() => setAddAttachmentOpen(true)}
+                    >
+                      Add Attachment
+                    </Button>
+                  </div>
+
+                  <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                    <DataTableClient
+                      columns={getCustomerAttachmentColumns()}
+                      data={MOCK_ATTACHMENT_DATA}
+                      simpleTable={true}
+                      defaultSorting={[{ id: 'fileName', desc: false }]}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isEditing && (
+              <AddCustomerAttachmentDialog
+                open={addAttachmentOpen}
+                onOpenChange={setAddAttachmentOpen}
+                customerId={customerId}
+              />
             )}
 
 

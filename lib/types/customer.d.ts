@@ -248,3 +248,13 @@ export interface AdditionalContactDTO {
   phone?: string;
   position?: string;
 }
+
+export interface CustomerAttachmentDTO {
+  id?: number;
+  customerId?: number;
+  fileName: string;
+  category: string;
+  uploadedAt?: string;
+  sourceType: 'LINK' | 'FILE';
+  href: string;
+}
