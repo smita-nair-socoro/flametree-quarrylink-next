@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
+import { TimezoneBanner } from '@/components/timezone-banner';
 import {
   SidebarInset,
   SidebarProvider,
@@ -46,7 +47,10 @@ export default function ProtectedLayout({
 
   React.useEffect(() => {
     if (tenantDetails) {
-      useTenantStore.getState().setTenantDetails(tenantDetails);
+      // TEMP: forcing NZ timezone to test the timezone banner - revert before merging
+      useTenantStore
+        .getState()
+        .setTenantDetails({ ...tenantDetails, timeZoneId: 'Pacific/Auckland' });
     }
   }, [tenantDetails]);
 
@@ -126,9 +130,10 @@ export default function ProtectedLayout({
       {!isDriversApp && <AppSidebar />}
       <SidebarInset className="flex min-h-0 min-w-0 flex-col">
         {!isDriversApp && !isDeliveries && (
-          <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
+          <header className="flex min-h-10 shrink-0 items-center gap-2 px-4 py-1.5 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
             <SidebarTrigger className="md:hidden" />
+            <TimezoneBanner />
           </header>
         )}
         <div
