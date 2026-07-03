@@ -268,7 +268,7 @@ export function ScheduleMonthView({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <DispatchDriversTrucksFilter
         viewType="trucks"
         driverOptions={[]}

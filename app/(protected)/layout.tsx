@@ -125,7 +125,7 @@ export default function ProtectedLayout({
   return (
     <SidebarProvider>
       {!isDriversApp && <AppSidebar />}
-      <SidebarInset className="flex min-h-0 min-w-0 flex-col">
+      <SidebarInset className="flex h-svh min-h-0 min-w-0 flex-col overflow-hidden">
         {!isDriversApp && !isDeliveries && (
           <header className="flex min-h-10 shrink-0 items-center gap-2 px-4 py-1.5 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
@@ -135,19 +135,19 @@ export default function ProtectedLayout({
         )}
         {(isDriversApp || isDeliveries) && (
           <div className="shrink-0 px-4 bg-[#F9FAFB]">
-            <TimezoneBanner />
+            <TimezoneBanner standalone />
           </div>
         )}
         <div
           className={
-            isDeliveries
+            isDeliveries || isDriversApp
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F9FAFB]'
               : 'flex-1 overflow-auto bg-[#F9FAFB]'
           }
         >
           <div
             className={
-              isDeliveries
+              isDeliveries || isDriversApp
                 ? 'flex h-full min-h-0 flex-col overflow-hidden'
                 : 'h-full overflow-auto'
             }

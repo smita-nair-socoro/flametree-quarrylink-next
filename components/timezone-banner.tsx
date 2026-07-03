@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Globe, X } from 'lucide-react';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useUserStore } from '@/app/stores/user-store';
-import { getLocalStorage, setLocalStorage } from '@/lib/utils';
+import { cn, getLocalStorage, setLocalStorage } from '@/lib/utils';
 
 const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
 const DISMISS_STORAGE_PREFIX = 'timezone-banner-dismissed-at';
@@ -86,7 +86,7 @@ function getBrowserTimeZoneId(): string | null {
  * device/browser, and expires after 24h (or sooner, if either timezone in
  * the mismatched pair changes before then).
  */
-export function TimezoneBanner() {
+export function TimezoneBanner({ standalone }: { standalone?: boolean } = {}) {
   const tenantTimeZoneId = useTenantStore((s) => s.tenantDetails?.timeZoneId);
   const userSub = useUserStore((s) => s.user.sub);
   const pathname = usePathname();
@@ -152,7 +152,12 @@ export function TimezoneBanner() {
   };
 
   return (
-    <div className="flex w-full items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+    <div
+      className={cn(
+        'flex w-full items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800',
+        standalone && 'my-2',
+      )}
+    >
       <Globe className="h-4 w-4 shrink-0 text-amber-500" />
       <p className="flex-1 leading-snug">
         Your timezone <span className="font-semibold">{browserOffset}</span>{' '}
