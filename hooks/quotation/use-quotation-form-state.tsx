@@ -37,7 +37,7 @@ export function useQuotationFormState(
 
   const getDetailedQuotation = React.useMemo(() => {
     if (isEditing && quotationDetailData) {
-      return quotationDetailData as Quotation;
+      return quotationDetailData;
     }
     return null;
   }, [isEditing, quotationDetailData]);
@@ -45,10 +45,7 @@ export function useQuotationFormState(
   // Only use selected quotation data when editing; keep new form empty otherwise
   const currentQuotation = isEditing ? getDetailedQuotation : null;
 
-  // The store's selectedQuotation (used by FormDialog's header/links) is
-  // otherwise only ever populated from the list endpoint, which lacks
-  // fields like jobNumber. Sync the fully-detailed quote back in once it
-  // loads so the header reflects the latest data.
+  // The store's selectedQuotation (used by FormDialog's header/links)
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation,
   );
@@ -79,28 +76,11 @@ export function useQuotationFormState(
     );
   }, [isEditing, currentQuotation, taxPercentage, currencyCode]);
 
-  // ===== CUSTOMER AUTO-FILL =====
-  const customerId = quotationForm.watch('customerId');
-
-  React.useEffect(() => {
-    if (customerId && customerId > 0) {
-      const currentPhone = quotationForm.getValues('phone');
-      const currentEmail = quotationForm.getValues('email');
-
-      if (!currentPhone) {
-        quotationForm.setValue('phone', '+61444555777');
-      }
-      if (!currentEmail) {
-        quotationForm.setValue('email', 'customer@email.com');
-      }
-    }
-  }, [customerId, quotationForm]);
-
   return {
     // Data
     currentQuotation,
     isLoadingDetail,
-    detailError: detailError as Error | null,
+    detailError: detailError,
 
     // Labels
     dateLabel,
