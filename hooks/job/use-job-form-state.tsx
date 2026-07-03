@@ -316,7 +316,7 @@ export function useJobFormState({
           const updated = await updateJob.mutateAsync({
             id: jobId,
             data: {
-              ...(jobDetails as JobDTO),
+              ...jobDetails,
               ...payload,
             } as JobDTO,
           });

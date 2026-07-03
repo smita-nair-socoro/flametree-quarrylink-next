@@ -619,9 +619,9 @@ export function FormDialog({
 
     return (
       <div className="flex flex-wrap gap-2 mt-1">
-        {links.map((link, i) => (
+        {links.map((link) => (
           <a
-            key={i}
+            key={link.href}
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
@@ -634,12 +634,6 @@ export function FormDialog({
         ))}
       </div>
     );
-  };
-
-  // For ScrollArea, use max-height instead of fixed height
-  const getScrollAreaMaxHeight = (): string => {
-    // Calculate available space: viewport height minus header space (approx 8rem)
-    return 'max-h-[calc(95vh-8rem)]';
   };
 
   const dialogInner = (
