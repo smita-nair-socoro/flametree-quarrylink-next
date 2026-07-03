@@ -5,6 +5,7 @@ export type StatusType = 'absorbed' | 'charging';
 export interface CustomerOverrideRow {
   id: string;
   customer: string;
+  customerCode: string;
   rule: RuleType;
   status: StatusType;
   feePerDocket: number;
@@ -28,6 +29,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '1',
     customer: 'Adbri Limited',
+    customerCode: 'ADB001',
     rule: 'global_default',
     status: 'absorbed',
     feePerDocket: 0,
@@ -39,6 +41,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '2',
     customer: 'Hanson Construction Materials Pty Ltd',
+    customerCode: 'HAN002',
     rule: 'custom_rule',
     status: 'charging',
     feePerDocket: 3,
@@ -50,6 +53,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '3',
     customer: 'Holcim Australia Pty Ltd',
+    customerCode: 'HOL003',
     rule: 'custom_rule',
     status: 'absorbed',
     feePerDocket: 0,
@@ -61,6 +65,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '4',
     customer: 'Boral Limited',
+    customerCode: 'BOR004',
     rule: 'global_default',
     status: 'absorbed',
     feePerDocket: 0,
@@ -72,6 +77,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '5',
     customer: 'CSR Limited',
+    customerCode: 'CSR005',
     rule: 'global_default',
     status: 'absorbed',
     feePerDocket: 0,
@@ -83,6 +89,7 @@ export const MOCK_CUSTOMER_OVERRIDES: CustomerOverrideRow[] = [
   {
     id: '6',
     customer: 'RSEA',
+    customerCode: 'RSE006',
     rule: 'custom_rule',
     status: 'charging',
     feePerDocket: 4.5,

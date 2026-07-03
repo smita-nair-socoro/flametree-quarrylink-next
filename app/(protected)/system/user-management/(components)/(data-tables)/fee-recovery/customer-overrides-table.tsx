@@ -33,10 +33,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InputIcon } from '@/components/ui/input-icon';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search } from 'lucide-react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2,
+  Search,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatNumberThousandSeparatorWithoutDecimal } from '@/lib/utils/number';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useIsMobile } from '@/hooks/use-mobile';
+
+const MOBILE_PAGE_SIZE = 10;
 
 const PAGE_SIZE_OPTIONS = [
   { value: '10', label: '10' },
@@ -58,12 +68,18 @@ export function CustomerOverridesTable({
   globalMode,
   globalAmount,
 }: CustomerOverridesTableProps) {
+  const isMobile = useIsMobile();
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
   const [search, setSearch] = useState('');
   const [ruleFilter, setRuleFilter] = useState<'all' | RuleType>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | StatusType>('all');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
+
+  // Mobile infinite scroll: how many rows are currently revealed.
+  const [visibleCount, setVisibleCount] = useState(MOBILE_PAGE_SIZE);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
   const [revertTarget, setRevertTarget] = useState<CustomerOverrideRow | null>(
     null,
@@ -101,6 +117,34 @@ export function CustomerOverridesTable({
 
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageRows = filtered.slice(page * pageSize, (page + 1) * pageSize);
+
+  // Mobile infinite scroll: reset the reveal count whenever the filtered set changes.
+  React.useEffect(() => {
+    setVisibleCount(MOBILE_PAGE_SIZE);
+  }, [search, ruleFilter, statusFilter]);
+
+  const mobileRows = filtered.slice(0, visibleCount);
+  const hasMoreMobileRows = visibleCount < filtered.length;
+
+  React.useEffect(() => {
+    if (!isMobile) return;
+    const target = sentinelRef.current;
+    if (!target || !hasMoreMobileRows) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || isLoadingMore) return;
+        setIsLoadingMore(true);
+        setTimeout(() => {
+          setVisibleCount((prev) => Math.min(prev + MOBILE_PAGE_SIZE, filtered.length));
+          setIsLoadingMore(false);
+        }, 300);
+      },
+      { rootMargin: '120px', threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [isMobile, hasMoreMobileRows, isLoadingMore, filtered.length]);
 
   const handleToggle = (row: CustomerOverrideRow, checked: boolean) => {
     if (!checked) {
@@ -153,7 +197,7 @@ export function CustomerOverridesTable({
         </div>
 
         {/* Search + filters */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className={cn('flex flex-wrap items-center gap-2', isMobile && 'flex-col items-stretch')}>
           <InputIcon
             placeholder="Search customers..."
             value={search}
@@ -162,42 +206,192 @@ export function CustomerOverridesTable({
               setPage(0);
             }}
             startIcon={<Search size={16} />}
-            wrapperClassName="w-64"
+            wrapperClassName={isMobile ? 'w-full' : 'w-64'}
           />
-          <Select
-            value={ruleFilter}
-            onValueChange={(val) => {
-              setRuleFilter(val as typeof ruleFilter);
-              setPage(0);
-            }}
-          >
-            <SelectTrigger className="w-40 shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All rules</SelectItem>
-              <SelectItem value="global_default">Global default</SelectItem>
-              <SelectItem value="custom_rule">Custom rule</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select
-            value={statusFilter}
-            onValueChange={(val) => {
-              setStatusFilter(val as typeof statusFilter);
-              setPage(0);
-            }}
-          >
-            <SelectTrigger className="w-36 shrink-0">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All status</SelectItem>
-              <SelectItem value="absorbed">Absorbed</SelectItem>
-              <SelectItem value="charging">Charging</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className={cn(isMobile && 'grid grid-cols-2 gap-2 w-full')}>
+            <Select
+              value={ruleFilter}
+              onValueChange={(val) => {
+                setRuleFilter(val as typeof ruleFilter);
+                setPage(0);
+              }}
+            >
+              <SelectTrigger className={cn('shrink-0', isMobile ? 'w-full' : 'w-40')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All rules</SelectItem>
+                <SelectItem value="global_default">Global default</SelectItem>
+                <SelectItem value="custom_rule">Custom rule</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={statusFilter}
+              onValueChange={(val) => {
+                setStatusFilter(val as typeof statusFilter);
+                setPage(0);
+              }}
+            >
+              <SelectTrigger className={cn('shrink-0', isMobile ? 'w-full' : 'w-36')}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All status</SelectItem>
+                <SelectItem value="absorbed">Absorbed</SelectItem>
+                <SelectItem value="charging">Charging</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
+        {/* Mobile card list */}
+        {isMobile ? (
+          <div className="space-y-3">
+            {mobileRows.length === 0 ? (
+              <div className="text-center py-10 text-muted-foreground text-sm">
+                No customers found
+              </div>
+            ) : (
+              mobileRows.map((row) => {
+                const isOn = customToggles[row.id] ?? false;
+                const form = overrideForms[row.id];
+                const isDirty = isRowDirty(row.id, form);
+
+                return (
+                  <div
+                    key={row.id}
+                    className="rounded-lg border border-[#E9D4FF] p-4 space-y-2.5"
+                  >
+                    <div>
+                      <p className="font-semibold">{row.customer}</p>
+                      <p className="text-sm text-muted-foreground">{row.customerCode}</p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {row.rule === 'global_default' ? (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Global default
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="outline"
+                          className="text-[#8E51FF] border-[#8E51FF]/40 bg-[#8E51FF]/5"
+                        >
+                          Custom rule
+                        </Badge>
+                      )}
+                      {row.status === 'charging' ? (
+                        <Badge
+                          variant="outline"
+                          className="text-green-600 border-green-300 bg-green-50"
+                        >
+                          Charging
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Absorbed
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Fee / docket</p>
+                        <p className="font-medium">{formatFee(row.feePerDocket)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Past month</p>
+                        <p className="font-medium">{formatPastMonth(row.pastMonth)}</p>
+                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm">Custom override</span>
+                      <Switch
+                        checked={isOn}
+                        onCheckedChange={(checked) => handleToggle(row, checked)}
+                        className="data-[state=checked]:bg-[#8E51FF]"
+                      />
+                    </div>
+
+                    {isOn && (
+                      <div className="space-y-3 rounded-lg bg-gray-50 p-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-sm font-medium">Override rule</Label>
+                          <Select
+                            value={form.overrideRule}
+                            onValueChange={(val) =>
+                              handleFormChange(row.id, 'overrideRule', val)
+                            }
+                          >
+                            <SelectTrigger className="w-full h-11 text-sm bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="charge_customer">Charge customer</SelectItem>
+                              <SelectItem value="absorb_cost">Absorb cost</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {form.overrideRule === 'charge_customer' && (
+                          <div className="space-y-1.5">
+                            <Label className="text-sm font-medium">
+                              Fee per docket
+                            </Label>
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                {currencySymbol}
+                              </span>
+                              <Input
+                                className="pl-6 h-11 w-full text-sm bg-white"
+                                value={form.fee}
+                                onChange={(e) =>
+                                  handleFormChange(row.id, 'fee', e.target.value)
+                                }
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex items-center gap-3">
+                          <Button
+                            className="h-11 flex-1 bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
+                            onClick={() => handleSave(row.id)}
+                            disabled={!isDirty}
+                          >
+                            Save
+                          </Button>
+                          {isDirty && (
+                            <span className="text-sm font-medium text-orange-600">
+                              Unsaved
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+
+            {hasMoreMobileRows && (
+              <div ref={sentinelRef} className="flex justify-center py-3">
+                {isLoadingMore && (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                )}
+              </div>
+            )}
+            {!hasMoreMobileRows && filtered.length > 0 && (
+              <p className="text-center text-xs text-muted-foreground py-2">
+                All customers loaded
+              </p>
+            )}
+          </div>
+        ) : (
+        <>
         {/* Table */}
         <div className="rounded-md border overflow-x-auto">
           <Table>
@@ -329,6 +523,7 @@ export function CustomerOverridesTable({
                                 size="sm"
                                 className="h-9 bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
                                 onClick={() => handleSave(row.id)}
+                                disabled={!isDirty}
                               >
                                 Save
                               </Button>
@@ -431,6 +626,8 @@ export function CustomerOverridesTable({
             </div>
           </div>
         </div>
+        </>
+        )}
       </CardContent>
     </Card>
 
