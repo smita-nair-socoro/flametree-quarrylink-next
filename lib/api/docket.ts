@@ -51,10 +51,10 @@ export type DocketsListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
-  status?: string;
-  type?: string;
-  customerId?: number;
-  productId?: number;
+  statuses?: string[];
+  types?: string[];
+  customerIds?: number[];
+  productIds?: number[];
 };
 
 const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
@@ -96,29 +96,24 @@ function getFacetFilterValues(
 
 export function toDocketApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<DocketsListParams, 'status' | 'type' | 'customerId' | 'productId'> {
+): Pick<DocketsListParams, 'statuses' | 'types' | 'customerIds' | 'productIds'> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const typeValues = getFacetFilterValues(filters, 'docketType');
   const customerValues = getFacetFilterValues(filters, 'customer');
   const productValues = getFacetFilterValues(filters, 'product');
 
-  const customerIdRaw = customerValues[0];
-  const customerId =
-    customerIdRaw && Number.isFinite(Number(customerIdRaw))
-      ? Number(customerIdRaw)
-      : undefined;
-
-  const productIdRaw = productValues[0];
-  const productId =
-    productIdRaw && Number.isFinite(Number(productIdRaw))
-      ? Number(productIdRaw)
-      : undefined;
+  const customerIds = customerValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+  const productIds = productValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
 
   return {
-    status: statusValues.length ? statusValues.join(',') : undefined,
-    type: typeValues.length ? typeValues.join(',') : undefined,
-    customerId,
-    productId,
+    statuses: statusValues.length ? statusValues : undefined,
+    types: typeValues.length ? typeValues : undefined,
+    customerIds: customerIds.length ? customerIds : undefined,
+    productIds: productIds.length ? productIds : undefined,
   };
 }
 
