@@ -2,11 +2,13 @@
 
 import React, { useState, useMemo } from 'react';
 import {
+  CustomerOverrideRow,
   OverrideRule,
   RuleType,
   StatusType,
   MOCK_CUSTOMER_OVERRIDES,
 } from './columns';
+import { RemoveCustomOverrideDialog } from '../../tabs/roles/fee-recovery-alert-dialogs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -47,7 +49,15 @@ type OverrideFormState = {
   fee: string;
 };
 
-export function CustomerOverridesTable() {
+interface CustomerOverridesTableProps {
+  globalMode: 'charge' | 'absorb';
+  globalAmount: string;
+}
+
+export function CustomerOverridesTable({
+  globalMode,
+  globalAmount,
+}: CustomerOverridesTableProps) {
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
   const [search, setSearch] = useState('');
   const [ruleFilter, setRuleFilter] = useState<'all' | RuleType>('all');
@@ -55,20 +65,29 @@ export function CustomerOverridesTable() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
-  const [dirtyRows, setDirtyRows] = useState<Set<string>>(new Set());
+  const [revertTarget, setRevertTarget] = useState<CustomerOverrideRow | null>(
+    null,
+  );
 
   const [customToggles, setCustomToggles] = useState<Record<string, boolean>>(
     () => Object.fromEntries(MOCK_CUSTOMER_OVERRIDES.map((r) => [r.id, r.isCustom]))
   );
 
+  const buildOverrideForms = (): Record<string, OverrideFormState> =>
+    Object.fromEntries(
+      MOCK_CUSTOMER_OVERRIDES.map((r) => [
+        r.id,
+        { overrideRule: r.overrideRule, fee: r.customFee > 0 ? String(r.customFee) : '' },
+      ])
+    );
+
   const [overrideForms, setOverrideForms] = useState<Record<string, OverrideFormState>>(
-    () =>
-      Object.fromEntries(
-        MOCK_CUSTOMER_OVERRIDES.map((r) => [
-          r.id,
-          { overrideRule: r.overrideRule, fee: r.customFee > 0 ? String(r.customFee) : '' },
-        ])
-      )
+    buildOverrideForms
+  );
+
+  // Baseline used to detect unsaved changes; only updated when a row is saved.
+  const [savedOverrideForms, setSavedOverrideForms] = useState<Record<string, OverrideFormState>>(
+    buildOverrideForms
   );
 
   const filtered = useMemo(() => {
@@ -83,8 +102,18 @@ export function CustomerOverridesTable() {
   const totalPages = Math.ceil(filtered.length / pageSize);
   const pageRows = filtered.slice(page * pageSize, (page + 1) * pageSize);
 
-  const handleToggle = (id: string, checked: boolean) => {
-    setCustomToggles((prev) => ({ ...prev, [id]: checked }));
+  const handleToggle = (row: CustomerOverrideRow, checked: boolean) => {
+    if (!checked) {
+      setRevertTarget(row);
+      return;
+    }
+    setCustomToggles((prev) => ({ ...prev, [row.id]: true }));
+  };
+
+  const handleConfirmRevert = () => {
+    if (!revertTarget) return;
+    setCustomToggles((prev) => ({ ...prev, [revertTarget.id]: false }));
+    setRevertTarget(null);
   };
 
   const handleFormChange = (
@@ -93,17 +122,17 @@ export function CustomerOverridesTable() {
     value: string
   ) => {
     setOverrideForms((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value } }));
-    if (field === 'fee') {
-      setDirtyRows((prev) => new Set([...prev, id]));
-    }
   };
 
   const handleSave = (id: string) => {
-    setDirtyRows((prev) => {
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
+    setSavedOverrideForms((prev) => ({ ...prev, [id]: overrideForms[id] }));
+  };
+
+  const isRowDirty = (id: string, form: OverrideFormState) => {
+    const saved = savedOverrideForms[id];
+    if (!saved) return false;
+    if (form.overrideRule !== saved.overrideRule) return true;
+    return form.overrideRule === 'charge_customer' && form.fee !== saved.fee;
   };
 
   const formatFee = (amount: number) => formatCurrency(amount);
@@ -112,6 +141,7 @@ export function CustomerOverridesTable() {
     `${currencySymbol}${formatNumberThousandSeparatorWithoutDecimal(amount)}`;
 
   return (
+    <>
     <Card className="rounded-xl">
       <CardContent className="p-6 space-y-4">
         <div>
@@ -193,7 +223,7 @@ export function CustomerOverridesTable() {
                   const isOn = customToggles[row.id] ?? false;
                   const form = overrideForms[row.id];
 
-                  const isDirty = dirtyRows.has(row.id);
+                  const isDirty = isRowDirty(row.id, form);
 
                   return (
                     <React.Fragment key={row.id}>
@@ -239,7 +269,7 @@ export function CustomerOverridesTable() {
                             <span className="text-sm text-muted-foreground">Custom</span>
                             <Switch
                               checked={isOn}
-                              onCheckedChange={(checked) => handleToggle(row.id, checked)}
+                              onCheckedChange={(checked) => handleToggle(row, checked)}
                               className="data-[state=checked]:bg-[#8E51FF]"
                             />
                           </div>
@@ -403,5 +433,18 @@ export function CustomerOverridesTable() {
         </div>
       </CardContent>
     </Card>
+
+    <RemoveCustomOverrideDialog
+      open={revertTarget !== null}
+      onOpenChange={(next) => {
+        if (!next) setRevertTarget(null);
+      }}
+      onConfirm={handleConfirmRevert}
+      customerName={revertTarget?.customer ?? ''}
+      globalMode={globalMode}
+      amount={globalAmount}
+      currencySymbol={currencySymbol}
+    />
+    </>
   );
 }
