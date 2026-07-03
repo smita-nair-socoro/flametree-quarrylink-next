@@ -34,31 +34,6 @@ export const calculateConvertedQty = (
   return quantityInTn;
 };
 
-/**
- * Calculated Gross Weight = truck tare weight + the load converted to tonnes.
- * Returns null when no tare weight is available (e.g. no truck assigned).
- */
-export function calculateGrossWeight({
-  tareWeight,
-  loadSize,
-  productUom,
-  density = 1,
-}: {
-  tareWeight: number | null | undefined;
-  loadSize: number;
-  productUom: string;
-  density?: number;
-}): number | null {
-  if (tareWeight == null) return null;
-  const loadInTn = calculateConvertedQty(
-    loadSize || 0,
-    productUom || 'TN',
-    'TN',
-    density,
-  );
-  return parseFloat(String(tareWeight)) + parseFloat(String(loadInTn));
-}
-
 export function convertTruckVolumeToProductUom(
   tankVolumeM3: number,
   productUom: string,

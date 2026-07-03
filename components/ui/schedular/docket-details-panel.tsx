@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-import { X, User, MapPin, ExternalLink, Info } from 'lucide-react';
-import { calculateGrossWeight } from '@/lib/utils/docket-helper';
+import { X, User, MapPin, ExternalLink } from 'lucide-react';
 import { formatTimeRange } from '@/lib/utils/dispatch-helper';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
@@ -91,7 +90,6 @@ export function DocketDetailsPanel({
 
   const [plannedLoadSizeValue, setPlannedLoadSizeValue] = useState<string>('');
   const [actualLoadSizeValue, setActualLoadSizeValue] = useState<string>('');
-  const [tareWeightValue, setTareWeightValue] = useState<string>('');
   const [checklistModalOpen, setChecklistModalOpen] = useState(false);
   const [checklistModalType, setChecklistModalType] = useState<CHECKLIST_TYPE>(
     CHECKLIST_TYPE.DRIVER,
@@ -112,10 +110,6 @@ export function DocketDetailsPanel({
       '0',
     );
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
-
-  useEffect(() => {
-    setTareWeightValue(fullDocket?.truck?.tareWeight?.toString() ?? '');
-  }, [fullDocket?.id, fullDocket?.truck?.tareWeight]);
 
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
@@ -206,14 +200,6 @@ export function DocketDetailsPanel({
     );
   };
 
-  const handleSaveTareWeight = () => {
-    if (!fullDocket) return;
-    // const tareWeight = parseFloat(tareWeightValue) || 0;
-    // TODO(QLINK-2824): persist tare weight via operationalUpdateMutation once
-    // the backend exposes a tareWeight field. UI-only for now — the edited value
-    // already lives in local state and drives the gross weight / GVM calc below.
-  };
-
   const docket = fullDocket;
 
   if (isLoading || !docket) {
@@ -235,32 +221,6 @@ export function DocketDetailsPanel({
     docket.docketStatus === DOCKET_STATUS.ARRIVED ||
     docket.docketStatus === DOCKET_STATUS.DELIVERED;
   const isDocketFinalised = docket.docketStatus === DOCKET_STATUS.INVOICED;
-
-  // Gross Vehicle Mass (GVM) check — Calculated Gross Weight is the truck's tare
-  // weight plus the planned load (converted to tonnes). When it exceeds the
-  // truck's GVM limit we surface a warning. Only shown when a truck is assigned.
-  const showWeightFields = !!docket.truck;
-  const parsedTareWeight = parseFloat(tareWeightValue);
-  const tareWeightForCalc = isNaN(parsedTareWeight) ? null : parsedTareWeight;
-  const calculatedGrossWeight = calculateGrossWeight({
-    tareWeight: tareWeightForCalc,
-    loadSize: parseFloat(plannedLoadSizeValue) || 0,
-    productUom: docket.jobItem?.productSellUom || 'TN',
-    density:
-      docket.jobItem?.product?.densityTonnagePerM3 ||
-      docket.jobItem?.densityTonnagePerM3 ||
-      1,
-  });
-  const truckGvm =
-    docket.truck?.pbsApproved && docket.truck?.combinationGvmPbs != null
-      ? docket.truck.combinationGvmPbs
-      : (docket.truck?.combinationGvm ?? null);
-  const gvmExceeded =
-    truckGvm != null &&
-    calculatedGrossWeight != null &&
-    calculatedGrossWeight > truckGvm;
-  const gvmOverBy =
-    gvmExceeded && truckGvm != null ? calculatedGrossWeight! - truckGvm : 0;
 
   const collectionDay = getCollectionDayForDisplay(docket);
 
@@ -495,54 +455,6 @@ export function DocketDetailsPanel({
                         ? 'x 20kg'
                         : docket.jobItem?.productSellUom}
                   </span>
-                </div>
-              )}
-
-              {showWeightFields && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
-                    <div className="text-xs text-gray-500 mb-1">
-                      Truck Tare Weight (TN)
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <Input
-                        type="text"
-                        key={`tare-${docket.id}`}
-                        suffix="TN"
-                        value={tareWeightValue}
-                        onChange={(e) => setTareWeightValue(e.target.value)}
-                        disabled={!isDispatchView || isDocketFinalised}
-                        isNumber
-                        allowDecimal
-                        maxDecimals={2}
-                        minDecimals={1}
-                      />
-                      {isDispatchView && !isDocketFinalised && (
-                        <Button
-                          variant="default"
-                          className="cursor-pointer"
-                          onClick={handleSaveTareWeight}
-                          disabled={operationalUpdateMutation.isPending}
-                        >
-                          Save
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-
-                  {gvmExceeded && (
-                    <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
-                      <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
-                        <Info className="h-4 w-4 text-[#DC2626]" />
-                        <span>GVM Limit Exceeded</span>
-                      </div>
-                      <div className="text-sm text-[#991B1B] pl-6">
-                        Truck {docket.truck?.licensePlate ?? ''} is{' '}
-                        {gvmOverBy.toFixed(2)} TN over the{' '}
-                        {truckGvm?.toFixed(2)} TN max GVM.
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
