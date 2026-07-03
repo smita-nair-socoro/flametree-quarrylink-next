@@ -23,6 +23,7 @@ export interface QuotationDTO {
   declineReason?: string;
   customerResponseAt?: string;
   jobId: number;
+  jobNumber?: string;
   deliveryStartDate: string | null;
   expiryDate: string | null;
   deliveryWindowStart: string | null;

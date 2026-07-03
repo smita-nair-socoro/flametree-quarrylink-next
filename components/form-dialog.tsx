@@ -577,26 +577,28 @@ export function FormDialog({
   const renderConnectedEntities = () => {
     const links: { label: string; href: string }[] = [];
 
-    // Only show when the quote has actually been converted — jobId is populated at that point
+    // Only show when the quote has actually been converted and we have a jobNumber to display
     if (
       headerInfo?.useSelectedQuotation &&
       selectedQuotation?.quoteStatus === 'CONVERTED_TO_JOB' &&
-      selectedQuotation.jobId > 0
+      selectedQuotation.jobId > 0 &&
+      selectedQuotation.jobNumber
     ) {
       links.push({
-        label: `#${selectedQuotation.jobId}`,
+        label: selectedQuotation.jobNumber,
         href: `/customer-operations/jobs?openJobId=${selectedQuotation.jobId}`,
       });
     }
 
-    // Only show when the job originated from a quote
+    // Only show when the job originated from a quote and we have a quoteNumber to display
     if (
       headerInfo?.useSelectedJob &&
       selectedJob?.quoteId &&
-      selectedJob.quoteId > 0
+      selectedJob.quoteId > 0 &&
+      selectedJob.quoteNumber
     ) {
       links.push({
-        label: `#${selectedJob.quoteId}`,
+        label: selectedJob.quoteNumber,
         href: `/customer-operations/quotation?openQuoteId=${selectedJob.quoteId}`,
       });
     }

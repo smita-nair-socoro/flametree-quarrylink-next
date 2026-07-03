@@ -82,6 +82,15 @@ export function useJobFormState({
     enabled: isEditing && jobId > 0,
   });
 
+  // The store's selectedJob is otherwise only ever populated from list/row
+  // data, which lacks fields like quoteNumber. Sync the fully-detailed job
+  // back in once it loads so the header reflects the latest data.
+  React.useEffect(() => {
+    if (jobDetails) {
+      useJobStore.getState().setSelectedJob(jobDetails);
+    }
+  }, [jobDetails]);
+
   const selectedCustomerId = jobForm.watch('customerId');
 
   const {

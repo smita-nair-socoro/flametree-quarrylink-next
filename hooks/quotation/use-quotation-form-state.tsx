@@ -3,6 +3,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
 
 /**
@@ -43,6 +44,19 @@ export function useQuotationFormState(
 
   // Only use selected quotation data when editing; keep new form empty otherwise
   const currentQuotation = isEditing ? getDetailedQuotation : null;
+
+  // The store's selectedQuotation (used by FormDialog's header/links) is
+  // otherwise only ever populated from the list endpoint, which lacks
+  // fields like jobNumber. Sync the fully-detailed quote back in once it
+  // loads so the header reflects the latest data.
+  const setSelectedQuotation = useQuotationStore(
+    (state) => state.setSelectedQuotation,
+  );
+  React.useEffect(() => {
+    if (currentQuotation) {
+      setSelectedQuotation(currentQuotation);
+    }
+  }, [currentQuotation, setSelectedQuotation]);
 
   // ===== DYNAMIC LABELS =====
   const dateLabel = React.useMemo(() => {
