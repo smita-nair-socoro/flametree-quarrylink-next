@@ -8,7 +8,10 @@ import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
-import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
+import {
+  QuoteCurrencyTax,
+  StripeTenantDetailsSnapshot,
+} from '@/lib/types/quotation';
 
 // Type matching the mockQuotationData structure
 export interface QuotationData {
@@ -42,7 +45,10 @@ export interface QuotationData {
     deliveryAddress: string;
     truckType: string;
     capacity: string;
+    unit: string;
     quantity: string;
+    rawQty: number;
+    unitPrice: number;
     totalPrice: number;
     deliveryPrice?: number;
   }>;
@@ -56,6 +62,7 @@ export interface QuotationData {
     deliverySubtotal?: number;
   };
   inclDeliveryCost?: boolean;
+  currencyTax: QuoteCurrencyTax;
   footer: {
     email: string;
     phone: string;
@@ -98,12 +105,14 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
           {/* Products & Services Table */}
           <ProductsTablePdf
             products={data.products}
+            currencyTax={data.currencyTax}
             includeDeliveryPrices={data.inclDeliveryCost}
           />
 
           {/* Summary & Payment */}
           <SummaryPaymentPdf
             {...data.summary}
+            currencyTax={data.currencyTax}
             validUntil={data.navbar.validUntil}
             accountManager={data.navbar.accountManager}
             quoteId={quoteId}

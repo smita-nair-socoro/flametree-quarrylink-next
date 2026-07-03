@@ -157,7 +157,7 @@ export function ManageGroupDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="w-[512px] max-w-full max-h-[90vh] flex flex-col gap-3">
+        <DialogContent className="w-[512px] max-w-full max-h-[90vh] flex flex-col gap-3 overflow-hidden">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-[15px] mt-0">
               <group.icon className="h-4 w-4 shrink-0" />

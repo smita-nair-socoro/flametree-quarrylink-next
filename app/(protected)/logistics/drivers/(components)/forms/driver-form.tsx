@@ -12,13 +12,14 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
 import { SelectCreateEdit } from '@/components/ui/select-create-edit';
 import HaulierForm from './haulier-form';
 import { useMediaQuery } from '@/hooks/use-media-query';
+import { useFormDialogFooter } from '@/components/form-dialog';
 import { NewDriverFormSchema } from './schemas/driver-form-schema';
 import z from 'zod';
 import { DataTableClient } from '@/components/ui/data-table-client';
@@ -27,31 +28,29 @@ import { Loader2, HelpCircle } from 'lucide-react';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import { DRIVER_TYPE } from '@/lib/types/driver-enums';
+import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import {
   useCreateDriver,
   useUpdateDriver,
   DriverPreStartChecklistsQueryOptions,
 } from '@/lib/api/driver';
-import {
-  HauliersListQueryOptions,
-  HaulierTrucksQueryOptions,
-} from '@/lib/api/haulier';
+import { HaulierTrucksQueryOptions } from '@/lib/api/haulier';
+import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useClientStore } from '@/app/stores/client-store';
-import { addNewRecordId, scrollToFirstError } from '@/lib/utils';
+
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { TableBadges } from '@/components/table-badges';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useDriverFormState } from '@/hooks/driver/use-driver-form-state';
 import { useDriverTruckActions } from '@/hooks/driver/use-driver-truck-actions';
 import { AuditInformation } from '@/components/audit-information';
 import { FormMultiSelect } from '@/components/ui/form-multi-select';
-import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 
 interface FormProps {
   id?: number;
@@ -71,24 +70,24 @@ export default function DriverForm({
   className,
   onSuccess,
   scrollToSection,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: hauliers = [] } = useQuery(HauliersListQueryOptions());
-  const businessName = useClientStore((state) => state.getBusinessName());
-  const internalHaulier = hauliers.find((h) => h.haulierName === businessName);
+  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
+  const tenantEmail = useTenantStore((state) => state.tenantEmail);
+  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
   const haulierItems = React.useMemo(
     () =>
       hauliers
-        .filter((h) => h.haulierName !== businessName)
+        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
         .map((h) => ({
           id: h.id,
           label: h.haulierName,
           fields: { email: h.emailAddress, phone: h.phoneNumber },
         })),
-    [hauliers, businessName],
+    [hauliers, tenantEmail],
   );
 
   const createDriver = useCreateDriver();
@@ -188,7 +187,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -237,22 +236,27 @@ export default function DriverForm({
     licensePlate: t.licensePlate,
     status: t.truckStatus === 'AVAILABLE' ? 'ACTIVE' : t.truckStatus,
   }));
+  const pendingLabel = isEditing ? 'Saving Changes...' : 'Adding Driver...';
+  const idleLabel = isEditing ? 'Update Driver' : 'Add Driver';
+  const buttonLabel = isPending ? pendingLabel : idleLabel;
+
   const complianceSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id) return;
+    if (scrollToSection !== 'compliance' || !isEditing || !driverData?.id)
+      return;
 
     const element = complianceSectionRef.current;
     if (!element) return;
 
-    const timer = window.setTimeout(() => {
+    const timer = globalThis.setTimeout(() => {
       element.scrollIntoView({
         behavior: 'smooth',
         block: 'start',
       });
     }, 400);
 
-    return () => window.clearTimeout(timer);
+    return () => globalThis.clearTimeout(timer);
   }, [scrollToSection, isEditing, driverData?.id]);
 
   const { data: checklistsData } = useQuery({
@@ -260,6 +264,30 @@ export default function DriverForm({
     enabled: isEditing && !!id,
   });
   const complianceRecords = checklistsData?.content ?? [];
+
+  useFormDialogFooter(
+    isDesktop ? (
+      <div className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          type="button"
+          className="cursor-pointer"
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          form="driver-form"
+          type="submit"
+          disabled={isPending}
+          className="cursor-pointer"
+        >
+          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {buttonLabel}
+        </Button>
+      </div>
+    ) : null,
+  );
 
   return (
     <div className="w-full relative">
@@ -361,7 +389,6 @@ export default function DriverForm({
                 <Input
                   value={
                     internalHaulier?.haulierName ??
-                    businessName ??
                     'My Company Haulier'
                   }
                   disabled
@@ -564,31 +591,28 @@ export default function DriverForm({
             />
           )}
 
-          <div className="flex flex-wrap justify-end gap-3 pt-2 mb-6">
-            <Button
-              variant="outline"
-              type="button"
-              className="cursor-pointer flex-1 sm:flex-none"
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              form="driver-form"
-              type="submit"
-              disabled={isPending}
-              className="cursor-pointer flex-1 sm:flex-none"
-            >
-              {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isPending
-                ? isEditing
-                  ? 'Saving Changes...'
-                  : 'Adding Driver...'
-                : isEditing
-                  ? 'Update Driver'
-                  : 'Add Driver'}
-            </Button>
-          </div>
+          {!isDesktop && (
+            <div className="flex flex-col gap-3 mb-6">
+              <Button
+                form="driver-form"
+                type="submit"
+                disabled={isPending}
+                className="cursor-pointer"
+              >
+                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {buttonLabel}
+              </Button>
+              <Button
+                variant="outline"
+                type="button"
+                className="cursor-pointer"
+                onClick={onCancel}
+              >
+                Cancel
+              </Button>
+            </div>
+          )}
+
         </form>
       </Form>
     </div>

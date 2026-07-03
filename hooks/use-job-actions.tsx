@@ -10,7 +10,7 @@ import DocketForm from '@/app/(protected)/customer-operations/dockets/(component
 import InvoiceForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/invoices/forms/invoice-form';
 import { JobActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-action-buttons';
 import { useJobStore } from '@/app/stores/job-store';
-import { DocketsByJobIdQueryOptions } from '@/lib/api/docket';
+import { DocketsByJobIdQueryOptions, getDocketItemsFromJobPage } from '@/lib/api/docket';
 import { useSettleJob } from '@/lib/api/job';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
@@ -356,9 +356,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         const result = await queryClient.fetchQuery(
           DocketsByJobIdQueryOptions(jobId),
         );
-        const docketList: DocketDTO[] = Array.isArray(result)
-          ? result
-          : (result?.content ?? []);
+        const docketList = getDocketItemsFromJobPage(result);
         setActiveDockets(
           docketList.filter((d) => ACTIVE_STATUSES.has(d.docketStatus)),
         );
@@ -384,12 +382,10 @@ export function useJobActions(jobData?: JobDetails | null) {
       if (!jobId) return;
 
       try {
-        const dockets = await queryClient.fetchQuery(
+        const docketPage = await queryClient.fetchQuery(
           DocketsByJobIdQueryOptions(jobId),
         );
-        const docketList = Array.isArray(dockets)
-          ? dockets
-          : (dockets?.content ?? []);
+        const docketList = getDocketItemsFromJobPage(docketPage);
 
         if (docketList.length === 0) {
           notifyError('No dockets found for this job.');

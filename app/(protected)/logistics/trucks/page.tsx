@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions, TruckStatisticsQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
@@ -66,9 +67,12 @@ export default function TrucksPage() {
     },
   ];
 
+  const haulierId = searchParams.get('haulierId');
+
   const items: TruckDTO[] = React.useMemo(() => {
-    return Array.isArray(trucks) ? trucks : [];
-  }, [trucks]);
+    const all = Array.isArray(trucks) ? trucks : [];
+    return haulierId ? all.filter((t) => t.haulier?.id === Number(haulierId)) : all;
+  }, [trucks, haulierId]);
 
   // Auto-open truck view when navigated from inspection failed email link
   React.useEffect(() => {
@@ -79,8 +83,8 @@ export default function TrucksPage() {
     const truck = items.find((t) => t.id === Number(openTruckId));
     if (truck) {
       actions.view(truck, { scrollToSection: section ?? undefined });
-      router.replace('/logistics/trucks');
     }
+    router.replace('/logistics/trucks');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
@@ -115,8 +119,28 @@ export default function TrucksPage() {
         desktopGridCols={4}
       />
 
+      {haulierId && (
+        <div className="flex flex-row items-center gap-5 mb-3">
+          <div className="mt-1 text-sm text-muted-foreground">
+            <span>
+              Showing{' '}
+              {items.length === 1 ? '1 truck' : `${items.length} trucks`} for
+              this haulier
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => router.push('/logistics/trucks')}
+          >
+            Reset Filter
+          </Button>
+        </div>
+      )}
+
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
+          key={haulierId ? `truck_haulier_${haulierId}` : 'truck_main_data_table'}
           tableId="truck_main_data_table"
           data={items}
           columns={truckColumns}

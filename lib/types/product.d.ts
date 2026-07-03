@@ -144,3 +144,31 @@ export interface ProductReporting {
   totalProducts: number;
   productsAddedThisMonth: number;
 }
+
+export interface ProductListItem {
+  id: number;
+  productName: string;
+  productCode: string;
+  material?: MaterialType;
+  densityTonnagePerM3?: number;
+  productDescription?: string;
+  isActive: boolean;
+  version?: number;
+}
+
+export interface ProductsPage {
+  content: ProductListItem[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+/** Paginated products list from GET /product/material. */
+export interface ProductsListResponse {
+  products: ProductsPage;
+}

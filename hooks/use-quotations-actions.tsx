@@ -13,7 +13,6 @@ import {
   Calendar,
   CircleCheckBig,
   CircleX,
-  Copy,
   RotateCcw,
   Send,
   Eye,
@@ -48,7 +47,7 @@ import {
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { useQuery } from '@tanstack/react-query';
 import { CustomerDetailQueryOptions } from '@/lib/api/customer';
@@ -866,11 +865,13 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   const { data: sendDialogCustomer } = useQuery({
     ...CustomerDetailQueryOptions(quotationData?.customerId ?? 0),
-    enabled: !!quotationData?.customerId,
+    enabled:
+      !!quotationData?.customerId &&
+      selectedAction?.key === 'sendToCustomer',
   });
   const sendDialogCustomerEmail = sendDialogCustomer?.contactPersonEmail || '';
 
-  const user = useClientStore((state) => state.user);
+  const user = useTenantStore((state) => state.user);
   const router = useRouter();
 
   // Decline form validation

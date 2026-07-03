@@ -136,8 +136,6 @@ const paginationSizeSelect = [
   { value: '10', label: '10' },
   { value: '25', label: '25' },
   { value: '50', label: '50' },
-  { value: '100', label: '100' },
-  { value: '200', label: '200' },
 ];
 
 // Default state values
@@ -371,6 +369,48 @@ export function DataTableClient<TData, TValue>({
     return loadFromStorage('paginationSize', defaultPaginationSize);
   });
 
+  const effectivePagination = useMemo(
+    () => ({
+      pageIndex: externalPageIndex ?? pagination.pageIndex,
+      pageSize: externalPageSize ?? pagination.pageSize,
+    }),
+    [
+      externalPageIndex,
+      externalPageSize,
+      pagination.pageIndex,
+      pagination.pageSize,
+    ],
+  );
+
+  useEffect(() => {
+    if (externalPageIndex === undefined && externalPageSize === undefined) {
+      return;
+    }
+
+    setPagination((prev) => {
+      const nextPageIndex =
+        externalPageIndex !== undefined ? externalPageIndex : prev.pageIndex;
+      const nextPageSize =
+        externalPageSize !== undefined ? externalPageSize : prev.pageSize;
+
+      if (
+        nextPageIndex === prev.pageIndex &&
+        nextPageSize === prev.pageSize
+      ) {
+        return prev;
+      }
+
+      return {
+        pageIndex: nextPageIndex,
+        pageSize: nextPageSize,
+      };
+    });
+
+    if (externalPageSize !== undefined) {
+      setPaginationSize(String(externalPageSize));
+    }
+  }, [externalPageIndex, externalPageSize]);
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [tempColumnFilters, setTempColumnFilters] =
     useState<ColumnFiltersState>([]);
@@ -427,9 +467,9 @@ export function DataTableClient<TData, TValue>({
 
   useEffect(() => {
     if (isMobile && mobileUseTablePagination) {
-      setMobilePageInput(String(pagination.pageIndex + 1));
+      setMobilePageInput(String(effectivePagination.pageIndex + 1));
     }
-  }, [isMobile, mobileUseTablePagination, pagination.pageIndex]);
+  }, [isMobile, mobileUseTablePagination, effectivePagination.pageIndex]);
   // Notify parent of selection changes
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
@@ -572,7 +612,7 @@ export function DataTableClient<TData, TValue>({
       return;
     }
 
-    setMobilePageInput(String(pagination.pageIndex + 1));
+    setMobilePageInput(String(effectivePagination.pageIndex + 1));
   };
 
   // Create columns with checkbox column if row selection is enabled
@@ -675,9 +715,7 @@ export function DataTableClient<TData, TValue>({
       sorting: externalSorting ?? sorting,
       pagination: {
         pageIndex: externalPageIndex ?? pagination.pageIndex,
-        pageSize: simpleTable
-          ? (data.length > 0 ? data.length : 10)
-          : (externalPageSize ?? pagination.pageSize),
+        pageSize: externalPageSize ?? pagination.pageSize,
       },
       columnFilters,
       globalFilter,
@@ -1219,7 +1257,7 @@ export function DataTableClient<TData, TValue>({
                             }}
                           />
                           <span>
-                            Page {pagination.pageIndex + 1} of{' '}
+                            Page {effectivePagination.pageIndex + 1} of{' '}
                             {table.getPageCount()}
                           </span>
                         </div>
@@ -1230,6 +1268,7 @@ export function DataTableClient<TData, TValue>({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
+                            type="button"
                             onClick={() => table.setPageIndex(0)}
                             disabled={!table.getCanPreviousPage()}
                           >
@@ -1239,6 +1278,7 @@ export function DataTableClient<TData, TValue>({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
+                            type="button"
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
                           >
@@ -1248,6 +1288,7 @@ export function DataTableClient<TData, TValue>({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
+                            type="button"
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
                           >
@@ -1257,6 +1298,7 @@ export function DataTableClient<TData, TValue>({
                             variant="ghost"
                             size="icon"
                             className="h-7 w-7"
+                            type="button"
                             onClick={() =>
                               table.setPageIndex(table.getPageCount() - 1)
                             }
@@ -1476,49 +1518,50 @@ export function DataTableClient<TData, TValue>({
           </div>
 
           {/* Pagination Controls */}
-          {!simpleTable && (
-            <div className="overflow-x-auto">
-              <div className="min-w-full py-2">
-                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Total Records:
-                      <span className="text-accent-foreground ml-2">
-                        {formatNumberThousandSeparatorWithoutDecimal(totalElements ?? table.getFilteredRowModel().rows.length)}
-                      </span>
-                    </p>
+          {/* {!simpleTable && ( */}
+          <div className="overflow-x-auto">
+            <div className="min-w-full py-2">
+              <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
+                <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
+                  <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                    Total Records:
+                    <span className="text-accent-foreground ml-2">
+                      {formatNumberThousandSeparatorWithoutDecimal(totalElements ?? table.getFilteredRowModel().rows.length)}
+                    </span>
+                  </p>
 
-                    <Separator
-                      orientation="vertical"
-                      className="text-accent-foreground"
-                    />
+                  <Separator
+                    orientation="vertical"
+                    className="text-accent-foreground"
+                  />
 
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Rows per page
-                    </p>
-                    <Select
-                      value={paginationSize}
-                      onValueChange={handlePaginationSizeChange}
-                    >
-                      <SelectTrigger className="h-8 w-[80px]">
-                        <SelectValue placeholder={pageSizeTriggerContent} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {paginationSizeSelect.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                    Rows per page
+                  </p>
+                  <Select
+                    value={paginationSize}
+                    onValueChange={handlePaginationSizeChange}
+                  >
+                    <SelectTrigger className="h-8 w-[80px]">
+                      <SelectValue placeholder={pageSizeTriggerContent} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        {paginationSizeSelect.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-                  {/* Page nav */}
+                {/* Page nav */}
+                {table.getPageCount() > 1 && (
                   <div className="flex items-center space-x-4">
                     <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
-                      Page {pagination.pageIndex + 1} of {table.getPageCount()}
+                      Page {effectivePagination.pageIndex + 1} of {table.getPageCount()}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -1563,10 +1606,11 @@ export function DataTableClient<TData, TValue>({
                       </Button>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
-          )}
+          </div>
+          {/* )} */}
         </>
       )}
     </div>

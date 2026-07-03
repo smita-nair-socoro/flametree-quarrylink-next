@@ -8,7 +8,6 @@ import { QuotationLineItemActionButtons } from '@/app/(protected)/customer-opera
 import { Trash2 } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
-import { useQuotationLineItemStore } from '@/app/stores/quotation-line-item-store';
 import { useDeleteQuoteItem } from '@/lib/api/quotation';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useQuotationStore } from '@/app/stores/quotation-store';
@@ -19,11 +18,11 @@ interface DialogConfig {
   content?: React.ReactNode;
   confirmText?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -43,7 +42,7 @@ const getDialogConfigs = (
 
   const totalSellPrice = centsToDollars(
     (lineItemData?.totalProductSellPrice ?? 0) +
-      (lineItemData?.totalTruckSellPrice ?? 0),
+    (lineItemData?.totalTruckSellPrice ?? 0),
   );
 
   const productQty = lineItemData?.productSellQty;

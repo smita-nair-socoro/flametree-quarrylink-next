@@ -16,7 +16,7 @@ import Step4SuccessfulDialog from './(components)/forms/steps/step-4-successful-
 import { Button } from '@/components/ui/button';
 import { centsToDollars } from '@/lib/utils/currency';
 import { useClientActions } from '@/hooks/use-client-actions';
-import { useClientStore } from '@/app/stores/client-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 
 export default function ClientPortalPage() {
   const { items } = rawJson as unknown as {
@@ -47,7 +47,7 @@ export default function ClientPortalPage() {
     },
   ];
 
-  const setSelectedClient = useClientStore((state) => state.setSelectedClient);
+  const setSelectedClient = useTenantStore((state) => state.setSelectedClient);
 
   const [selectedClientForActions, setSelectedClientForActions] =
     React.useState<Client | null>(null);

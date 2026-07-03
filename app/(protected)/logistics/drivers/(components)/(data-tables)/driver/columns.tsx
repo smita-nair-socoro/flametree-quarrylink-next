@@ -5,12 +5,17 @@ import { ColumnDef } from '@tanstack/react-table';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_TYPE, DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { DriverTableActions } from './driver-table-actions';
-import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import {
+  formatPhoneNumber,
+  normalizePhoneNumber,
+} from '@/lib/utils/phone-helper';
 
 // TEMP: emailToSubMap resolves userSub by matching driver.emailAddress → User.email.
 // Once backend adds userSub to DriverDTO, replace this factory with a plain array
 // and read userSub directly from the driver row.
-export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<DriverDTO>[] => [
+export const driverColumns = (
+  emailToSubMap: Map<string, string>,
+): ColumnDef<DriverDTO>[] => [
   {
     id: 'driverName',
     accessorFn: (row) => row.driverName,
@@ -58,7 +63,9 @@ export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<Dri
     id: 'emailAddress',
     accessorFn: (row) => row.emailAddress,
     header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Email Address" />;
+      return (
+        <TableClientSortableHeader column={column} title="Email Address" />
+      );
     },
     cell: ({ row }) => {
       return <div className="py-2">{row.original.emailAddress}</div>;
@@ -72,15 +79,19 @@ export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<Dri
       return <TableClientSortableHeader column={column} title="Phone Number" />;
     },
     cell: ({ row }) => {
-      return <div className="py-2">{formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}</div>;
+      return (
+        <div className="py-2">
+          {formatPhoneNumber(normalizePhoneNumber(row.original.phoneNumber))}
+        </div>
+      );
     },
     meta: 'Phone',
   },
   {
     id: 'driverStatus',
     accessorFn: (row) => row.driverStatus,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+    header: () => {
+      return <div>Status</div>;
     },
     cell: ({ getValue }) => {
       const status = getValue<string>() as DRIVER_STATUS;
@@ -99,7 +110,9 @@ export const driverColumns = (emailToSubMap: Map<string, string>): ColumnDef<Dri
     },
     cell: ({ row }) => {
       const driver = row.original;
-      const userSub = emailToSubMap.get(driver.emailAddress?.toLowerCase() ?? '');
+      const userSub = emailToSubMap.get(
+        driver.emailAddress?.toLowerCase() ?? '',
+      );
       return <DriverTableActions driver={driver} userSub={userSub} />;
     },
   },

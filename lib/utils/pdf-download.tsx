@@ -6,6 +6,22 @@ import {
 } from '@/app/(public)/quote-review/(components)/pdf/QuotePdfDocument';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
+async function fetchLogoAsBase64(url: string): Promise<string | undefined> {
+  try {
+    const response = await fetch(url);
+    if (!response.ok) return undefined;
+    const blob = await response.blob();
+    return await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Generate and download a PDF document for a quotation
  * @param data - The quotation data to render in the PDF
@@ -22,10 +38,19 @@ export async function downloadQuotePdf(
   tenantDetails?: StripeTenantDetailsSnapshot
 ): Promise<void> {
   try {
+    // Pre-fetch logo as base64 so react-pdf can render it without CORS issues
+    const logoUrl = data.navbar.logoUrl && !data.navbar.logoError
+      ? await fetchLogoAsBase64(data.navbar.logoUrl)
+      : undefined;
+    const pdfData: QuotationData = {
+      ...data,
+      navbar: { ...data.navbar, logoUrl: logoUrl ?? data.navbar.logoUrl },
+    };
+
     // Generate PDF blob from the QuotePdfDocument component
     const blob = await pdf(
       <QuotePdfDocument
-        data={data}
+        data={pdfData}
         quoteId={quoteId}
         baseUrl={baseUrl || window.location.origin}
         tenantDetails={tenantDetails}
