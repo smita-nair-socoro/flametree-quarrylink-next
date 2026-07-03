@@ -238,3 +238,13 @@ export interface UnarchiveCustomerResponseDTO {
   duplicateCustomerId: number;
   reason: string;
 }
+
+export interface AdditionalContactDTO {
+  id?: number;
+  customerId?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+}

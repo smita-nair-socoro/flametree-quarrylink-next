@@ -18,7 +18,7 @@ import z from 'zod';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useFormDialogFooter } from '@/components/form-dialog';
+import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
@@ -66,6 +66,11 @@ import {
 } from '@/hooks/customer/use-customer-form-state';
 import { AuditInformation } from '@/components/audit-information';
 import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { Separator } from '@/components/ui/separator';
+import AdditionalContactForm from './additional-contact-form';
+import { getAdditionalContactColumns } from '../(data-tables)/additional-contact/columns';
+import { MOCK_DATA } from '../(data-tables)/additional-contact/mock-data';
 
 interface FormProps {
   id?: number;
@@ -253,16 +258,16 @@ export default function CustomerForm({
       ...rawValues,
       ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
         ? {
-            business_name: '',
-            business_email: '',
-            business_phone: '',
-            abn: '',
-            contact_person_first_name: '',
-            contact_person_last_name: '',
-          }
+          business_name: '',
+          business_email: '',
+          business_phone: '',
+          abn: '',
+          contact_person_first_name: '',
+          contact_person_last_name: '',
+        }
         : {
-            contact_person_name: '',
-          }),
+          contact_person_name: '',
+        }),
       ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
         ? { credit_limit: 0, payment_terms_day: 0 }
         : {}),
@@ -1212,6 +1217,43 @@ export default function CustomerForm({
                 </FormItem>
               )}
             />
+
+            {isEditing && (
+              <div className="col-span-2 col-start-1 mb-6">
+                <Separator className="my-4" />
+                <div className="flex flex-col gap-4 mt-6">
+                  <div
+                    className={cn(
+                      isDesktop
+                        ? 'flex justify-between items-center'
+                        : 'flex flex-col gap-4',
+                    )}
+                  >
+                    <span className="text-lg font-semibold">Additional Contacts</span>
+                    <FormDialog
+                      dialogTitle="Add New Contact"
+                      dialogDescription="Fill in the contact details below."
+                      buttonTitle="Add New Contact"
+                      dialogWidth="600px"
+                      contentClass="-mt-5"
+                      preventAutoFocus
+                    >
+                      <AdditionalContactForm />
+                    </FormDialog>
+                  </div>
+
+                  <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+                    <DataTableClient
+                      columns={getAdditionalContactColumns()}
+                      data={MOCK_DATA}
+                      simpleTable={true}
+                      defaultSorting={[{ id: 'name', desc: false }]}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
 
             {/* Audit Information */}
             {isEditing && (
