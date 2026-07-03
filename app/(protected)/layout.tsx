@@ -133,6 +133,11 @@ export default function ProtectedLayout({
             <TimezoneBanner />
           </header>
         )}
+        {(isDriversApp || isDeliveries) && (
+          <div className="shrink-0 px-4 bg-[#F9FAFB]">
+            <TimezoneBanner />
+          </div>
+        )}
         <div
           className={
             isDeliveries

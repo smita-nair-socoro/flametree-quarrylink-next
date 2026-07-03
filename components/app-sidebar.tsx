@@ -18,10 +18,7 @@ import {
   SidebarTrigger,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
-import {
-  TenantLogoQueryOptions,
-  TenantInternalDetailsQueryOptions,
-} from '@/lib/api/tenant';
+import { TenantLogoQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { HelpCentreButton } from '@/components/help-centre-modal';
@@ -89,9 +86,6 @@ export const navItems = [
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
   const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
-  const { data: tenantInternalDetails } = useQuery(
-    TenantInternalDetailsQueryOptions(),
-  );
 
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
@@ -117,12 +111,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     email,
     avatar: '/default-user.png',
   };
-
-  React.useEffect(() => {
-    if (tenantInternalDetails) {
-      useTenantStore.getState().setTenantDetails(tenantInternalDetails);
-    }
-  }, [tenantInternalDetails]);
 
   React.useEffect(() => {
     useTenantStore.getState().setUser(displayName);
