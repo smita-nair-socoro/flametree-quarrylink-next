@@ -752,4 +752,84 @@ export const pdfStyles = StyleSheet.create({
   mb16: { marginBottom: 16 },
   mt8: { marginTop: 8 },
   mt16: { marginTop: 16 },
+
+  // Notes & Terms section
+  notesBox: {
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    backgroundColor: '#FAF5FF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+
+  noteText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    marginBottom: 6,
+  },
+
+  termsBox: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+
+  termNumber: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    width: 14,
+  },
+
+  termText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    flex: 1,
+  },
+
+  disclaimerText: {
+    fontSize: fontSize.xs,
+    color: colors.gray500,
+    marginBottom: 10,
+  },
+
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 6,
+  },
+
+  documentName: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray800,
+    marginBottom: 2,
+  },
+
+  documentMeta: {
+    fontSize: fontSize.xs,
+    color: colors.gray600,
+  },
+
+  documentLink: {
+    fontSize: fontSize.xs,
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
 });

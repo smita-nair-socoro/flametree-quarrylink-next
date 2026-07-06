@@ -28,12 +28,12 @@ export interface TermsAndConditionsProps {
   documents?: QuoteDocument[];
 }
 
-const DUMMY_NOTES = [
+export const DUMMY_NOTES = [
   'Site access is via the rear loading dock on Rosella Circuit. Please call John on 0412 345 678 at least 30 minutes before arrival.',
   'Deliveries are restricted to 2:00 PM – 4:00 PM as noted above. A signed delivery docket is required on every drop.',
 ];
 
-const DUMMY_TERMS = [
+export const DUMMY_TERMS = [
   'Prices quoted are valid until the expiry date shown on this quote and are exclusive of GST unless stated otherwise.',
   'Delivery times are estimates only and may vary due to weather, site access, or operational constraints.',
   'The customer must provide safe and reasonable site access for delivery vehicles.',
@@ -42,7 +42,7 @@ const DUMMY_TERMS = [
   'The supplier reserves the right to suspend supply where accounts are overdue.',
 ];
 
-const DUMMY_DOCUMENTS: QuoteDocument[] = [
+export const DUMMY_DOCUMENTS: QuoteDocument[] = [
   {
     id: 'standard-supply-policy',
     type: 'file',
