@@ -515,6 +515,7 @@ export const APIClient = {
     getAll: async (params?: {
       materialIds?: number[];
       isActive?: boolean[];
+      ids?: number[];
       page?: number;
       pageSize?: number;
       search?: string;
@@ -530,6 +531,7 @@ export const APIClient = {
         queryString: {
           materialIds: params?.materialIds?.map(String),
           isActive: params?.isActive?.map(String),
+          ids: params?.ids?.map(String),
           page: params?.page?.toString(),
           pageSize: isPaginated
             ? (params?.pageSize?.toString() ?? '10')
