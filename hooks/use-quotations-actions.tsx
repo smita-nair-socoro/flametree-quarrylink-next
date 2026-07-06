@@ -1241,12 +1241,6 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       setDuplicateOpen(true);
     },
 
-    viewJob: (quotation?: Quotation | null) => {
-      const jobId = (quotation ?? quotationData)?.jobId;
-      if (!jobId) return;
-      router.push(`/customer-operations/jobs?ids=${jobId}`);
-    },
-
     sendToCustomer: handleSendToCustomerClick,
 
     approve: createDialogAction('approve'),

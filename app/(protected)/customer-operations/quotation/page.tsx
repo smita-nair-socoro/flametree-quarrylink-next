@@ -83,16 +83,19 @@ export default function QuotationsPage() {
     return items.find((q) => q.id === selectedQuotationId) || null;
   }, [items, selectedQuotationId]);
 
-  // URL-driven filtering for linked quotations
+  // URL-driven filtering for linked quotations (also covers the single-quote
+  // `openQuoteId` link so the table stays filtered if the dialog is closed).
   const linkedQuotationIdsParam = searchParams.get('linkedQuotationIds');
+  const openQuoteIdParam = searchParams.get('openQuoteId');
   const linkedQuotationIdsSet = React.useMemo(() => {
-    if (!linkedQuotationIdsParam) return null;
-    const ids = linkedQuotationIdsParam
+    const raw = linkedQuotationIdsParam ?? openQuoteIdParam;
+    if (!raw) return null;
+    const ids = raw
       .split(',')
       .map((v) => Number(v.trim()))
       .filter((n) => Number.isFinite(n) && n > 0);
-    return new Set(ids);
-  }, [linkedQuotationIdsParam]);
+    return ids.length ? new Set(ids) : null;
+  }, [linkedQuotationIdsParam, openQuoteIdParam]);
 
   const filteredItems = React.useMemo(() => {
     if (!linkedQuotationIdsSet) return items;
@@ -169,20 +172,27 @@ export default function QuotationsPage() {
     selectedQuotationForActions,
   );
 
-  // Auto-open quote view when navigated with openQuoteId param
+  // Auto-open the quote view once for a single openQuoteId link. The `ids`
+  // stay in the URL (see linkedQuotationIdsSet above) so an accidental close
+  // still shows just that quote instead of the full list.
+  const autoOpenedQuoteIdRef = React.useRef<number | null>(null);
   React.useEffect(() => {
-    const openQuoteId = searchParams.get('openQuoteId');
-    if (!openQuoteId || items.length === 0) return;
+    const openQuoteId = openQuoteIdParam ? Number(openQuoteIdParam) : null;
+    if (!openQuoteId) {
+      autoOpenedQuoteIdRef.current = null;
+      return;
+    }
+    if (autoOpenedQuoteIdRef.current === openQuoteId) return;
 
-    const quotation = items.find((q) => q.id === Number(openQuoteId));
+    const quotation = items.find((q) => q.id === openQuoteId);
     if (quotation) {
+      autoOpenedQuoteIdRef.current = openQuoteId;
       setSelectedQuotation(quotation);
       setSelectedQuotationId(quotation.id);
       actions.view(quotation);
-      router.replace('/customer-operations/quotation');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, items]);
+  }, [openQuoteIdParam, items]);
 
   const handleRowClick = (quotation: Quotation) => {
     setSelectedQuotation(quotation);

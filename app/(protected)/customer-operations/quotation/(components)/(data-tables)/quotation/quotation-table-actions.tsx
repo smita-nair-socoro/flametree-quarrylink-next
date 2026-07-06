@@ -61,7 +61,6 @@ export function QuotationTableActions({
   const handleDuplicate = createHandler(actions.duplicate);
   const handleConvertToDraft = createHandler(actions.convertToDraft);
   const handleExtendExpiry = createHandler(actions.extendExpiry);
-  const handleViewJob = createHandler(() => actions.viewJob(quotation));
   // const handlePrint = createHandler(actions.print);
 
   return (
@@ -148,12 +147,19 @@ export function QuotationTableActions({
             </>
           )}
 
-          {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
+          {quotation.quoteStatus === 'CONVERTED_TO_JOB' && quotation.jobId > 0 && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleViewJob}>
-                <Eye className="h-4 w-4 mr-2" />
-                View Job
+              <DropdownMenuItem asChild>
+                <a
+                  href={`/customer-operations/jobs?ids=${quotation.jobId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Job
+                </a>
               </DropdownMenuItem>
             </>
           )}
