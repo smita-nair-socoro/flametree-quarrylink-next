@@ -52,9 +52,6 @@ export default function CustomersPage() {
     [facetFilters],
   );
 
-  // URL-driven filtering for linked jobs (e.g. from a converted quotation,
-  // a docket, or a "cannot delete" blocking-jobs link) — fetched directly
-  // from the API via `ids` rather than hoping the job is on the current page.
   const idsParam = searchParams.get('ids');
   const idsFilter = React.useMemo(() => {
     if (!idsParam) return undefined;
@@ -170,15 +167,21 @@ export default function CustomersPage() {
     [],
   );
 
-  // Auto-open the job view when the link was for a single job (e.g. from a
-  // converted quotation, a docket, or convert-to-job navigation).
+  // Keep `ids` in the URL after auto-opening so an accidental dialog close
+  // still shows just that job instead of the full list.
+  const autoOpenedIdRef = React.useRef<number | null>(null);
   React.useEffect(() => {
-    if (!idsFilter || idsFilter.length !== 1 || items.length === 0) return;
+    const singleId = idsFilter?.length === 1 ? idsFilter[0] : null;
+    if (!singleId) {
+      autoOpenedIdRef.current = null;
+      return;
+    }
+    if (autoOpenedIdRef.current === singleId) return;
 
-    const job = items.find((j) => j.id === idsFilter[0]);
+    const job = items.find((j) => j.id === singleId);
     if (job) {
+      autoOpenedIdRef.current = singleId;
       actions.view(job);
-      router.replace('/customer-operations/jobs');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsFilter, items]);

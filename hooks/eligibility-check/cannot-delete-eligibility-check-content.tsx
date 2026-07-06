@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import Link from 'next/link';
 import { CircleAlert, CircleCheckBig } from 'lucide-react';
 import { EligibilityBlockingDependencies } from '@/lib/types/eligibility-check';
 
@@ -29,12 +28,14 @@ function renderLinkedCount(
   return (
     <div className="text-[14px] text-[#364153] font-normal">
       {href ? (
-        <Link
+        <a
           href={href}
+          target="_blank"
+          rel="noopener noreferrer"
           className="text-[#155DFC] font-medium underline"
         >
           {count} active {label}
-        </Link>
+        </a>
       ) : (
         <span>
           {count} active {label}
