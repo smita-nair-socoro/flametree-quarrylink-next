@@ -20,8 +20,9 @@ import {
   getProductsPageFromListResponse,
   toProductApiFilterParams,
   toProductApiSortParams,
+  buildProductFacetOptions,
+  isProductsListResponse,
 } from '@/lib/api/product';
-import { MaterialsListQueryOptions } from '@/lib/api/material';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -72,16 +73,14 @@ export default function ProductsPage() {
     { id: 'product_name', desc: false },
   ]);
 
-  const { data: materialsData } = useQuery(MaterialsListQueryOptions());
-
   const apiSortParams = React.useMemo(
     () => toProductApiSortParams(sorting),
     [sorting],
   );
 
   const apiFilterParams = React.useMemo(
-    () => toProductApiFilterParams(facetFilters, materialsData),
-    [facetFilters, materialsData],
+    () => toProductApiFilterParams(facetFilters),
+    [facetFilters],
   );
 
   const {
@@ -104,6 +103,14 @@ export default function ProductsPage() {
 
   const productPage = React.useMemo(
     () => getProductsPageFromListResponse(productsData),
+    [productsData],
+  );
+
+  const facetOptions = React.useMemo(
+    () =>
+      buildProductFacetOptions(
+        isProductsListResponse(productsData) ? productsData : null,
+      ),
     [productsData],
   );
 
@@ -264,21 +271,15 @@ export default function ProductsPage() {
       {
         column: 'material_type',
         title: 'Material Type',
-        options: (materialsData ?? []).map((material) => ({
-          value: material.name.toUpperCase(),
-          label: material.name,
-        })),
+        options: facetOptions.materials,
       },
       {
         column: 'status',
         title: 'Status',
-        options: [
-          { value: 'AVAILABLE', label: 'Available' },
-          { value: 'UNAVAILABLE', label: 'Unavailable' },
-        ],
+        options: facetOptions.statuses,
       },
     ],
-    [materialsData],
+    [facetOptions],
   );
 
   return (

@@ -87,7 +87,13 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
+import {
+  HaulierCreateDTO,
+  HaulierDTO,
+  HaulierDeleteResponse,
+  HaulierStatistics,
+  HauliersPage,
+} from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -507,8 +513,8 @@ export const APIClient = {
         `/socoro/quarrylink/api/product/reporting`,
       ),
     getAll: async (params?: {
-      materialId?: number;
-      isActive?: boolean;
+      materialIds?: number[];
+      isActive?: boolean[];
       page?: number;
       pageSize?: number;
       search?: string;
@@ -522,11 +528,8 @@ export const APIClient = {
         ProductListItem[] | ProductsListResponse | ProductsPage
       >(`/socoro/quarrylink/api/product/material`, {
         queryString: {
-          materialId: params?.materialId?.toString(),
-          isActive:
-            params?.isActive !== undefined
-              ? String(params.isActive)
-              : undefined,
+          materialIds: params?.materialIds?.map(String),
+          isActive: params?.isActive?.map(String),
           page: params?.page?.toString(),
           pageSize: isPaginated
             ? (params?.pageSize?.toString() ?? '10')
@@ -911,10 +914,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      customerId?: number;
-      productId?: number;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -932,10 +935,10 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            type: params?.type,
-            customerId: params?.customerId?.toString(),
-            productId: params?.productId?.toString(),
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
           },
         },
       );
@@ -1051,6 +1054,18 @@ export const APIClient = {
     getAccountManagers: () =>
       appClient.Get<AccountManager[]>(
         `/socoro/quarrylink/api/users/account-managers`,
+      ),
+    getOperations: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/operations`,
+      ),
+    addToOperations: (id: string) =>
+      appClient.Post(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
+    removeFromOperations: (id: string) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
       ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
@@ -1355,7 +1370,9 @@ export const APIClient = {
         body: data,
       }),
     getStatistics: () =>
-      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+      appClient.Get<HaulierStatistics>(
+        '/socoro/quarrylink/api/haulier/statistics',
+      ),
     delete: (id: number) =>
       appClient.Delete<HaulierDeleteResponse>(
         `/socoro/quarrylink/api/haulier/${id}`,

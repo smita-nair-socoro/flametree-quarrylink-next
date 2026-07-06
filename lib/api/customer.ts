@@ -76,7 +76,9 @@ export function toCustomerApiFilterParams(
   return {
     statuses: statusValues.length ? statusValues : undefined,
     types: typeValues.length ? typeValues : undefined,
-    accountManagerSubs: accountManagerValues.length ? accountManagerValues : undefined,
+    accountManagerSubs: accountManagerValues.length
+      ? accountManagerValues
+      : undefined,
   };
 }
 
