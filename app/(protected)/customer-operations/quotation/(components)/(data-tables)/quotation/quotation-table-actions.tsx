@@ -61,6 +61,7 @@ export function QuotationTableActions({
   const handleDuplicate = createHandler(actions.duplicate);
   const handleConvertToDraft = createHandler(actions.convertToDraft);
   const handleExtendExpiry = createHandler(actions.extendExpiry);
+  const handleViewJob = createHandler(() => actions.viewJob(quotation));
   // const handlePrint = createHandler(actions.print);
 
   return (
@@ -150,7 +151,7 @@ export function QuotationTableActions({
           {quotation.quoteStatus === 'CONVERTED_TO_JOB' && (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDuplicate}>
+              <DropdownMenuItem onClick={handleViewJob}>
                 <Eye className="h-4 w-4 mr-2" />
                 View Job
               </DropdownMenuItem>

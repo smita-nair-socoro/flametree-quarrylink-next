@@ -654,9 +654,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      accountManagerSub?: string;
+      statuses?: string[];
+      types?: string[];
+      accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -674,9 +675,10 @@ export const APIClient = {
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          accountManagerSub: params?.accountManagerSub,
+          statuses: params?.statuses,
+          types: params?.types,
+          accountManagerSubs: params?.accountManagerSubs,
+          ids: params?.ids?.map(String),
         },
       });
       return response;
@@ -1096,9 +1098,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string[];
-      customerId?: number[];
-      accountManagerSub?: string[];
+      statuses?: string[];
+      customerIds?: number[];
+      accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const response = await appClient.Get<JobsListResponse>(
         `/socoro/quarrylink/api/job`,
@@ -1109,9 +1112,10 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            customerId: params?.customerId?.map(String),
-            accountManagerSub: params?.accountManagerSub,
+            statuses: params?.statuses,
+            customerIds: params?.customerIds?.map(String),
+            accountManagerSubs: params?.accountManagerSubs,
+            ids: params?.ids?.map(String),
           },
         },
       );

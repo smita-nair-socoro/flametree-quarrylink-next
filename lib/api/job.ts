@@ -22,9 +22,11 @@ export type JobsListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
-  status?: string[];
-  customerId?: number[];
-  accountManagerSub?: string[];
+  statuses?: string[];
+  customerIds?: number[];
+  accountManagerSubs?: string[];
+  /** Restrict results to specific job ids (e.g. linking from a converted quotation/docket). */
+  ids?: number[];
 };
 
 const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
@@ -58,7 +60,7 @@ function getFacetFilterValues(
 
 export function toJobApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<JobsListParams, 'status' | 'customerId' | 'accountManagerSub'> {
+): Pick<JobsListParams, 'statuses' | 'customerIds' | 'accountManagerSubs'> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const customerValues = getFacetFilterValues(filters, 'customerName');
   const accountManagerValues = getFacetFilterValues(filters, 'accountManagerName');
@@ -68,9 +70,9 @@ export function toJobApiFilterParams(
     .filter((n) => Number.isFinite(n));
 
   return {
-    status: statusValues.length ? statusValues : undefined,
-    customerId: customerIds.length ? customerIds : undefined,
-    accountManagerSub: accountManagerValues.length ? accountManagerValues : undefined,
+    statuses: statusValues.length ? statusValues : undefined,
+    customerIds: customerIds.length ? customerIds : undefined,
+    accountManagerSubs: accountManagerValues.length ? accountManagerValues : undefined,
   };
 }
 

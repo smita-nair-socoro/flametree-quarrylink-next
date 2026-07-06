@@ -586,7 +586,7 @@ export function FormDialog({
     ) {
       links.push({
         label: selectedQuotation.jobNumber,
-        href: `/customer-operations/jobs?openJobId=${selectedQuotation.jobId}`,
+        href: `/customer-operations/jobs?ids=${selectedQuotation.jobId}`,
       });
     }
 
@@ -611,7 +611,7 @@ export function FormDialog({
     ) {
       links.push({
         label: selectedDocket.job?.jobNumber ?? `#${selectedDocket.jobId}`,
-        href: `/customer-operations/jobs?openJobId=${selectedDocket.jobId}`,
+        href: `/customer-operations/jobs?ids=${selectedDocket.jobId}`,
       });
     }
 

@@ -23,9 +23,11 @@ export type CustomersListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
-  status?: string;
-  type?: string;
-  accountManagerSub?: string;
+  statuses?: string[];
+  types?: string[];
+  accountManagerSubs?: string[];
+  /** Restrict results to specific customer ids. */
+  ids?: number[];
 };
 
 const CUSTOMER_COLUMN_TO_API_SORT: Record<string, string> = {
@@ -66,15 +68,15 @@ function getFacetFilterValues(
 
 export function toCustomerApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<CustomersListParams, 'status' | 'type' | 'accountManagerSub'> {
+): Pick<CustomersListParams, 'statuses' | 'types' | 'accountManagerSubs'> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const typeValues = getFacetFilterValues(filters, 'customer_type');
   const accountManagerValues = getFacetFilterValues(filters, 'account_manager');
 
   return {
-    status: statusValues.length ? statusValues.join(',') : undefined,
-    type: typeValues.length ? typeValues.join(',') : undefined,
-    accountManagerSub: accountManagerValues[0] || undefined,
+    statuses: statusValues.length ? statusValues : undefined,
+    types: typeValues.length ? typeValues : undefined,
+    accountManagerSubs: accountManagerValues.length ? accountManagerValues : undefined,
   };
 }
 

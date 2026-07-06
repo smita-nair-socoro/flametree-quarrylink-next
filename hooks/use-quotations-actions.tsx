@@ -1128,7 +1128,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       notifySuccess('Quotation converted to job');
       setActiveDialog(null);
       setSelectedAction(null);
-      router.push(`/customer-operations/jobs?openJobId=${job.id}`);
+      router.push(`/customer-operations/jobs?ids=${job.id}`);
     } catch (error) {
       console.error('Failed to convert quotation to job:', error);
       notifyError(extractErrorMessage(error));
@@ -1239,6 +1239,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         setSelectedQuotation(toSelect);
       }
       setDuplicateOpen(true);
+    },
+
+    viewJob: (quotation?: Quotation | null) => {
+      const jobId = (quotation ?? quotationData)?.jobId;
+      if (!jobId) return;
+      router.push(`/customer-operations/jobs?ids=${jobId}`);
     },
 
     sendToCustomer: handleSendToCustomerClick,

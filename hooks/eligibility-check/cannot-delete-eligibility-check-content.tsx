@@ -64,7 +64,7 @@ export function CannotDeleteEligibilityCheckContent({
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
-      ? `/customer-operations/jobs?jobId=${encodeURIComponent(
+      ? `/customer-operations/jobs?ids=${encodeURIComponent(
         blockingJobIds.join(','),
       )}`
       : undefined;
