@@ -371,9 +371,9 @@ export function FormDialog({
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [
-          normalizeTruckStatus(selectedTruck.truckStatus) ??
-            selectedTruck.truckStatus,
-        ]
+        normalizeTruckStatus(selectedTruck.truckStatus) ??
+        selectedTruck.truckStatus,
+      ]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType
       ? [selectedTruck.truckBusinessType]
@@ -483,12 +483,12 @@ export function FormDialog({
     () =>
       React.isValidElement(children)
         ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-            id: effectiveId,
-            onCancel: close,
-            onSuccess: handleChildSuccess,
-            onDirtyChange: handleChildDirtyChange,
-            onSaved: handleChildSaved,
-          })
+          id: effectiveId,
+          onCancel: close,
+          onSuccess: handleChildSuccess,
+          onDirtyChange: handleChildDirtyChange,
+          onSaved: handleChildSaved,
+        })
         : children,
     [
       children,
@@ -625,8 +625,7 @@ export function FormDialog({
             href={link.href}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm underline"
-            style={{ color: '#8E51FF' }}
+            className="text-sm underline text-[#8E51FF]"
             onClick={(e) => e.stopPropagation()}
           >
             {link.label}
