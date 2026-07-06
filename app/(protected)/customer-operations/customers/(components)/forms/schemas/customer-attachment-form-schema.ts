@@ -44,6 +44,18 @@ export const CUSTOMER_ATTACHMENT_CATEGORY_OPTIONS: readonly FormSelectOption[] =
       label: 'Contract / Agreement',
       value: CUSTOMER_ATTACHMENT_CATEGORY.CONTRACT_AGREEMENT,
     },
+    {
+      label: 'INsuarance Certificate',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.INSURANCE_CERTIFICATE,
+    },
+    {
+      label: 'Identification',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.IDENTIFICATION,
+    },
+    {
+      label: 'Other',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.OTHER,
+    },
   ];
 
 export const CUSTOMER_ATTACHMENT_CATEGORY_LABELS: Record<string, string> =
