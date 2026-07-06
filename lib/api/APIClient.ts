@@ -1047,6 +1047,18 @@ export const APIClient = {
       appClient.Get<AccountManager[]>(
         `/socoro/quarrylink/api/users/account-managers`,
       ),
+    getOperations: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/operations`,
+      ),
+    addToOperations: (id: string) =>
+      appClient.Post(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
+    removeFromOperations: (id: string) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
