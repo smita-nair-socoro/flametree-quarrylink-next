@@ -48,7 +48,7 @@ function renderLinkedCount(
 export function CannotDeleteEligibilityCheckContent({
   blockingDependencies,
   entityLabel,
-}: CannotDeleteEligibilityCheckContentProps) {
+}: Readonly<CannotDeleteEligibilityCheckContentProps>) {
   const blockingQuotations = blockingDependencies?.blockingQuotations ?? [];
   const blockingJobs = blockingDependencies?.blockingJobs ?? [];
   const blockingDockets = blockingDependencies?.blockingDockets ?? [];
@@ -60,20 +60,20 @@ export function CannotDeleteEligibilityCheckContent({
   const quotationsHref =
     blockingQuotationIds.length > 0
       ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-        blockingQuotationIds.join(','),
-      )}`
+          blockingQuotationIds.join(','),
+        )}`
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
       ? `/customer-operations/jobs?ids=${encodeURIComponent(
-        blockingJobIds.join(','),
-      )}`
+          blockingJobIds.join(','),
+        )}`
       : undefined;
   const docketsHref =
     blockingDocketIds.length > 0
       ? `/customer-operations/dockets/?docketId=${encodeURIComponent(
-        blockingDocketIds.join(','),
-      )}`
+          blockingDocketIds.join(','),
+        )}`
       : undefined;
 
   return (
@@ -94,12 +94,7 @@ export function CannotDeleteEligibilityCheckContent({
             'quotes',
             quotationsHref,
           )}
-          {renderLinkedCount(
-            blockingJobs.length,
-            'job',
-            'jobs',
-            jobsHref,
-          )}
+          {renderLinkedCount(blockingJobs.length, 'job', 'jobs', jobsHref)}
           {renderLinkedCount(
             blockingDockets.length,
             'docket',
