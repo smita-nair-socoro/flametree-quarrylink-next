@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Info, Layers, Truck, FileText } from 'lucide-react';
 import {
@@ -9,6 +9,11 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
+import { getLocalStorage, setLocalStorage } from '@/lib/utils';
+
+const HELP_CENTRE_URL =
+  'https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ';
 
 const features = [
   {
@@ -33,6 +38,17 @@ const features = [
 
 export function HelpCentreButton() {
   const [open, setOpen] = useState(false);
+  const { user: amplifyUser } = useAuth();
+  const userId = amplifyUser?.userId;
+
+  useEffect(() => {
+    if (!userId) return;
+    const key = `helpCentreWelcomeSeen:${userId}`;
+    if (!getLocalStorage(key, false)) {
+      setLocalStorage(key, true);
+      setOpen(true);
+    }
+  }, [userId]);
 
   return (
     <>
@@ -40,7 +56,9 @@ export function HelpCentreButton() {
         <SidebarMenuItem>
           <SidebarMenuButton
             className="bg-[#7138F5] hover:bg-[#5f2fd4] active:bg-[#5f2fd4] text-white hover:text-white active:text-white cursor-pointer h-9"
-            onClick={() => setOpen(true)}
+            onClick={() =>
+              window.open(HELP_CENTRE_URL, '_blank', 'noopener,noreferrer')
+            }
           >
             <Info className="h-5 w-5 shrink-0" />
             <span className="font-medium">Help Centre</span>
@@ -98,7 +116,7 @@ export function HelpCentreButton() {
               New here? We&apos;ll walk you through setup, step by step.
             </p>
             <a
-              href="https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ"
+              href={HELP_CENTRE_URL}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
