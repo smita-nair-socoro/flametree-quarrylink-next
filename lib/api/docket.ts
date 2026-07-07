@@ -262,7 +262,12 @@ export const useUpdateDocket = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<DocketDTO> }) =>
       APIClient.dockets.update(id, data),
     onSuccess: async (data, { id }) => {
-      const updatedDocket = data?.id ? data : await APIClient.dockets.getById(id);
+      // The PUT response omits job.jobNumber, which dialogs display; refetch
+      // the detailed docket so the store holds the full job info
+      const updatedDocket =
+        data?.id && data.job?.jobNumber
+          ? data
+          : await APIClient.dockets.getById(id);
 
       queryClient.setQueryData(DocketKeys.detail(updatedDocket.id), updatedDocket);
       useDocketStore.getState().setSelectedDocket(updatedDocket);
@@ -390,7 +395,9 @@ export const useOperationalUpdateDocket = () => {
     }) => APIClient.dockets.operationalUpdate(id, data),
     onSuccess: async (response, { id }) => {
       const updatedDocket =
-        response.docket ?? (await APIClient.dockets.getById(id));
+        response.docket?.job?.jobNumber != null
+          ? response.docket
+          : await APIClient.dockets.getById(id);
 
       if (updatedDocket) {
         queryClient.setQueryData(

@@ -77,7 +77,7 @@ import {
   JobDTO,
   JobDetails,
   JobItem,
-  Invoice,
+  InvoicesPage,
   CompleteJobResponse,
   SettleJobResponse,
   InvoiceDetails,
@@ -1547,8 +1547,26 @@ export const APIClient = {
   },
 
   invoices: {
-    getAll: (jobId: number) =>
-      appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
+    getAll: (
+      jobId: number,
+      params?: {
+        sortBy?: string;
+        sortOrder?: string;
+        page?: number;
+        pageSize?: number;
+      },
+    ) =>
+      appClient.Get<InvoicesPage>(
+        `/socoro/quarrylink/api/invoices/jobs/${jobId}`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
     getById: (invoiceId: number) =>
       appClient.Get<InvoiceDetails>(
         `/socoro/quarrylink/api/invoices/${invoiceId}`,
