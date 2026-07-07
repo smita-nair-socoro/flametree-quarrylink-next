@@ -187,6 +187,19 @@ export interface Invoice {
   status: INVOICE_STATUS;
 }
 
+/** Paginated invoices from GET /invoices/jobs/{jobId}. */
+export interface InvoicesPage {
+  content: Invoice[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
 export interface InvoiceDetails {
   id: number;
   invoiceNumber: string;
