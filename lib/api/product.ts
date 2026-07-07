@@ -26,6 +26,8 @@ export type ProductsListParams = {
   sortOrder?: string;
   materialIds?: number[];
   isActive?: boolean[];
+  /** Restrict results to specific product ids (e.g. linking from a quarry/supplier). */
+  ids?: number[];
 };
 
 const PRODUCT_COLUMN_TO_API_SORT: Record<string, string> = {

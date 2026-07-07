@@ -82,6 +82,13 @@ export function useJobFormState({
     enabled: isEditing && jobId > 0,
   });
 
+  // Put detailed jobs into store to make form-dialog can get QuoteNumber from store
+  React.useEffect(() => {
+    if (jobDetails) {
+      useJobStore.getState().setSelectedJob(jobDetails);
+    }
+  }, [jobDetails]);
+
   const selectedCustomerId = jobForm.watch('customerId');
 
   const {
@@ -307,7 +314,7 @@ export function useJobFormState({
           const updated = await updateJob.mutateAsync({
             id: jobId,
             data: {
-              ...(jobDetails as JobDTO),
+              ...jobDetails,
               ...payload,
             } as JobDTO,
           });

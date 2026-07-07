@@ -229,6 +229,16 @@ const getDialogConfigs = (
     const totalBlocking =
       blockingQuotes.length + blockingDockets.length + blockingJobs.length;
 
+    const blockingQuotesHref = blockingQuotes.length
+      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((q) => q.id).join(',')}`
+      : undefined;
+    const blockingDocketsHref = blockingDockets.length
+      ? `/customer-operations/dockets/?docketId=${blockingDockets.map((d) => d.id).join(',')}`
+      : undefined;
+    const blockingJobsHref = blockingJobs.length
+      ? `/customer-operations/jobs?ids=${blockingJobs.map((j) => j.id).join(',')}`
+      : undefined;
+
     return {
       cannotArchive: {
         title: 'Cannot Archive Customer',

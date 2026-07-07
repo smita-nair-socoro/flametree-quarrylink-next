@@ -136,9 +136,14 @@ export function getDocketsPageFromListResponse(
 }
 
 export function getDocketItemsFromListResponse(
-  data: DocketsListResponse | null | undefined,
+  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
 ): DocketDTO[] {
-  return data?.dockets?.content ?? [];
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if ('dockets' in data) {
+    return data.dockets?.content ?? [];
+  }
+  return data.content ?? [];
 }
 
 export function getDocketItemsFromJobPage(
@@ -435,4 +440,36 @@ export const DocketConflictCheckQueryOptions = (
     queryFn: () => APIClient.dockets.conflictCheck(docketId!, request!),
     enabled: !!request && !!docketId,
     staleTime: 0,
+  });
+
+export const DocketsByTruckIdQueryOptions = (
+  truckId: number,
+  params?: DocketsListParams,
+) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByTruckId(truckId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByTruckId(truckId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!truckId,
+  });
+
+export const DocketsByDriverIdQueryOptions = (
+  driverId: number,
+  params?: DocketsListParams,
+) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByDriverId(driverId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByDriverId(driverId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!driverId,
   });

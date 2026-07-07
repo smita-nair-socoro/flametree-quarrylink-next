@@ -106,6 +106,10 @@ export const DocketKeys = {
   preStartChecklist: (docketId: number) =>
     [...DocketKeys.all, 'pre-start-checklist', docketId] as const,
   statistics: () => [...DocketKeys.all, 'statistics'] as const,
+  docketsByTruckId: (truckId: number) =>
+    [...DocketKeys.all, 'by-truck-id', truckId] as const,
+  docketsByDriverId: (driverId: number) =>
+    [...DocketKeys.all, 'by-driver-id', driverId] as const,
 };
 
 export const ChecklistKeys = {

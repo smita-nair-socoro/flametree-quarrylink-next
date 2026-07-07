@@ -26,6 +26,8 @@ export type CustomersListParams = {
   statuses?: string[];
   types?: string[];
   accountManagerSubs?: string[];
+  /** Restrict results to specific customer ids. */
+  ids?: number[];
 };
 
 const CUSTOMER_COLUMN_TO_API_SORT: Record<string, string> = {

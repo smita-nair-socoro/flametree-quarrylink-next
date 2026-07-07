@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MoreHorizontal,
-  // FileText,
+  FileText,
   PowerOff,
   Power,
   Trash2,
@@ -20,8 +20,6 @@ import {
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { TruckDTO } from '@/lib/types/truck';
 import { TRUCK_STATUS, normalizeTruckStatus } from '@/lib/types/truck-enums';
-// import { TruckWithDocketsQueryOptions } from '@/lib/api/truck';
-// import { notifyError } from '@/lib/toast';
 
 interface TruckActionButtonsProps {
   truck: TruckDTO | null | undefined;
@@ -29,47 +27,29 @@ interface TruckActionButtonsProps {
 
 export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
   const { actions, confirmDialogs } = useTruckActions(truck);
-  // const queryClient = useQueryClient();
-
-  // const handleLinkedDockets = async () => {
-  //   try {
-  //     const data = await queryClient.fetchQuery(
-  //       TruckWithDocketsQueryOptions(truck!.id!),
-  //     );
-  //     const dockets = data?.dockets ?? [];
-  //     if (dockets.length === 0) {
-  //       notifyError('No dockets assigned to this truck.');
-  //       return;
-  //     }
-  //     const docketIds = dockets.map((d) => d.id).join(',');
-  //     window.open(
-  //       `/customer-operations/dockets/?docketId=${docketIds}`,
-  //       '_blank',
-  //     );
-  //   } catch {
-  //     notifyError('Failed to load truck dockets.');
-  //   }
-  // };
 
   if (!truck || !truck.id) {
     return null;
   }
 
   const status = normalizeTruckStatus(truck.truckStatus);
+  const handleViewDockets = () => {
+    actions.viewDockets(truck.id);
+  };
 
   return (
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* <Button
+        <Button
           variant="ghost"
           size="sm"
-          onClick={handleLinkedDockets}
-          className="rounded-none border-r border-gray-200"
+          onClick={handleViewDockets}
+          className="rounded-none border-r border-gray-200 cursor-pointer"
         >
           <FileText className="h-4 w-4 mr-2" />
           Linked Dockets
-        </Button> */}
+        </Button>
 
         {status !== TRUCK_STATUS.ON_DUTY && (
           <DropdownMenu>
