@@ -34,8 +34,6 @@ const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   customerName: 'customerName',
   projectName: 'projectName',
   status: 'jobStatus',
-  uninvoicedDockets: 'uninvoicedDocketsAmount',
-  accountManagerName: 'accountManagerName',
 };
 
 export function toJobApiSortParams(
