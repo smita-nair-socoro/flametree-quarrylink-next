@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Info, Layers, Truck, ChartColumn } from 'lucide-react';
+import { Info, Layers, Truck, FileText } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,21 +13,21 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 const features = [
   {
     icon: Layers,
-    title: 'Browse the Catalog',
+    title: 'Get set up',
     description:
-      'Search thousands of aggregates, stone, and quarry materials by spec or location.',
+      'Add your quarries, products and customers, and connect your accounting software.',
+  },
+  {
+    icon: FileText,
+    title: 'Quote and win work',
+    description:
+      'Build priced quotes, send them for approval, and turn them into jobs.',
   },
   {
     icon: Truck,
-    title: 'Request a Quote',
+    title: 'Dispatch and invoice',
     description:
-      'Get competitive pricing from verified suppliers in minutes — no back-and-forth.',
-  },
-  {
-    icon: ChartColumn,
-    title: 'Track Your Orders',
-    description:
-      'Monitor delivery status, documents, and spend from one unified dashboard.',
+      'Assign trucks and drivers, track every load, and invoice completed work.',
   },
 ];
 
@@ -65,8 +65,8 @@ export function HelpCentreButton() {
               Welcome to QuarryLink
             </DialogTitle>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              The fastest way to source, quote, and manage quarry materials —
-              built for procurement teams who move fast.
+              Your all-in-one platform for quarry sales and logistics — from
+              customers and quotes through to dockets and invoicing.
             </p>
           </div>
 
@@ -74,7 +74,7 @@ export function HelpCentreButton() {
 
           <div className="p-6 pt-5">
             <p className="text-xs font-semibold text-[#7138F5] uppercase tracking-wider mb-4">
-              Everything you need to get started fast
+              Here&apos;s how to get started
             </p>
             <div className="space-y-5">
               {features.map(({ icon: Icon, title, description }) => (
@@ -95,7 +95,7 @@ export function HelpCentreButton() {
 
           <div className="flex items-center justify-between px-6 py-4 bg-[#FAF8FF] border-t border-[#F0ECFB]">
             <p className="text-[#B0A8C8] text-sm">
-              Takes about 2 minutes to set up.
+              New here? We&apos;ll walk you through setup, step by step.
             </p>
             <a
               href="https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ"
@@ -104,7 +104,7 @@ export function HelpCentreButton() {
               onClick={() => setOpen(false)}
               className="flex items-center gap-1.5 rounded-lg bg-[#7138F5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
             >
-              Click here to get started →
+              Get started →
             </a>
           </div>
         </DialogContent>
