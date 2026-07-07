@@ -262,18 +262,28 @@ export const useUpdateDocket = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<DocketDTO> }) =>
       APIClient.dockets.update(id, data),
     onSuccess: async (data, { id }) => {
-      // The PUT response omits job.jobNumber, which dialogs display; refetch
-      // the detailed docket so the store holds the full job info
+      // The PUT response omits job.jobNumber, which dialogs display. Fetch the
+      // full docket once through the query cache so the open detail query
+      // shares the result instead of refetching after invalidation
       const updatedDocket =
         data?.id && data.job?.jobNumber
           ? data
-          : await APIClient.dockets.getById(id);
+          : await queryClient.fetchQuery({
+              ...DocketByIdQueryOptions(id),
+              staleTime: 0,
+            });
 
       queryClient.setQueryData(DocketKeys.detail(updatedDocket.id), updatedDocket);
       useDocketStore.getState().setSelectedDocket(updatedDocket);
-      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(updatedDocket.id) });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      // Refresh all other docket queries, skipping the detail we just wrote
+      queryClient.invalidateQueries({
+        queryKey: DocketKeys.all,
+        predicate: (query) =>
+          !(
+            query.queryKey[1] === 'detail' &&
+            query.queryKey[2] === updatedDocket.id
+          ),
+      });
     },
   });
 };
@@ -397,7 +407,10 @@ export const useOperationalUpdateDocket = () => {
       const updatedDocket =
         response.docket?.job?.jobNumber != null
           ? response.docket
-          : await APIClient.dockets.getById(id);
+          : await queryClient.fetchQuery({
+              ...DocketByIdQueryOptions(id),
+              staleTime: 0,
+            });
 
       if (updatedDocket) {
         queryClient.setQueryData(
@@ -405,12 +418,16 @@ export const useOperationalUpdateDocket = () => {
           updatedDocket,
         );
         useDocketStore.getState().setSelectedDocket(updatedDocket);
-        queryClient.invalidateQueries({
-          queryKey: DocketKeys.detail(updatedDocket.id),
-        });
       }
-      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      // Refresh all other docket queries, skipping the detail we just wrote
+      queryClient.invalidateQueries({
+        queryKey: DocketKeys.all,
+        predicate: (query) =>
+          !(
+            query.queryKey[1] === 'detail' &&
+            query.queryKey[2] === updatedDocket?.id
+          ),
+      });
       queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
