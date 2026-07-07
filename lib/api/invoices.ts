@@ -20,7 +20,6 @@ export type InvoicesListParams = {
 
 const INVOICE_COLUMN_TO_API_SORT: Record<string, string> = {
   invoice: 'invoiceNumber',
-  dockets: 'docketCount',
   amount: 'amount',
   'Due Date': 'dueDate',
 };
