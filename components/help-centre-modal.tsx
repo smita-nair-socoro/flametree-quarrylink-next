@@ -97,12 +97,15 @@ export function HelpCentreButton() {
             <p className="text-[#B0A8C8] text-sm">
               Takes about 2 minutes to set up.
             </p>
-            <button
+            <a
+              href="https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ"
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setOpen(false)}
               className="flex items-center gap-1.5 rounded-lg bg-[#7138F5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
             >
               Click here to get started →
-            </button>
+            </a>
           </div>
         </DialogContent>
       </Dialog>
