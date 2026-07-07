@@ -23,7 +23,6 @@ const INVOICE_COLUMN_TO_API_SORT: Record<string, string> = {
   dockets: 'docketCount',
   amount: 'amount',
   'Due Date': 'dueDate',
-  status: 'status',
 };
 
 export function toInvoiceApiSortParams(
