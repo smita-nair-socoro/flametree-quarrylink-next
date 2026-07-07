@@ -9,12 +9,15 @@ import DocketForm from './(components)/forms/docket-form';
 import { useQuery } from '@tanstack/react-query';
 import {
   DocketsListQueryOptions,
+  DocketsByDriverIdQueryOptions,
+  DocketsByTruckIdQueryOptions,
   DocketStatisticsQueryOptions,
   toDocketApiFilterParams,
   toDocketApiSortParams,
+  getDocketsPageFromListResponse,
   buildDocketFacetOptions,
 } from '@/lib/api/docket';
-import { DocketDTO } from '@/lib/types/docket';
+import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
@@ -34,6 +37,10 @@ export default function DocketsPage() {
   const searchParams = useSearchParams();
   const linkedJobIdParam = searchParams.get('linkedJobId');
   const linkedJobNumberParam = searchParams.get('linkedJobNumber');
+  const driverIdParam = searchParams.get('driverId');
+  const driverNameParam = searchParams.get('driverName');
+  const truckIdParam = searchParams.get('truckId');
+  const truckNameParam = searchParams.get('truckName');
 
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
 
@@ -41,6 +48,16 @@ export default function DocketsPage() {
     const parsed = Number(linkedJobIdParam);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [linkedJobIdParam]);
+
+  const driverId = React.useMemo(() => {
+    const parsed = Number(driverIdParam);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [driverIdParam]);
+
+  const truckId = React.useMemo(() => {
+    const parsed = Number(truckIdParam);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }, [truckIdParam]);
 
   const { data: statistics, isLoading: isStatisticsLoading } = useQuery(
     DocketStatisticsQueryOptions(),
@@ -64,6 +81,19 @@ export default function DocketsPage() {
     [facetFilters],
   );
 
+  const listQueryParams = React.useMemo(
+    () => ({
+      page: pageIndex,
+      pageSize,
+      search: search.trim() || undefined,
+      ...apiSortParams,
+      ...apiFilterParams,
+    }),
+    [pageIndex, pageSize, search, apiSortParams, apiFilterParams],
+  );
+
+  const useAllDocketsQuery = !linkedJobId && !driverId && !truckId;
+
   const {
     data: docketsList,
     isLoading: isAllDocketsLoading,
@@ -71,26 +101,79 @@ export default function DocketsPage() {
     error: allDocketsError,
     isError: isAllDocketsError,
   } = useQuery({
-    ...DocketsListQueryOptions({
-      page: pageIndex,
-      pageSize,
-      search: search.trim() || undefined,
-      ...apiSortParams,
-      ...apiFilterParams,
-    }),
-    enabled: !linkedJobId,
+    ...DocketsListQueryOptions(listQueryParams),
+    enabled: useAllDocketsQuery,
   });
 
-  const docketPage = docketsList?.dockets;
+  const {
+    data: driverDockets,
+    isLoading: isDriverDocketsLoading,
+    isFetching: isDriverDocketsFetching,
+    error: driverDocketsError,
+    isError: isDriverDocketsError,
+  } = useQuery({
+    ...DocketsByDriverIdQueryOptions(driverId ?? 0, listQueryParams),
+    enabled: !!driverId,
+  });
 
-  const facetOptions = React.useMemo(
-    () => buildDocketFacetOptions(docketsList ?? null),
-    [docketsList],
+  const {
+    data: truckDockets,
+    isLoading: isTruckDocketsLoading,
+    isFetching: isTruckDocketsFetching,
+    error: truckDocketsError,
+    isError: isTruckDocketsError,
+  } = useQuery({
+    ...DocketsByTruckIdQueryOptions(truckId ?? 0, listQueryParams),
+    enabled: !!truckId,
+  });
+
+  const docketsResponse = driverId
+    ? driverDockets
+    : truckId
+      ? truckDockets
+      : docketsList;
+
+  const docketsListResponse = React.useMemo((): DocketsListResponse | null => {
+    if (
+      docketsResponse &&
+      typeof docketsResponse === 'object' &&
+      'dockets' in docketsResponse
+    ) {
+      return docketsResponse as DocketsListResponse;
+    }
+    return null;
+  }, [docketsResponse]);
+
+  const docketPage = React.useMemo(
+    () => getDocketsPageFromListResponse(docketsListResponse),
+    [docketsListResponse],
   );
 
-  const isLoading = isAllDocketsLoading;
-  const isError = isAllDocketsError;
-  const error = allDocketsError;
+  const facetOptions = React.useMemo(
+    () => buildDocketFacetOptions(docketsListResponse),
+    [docketsListResponse],
+  );
+
+  const isLoading = driverId
+    ? isDriverDocketsLoading
+    : truckId
+      ? isTruckDocketsLoading
+      : isAllDocketsLoading;
+  const isFetching = driverId
+    ? isDriverDocketsFetching
+    : truckId
+      ? isTruckDocketsFetching
+      : isAllDocketsFetching;
+  const isError = driverId
+    ? isDriverDocketsError
+    : truckId
+      ? isTruckDocketsError
+      : isAllDocketsError;
+  const error = driverId
+    ? driverDocketsError
+    : truckId
+      ? truckDocketsError
+      : allDocketsError;
 
   const items: DocketDTO[] = React.useMemo(() => {
     return (docketPage?.content ?? []).map((docket) => ({
@@ -266,7 +349,7 @@ export default function DocketsPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !docketsList ? (
+        {isLoading && !docketsResponse ? (
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
@@ -279,7 +362,7 @@ export default function DocketsPage() {
           </div>
         ) : (
           <>
-            {(linkedJobId || docketIdsSet) && (
+            {(linkedJobId || docketIdsSet || driverId || truckId) && (
               <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
                 <div className="mt-1 text-sm text-muted-foreground">
                   {docketIdsSet ? (
@@ -289,6 +372,20 @@ export default function DocketsPage() {
                         ? 'a selected docket'
                         : `${docketIdsSet.size} selected dockets`}
                     </span>
+                  ) : driverId ? (
+                    <>
+                      <span>Showing dockets assigned to </span>
+                      <span className="font-semibold text-foreground">
+                        {driverNameParam || `driver #${driverId}`}
+                      </span>
+                    </>
+                  ) : truckId ? (
+                    <>
+                      <span>Showing dockets linked to </span>
+                      <span className="font-semibold text-foreground">
+                        {truckNameParam || `truck #${truckId}`}
+                      </span>
+                    </>
                   ) : linkedJobNumberParam ? (
                     <>
                       <span>Showing dockets</span>
@@ -298,7 +395,7 @@ export default function DocketsPage() {
                       </span>
                     </>
                   ) : (
-                    <span>{` for job #${linkedJobId}`}</span>
+                    <span>{`Showing dockets for job #${linkedJobId}`}</span>
                   )}
                 </div>
                 <Button
@@ -313,9 +410,13 @@ export default function DocketsPage() {
             {(() => {
               const tableId = docketIdsSet
                 ? `docket_filtered_${Array.from(docketIdsSet).join('_')}`
-                : linkedJobId
-                  ? `docket_linked_${linkedJobId}`
-                  : 'docket_main_data_table';
+                : driverId
+                  ? `docket_driver_${driverId}`
+                  : truckId
+                    ? `docket_truck_${truckId}`
+                    : linkedJobId
+                      ? `docket_linked_${linkedJobId}`
+                      : 'docket_main_data_table';
               return (
                 <DataTableClient
                   key={tableId}
@@ -335,7 +436,7 @@ export default function DocketsPage() {
                   onSearchChange={handleSearchChange}
                   onFacetFiltersChange={handleFacetFiltersChange}
                   onSortingChange={handleSortingChange}
-                  isLoading={isAllDocketsFetching}
+                  isLoading={isFetching}
                 />
               );
             })()}

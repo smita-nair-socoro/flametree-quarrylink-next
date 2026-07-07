@@ -7,6 +7,7 @@ import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import DriverForm from '@/app/(protected)/logistics/drivers/(components)/forms/driver-form';
 import { useDriverStore } from '@/app/stores/driver-store';
 import { Ban, TriangleAlert, CircleAlert, ArrowLeftRight } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   useDeleteDriver,
   useDeactivateDriver,
@@ -27,6 +28,7 @@ import {
   UnassignTruckInfo,
 } from '@/hooks/driver/unassign-truck-content';
 import { Spinner } from '@/components/ui/spinner';
+import { DocketsByDriverIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 
 interface DialogConfig {
   title?: string;
@@ -415,6 +417,7 @@ export function useDriverActions(
   { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
 ) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -590,6 +593,42 @@ export function useDriverActions(
     handleNavigate(docketLink);
   };
 
+  const handleViewDockets = async (targetDriverId?: number) => {
+    const driverIdToFetch = targetDriverId ?? driverId ?? selectedDriver?.id;
+
+    if (!driverIdToFetch) {
+      notifyError('Unable to load dockets for this driver.');
+      return;
+    }
+
+    try {
+      const dockets = await queryClient.fetchQuery(
+        DocketsByDriverIdQueryOptions(driverIdToFetch),
+      );
+      const docketList = getDocketItemsFromListResponse(dockets);
+
+      if (docketList.length === 0) {
+        notifyError('There are no assigned dockets for this driver.');
+        return;
+      }
+
+      const driverName = (
+        driverData?.driverName ??
+        selectedDriver?.driverName ??
+        ''
+      ).trim();
+      const driverNameParam = driverName
+        ? `&driverName=${encodeURIComponent(driverName)}`
+        : '';
+
+      handleNavigate(
+        `/customer-operations/dockets?driverId=${driverIdToFetch}${driverNameParam}`,
+      );
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to load dockets.');
+    }
+  };
+
   const actionHandlers: Record<string, () => Promise<void> | void> = {
     deactivate: handleDeactivate,
     reactivate: handleReactivate,
@@ -616,6 +655,7 @@ export function useDriverActions(
     deactivate: () => createDialogAction('deactivate')(),
     reactivate: () => createDialogAction('reactivate')(),
     delete: () => createDialogAction('delete')(),
+    viewDockets: (driverId?: number) => void handleViewDockets(driverId),
     unassignTruck: (truck: UnassignTruckInfo & { id: number }) => {
       setSelectedTruck(truck);
       setSelectedAction({ key: 'unassignTruck' });
