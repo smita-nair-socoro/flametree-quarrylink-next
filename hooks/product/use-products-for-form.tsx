@@ -193,7 +193,7 @@ export function useProductsForForm({
   } = useInfiniteQuery({
     ...ProductsInfiniteListQueryOptions({
       pageSize: 25,
-      isActive: true,
+      isActive: [true],
       search: debouncedProductSearch.trim() || undefined,
       sortBy: 'productName',
       sortOrder: 'asc',

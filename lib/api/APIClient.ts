@@ -507,8 +507,8 @@ export const APIClient = {
         `/socoro/quarrylink/api/product/reporting`,
       ),
     getAll: async (params?: {
-      materialId?: number;
-      isActive?: boolean;
+      materialIds?: number[];
+      isActive?: boolean[];
       page?: number;
       pageSize?: number;
       search?: string;
@@ -522,11 +522,8 @@ export const APIClient = {
         ProductListItem[] | ProductsListResponse | ProductsPage
       >(`/socoro/quarrylink/api/product/material`, {
         queryString: {
-          materialId: params?.materialId?.toString(),
-          isActive:
-            params?.isActive !== undefined
-              ? String(params.isActive)
-              : undefined,
+          materialIds: params?.materialIds?.map(String),
+          isActive: params?.isActive?.map(String),
           page: params?.page?.toString(),
           pageSize: isPaginated
             ? (params?.pageSize?.toString() ?? '10')
@@ -654,9 +651,9 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      accountManagerSub?: string;
+      statuses?: string[];
+      types?: string[];
+      accountManagerSubs?: string[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -674,9 +671,9 @@ export const APIClient = {
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          accountManagerSub: params?.accountManagerSub,
+          statuses: params?.statuses,
+          types: params?.types,
+          accountManagerSubs: params?.accountManagerSubs,
         },
       });
       return response;
@@ -909,10 +906,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      customerId?: number;
-      productId?: number;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -930,10 +927,10 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            type: params?.type,
-            customerId: params?.customerId?.toString(),
-            productId: params?.productId?.toString(),
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
           },
         },
       );
@@ -1050,6 +1047,18 @@ export const APIClient = {
       appClient.Get<AccountManager[]>(
         `/socoro/quarrylink/api/users/account-managers`,
       ),
+    getOperations: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/operations`,
+      ),
+    addToOperations: (id: string) =>
+      appClient.Post(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
+    removeFromOperations: (id: string) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
@@ -1096,9 +1105,9 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string[];
-      customerId?: number[];
-      accountManagerSub?: string[];
+      statuses?: string[];
+      customerIds?: number[];
+      accountManagerSubs?: string[];
     }) => {
       const response = await appClient.Get<JobsListResponse>(
         `/socoro/quarrylink/api/job`,
@@ -1109,9 +1118,9 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            customerId: params?.customerId?.map(String),
-            accountManagerSub: params?.accountManagerSub,
+            statuses: params?.statuses,
+            customerIds: params?.customerIds?.map(String),
+            accountManagerSubs: params?.accountManagerSubs,
           },
         },
       );

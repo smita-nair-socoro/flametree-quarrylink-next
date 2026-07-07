@@ -30,6 +30,33 @@ export const AccountManagersListQueryOptions = () =>
     staleTime: 5_000,
   });
 
+export const OperationsListQueryOptions = () =>
+  queryOptions<AccountManager[]>({
+    queryKey: UserKeys.operations(),
+    queryFn: () => APIClient.users.getOperations(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+/**
+ * Mutation hook for adding a user to the Operations notification group.
+ * Cache invalidation is handled by the caller so that batched adds only
+ * trigger a single refetch.
+ */
+export const useAddUserToOperations = () =>
+  useMutation({
+    mutationFn: (id: string) => APIClient.users.addToOperations(id),
+  });
+
+/**
+ * Mutation hook for removing a user from the Operations notification group.
+ * Cache invalidation is handled by the caller.
+ */
+export const useRemoveUserFromOperations = () =>
+  useMutation({
+    mutationFn: (id: string) => APIClient.users.removeFromOperations(id),
+  });
+
 export const UserDetailQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: UserKeys.detail(userId),
