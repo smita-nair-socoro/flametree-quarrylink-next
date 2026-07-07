@@ -87,7 +87,13 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
+import {
+  HaulierCreateDTO,
+  HaulierDTO,
+  HaulierDeleteResponse,
+  HaulierStatistics,
+  HauliersPage,
+} from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -509,6 +515,7 @@ export const APIClient = {
     getAll: async (params?: {
       materialIds?: number[];
       isActive?: boolean[];
+      ids?: number[];
       page?: number;
       pageSize?: number;
       search?: string;
@@ -524,6 +531,7 @@ export const APIClient = {
         queryString: {
           materialIds: params?.materialIds?.map(String),
           isActive: params?.isActive?.map(String),
+          ids: params?.ids?.map(String),
           page: params?.page?.toString(),
           pageSize: isPaginated
             ? (params?.pageSize?.toString() ?? '10')
@@ -654,6 +662,7 @@ export const APIClient = {
       statuses?: string[];
       types?: string[];
       accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -674,6 +683,7 @@ export const APIClient = {
           statuses: params?.statuses,
           types: params?.types,
           accountManagerSubs: params?.accountManagerSubs,
+          ids: params?.ids?.map(String),
         },
       });
       return response;
@@ -1184,6 +1194,7 @@ export const APIClient = {
       statuses?: string[];
       customerIds?: number[];
       accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const response = await appClient.Get<JobsListResponse>(
         `/socoro/quarrylink/api/job`,
@@ -1197,6 +1208,7 @@ export const APIClient = {
             statuses: params?.statuses,
             customerIds: params?.customerIds?.map(String),
             accountManagerSubs: params?.accountManagerSubs,
+            ids: params?.ids?.map(String),
           },
         },
       );
@@ -1436,7 +1448,9 @@ export const APIClient = {
         body: data,
       }),
     getStatistics: () =>
-      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+      appClient.Get<HaulierStatistics>(
+        '/socoro/quarrylink/api/haulier/statistics',
+      ),
     delete: (id: number) =>
       appClient.Delete<HaulierDeleteResponse>(
         `/socoro/quarrylink/api/haulier/${id}`,

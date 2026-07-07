@@ -229,6 +229,16 @@ const getDialogConfigs = (
     const totalBlocking =
       blockingQuotes.length + blockingDockets.length + blockingJobs.length;
 
+    const blockingQuotesHref = blockingQuotes.length
+      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((q) => q.id).join(',')}`
+      : undefined;
+    const blockingDocketsHref = blockingDockets.length
+      ? `/customer-operations/dockets/?docketId=${blockingDockets.map((d) => d.id).join(',')}`
+      : undefined;
+    const blockingJobsHref = blockingJobs.length
+      ? `/customer-operations/jobs?ids=${blockingJobs.map((j) => j.id).join(',')}`
+      : undefined;
+
     return {
       cannotArchive: {
         title: 'Cannot Archive Customer',
@@ -277,8 +287,11 @@ const getDialogConfigs = (
                 </span>
                 <div className="flex flex-col gap-3">
                   {blockingQuotes.map((quote) => (
-                    <div
+                    <a
                       key={quote.id}
+                      href={blockingQuotesHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
                     >
                       <div className="flex flex-col gap-1">
@@ -290,7 +303,7 @@ const getDialogConfigs = (
                         </span>
                       </div>
                       <TableBadges names={quote.quoteStatus} visibleCount={1} />
-                    </div>
+                    </a>
                   ))}
                 </div>
               </>
@@ -306,8 +319,11 @@ const getDialogConfigs = (
                 </span>
                 <div className="flex flex-col gap-3">
                   {blockingDockets.map((docket) => (
-                    <div
+                    <a
                       key={docket.id}
+                      href={blockingDocketsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
                     >
                       <div className="flex flex-col gap-1">
@@ -319,7 +335,7 @@ const getDialogConfigs = (
                         names={docket.docketStatus}
                         visibleCount={1}
                       />
-                    </div>
+                    </a>
                   ))}
                 </div>
               </>
@@ -335,8 +351,11 @@ const getDialogConfigs = (
                 </span>
                 <div className="flex flex-col gap-3">
                   {blockingJobs.map((job) => (
-                    <div
+                    <a
                       key={job.id}
+                      href={blockingJobsHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
                     >
                       <div className="flex flex-col gap-1">
@@ -348,7 +367,7 @@ const getDialogConfigs = (
                         </span>
                       </div>
                       <TableBadges names={job.jobStatus} visibleCount={1} />
-                    </div>
+                    </a>
                   ))}
                 </div>
               </>
