@@ -90,29 +90,22 @@ export const getJobColumns = (
     {
       id: 'uninvoicedDockets',
       accessorFn: (row) => row.uninvoicedDocketsAmount,
-      header: ({ column }) => {
+      enableSorting: false,
+      header: () => {
         return (
-          <TableClientSortableHeader
-            column={column}
-            title={
-              <div className="flex items-center gap-1">
-                Uninvoiced Dockets{' '}
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span
-                      className="cursor-help"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{getExTaxLabel(taxLabel)}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            }
-          />
+          <div className="flex items-center gap-1">
+            Uninvoiced Dockets{' '}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-help">
+                  <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{getExTaxLabel(taxLabel)}</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
         );
       },
       cell: ({ row }) => {
@@ -129,10 +122,9 @@ export const getJobColumns = (
     {
       id: 'accountManagerName',
       accessorFn: (row) => row.customerDto?.accountManagerName,
-      header: ({ column }) => {
-        return (
-          <TableClientSortableHeader column={column} title="Account Manager" />
-        );
+      enableSorting: false,
+      header: () => {
+        return <div>Account Manager</div>;
       },
       cell: ({ row }) => {
         const accountManagerName = row.original.customerDto?.accountManagerName;
