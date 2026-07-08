@@ -237,7 +237,7 @@ export function DispatchMobileProvider({
   const allDatesQueryParams = React.useMemo(
     () => ({
       pageSize: 10,
-      status: DOCKET_STATUS.UNASSIGNED,
+      statuses: [DOCKET_STATUS.UNASSIGNED],
       search: queueListSearch,
       ...getUnassignedQueueApiSortParams(queueListSortBy, queueListSortOrder),
     }),
