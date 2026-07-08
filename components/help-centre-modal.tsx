@@ -1,38 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Info, Layers, Truck, ChartColumn } from 'lucide-react';
+import { Info, Layers, Truck, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
+import { useAuth } from '@/hooks/use-auth';
+import { getLocalStorage, setLocalStorage } from '@/lib/utils';
+
+const HELP_CENTRE_URL =
+  'https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ';
 
 const features = [
   {
     icon: Layers,
-    title: 'Browse the Catalog',
+    title: 'Get set up',
     description:
-      'Search thousands of aggregates, stone, and quarry materials by spec or location.',
+      'Add your quarries, products and customers, and connect your accounting software.',
+  },
+  {
+    icon: FileText,
+    title: 'Quote and win work',
+    description:
+      'Build priced quotes, send them for approval, and turn them into jobs.',
   },
   {
     icon: Truck,
-    title: 'Request a Quote',
+    title: 'Dispatch and invoice',
     description:
-      'Get competitive pricing from verified suppliers in minutes — no back-and-forth.',
-  },
-  {
-    icon: ChartColumn,
-    title: 'Track Your Orders',
-    description:
-      'Monitor delivery status, documents, and spend from one unified dashboard.',
+      'Assign trucks and drivers, track every load, and invoice completed work.',
   },
 ];
 
 export function HelpCentreButton() {
   const [open, setOpen] = useState(false);
+  const { user: amplifyUser } = useAuth();
+  const userId = amplifyUser?.userId;
+
+  useEffect(() => {
+    if (!userId) return;
+    const key = `helpCentreWelcomeSeen:${userId}`;
+    if (!getLocalStorage(key, false)) {
+      setLocalStorage(key, true);
+      setOpen(true);
+    }
+  }, [userId]);
 
   return (
     <>
@@ -40,7 +56,9 @@ export function HelpCentreButton() {
         <SidebarMenuItem>
           <SidebarMenuButton
             className="bg-[#7138F5] hover:bg-[#5f2fd4] active:bg-[#5f2fd4] text-white hover:text-white active:text-white cursor-pointer h-9"
-            onClick={() => setOpen(true)}
+            onClick={() =>
+              window.open(HELP_CENTRE_URL, '_blank', 'noopener,noreferrer')
+            }
           >
             <Info className="h-5 w-5 shrink-0" />
             <span className="font-medium">Help Centre</span>
@@ -49,7 +67,10 @@ export function HelpCentreButton() {
       </SidebarMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0 rounded-2xl">
+        <DialogContent
+          className="sm:max-w-lg p-0 overflow-hidden gap-0 rounded-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <div className="h-[10px] w-full bg-[linear-gradient(to_right,#6D28D9,#A78BFA,#6D28D9)]" />
           <div className="p-6 pb-4">
             <div className="flex items-center gap-2 mb-5">
@@ -65,8 +86,8 @@ export function HelpCentreButton() {
               Welcome to QuarryLink
             </DialogTitle>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              The fastest way to source, quote, and manage quarry materials —
-              built for procurement teams who move fast.
+              Your all-in-one platform for quarry sales and logistics — from
+              customers and quotes through to dockets and invoicing.
             </p>
           </div>
 
@@ -74,7 +95,7 @@ export function HelpCentreButton() {
 
           <div className="p-6 pt-5">
             <p className="text-xs font-semibold text-[#7138F5] uppercase tracking-wider mb-4">
-              Everything you need to get started fast
+              Here&apos;s how to get started
             </p>
             <div className="space-y-5">
               {features.map(({ icon: Icon, title, description }) => (
@@ -95,14 +116,20 @@ export function HelpCentreButton() {
 
           <div className="flex items-center justify-between px-6 py-4 bg-[#FAF8FF] border-t border-[#F0ECFB]">
             <p className="text-[#B0A8C8] text-sm">
-              Takes about 2 minutes to set up.
+              New here?
+              <span className="block">
+                We&apos;ll walk you through setup, step by step.
+              </span>
             </p>
-            <button
+            <a
+              href={HELP_CENTRE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-1.5 rounded-lg bg-[#7138F5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#7138F5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
             >
-              Click here to get started →
-            </button>
+              Get started →
+            </a>
           </div>
         </DialogContent>
       </Dialog>
