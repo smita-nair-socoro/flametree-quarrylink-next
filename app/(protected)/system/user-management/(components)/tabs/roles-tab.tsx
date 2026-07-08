@@ -133,13 +133,12 @@ const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
     name: 'Operations',
     icon: Truck,
     description:
-      'Receives operational notifications about deliveries, drivers, jobs, and logistics.',
+      'Receives operational notifications about jobs, dockets, deliveries, and vehicle compliance.',
     emailTypes: [
-      'Driver assignment changes',
-      'Delivery status updates',
-      'Job scheduling alerts',
-      'Fleet dispatch notifications',
-      'Docket completion alerts',
+      'Pre-start check failures',
+      'Vehicle inspection failures',
+      'Job status changes',
+      'Docket interruptions (Stop/Cancel/Void)',
     ],
   },
   {
@@ -147,13 +146,12 @@ const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
     icon: FileText,
     manageable: false,
     description:
-      'Receives commercial notifications about quotes, customers, and sales activity.',
+      'Receives job, docket, and quote notifications for their linked customer accounts.',
     emailTypes: [
-      'New quote requests',
       'Quote approval notifications',
-      'Customer status changes',
-      'Pricing updates',
-      'Sales activity summaries',
+      'Quote decline notifications',
+      'Job status changes',
+      'Docket interruptions (Stop/Cancel/Void)',
     ],
   },
 ];
