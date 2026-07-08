@@ -95,13 +95,10 @@ export const getJobColumns = (
   {
     id: 'uninvoicedDockets',
     accessorFn: (row) => row.uninvoicedDocketsAmount,
-    header: ({ column }) => {
+    header: () => {
       return (
         <div className="flex items-center gap-1">
-          <TableClientSortableHeader
-            column={column}
-            title="Uninvoiced Dockets"
-          />
+          <div>Uninvoiced Dockets</div>
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="cursor-help">
