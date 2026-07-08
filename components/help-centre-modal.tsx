@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Info, Layers, Truck, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 
@@ -67,7 +67,10 @@ export function HelpCentreButton() {
       </SidebarMenu>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg p-0 overflow-hidden gap-0 rounded-2xl">
+        <DialogContent
+          className="sm:max-w-lg p-0 overflow-hidden gap-0 rounded-2xl"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <div className="h-[10px] w-full bg-[linear-gradient(to_right,#6D28D9,#A78BFA,#6D28D9)]" />
           <div className="p-6 pb-4">
             <div className="flex items-center gap-2 mb-5">
@@ -113,14 +116,17 @@ export function HelpCentreButton() {
 
           <div className="flex items-center justify-between px-6 py-4 bg-[#FAF8FF] border-t border-[#F0ECFB]">
             <p className="text-[#B0A8C8] text-sm">
-              New here? We&apos;ll walk you through setup, step by step.
+              New here?
+              <span className="block">
+                We&apos;ll walk you through setup, step by step.
+              </span>
             </p>
             <a
               href={HELP_CENTRE_URL}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-1.5 rounded-lg bg-[#7138F5] px-4 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
+              className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[#7138F5] px-5 py-2 text-sm font-semibold text-white hover:bg-[#5f2fd4] transition-colors"
             >
               Get started →
             </a>

@@ -16,6 +16,7 @@ import {
   SidebarHeader,
   SidebarRail,
   SidebarTrigger,
+  SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import {
@@ -25,7 +26,6 @@ import {
 import { UserDetailQueryOptions } from '@/lib/api/user';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { HelpCentreButton } from '@/components/help-centre-modal';
-import { SidebarSeparator } from '@/components/ui/sidebar';
 
 export const navItems = [
   {
