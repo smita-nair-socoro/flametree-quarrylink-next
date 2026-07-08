@@ -29,10 +29,7 @@ import {
   DEFAULT_DISPATCH_BOARD_FILTER,
   type DispatchBoardFilterState,
 } from './drivers-trucks-filter';
-import {
-  useAssignDocket,
-  useUnassignDocket,
-} from '@/lib/api/docket';
+import { useAssignDocket, useUnassignDocket } from '@/lib/api/docket';
 import { notifySuccess } from '@/lib/toast';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import {
@@ -87,7 +84,8 @@ function getDocketFromDragActive(
   active: DragStartEvent['active'],
   dockets: DispatchDocket[],
 ): DispatchDocket | undefined {
-  const fromDrag = (active.data.current as DispatchDragData | undefined)?.docket;
+  const fromDrag = (active.data.current as DispatchDragData | undefined)
+    ?.docket;
   if (fromDrag) return fromDrag;
   return dockets.find((d) => String(d.id) === String(active.id));
 }
@@ -127,9 +125,8 @@ export function DispatchView({
     docket: DispatchDocket;
   } | null>(null);
 
-  const [activeDragDocket, setActiveDragDocket] = useState<DispatchDocket | null>(
-    null,
-  );
+  const [activeDragDocket, setActiveDragDocket] =
+    useState<DispatchDocket | null>(null);
 
   const [pendingUnassignDocketId, setPendingUnassignDocketId] = useState<
     string | null
@@ -160,10 +157,7 @@ export function DispatchView({
     }
   }, [viewType]);
 
-  const start = useMemo(
-    () => `${formatLocalISO(startOfDay(date))}Z`,
-    [date],
-  );
+  const start = useMemo(() => `${formatLocalISO(startOfDay(date))}Z`, [date]);
   const end = useMemo(() => `${formatLocalISO(endOfDay(date))}Z`, [date]);
   const isPastDispatchDate = useMemo(
     () => isBefore(startOfDay(date), startOfDay(new Date())),
@@ -325,8 +319,7 @@ export function DispatchView({
   }, [viewType, trucksData]);
 
   const filterHaulierOptions = useMemo(
-    () =>
-      buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
+    () => buildSchedulerFilterHaulierOptions(viewType, trucksData, driversData),
     [viewType, trucksData, driversData],
   );
 
@@ -453,14 +446,14 @@ export function DispatchView({
     const trucksBooked =
       viewType === 'trucks'
         ? new Set(
-          assignedOnSelectedDay
-            .map((d) => d.uiAssignedTruckId)
-            .filter((id): id is string => Boolean(id)),
-        ).size
+            assignedOnSelectedDay
+              .map((d) => d.uiAssignedTruckId)
+              .filter((id): id is string => Boolean(id)),
+          ).size
         : countTrucksWithAssignedBookingsOnSelectedDay(
-          trucksDataForStats,
-          date,
-        );
+            trucksDataForStats,
+            date,
+          );
 
     const trucksForDriverResolve =
       viewType === 'trucks' ? trucksData : trucksDataForStats;
@@ -493,8 +486,7 @@ export function DispatchView({
   ) => {
     if (viewType !== 'trucks') return;
 
-    const d =
-      sourceDocket ?? dockets.find((x) => String(x.id) === docketId);
+    const d = sourceDocket ?? dockets.find((x) => String(x.id) === docketId);
     if (!d) return;
 
     const loadSize = d.actualLoadSize || d.plannedLoadSize || 0;
@@ -532,7 +524,10 @@ export function DispatchView({
     const overId = over.id as string;
 
     if (overId === 'unassigned-queue') {
-      if (draggedDocket && draggedDocket.docketStatus !== DOCKET_STATUS.ASSIGNED) {
+      if (
+        draggedDocket &&
+        draggedDocket.docketStatus !== DOCKET_STATUS.ASSIGNED
+      ) {
         return;
       }
       setPendingUnassignDocketId(docketId);
@@ -642,10 +637,10 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === docketId
                 ? {
-                  ...d,
-                  uiAssignedDuration: newDuration,
-                  deliveryCollectionEndTime: formatLocalISO(endWindow),
-                }
+                    ...d,
+                    uiAssignedDuration: newDuration,
+                    deliveryCollectionEndTime: formatLocalISO(endWindow),
+                  }
                 : d,
             ),
           );
@@ -748,11 +743,11 @@ export function DispatchView({
             prev.map((d) =>
               String(d.id) === id
                 ? {
-                  ...d,
-                  uiAssignedTruckId: null,
-                  uiAssignedTime: null,
-                  docketStatus: DOCKET_STATUS.UNASSIGNED,
-                }
+                    ...d,
+                    uiAssignedTruckId: null,
+                    uiAssignedTime: null,
+                    docketStatus: DOCKET_STATUS.UNASSIGNED,
+                  }
                 : d,
             ),
           );
@@ -820,16 +815,14 @@ export function DispatchView({
               docketStatus: DOCKET_STATUS.ASSIGNED,
               ...(adjustedLoadSize != null
                 ? {
-                  actualLoadSize: adjustedLoadSize,
-                  plannedLoadSize: adjustedLoadSize,
-                }
+                    actualLoadSize: adjustedLoadSize,
+                    plannedLoadSize: adjustedLoadSize,
+                  }
                 : {}),
             };
 
             if (existing) {
-              return prev.map((d) =>
-                String(d.id) === docketId ? updated : d,
-              );
+              return prev.map((d) => (String(d.id) === docketId ? updated : d));
             }
             return [...prev, updated];
           });
@@ -852,19 +845,19 @@ export function DispatchView({
   const assignModalTruck: DispatchTruckResource | null =
     assignModalData && viewType === 'trucks' && trucksData
       ? (trucksData.resources.find(
-        (r): r is DispatchTruckResource =>
-          isDispatchTruckResource(r) &&
-          String(r.id) === assignModalData.targetId,
-      ) ?? null)
+          (r): r is DispatchTruckResource =>
+            isDispatchTruckResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   const assignModalDriver: DispatchDriverResource | null =
     assignModalData && viewType === 'drivers' && driversData
       ? (driversData.resources.find(
-        (r): r is DispatchDriverResource =>
-          isDispatchDriverResource(r) &&
-          String(r.id) === assignModalData.targetId,
-      ) ?? null)
+          (r): r is DispatchDriverResource =>
+            isDispatchDriverResource(r) &&
+            String(r.id) === assignModalData.targetId,
+        ) ?? null)
       : null;
 
   const unassignedDocketsForBoard = useMemo(() => {
@@ -880,79 +873,81 @@ export function DispatchView({
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <DispatchDriversTrucksFilter
-          viewType={viewType}
-          driverOptions={filterDriverOptions}
-          truckOptions={filterTruckOptions}
-          haulierOptions={filterHaulierOptions}
-          customerOptions={filterCustomerOptions}
-          isLoadingResources={isLoading}
-          filter={boardFilter}
-          onFilterChange={setBoardFilter}
-        />
-        <div className="border-b pl-6 py-2.5 bg-white">
-          <div className="flex items-center gap-3">
-            <span className="text-[12px] font-medium text-[#64748B]">
-              {format(date, 'EEE dd MMM').toUpperCase()}
-            </span>
+        <div className="flex h-full min-h-0 flex-col overflow-hidden">
+          <DispatchDriversTrucksFilter
+            viewType={viewType}
+            driverOptions={filterDriverOptions}
+            truckOptions={filterTruckOptions}
+            haulierOptions={filterHaulierOptions}
+            customerOptions={filterCustomerOptions}
+            isLoadingResources={isLoading}
+            filter={boardFilter}
+            onFilterChange={setBoardFilter}
+          />
+          <div className="border-b pl-6 py-2.5 bg-white">
+            <div className="flex items-center gap-3">
+              <span className="text-[12px] font-medium text-[#64748B]">
+                {format(date, 'EEE dd MMM').toUpperCase()}
+              </span>
 
-            <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
-              <span className="text-[12px] font-semibold tracking-wider">
-                {headerStats.trucksBooked}
-              </span>{' '}
-              <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-                Trucks booked today
-              </span>
+              <div className="border bg-blue-50 border-blue-800 rounded-xl px-3 py-1 items-center flex gap-1">
+                <span className="text-[12px] font-semibold tracking-wider">
+                  {headerStats.trucksBooked}
+                </span>{' '}
+                <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+                  Trucks booked today
+                </span>
+              </div>
+              <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
+                <span className="text-[12px] font-semibold tracking-wider">
+                  {headerStats.driversOnTrips}
+                </span>{' '}
+                <span className="text-[12px] font-medium text-gray-700 tracking-wider">
+                  Drivers on trips
+                </span>
+              </div>
             </div>
-            <div className="border bg-purple-50 border-purple-800 rounded-xl px-3 py-1 items-center flex gap-1">
-              <span className="text-[12px] font-semibold tracking-wider">
-                {headerStats.driversOnTrips}
-              </span>{' '}
-              <span className="text-[12px] font-medium text-gray-700 tracking-wider">
-                Drivers on trips
-              </span>
-            </div>
           </div>
-        </div>
-        <div className="flex h-[calc(100vh-200px)] overflow-hidden pt-2 pb-4 px-4 gap-4">
-          <div className="w-[390px] shrink-0">
-            <UnassignedDockets
-              date={date}
-              dockets={unassignedDocketsForBoard}
-              assignedDocketIds={dockets
-                .filter((d) => d.docketStatus !== DOCKET_STATUS.UNASSIGNED)
-                .map((d) => String(d.id))}
-              isLoading={isLoading}
-              selectedDocketId={selectedDocketId}
-              onSelectDocket={handleSelectUnassignedDocket}
-              dragEnabled={isDispatchTodayOrFuture}
-            />
-          </div>
-          <div className="flex-1 min-w-0">
-            <AssignedDockets
-              trucks={filteredMappedResources}
-              dockets={docketsForAssignedBoard}
-              isLoading={isLoading}
-              onUpdateDocket={handleUpdateDocket}
-              onResizeDocket={handleResizeDocket}
-              selectedDocketId={selectedDocketId}
-              onSelectDocket={handleSelectAssignedDocket}
-              viewType={viewType}
-              utilisationFocus={utilisationFocus}
-              boardInteractionMode={boardInteractionMode}
-            />
-          </div>
-          {selectedDocketId && (
-            <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
-              <DocketDetailsPanel
-                docketId={Number(selectedDocketId)}
-                onClose={handleCloseDetailsPanel}
-                onUnassign={handleUnassign}
-                isDispatchView={true}
-                onUtilisationLoadSizeChange={handleUtilisationLoadSizeChange}
+          <div className="flex flex-1 min-h-0 overflow-hidden pt-2 pb-4 px-4 gap-4">
+            <div className="w-[390px] shrink-0">
+              <UnassignedDockets
+                date={date}
+                dockets={unassignedDocketsForBoard}
+                assignedDocketIds={dockets
+                  .filter((d) => d.docketStatus !== DOCKET_STATUS.UNASSIGNED)
+                  .map((d) => String(d.id))}
+                isLoading={isLoading}
+                selectedDocketId={selectedDocketId}
+                onSelectDocket={handleSelectUnassignedDocket}
+                dragEnabled={isDispatchTodayOrFuture}
               />
             </div>
-          )}
+            <div className="flex-1 min-w-0">
+              <AssignedDockets
+                trucks={filteredMappedResources}
+                dockets={docketsForAssignedBoard}
+                isLoading={isLoading}
+                onUpdateDocket={handleUpdateDocket}
+                onResizeDocket={handleResizeDocket}
+                selectedDocketId={selectedDocketId}
+                onSelectDocket={handleSelectAssignedDocket}
+                viewType={viewType}
+                utilisationFocus={utilisationFocus}
+                boardInteractionMode={boardInteractionMode}
+              />
+            </div>
+            {selectedDocketId && (
+              <div className="w-[400px] shrink-0 border border-[#E2E8F0] rounded-xl bg-white shadow-sm overflow-hidden flex flex-col h-full">
+                <DocketDetailsPanel
+                  docketId={Number(selectedDocketId)}
+                  onClose={handleCloseDetailsPanel}
+                  onUnassign={handleUnassign}
+                  isDispatchView={true}
+                  onUtilisationLoadSizeChange={handleUtilisationLoadSizeChange}
+                />
+              </div>
+            )}
+          </div>
         </div>
         <DragOverlay zIndex={1000} modifiers={[snapCenterToCursor]}>
           {activeDocket ? <DocketCardOverlay docket={activeDocket} /> : null}
