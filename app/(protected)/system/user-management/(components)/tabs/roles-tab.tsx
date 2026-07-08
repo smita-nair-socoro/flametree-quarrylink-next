@@ -238,10 +238,9 @@ export default function RolesTab() {
       </div>
 
       <PermissionMatrix
-        description="Access levels for each permission role across QuarryLink Core modules. ✓ means full access in the web app or Driver App as applicable."
+        description="Access levels for each permission role across QuarryLink Core modules."
         roles={roles}
         sections={sections}
-        footerNote="Super Admins have full access including billing and subscription settings. Admins can manage users and operational data. Users have access to day-to-day operations. Drivers are limited to the Driver App for their assigned deliveries."
       />
 
       <EmailNotificationGroups
