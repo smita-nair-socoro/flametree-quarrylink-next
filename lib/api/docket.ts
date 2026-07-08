@@ -91,12 +91,15 @@ function getFacetFilterValues(
 ): string[] {
   const filter = filters.find((f) => f.id === columnId);
   if (!filter || !Array.isArray(filter.value)) return [];
-  return filter.value.map((v) => String(v));
+  return filter.value.map(String);
 }
 
 export function toDocketApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<DocketsListParams, 'statuses' | 'types' | 'customerIds' | 'productIds'> {
+): Pick<
+  DocketsListParams,
+  'statuses' | 'types' | 'customerIds' | 'productIds'
+> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const typeValues = getFacetFilterValues(filters, 'docketType');
   const customerValues = getFacetFilterValues(filters, 'customer');
@@ -136,9 +139,14 @@ export function getDocketsPageFromListResponse(
 }
 
 export function getDocketItemsFromListResponse(
-  data: DocketsListResponse | null | undefined,
+  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
 ): DocketDTO[] {
-  return data?.dockets?.content ?? [];
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if ('dockets' in data) {
+    return data.dockets?.content ?? [];
+  }
+  return data.content ?? [];
 }
 
 export function getDocketItemsFromJobPage(
@@ -174,7 +182,7 @@ export const DocketsListQueryOptions = (params?: DocketsListParams) =>
     queryFn: () =>
       APIClient.dockets.getAll({
         ...params,
-        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
@@ -197,7 +205,7 @@ export const DocketsInfiniteListQueryOptions = (
       if (!page) return undefined;
       const content = page.content ?? [];
       if (content.length === 0) return undefined;
-      const nextPage = (lastPageParam as number) + 1;
+      const nextPage = lastPageParam + 1;
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
@@ -237,7 +245,7 @@ export const DocketsByJobIdQueryOptions = (
     queryFn: () =>
       APIClient.dockets.getByJobId(jobId, {
         ...params,
-        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
@@ -257,13 +265,31 @@ export const useUpdateDocket = () => {
     mutationFn: ({ id, data }: { id: number; data: Partial<DocketDTO> }) =>
       APIClient.dockets.update(id, data),
     onSuccess: async (data, { id }) => {
-      const updatedDocket = data?.id ? data : await APIClient.dockets.getById(id);
+      // The PUT response omits job.jobNumber, which dialogs display. Fetch the
+      // full docket once through the query cache so the open detail query
+      // shares the result instead of refetching after invalidation
+      const updatedDocket =
+        data?.id && data.job?.jobNumber
+          ? data
+          : await queryClient.fetchQuery({
+              ...DocketByIdQueryOptions(id),
+              staleTime: 0,
+            });
 
-      queryClient.setQueryData(DocketKeys.detail(updatedDocket.id), updatedDocket);
+      queryClient.setQueryData(
+        DocketKeys.detail(updatedDocket.id),
+        updatedDocket,
+      );
       useDocketStore.getState().setSelectedDocket(updatedDocket);
-      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.detail(updatedDocket.id) });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      // Refresh all other docket queries, skipping the detail we just wrote
+      queryClient.invalidateQueries({
+        queryKey: DocketKeys.all,
+        predicate: (query) =>
+          !(
+            query.queryKey[1] === 'detail' &&
+            query.queryKey[2] === updatedDocket.id
+          ),
+      });
     },
   });
 };
@@ -385,7 +411,12 @@ export const useOperationalUpdateDocket = () => {
     }) => APIClient.dockets.operationalUpdate(id, data),
     onSuccess: async (response, { id }) => {
       const updatedDocket =
-        response.docket ?? (await APIClient.dockets.getById(id));
+        response.docket?.job?.jobNumber == null
+          ? await queryClient.fetchQuery({
+              ...DocketByIdQueryOptions(id),
+              staleTime: 0,
+            })
+          : response.docket;
 
       if (updatedDocket) {
         queryClient.setQueryData(
@@ -393,12 +424,16 @@ export const useOperationalUpdateDocket = () => {
           updatedDocket,
         );
         useDocketStore.getState().setSelectedDocket(updatedDocket);
-        queryClient.invalidateQueries({
-          queryKey: DocketKeys.detail(updatedDocket.id),
-        });
       }
-      queryClient.invalidateQueries({ queryKey: DocketKeys.list() });
-      queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+      // Refresh all other docket queries, skipping the detail we just wrote
+      queryClient.invalidateQueries({
+        queryKey: DocketKeys.all,
+        predicate: (query) =>
+          !(
+            query.queryKey[1] === 'detail' &&
+            query.queryKey[2] === updatedDocket?.id
+          ),
+      });
       queryClient.invalidateQueries({ queryKey: SchedulerKeys.all });
     },
   });
@@ -435,4 +470,36 @@ export const DocketConflictCheckQueryOptions = (
     queryFn: () => APIClient.dockets.conflictCheck(docketId!, request!),
     enabled: !!request && !!docketId,
     staleTime: 0,
+  });
+
+export const DocketsByTruckIdQueryOptions = (
+  truckId: number,
+  params?: DocketsListParams,
+) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByTruckId(truckId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByTruckId(truckId, {
+        ...params,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!truckId,
+  });
+
+export const DocketsByDriverIdQueryOptions = (
+  driverId: number,
+  params?: DocketsListParams,
+) =>
+  queryOptions({
+    queryKey: [...DocketKeys.docketsByDriverId(driverId), params],
+    queryFn: () =>
+      APIClient.dockets.getDocketsByDriverId(driverId, {
+        ...params,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!driverId,
   });

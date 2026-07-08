@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   MoreHorizontal,
-  // FileText,
+  FileText,
   RefreshCw,
   PowerOff,
   Power,
@@ -71,30 +71,20 @@ export function DriverActionButtons({
     }
   };
 
-  // const handleAssignedDockets = () => {
-  //   const dockets = fullDriver?.dockets;
-  //   if (!dockets || dockets.length === 0) {
-  //     notifyError('No dockets assigned to this driver.');
-  //     return;
-  //   }
-  //   const docketIds = dockets.map((d) => d.id).join(',');
-  //   window.open(
-  //     `/customer-operations/dockets/?docketId=${docketIds}`,
-  //     '_blank',
-  //   );
-  // };
-
   if (!driver || !driver.id) {
     return null;
   }
 
   const status = driver.driverStatus;
+  const handleAssignedDockets = () => {
+    actions.viewDockets(driver.id);
+  };
 
   return (
     <div className="flex items-start">
       {confirmDialogs}
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        {/* <Button
+        <Button
           variant="ghost"
           size="sm"
           onClick={handleAssignedDockets}
@@ -102,7 +92,7 @@ export function DriverActionButtons({
         >
           <FileText className="h-4 w-4 mr-2" />
           Assigned Dockets
-        </Button> */}
+        </Button>
 
         {status !== DRIVER_STATUS.ON_DUTY && (
           <DropdownMenu>

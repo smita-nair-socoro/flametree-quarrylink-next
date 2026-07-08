@@ -229,6 +229,16 @@ const getDialogConfigs = (
     const totalBlocking =
       blockingQuotes.length + blockingDockets.length + blockingJobs.length;
 
+    const blockingQuotesHref = blockingQuotes.length
+      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((q) => q.id).join(',')}`
+      : undefined;
+    const blockingDocketsHref = blockingDockets.length
+      ? `/customer-operations/dockets/?docketId=${blockingDockets.map((d) => d.id).join(',')}`
+      : undefined;
+    const blockingJobsHref = blockingJobs.length
+      ? `/customer-operations/jobs?ids=${blockingJobs.map((j) => j.id).join(',')}`
+      : undefined;
+
     return {
       cannotArchive: {
         title: 'Cannot Archive Customer',
@@ -268,90 +278,69 @@ const getDialogConfigs = (
             </div>
 
             {blockingQuotes.length > 0 && (
-              <>
+              <div className="flex flex-col gap-2">
                 <span>
                   <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
                   <span className="font-medium text-base text-[#101828]">
                     Pending Quotes ({blockingQuotes.length}):
                   </span>
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingQuotes.map((quote) => (
-                    <div
-                      key={quote.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {quote.projectName}
-                        </span>
-                        <span className="text-xs text-yellow-600">
-                          {quote.quoteNumber}
-                        </span>
-                      </div>
-                      <TableBadges names={quote.quoteStatus} visibleCount={1} />
-                    </div>
-                  ))}
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a
+                    href={`/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((quote) => quote.id).join(',')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                  >
+                    {blockingQuotes.length} pending{' '}
+                    {blockingQuotes.length === 1 ? 'quote' : 'quotes'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             {blockingDockets.length > 0 && (
-              <>
+              <div className="flex flex-col gap-2">
                 <span>
                   <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
                   <span className="font-medium text-base text-[#101828]">
                     Active Dockets ({blockingDockets.length}):
                   </span>
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingDockets.map((docket) => (
-                    <div
-                      key={docket.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {docket.docketNumber}
-                        </span>
-                      </div>
-                      <TableBadges
-                        names={docket.docketStatus}
-                        visibleCount={1}
-                      />
-                    </div>
-                  ))}
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a
+                    href={`/customer-operations/dockets?ids=${blockingDockets.map((docket) => docket.id).join(',')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                  >
+                    {blockingDockets.length} active{' '}
+                    {blockingDockets.length === 1 ? 'docket' : 'dockets'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             {blockingJobs.length > 0 && (
-              <>
+              <div className="flex flex-col gap-2">
                 <span>
                   <FileText className="h-4 w-4 mr-2 text-[#D97706] inline-block" />
                   <span className="font-medium text-base text-[#101828]">
                     Active Jobs ({blockingJobs.length}):
                   </span>
                 </span>
-                <div className="flex flex-col gap-3">
-                  {blockingJobs.map((job) => (
-                    <div
-                      key={job.id}
-                      className="bg-[#FEFCEB] border border-yellow-900 rounded-md p-3 flex items-center justify-between"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <span className="font-medium text-[14px] text-yellow-900">
-                          {job.projectName}
-                        </span>
-                        <span className="text-xs text-yellow-600">
-                          {job.jobNumber}
-                        </span>
-                      </div>
-                      <TableBadges names={job.jobStatus} visibleCount={1} />
-                    </div>
-                  ))}
+                <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
+                  <a
+                    href={`/customer-operations/jobs?ids=${blockingJobs.map((job) => job.id).join(',')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[14px] text-[#155DFC] font-medium underline"
+                  >
+                    {blockingJobs.length} active{' '}
+                    {blockingJobs.length === 1 ? 'job' : 'jobs'}
+                  </a>
                 </div>
-              </>
+              </div>
             )}
 
             <div className="flex flex-col gap-2">

@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeftRight, Info } from 'lucide-react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
@@ -9,7 +10,10 @@ import { TruckDTO } from '@/lib/types/truck';
 import { useTruckStore } from '@/app/stores/truck-store';
 import TruckForm from '@/app/(protected)/logistics/trucks/(components)/forms/truck-form';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage, extractErrorData } from '@/lib/utils/error-message-helper';
+import {
+  extractErrorMessage,
+  extractErrorData,
+} from '@/lib/utils/error-message-helper';
 import {
   DeactivateTruckDescription,
   DeactivateTruckContent,
@@ -42,6 +46,7 @@ import {
   useReactivateTruck,
   useDeleteTruck,
 } from '@/lib/api/truck';
+import { DocketsByTruckIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 import { TruckActionButtons } from '@/app/(protected)/logistics/trucks/(components)/forms/truck-action-buttons';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -53,17 +58,18 @@ interface DialogConfig {
   confirmCustomColor?: string;
   confirmIcon?: React.ReactNode;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmActionNeeded?: boolean;
   confirmDisabled?: boolean;
   cancelText?: string;
 }
 
 export function useTruckActions(truckData?: TruckDTO | null) {
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
@@ -95,7 +101,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     ...HaulierDriversQueryOptions(haulierId),
     enabled: !!haulierId && activeDialog === 'assignDriver',
   });
-  const assignedDriverIds = (truckData?.drivers ?? []).map((d) => d.id).filter((id): id is number => id != null);
+  const assignedDriverIds = (truckData?.drivers ?? [])
+    .map((d) => d.id)
+    .filter((id): id is number => id != null);
   const allDrivers = availableDriversData?.drivers ?? [];
   const assignDriversToTruck = useAssignDriversToTruck();
   const unassignDriverFromTruck = useUnassignDriverFromTruck();
@@ -114,7 +122,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       notifySuccess('Truck deactivated successfully.');
       setActiveDialog(null);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as { activeDockets?: Array<{ id: number }> } | null;
+      const errorData = extractErrorData(error) as {
+        activeDockets?: Array<{ id: number }>;
+      } | null;
       const blocked = errorData?.activeDockets ?? [];
       if (blocked.length > 0) {
         setCannotDeactivateDocketIds(blocked.map((d) => d.id));
@@ -145,7 +155,9 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       setActiveDialog(null);
       setViewOpen(false);
     } catch (error: unknown) {
-      const errorData = extractErrorData(error) as { activeDockets?: Array<{ id: number }> } | null;
+      const errorData = extractErrorData(error) as {
+        activeDockets?: Array<{ id: number }>;
+      } | null;
       const blocked = errorData?.activeDockets ?? [];
       if (blocked.length > 0) {
         setCannotDeleteDocketIds(blocked.map((d) => d.id));
@@ -211,6 +223,42 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     setSelectedDriver(null);
     setBlockedDocketIds([]);
     handleNavigate(docketLink);
+  };
+
+  const handleViewDockets = async (truckId?: number) => {
+    const targetTruckId = truckId ?? truckData?.id ?? selectedTruck?.id;
+
+    if (!targetTruckId) {
+      notifyError('Unable to load dockets for this truck.');
+      return;
+    }
+
+    try {
+      const dockets = await queryClient.fetchQuery(
+        DocketsByTruckIdQueryOptions(targetTruckId),
+      );
+      const docketList = getDocketItemsFromListResponse(dockets);
+
+      if (docketList.length === 0) {
+        notifyError('There are no linked dockets for this truck.');
+        return;
+      }
+
+      const truckName = (
+        truckData?.licensePlate ??
+        selectedTruck?.licensePlate ??
+        ''
+      ).trim();
+      const truckNameParam = truckName
+        ? `&truckName=${encodeURIComponent(truckName)}`
+        : '';
+
+      handleNavigate(
+        `/customer-operations/dockets?truckId=${targetTruckId}${truckNameParam}`,
+      );
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to load dockets.');
+    }
   };
 
   const dialogConfigs = React.useMemo(
@@ -340,10 +388,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   };
 
   const actions = {
-    view: (
-      truck?: TruckDTO | null,
-      options?: { scrollToSection?: string },
-    ) => {
+    view: (truck?: TruckDTO | null, options?: { scrollToSection?: string }) => {
       const toSelect = truck ?? truckData;
       if (toSelect != null) setSelectedTruck(toSelect);
       setScrollToSection(options?.scrollToSection);
@@ -352,6 +397,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
     deactivate: () => setActiveDialog('deactivate'),
     reactivate: () => setActiveDialog('reactivate'),
     delete: () => setActiveDialog('delete'),
+    viewDockets: (truckId?: number) => handleViewDockets(truckId),
     assignDriver: () => {
       setSelectedDriverIds([]);
       setActiveDialog('assignDriver');

@@ -25,6 +25,8 @@ export type JobsListParams = {
   statuses?: string[];
   customerIds?: number[];
   accountManagerSubs?: string[];
+  /** Restrict results to specific job ids (e.g. linking from a converted quotation/docket). */
+  ids?: number[];
 };
 
 const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
@@ -32,8 +34,6 @@ const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   customerName: 'customerName',
   projectName: 'projectName',
   status: 'jobStatus',
-  uninvoicedDockets: 'uninvoicedDocketsAmount',
-  accountManagerName: 'accountManagerName',
 };
 
 export function toJobApiSortParams(
@@ -61,7 +61,10 @@ export function toJobApiFilterParams(
 ): Pick<JobsListParams, 'statuses' | 'customerIds' | 'accountManagerSubs'> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const customerValues = getFacetFilterValues(filters, 'customerName');
-  const accountManagerValues = getFacetFilterValues(filters, 'accountManagerName');
+  const accountManagerValues = getFacetFilterValues(
+    filters,
+    'accountManagerName',
+  );
 
   const customerIds = customerValues
     .map(Number)
@@ -355,9 +358,14 @@ export const usePauseJob = () => {
       collectionPauseStrategy,
     }: {
       id: number;
-      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE';
-      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE';
-    }) => APIClient.jobs.pause(id, deliveryPauseStrategy, collectionPauseStrategy),
+      deliveryPauseStrategy:
+        | 'STOP_ALL_DELIVERY_DOCKETS'
+        | 'ALLOW_DRIVERS_TO_COMPLETE';
+      collectionPauseStrategy:
+        | 'STOP_ACTIVE_COLLECTION_DOCKETS'
+        | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE';
+    }) =>
+      APIClient.jobs.pause(id, deliveryPauseStrategy, collectionPauseStrategy),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });
