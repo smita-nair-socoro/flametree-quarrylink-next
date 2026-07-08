@@ -33,7 +33,7 @@ const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   jobNumber: 'jobNumber',
   customerName: 'customerName',
   projectName: 'projectName',
-  uninvoicedDockets: 'uninvoicedDockets',
+  uninvoicedDockets: 'uninvoicedDocketsAmount',
   status: 'jobStatus',
 };
 
