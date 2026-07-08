@@ -48,10 +48,16 @@ export function toProductApiSortParams(
     return { sortBy: 'productName', sortOrder: 'asc' };
   }
 
-  return {
-    sortBy: PRODUCT_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
-    sortOrder: sort.desc ? 'desc' : 'asc',
-  };
+  const sortBy = PRODUCT_COLUMN_TO_API_SORT[sort.id] ?? sort.id;
+  let sortOrder: 'asc' | 'desc' = sort.desc ? 'desc' : 'asc';
+
+  // isActive is a boolean on the API: asc puts false before true, but the UI
+  // label order is Active (true) then Unavailable (false).
+  if (sortBy === 'isActive') {
+    sortOrder = sort.desc ? 'asc' : 'desc';
+  }
+
+  return { sortBy, sortOrder };
 }
 
 function getFacetFilterValues(
