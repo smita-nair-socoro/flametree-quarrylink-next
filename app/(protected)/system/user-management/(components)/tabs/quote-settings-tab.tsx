@@ -12,10 +12,20 @@ import {
 import { DataTableClientBasic } from '@/components/ui/data-table-client-basic';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
+import { AddQuoteSettingDialog } from '../(data-tables)/quote-settings/add-quote-setting-dialog';
 import { QuoteSettingItemType } from '../(data-tables)/quote-settings/types';
 
 export default function QuoteSettingsTab() {
-  const { items, actions } = useQuoteSettingsActions();
+  const {
+    items,
+    actions,
+    addDialogType,
+    documentItem,
+    closeAddDialog,
+    submitTextTemplate,
+    submitExternalLink,
+    submitReplaceDocument,
+  } = useQuoteSettingsActions();
 
   const columns = React.useMemo(
     () =>
@@ -82,6 +92,17 @@ export default function QuoteSettingsTab() {
           defaultSorting={[{ id: 'name', desc: false }]}
         />
       </div>
+
+      <AddQuoteSettingDialog
+        type={addDialogType}
+        currentDocument={documentItem}
+        onOpenChange={(open) => {
+          if (!open) closeAddDialog();
+        }}
+        onSubmitTextTemplate={submitTextTemplate}
+        onSubmitExternalLink={submitExternalLink}
+        onSubmitReplaceDocument={submitReplaceDocument}
+      />
     </div>
   );
 }
