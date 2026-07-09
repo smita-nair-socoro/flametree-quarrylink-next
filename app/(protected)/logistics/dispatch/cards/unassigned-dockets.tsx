@@ -318,7 +318,7 @@ export default function UnassignedDockets({
     () => ({
       pageSize: 10,
       search: debouncedSearch.trim() || undefined,
-      status: DOCKET_STATUS.UNASSIGNED,
+      statuses: [DOCKET_STATUS.UNASSIGNED],
       ...getAllDatesApiSortParams(sortBy),
     }),
     [debouncedSearch, sortBy],
