@@ -32,7 +32,8 @@ import {
   ExternalLinkFormValues,
   ReplaceDocumentFormValues,
 } from '../../tabs/schemas/quote-setting-schema';
-import { QuoteSettingItemType, QuoteTermsAndConditionsDocument } from './types';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
+import { QuoteTermsAndConditionsDocument } from '@/lib/types/terms-conditions';
 
 interface AddQuoteSettingDialogProps {
   type: QuoteSettingItemType | null;

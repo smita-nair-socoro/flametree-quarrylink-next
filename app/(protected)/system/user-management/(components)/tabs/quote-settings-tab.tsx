@@ -13,7 +13,7 @@ import { DataTableClientBasic } from '@/components/ui/data-table-client-basic';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
 import { AddQuoteSettingDialog } from '../(data-tables)/quote-settings/add-quote-setting-dialog';
-import { QuoteSettingItemType } from '../(data-tables)/quote-settings/types';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 export default function QuoteSettingsTab() {
   const {

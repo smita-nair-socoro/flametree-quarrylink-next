@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import { notifyInfo, notifySuccess } from '@/lib/toast';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
   QuoteSettingItem,
-  QuoteSettingItemType,
   QuoteTermsAndConditionsDocument,
-} from '@/app/(protected)/system/user-management/(components)/(data-tables)/quote-settings/types';
+} from '@/lib/types/terms-conditions';
 import {
   TextTemplateFormValues,
   ExternalLinkFormValues,

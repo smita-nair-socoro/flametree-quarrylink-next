@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { QuoteSettingItem } from './types';
+import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 
 interface QuoteSettingsTableActionsProps {
   item: QuoteSettingItem;

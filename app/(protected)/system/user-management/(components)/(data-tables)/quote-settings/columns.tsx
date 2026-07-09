@@ -4,7 +4,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Link2, Paperclip } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatCalendarDate } from '@/lib/utils/date';
-import { QuoteSettingItem, QuoteSettingItemType } from './types';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
+import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 import { QuoteSettingsTableActions } from './quote-settings-table-actions';
 
 const typeLabels: Record<QuoteSettingItemType, string> = {
