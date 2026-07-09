@@ -867,8 +867,11 @@ export default function DocketForm({
   );
 
   // Gross Vehicle Mass (GVM) check — Calculated Gross Weight is the truck's tare
-  // weight plus the planned load (converted to tonnes). When it exceeds the
-  // truck's GVM limit we surface a warning and flag the gross weight field.
+  // weight plus the load (converted to tonnes). Once the docket moves past
+  // ASSIGNED (In Transit, Stopped, Arrived, Delivered, Voided, Cancelled, …)
+  // the actual load size drives the calc, falling back to planned when no
+  // actual load size has been recorded. When the result exceeds the truck's
+  // GVM limit we surface a warning and flag the gross weight field.
   const weightDetails = selectedJobLineItemDetails();
   const parsedTareWeight = Number.parseFloat(tareWeightInput);
   const tareWeightForCalc = Number.isNaN(parsedTareWeight)
@@ -879,10 +882,18 @@ export default function DocketForm({
     selectedDocket?.truck?.combinationGvmPbs != null
       ? selectedDocket.truck.combinationGvmPbs
       : (selectedDocket?.truck?.combinationGvm ?? null);
-  const plannedLoadSizeForGvm = docketForm.watch('plannedLoadSize') || 0;
+  const useActualLoadSizeForGvm =
+    isEditing &&
+    currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+    currentStatus !== DOCKET_STATUS.ASSIGNED &&
+    currentStatus !== DOCKET_STATUS.PENDING;
+  const loadSizeForGvm =
+    (useActualLoadSizeForGvm ? docketForm.watch('actualLoadSize') : 0) ||
+    docketForm.watch('plannedLoadSize') ||
+    0;
   const calculatedGrossWeight = calculateGrossWeight({
     tareWeight: tareWeightForCalc,
-    loadSize: plannedLoadSizeForGvm,
+    loadSize: loadSizeForGvm,
     productUom: weightDetails.productUom || 'TN',
     density: weightDetails.densityTonnagePerM3 || 1,
   });
