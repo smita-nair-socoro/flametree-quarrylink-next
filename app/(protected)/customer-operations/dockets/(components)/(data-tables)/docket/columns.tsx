@@ -250,7 +250,9 @@ export const getDocketColumns = (
       );
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.totalInvoiceAmount.toString());
+      const cents = Number.parseFloat(
+        row.original.totalInvoiceAmount.toString(),
+      );
       const dollars = cents / 100;
       const formatted = formatCurrency(dollars, currencyCode);
       return (

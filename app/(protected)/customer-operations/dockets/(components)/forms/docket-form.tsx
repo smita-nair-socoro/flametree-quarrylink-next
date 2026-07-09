@@ -68,6 +68,7 @@ import {
   convertTruckVolumeToProductUom,
   calculateGrossWeight,
   formatUomLabel,
+  formatCapacityUomLabel,
 } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
@@ -590,7 +591,7 @@ export default function DocketForm({
       !!dirtyFields.deliveryCollectionEndTime ||
       !!dirtyFields.deliveryCollectionDate;
 
-    const parsedTareTruckWeight = parseFloat(tareWeightInput);
+    const parsedTareTruckWeight = Number.parseFloat(tareWeightInput);
     const assignedPayload = {
       deliveryCollectionDate: values.deliveryCollectionDate
         ? appendUtcSuffix(
@@ -607,7 +608,7 @@ export default function DocketForm({
       truckId: selectedDocket!.truckId,
       driverId: selectedDocket!.driverId,
       deliveryDistanceQuantity,
-      tareTruckWeight: isNaN(parsedTareTruckWeight)
+      tareTruckWeight: Number.isNaN(parsedTareTruckWeight)
         ? undefined
         : parsedTareTruckWeight,
     };
@@ -1243,18 +1244,9 @@ export default function DocketForm({
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomNorm =
-                                          details.productUom?.toLowerCase();
-                                        const uomText =
-                                          uomNorm === '20kg' ||
-                                          uomNorm === 'kg_20'
-                                            ? 'x 20kg'
-                                            : uomNorm === 'm3' ||
-                                                uomNorm === 'bulka'
-                                              ? 'm³'
-                                              : uomNorm === 'tn'
-                                                ? 'TN'
-                                                : details.productUom || '';
+                                        const uomText = formatCapacityUomLabel(
+                                          details.productUom,
+                                        );
 
                                         if (
                                           !Number.isNaN(val) &&
@@ -1321,18 +1313,9 @@ export default function DocketForm({
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomNorm =
-                                          details.productUom?.toLowerCase();
-                                        const uomText =
-                                          uomNorm === '20kg' ||
-                                          uomNorm === 'kg_20'
-                                            ? 'x 20kg'
-                                            : uomNorm === 'm3' ||
-                                                uomNorm === 'bulka'
-                                              ? 'm³'
-                                              : uomNorm === 'tn'
-                                                ? 'TN'
-                                                : details.productUom || '';
+                                        const uomText = formatCapacityUomLabel(
+                                          details.productUom,
+                                        );
 
                                         if (
                                           !Number.isNaN(val) &&
@@ -1533,14 +1516,7 @@ export default function DocketForm({
                             ?.toUpperCase()
                             .startsWith('GENERIC') ?? false;
                         const uomNorm = d.productUom?.toLowerCase();
-                        const uomText =
-                          uomNorm === '20kg' || uomNorm === 'kg_20'
-                            ? 'x 20kg'
-                            : uomNorm === 'm3' || uomNorm === 'bulka'
-                              ? 'm³'
-                              : uomNorm === 'tn'
-                                ? 'TN'
-                                : d.productUom;
+                        const uomText = formatCapacityUomLabel(d.productUom);
                         const isM3 = uomNorm === 'm3' || uomNorm === 'bulka';
                         const calcLabel = isM3
                           ? `${formatNumberThousandSeparator(vol)} m³`
