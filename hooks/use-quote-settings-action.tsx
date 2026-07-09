@@ -6,6 +6,7 @@ import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
   QuoteSettingItem,
   QuoteTermsAndConditionsDocument,
+  QuoteTextTemplateItem,
 } from '@/lib/types/terms-conditions';
 import {
   TextTemplateFormValues,
@@ -79,14 +80,42 @@ export function useQuoteSettingsActions() {
   const [items, setItems] = React.useState<QuoteSettingItem[]>(initialItems);
   const [addDialogType, setAddDialogType] =
     React.useState<QuoteSettingItemType | null>(null);
+  const [editingTextTemplate, setEditingTextTemplate] =
+    React.useState<QuoteTextTemplateItem | null>(null);
 
-  const view = React.useCallback((item: QuoteSettingItem) => {
-    notifyInfo(`Viewing "${item.name}" is coming soon.`);
-  }, []);
+  const openTextTemplateEditor = React.useCallback(
+    (item: QuoteTextTemplateItem) => {
+      setEditingTextTemplate(item);
+      setAddDialogType(QuoteSettingItemType.TEXT_TEMPLATE);
+    },
+    [],
+  );
 
-  const edit = React.useCallback((item: QuoteSettingItem) => {
-    notifyInfo(`Editing "${item.name}" is coming soon.`);
-  }, []);
+  const view = React.useCallback(
+    (item: QuoteSettingItem) => {
+      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+        openTextTemplateEditor(item);
+        return;
+      }
+      notifyInfo(`Viewing "${item.name}" is coming soon.`);
+    },
+    [openTextTemplateEditor],
+  );
+
+  const edit = React.useCallback(
+    (item: QuoteSettingItem) => {
+      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+        openTextTemplateEditor(item);
+        return;
+      }
+      if (item.type === QuoteSettingItemType.UPLOADED_DOCUMENT) {
+        setAddDialogType(QuoteSettingItemType.UPLOADED_DOCUMENT);
+        return;
+      }
+      notifyInfo(`Editing "${item.name}" is coming soon.`);
+    },
+    [openTextTemplateEditor],
+  );
 
   const setDefault = React.useCallback((item: QuoteSettingItem) => {
     setItems((prev) =>
@@ -106,6 +135,7 @@ export function useQuoteSettingsActions() {
 
   const closeAddDialog = React.useCallback(() => {
     setAddDialogType(null);
+    setEditingTextTemplate(null);
   }, []);
 
   const documentItem = React.useMemo(
@@ -130,17 +160,21 @@ export function useQuoteSettingsActions() {
   const submitTextTemplate = React.useCallback(
     (values: TextTemplateFormValues) => {
       applyItem({
-        id: String(nextItemId++),
+        id: editingTextTemplate?.id ?? String(nextItemId++),
         name: values.name,
         type: QuoteSettingItemType.TEXT_TEMPLATE,
         content: values.content,
         isDefault: values.isDefault,
         updatedAt: new Date().toISOString(),
       });
-      notifySuccess(`"${values.name}" added.`);
+      notifySuccess(
+        editingTextTemplate
+          ? `"${values.name}" updated.`
+          : `"${values.name}" added.`,
+      );
       closeAddDialog();
     },
-    [applyItem, closeAddDialog],
+    [applyItem, closeAddDialog, editingTextTemplate],
   );
 
   const submitExternalLink = React.useCallback(
@@ -188,6 +222,7 @@ export function useQuoteSettingsActions() {
     actions,
     addDialogType,
     documentItem,
+    editingTextTemplate,
     closeAddDialog,
     submitTextTemplate,
     submitExternalLink,

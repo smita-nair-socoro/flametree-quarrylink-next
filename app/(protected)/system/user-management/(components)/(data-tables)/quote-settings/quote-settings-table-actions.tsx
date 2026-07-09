@@ -1,7 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { Eye, MoreHorizontal, Pencil, Star, Trash2 } from 'lucide-react';
+import {
+  Eye,
+  MoreHorizontal,
+  Pencil,
+  Star,
+  Trash2,
+  Upload,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,6 +18,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 interface QuoteSettingsTableActionsProps {
   item: QuoteSettingItem;
@@ -26,8 +34,10 @@ export function QuoteSettingsTableActions({
   onEdit,
   onSetDefault,
   onDelete,
-}: QuoteSettingsTableActionsProps) {
+}: Readonly<QuoteSettingsTableActionsProps>) {
   const [open, setOpen] = React.useState(false);
+  const isUploadedDocument =
+    item.type === QuoteSettingItemType.UPLOADED_DOCUMENT;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -58,8 +68,12 @@ export function QuoteSettingsTableActions({
             onEdit(item);
           }}
         >
-          <Pencil className="h-4 w-4 mr-2" />
-          Edit
+          {isUploadedDocument ? (
+            <Upload className="h-4 w-4 mr-2" />
+          ) : (
+            <Pencil className="h-4 w-4 mr-2" />
+          )}
+          {isUploadedDocument ? 'Replace PDF' : 'Edit'}
         </DropdownMenuItem>
         {!item.isDefault && (
           <DropdownMenuItem

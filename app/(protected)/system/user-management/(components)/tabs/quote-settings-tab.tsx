@@ -21,6 +21,7 @@ export default function QuoteSettingsTab() {
     actions,
     addDialogType,
     documentItem,
+    editingTextTemplate,
     closeAddDialog,
     submitTextTemplate,
     submitExternalLink,
@@ -96,6 +97,7 @@ export default function QuoteSettingsTab() {
       <AddQuoteSettingDialog
         type={addDialogType}
         currentDocument={documentItem}
+        editingTextTemplate={editingTextTemplate}
         onOpenChange={(open) => {
           if (!open) closeAddDialog();
         }}

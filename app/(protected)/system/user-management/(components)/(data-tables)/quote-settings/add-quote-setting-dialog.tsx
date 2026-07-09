@@ -33,11 +33,15 @@ import {
   ReplaceDocumentFormValues,
 } from '../../tabs/schemas/quote-setting-schema';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
-import { QuoteTermsAndConditionsDocument } from '@/lib/types/terms-conditions';
+import {
+  QuoteTermsAndConditionsDocument,
+  QuoteTextTemplateItem,
+} from '@/lib/types/terms-conditions';
 
 interface AddQuoteSettingDialogProps {
   type: QuoteSettingItemType | null;
   currentDocument?: QuoteTermsAndConditionsDocument;
+  editingTextTemplate?: QuoteTextTemplateItem | null;
   onOpenChange: (open: boolean) => void;
   onSubmitTextTemplate: (values: TextTemplateFormValues) => void;
   onSubmitExternalLink: (values: ExternalLinkFormValues) => void;
@@ -47,6 +51,7 @@ interface AddQuoteSettingDialogProps {
 export function AddQuoteSettingDialog({
   type,
   currentDocument,
+  editingTextTemplate,
   onOpenChange,
   onSubmitTextTemplate,
   onSubmitExternalLink,
@@ -59,6 +64,8 @@ export function AddQuoteSettingDialog({
       <DialogContent className="sm:max-w-md">
         {type === QuoteSettingItemType.TEXT_TEMPLATE && (
           <TextTemplateForm
+            key={editingTextTemplate?.id ?? 'new'}
+            editingItem={editingTextTemplate}
             onCancel={handleCancel}
             onSubmit={onSubmitTextTemplate}
           />
@@ -82,15 +89,22 @@ export function AddQuoteSettingDialog({
 }
 
 function TextTemplateForm({
+  editingItem,
   onCancel,
   onSubmit,
 }: Readonly<{
+  editingItem?: QuoteTextTemplateItem | null;
   onCancel: () => void;
   onSubmit: (values: TextTemplateFormValues) => void;
 }>) {
+  const isEditing = Boolean(editingItem);
   const form = useForm<TextTemplateFormValues>({
     resolver: zodResolver(textTemplateFormSchema),
-    defaultValues: { name: '', content: '', isDefault: false },
+    defaultValues: {
+      name: editingItem?.name ?? '',
+      content: editingItem?.content ?? '',
+      isDefault: editingItem?.isDefault ?? false,
+    },
   });
 
   const contentLength = form.watch('content')?.length ?? 0;
@@ -98,7 +112,9 @@ function TextTemplateForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Add Text Template</DialogTitle>
+        <DialogTitle>
+          {isEditing ? 'Edit Text Template' : 'Add Text Template'}
+        </DialogTitle>
         <DialogDescription>
           Text templates are available when staff compose quotes under Notes
           &amp; Terms.
@@ -144,14 +160,14 @@ function TextTemplateForm({
             control={form.control}
             name="isDefault"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="font-normal">
+                <FormLabel className="font-normal text-[#09090B]">
                   Attach to new quotes by default
                 </FormLabel>
               </FormItem>
@@ -161,7 +177,9 @@ function TextTemplateForm({
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">Add Template</Button>
+            <Button type="submit">
+              {isEditing ? 'Save Changes' : 'Add Template'}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
@@ -228,14 +246,14 @@ function ExternalLinkForm({
             control={form.control}
             name="isDefault"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="font-normal">
+                <FormLabel className="font-normal text-[#09090B]">
                   Attach to new quotes by default
                 </FormLabel>
               </FormItem>
@@ -262,6 +280,7 @@ function ReplaceDocumentForm({
   onCancel: () => void;
   onSubmit: (values: ReplaceDocumentFormValues) => void;
 }>) {
+  const isReplacing = Boolean(currentDocument);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const form = useForm<ReplaceDocumentFormValues>({
     resolver: zodResolver(replaceDocumentFormSchema),
@@ -277,10 +296,13 @@ function ReplaceDocumentForm({
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Replace Policy Document</DialogTitle>
+        <DialogTitle>
+          {isReplacing ? 'Replace Policy Document' : 'Upload Policy Document'}
+        </DialogTitle>
         <DialogDescription>
-          Uploading a new PDF will replace the current document. Only one policy
-          document is allowed in your library.
+          {isReplacing
+            ? 'Uploading a new PDF will replace the current document. Only one policy document is allowed in your library.'
+            : 'Upload a single PDF policy document. Customers can view and download it from quotes.'}
         </DialogDescription>
       </DialogHeader>
       <Form {...form}>
@@ -298,7 +320,10 @@ function ReplaceDocumentForm({
               <FormItem>
                 <FormLabel>Display name</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g. Policy Document" {...field} />
+                  <Input
+                    placeholder="e.g. Standard Supply Terms 2026"
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -330,7 +355,9 @@ function ReplaceDocumentForm({
                       <Upload className="h-4 w-4" />
                       {selectedFile
                         ? selectedFile.name
-                        : 'Choose Replacement PDF'}
+                        : isReplacing
+                          ? 'Choose Replacement PDF'
+                          : 'Choose PDF'}
                     </button>
                   </div>
                 </FormControl>
@@ -345,14 +372,14 @@ function ReplaceDocumentForm({
             control={form.control}
             name="isDefault"
             render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
                 <FormControl>
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>
-                <FormLabel className="font-normal">
+                <FormLabel className="font-normal text-[#09090B]">
                   Attach to new quotes by default
                 </FormLabel>
               </FormItem>
@@ -362,7 +389,9 @@ function ReplaceDocumentForm({
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">Replace Document</Button>
+            <Button type="submit">
+              {isReplacing ? 'Replace Document' : 'Upload Document'}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
