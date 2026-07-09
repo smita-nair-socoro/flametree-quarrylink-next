@@ -1392,7 +1392,7 @@ export default function DocketForm({
                                     gvmExceeded &&
                                       'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
                                   )}
-                                  readOnly
+                                  disabled
                                   isNumber
                                   allowDecimal
                                   minDecimals={2}
