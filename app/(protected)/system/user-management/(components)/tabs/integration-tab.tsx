@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,15 +11,36 @@ import { useMyobIntegrationActions } from '@/hooks/use-myob-integration-actions'
 import { useQuery } from '@tanstack/react-query';
 import { TenantInternalDetailsQueryOptions } from '@/lib/api/tenant';
 import { XeroFieldMappings } from './xero-field-mappings';
+import { useGetTrackingCategories } from '@/lib/api/accounting';
+import { useGetTrackingCategoriesDefinitions } from '@/lib/api/accounting';
 
 export default function IntegrationTab() {
-  const { isConnected: xeroConnected, actions: xeroActions, connectDialog: xeroConnectDialog } =
-    useXeroIntegrationActions();
-  const { isConnected: myobConnected, actions: myobActions, connectDialog: myobConnectDialog } =
-    useMyobIntegrationActions();
+  const {
+    isConnected: xeroConnected,
+    actions: xeroActions,
+    connectDialog: xeroConnectDialog,
+  } = useXeroIntegrationActions();
+  const {
+    isConnected: myobConnected,
+    actions: myobActions,
+    connectDialog: myobConnectDialog,
+  } = useMyobIntegrationActions();
 
-  const { data: tenantInternalDetails } = useQuery(TenantInternalDetailsQueryOptions());
-  const accountingSoftware = tenantInternalDetails?.accountingSoftware?.toUpperCase();
+  const trackingCategoriesQuery = useGetTrackingCategories({
+    enabled: xeroConnected,
+  });
+  const trackingCategoriesDefinitionsQuery =
+    useGetTrackingCategoriesDefinitions({ enabled: false });
+
+  const loadTrackingCategoryDefinitions = React.useCallback(async () => {
+    await trackingCategoriesDefinitionsQuery.refetch();
+  }, [trackingCategoriesDefinitionsQuery]);
+
+  const { data: tenantInternalDetails } = useQuery(
+    TenantInternalDetailsQueryOptions(),
+  );
+  const accountingSoftware =
+    tenantInternalDetails?.accountingSoftware?.toUpperCase();
 
   const isXero = accountingSoftware === 'XERO';
   const isMyob = accountingSoftware === 'MYOB_BUSINESS';
@@ -80,7 +102,20 @@ export default function IntegrationTab() {
               )}
             </div>
 
-            {xeroConnected && <XeroFieldMappings />}
+            {xeroConnected && (
+              <XeroFieldMappings
+                trackingCategories={trackingCategoriesQuery.data}
+                trackingCategoryDefinitions={
+                  trackingCategoriesDefinitionsQuery.data
+                }
+                onLoadTrackingCategoryDefinitions={
+                  loadTrackingCategoryDefinitions
+                }
+                isLoadingTrackingCategories={
+                  trackingCategoriesDefinitionsQuery.isFetching
+                }
+              />
+            )}
           </CardContent>
         </Card>
       )}

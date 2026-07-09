@@ -11,7 +11,6 @@ import {
 } from '@/components/ui/popover';
 import {
   Command,
-  CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
@@ -56,12 +55,9 @@ export function GroupedFieldSelector({
 }: GroupedFieldSelectorProps) {
   const [open, setOpen] = React.useState(defaultOpen);
   const [search, setSearch] = React.useState('');
-  const [expandedCategories, setExpandedCategories] = React.useState<Set<string>>(
-    () =>
-      new Set(
-        defaultExpandedKeys || []
-      ),
-  );
+  const [expandedCategories, setExpandedCategories] = React.useState<
+    Set<string>
+  >(() => new Set(defaultExpandedKeys || []));
 
   React.useEffect(() => {
     if (defaultOpen) {
@@ -89,9 +85,7 @@ export function GroupedFieldSelector({
 
   React.useEffect(() => {
     if (!normalizedSearch) return;
-    setExpandedCategories(
-      new Set(filteredCategories.map((item) => item.key)),
-    );
+    setExpandedCategories(new Set(filteredCategories.map((item) => item.key)));
   }, [normalizedSearch, filteredCategories]);
 
   const selectedLabel = field || placeholder;

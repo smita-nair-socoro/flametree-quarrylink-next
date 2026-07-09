@@ -23,64 +23,80 @@ import {
   type GroupedFieldCategory,
 } from '@/components/ui/grouped-field-selector';
 import { cn } from '@/lib/utils';
+import type {
+  TrackingCategory,
+  TrackingCategoryDefinition,
+} from '@/lib/types/accounting';
+import {
+  useCreateTrackingCategory,
+  useDeleteTrackingCategory,
+  useUpdateTrackingCategory,
+} from '@/lib/api/accounting';
+import { notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 const MAX_FIELD_MAPPINGS = 2;
+const EMPTY_TRACKING_CATEGORIES: TrackingCategory[] = [];
+const EMPTY_TRACKING_CATEGORY_DEFINITIONS: TrackingCategoryDefinition[] = [];
 
 type FieldMapping = {
-  id: string;
+  id: number;
   name: string;
   category: string;
   field: string;
+  definitionId: number;
+  optionNames: string[];
 };
 
-const XERO_FIELD_CATEGORIES: GroupedFieldCategory[] = [
-  {
-    key: 'PRODUCT',
-    label: 'Product',
-    fields: ['Product Name', 'Product Code', 'Material Type', 'Description'],
-  },
-  {
-    key: 'CUSTOMER',
-    label: 'Customer',
-    fields: [
-      'Business Name',
-      'Contact Name',
-      'Email',
-      'Phone',
-      'Customer Type',
-      'Payment Terms',
-    ],
-  },
-  {
-    key: 'JOB',
-    label: 'Job',
-    fields: ['Job Number', 'Job Type', 'Job Status', 'Project Name'],
-  },
-  {
-    key: 'DOCKET',
-    label: 'Docket',
-    fields: ['Docket Number', 'Load Size', 'Delivery Date', 'Status'],
-  },
-  {
-    key: 'DRIVER',
-    label: 'Driver',
-    fields: ['Driver Name', 'License Number', 'Phone', 'Email'],
-  },
-  {
-    key: 'TRUCK',
-    label: 'Truck',
-    fields: ['License Plate', 'Truck Type', 'Capacity', 'Status'],
-  },
-];
+function buildFieldCategories(
+  definitions: TrackingCategoryDefinition[] = [],
+): GroupedFieldCategory[] {
+  const groups = new Map<
+    number,
+    { key: string; label: string; fields: Set<string> }
+  >();
 
-const MOCK_FIELD_MAPPINGS: FieldMapping[] = [
-  {
-    id: 'mock-1',
-    name: 'Quarrylink Product',
-    category: 'Product',
-    field: 'Product Name',
-  },
-];
+  for (const definition of definitions) {
+    const group = groups.get(definition.accountingTrackingGroupId) ?? {
+      key: definition.trackingGroupName,
+      label: definition.trackingGroupName,
+      fields: new Set<string>(),
+    };
+    group.fields.add(definition.trackingCategoryName);
+    groups.set(definition.accountingTrackingGroupId, group);
+  }
+
+  return Array.from(groups.values()).map((group) => ({
+    key: group.key,
+    label: group.label,
+    fields: Array.from(group.fields),
+  }));
+}
+
+function buildFieldMappings(
+  trackingCategories: TrackingCategory[] = [],
+): FieldMapping[] {
+  return trackingCategories.map((category) => ({
+    id: category.id,
+    name: category.trackingCategoryName,
+    category: category.trackingGroupName,
+    field: category.trackingCategoryDefinitionName,
+    definitionId: category.accountingTrackingCategoryDefinitionId,
+    optionNames: category.trackingOptionNames,
+  }));
+}
+
+function findDefinitionId(
+  definitions: TrackingCategoryDefinition[],
+  category: string,
+  field: string,
+): number | undefined {
+  return definitions.find(
+    (definition) =>
+      definition.trackingGroupName === category &&
+      definition.trackingCategoryName === field,
+  )?.id;
+}
 
 const CATEGORY_ICON_CONFIG: Record<
   string,
@@ -137,6 +153,7 @@ function CategoryIcon({ category }: { category: string }) {
 }
 
 function MappingForm({
+  categories,
   draftName,
   draftField,
   onNameChange,
@@ -144,7 +161,9 @@ function MappingForm({
   onCancel,
   onSave,
   autoOpenSelector = false,
+  isSaving = false,
 }: {
+  categories: GroupedFieldCategory[];
   draftName: string;
   draftField: string;
   onNameChange: (value: string) => void;
@@ -152,6 +171,7 @@ function MappingForm({
   onCancel: () => void;
   onSave: () => void;
   autoOpenSelector?: boolean;
+  isSaving?: boolean;
 }) {
   return (
     <div className="rounded-lg border bg-[#FAFAFA] p-4">
@@ -167,7 +187,7 @@ function MappingForm({
         </div>
 
         <GroupedFieldSelector
-          categories={XERO_FIELD_CATEGORIES}
+          categories={categories}
           field={draftField}
           placeholder="Select tracking group"
           onChange={onFieldChange}
@@ -180,11 +200,11 @@ function MappingForm({
           </Button>
           <Button
             type="button"
-            className="bg-[#3F3F46] hover:bg-[#27272A] text-white"
+            className="bg-[#3F3F46] hover:bg-[#27272A] text-white cursor-pointer"
             onClick={onSave}
-            disabled={!draftName.trim() || !draftField}
+            disabled={!draftName.trim() || !draftField || isSaving}
           >
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </Button>
         </div>
       </div>
@@ -195,10 +215,12 @@ function MappingForm({
 function MappingRow({
   mapping,
   onEdit,
+  onDelete,
   disabled,
 }: {
   mapping: FieldMapping;
   onEdit: () => void;
+  onDelete: () => void;
   disabled?: boolean;
 }) {
   return (
@@ -214,7 +236,6 @@ function MappingRow({
             <ChevronRight className="h-4 w-4" />
             <span>{mapping.field}</span>
           </div>
-
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1">
@@ -235,6 +256,8 @@ function MappingRow({
           size="icon"
           className="h-8 w-8 text-muted-foreground"
           aria-label={`Delete ${mapping.name}`}
+          disabled={disabled}
+          onClick={onDelete}
         >
           <Trash2 className="h-4 w-4 text-destructive" />
         </Button>
@@ -243,24 +266,51 @@ function MappingRow({
   );
 }
 
-export function XeroFieldMappings() {
+export function XeroFieldMappings({
+  trackingCategories = EMPTY_TRACKING_CATEGORIES,
+  trackingCategoryDefinitions = EMPTY_TRACKING_CATEGORY_DEFINITIONS,
+  onLoadTrackingCategoryDefinitions,
+  isLoadingTrackingCategories = false,
+}: {
+  trackingCategories?: TrackingCategory[];
+  trackingCategoryDefinitions?: TrackingCategoryDefinition[];
+  onLoadTrackingCategoryDefinitions?: () => Promise<void>;
+  isLoadingTrackingCategories?: boolean;
+}) {
   const [fieldsExpanded, setFieldsExpanded] = React.useState(false);
   const [isAdding, setIsAdding] = React.useState(false);
-  const [mappings, setMappings] =
-    React.useState<FieldMapping[]>(MOCK_FIELD_MAPPINGS);
-  // const [mappings, setMappings] =
-  //   React.useState<FieldMapping[]>([]);
+  const apiMappings = React.useMemo(
+    () => buildFieldMappings(trackingCategories),
+    [trackingCategories],
+  );
+  const fieldCategories = React.useMemo(
+    () => buildFieldCategories(trackingCategoryDefinitions),
+    [trackingCategoryDefinitions],
+  );
+  const [mappings, setMappings] = React.useState<FieldMapping[]>(apiMappings);
   const [draftName, setDraftName] = React.useState('');
   const [draftCategory, setDraftCategory] = React.useState('');
   const [draftField, setDraftField] = React.useState('');
-  const [editingMappingId, setEditingMappingId] = React.useState<string | null>(
+  const [editingMappingId, setEditingMappingId] = React.useState<number | null>(
     null,
   );
   const [editDraftName, setEditDraftName] = React.useState('');
+  const [editDraftCategory, setEditDraftCategory] = React.useState('');
   const [editDraftField, setEditDraftField] = React.useState('');
+  const createTrackingCategory = useCreateTrackingCategory();
+  const updateTrackingCategory = useUpdateTrackingCategory();
+  const deleteTrackingCategory = useDeleteTrackingCategory();
 
   const canAddMore = mappings.length < MAX_FIELD_MAPPINGS;
   const showAddButton = canAddMore && !isAdding && !editingMappingId;
+  const isSaving =
+    createTrackingCategory.isPending ||
+    updateTrackingCategory.isPending ||
+    deleteTrackingCategory.isPending;
+
+  React.useEffect(() => {
+    setMappings(apiMappings);
+  }, [apiMappings]);
 
   const resetDraft = React.useCallback(() => {
     setDraftName('');
@@ -268,9 +318,16 @@ export function XeroFieldMappings() {
     setDraftField('');
   }, []);
 
-  const handleStartAdd = () => {
+  const handleStartAdd = async () => {
     resetDraft();
     setEditingMappingId(null);
+    try {
+      await onLoadTrackingCategoryDefinitions?.();
+    } catch (error) {
+      console.error('Error loading tracking category definitions:', error);
+      notifyError(extractErrorMessage(error));
+    }
+    if (mappings.length >= MAX_FIELD_MAPPINGS) return;
     setIsAdding(true);
   };
 
@@ -284,36 +341,87 @@ export function XeroFieldMappings() {
     resetDraft();
     setEditingMappingId(mapping.id);
     setEditDraftName(mapping.name);
+    setEditDraftCategory(mapping.category);
     setEditDraftField(mapping.field);
   };
 
   const handleCancelEdit = () => {
     setEditingMappingId(null);
     setEditDraftName('');
+    setEditDraftCategory('');
     setEditDraftField('');
   };
 
-  const handleSaveEdit = () => {
-    // Mock only — close edit mode without persisting changes.
-    handleCancelEdit();
-  };
-
-  const handleSaveAdd = () => {
-    if (!draftName.trim() || !draftField || mappings.length >= MAX_FIELD_MAPPINGS) {
+  const handleSaveEdit = async () => {
+    if (!editingMappingId || !editDraftName.trim() || !editDraftField) {
       return;
     }
 
-    setMappings((current) => [
-      ...current,
-      {
-        id: `mapping-${Date.now()}`,
-        name: draftName.trim(),
-        category: draftCategory,
-        field: draftField,
-      },
-    ]);
+    const currentMapping = mappings.find(
+      (mapping) => mapping.id === editingMappingId,
+    );
+    const definitionId = findDefinitionId(
+      trackingCategoryDefinitions,
+      editDraftCategory,
+      editDraftField,
+    );
+    if (!currentMapping || definitionId === undefined) return;
+
+    try {
+      await updateTrackingCategory.mutateAsync({
+        id: editingMappingId,
+        data: {
+          trackingCategoryName: editDraftName.trim(),
+          accountingTrackingCategoryDefinitionId: definitionId,
+          trackingOptionNames: currentMapping.optionNames,
+        },
+      });
+    } catch (error) {
+      console.error('Error updating tracking category:', error);
+      notifyError(extractErrorMessage(error));
+    }
+
+    handleCancelEdit();
+  };
+
+  const handleSaveAdd = async () => {
+    if (
+      !draftName.trim() ||
+      !draftField ||
+      mappings.length >= MAX_FIELD_MAPPINGS
+    ) {
+      return;
+    }
+
+    const definitionId = findDefinitionId(
+      trackingCategoryDefinitions,
+      draftCategory,
+      draftField,
+    );
+    if (definitionId === undefined) return;
+
+    try {
+      await createTrackingCategory.mutateAsync({
+        trackingCategoryName: draftName.trim(),
+        accountingTrackingCategoryDefinitionId: definitionId,
+        trackingOptionNames: [],
+      });
+    } catch (error) {
+      console.error('Error creating tracking category:', error);
+      notifyError(extractErrorMessage(error));
+    }
+
     resetDraft();
     setIsAdding(false);
+  };
+
+  const handleDelete = async (mapping: FieldMapping) => {
+    try {
+      await deleteTrackingCategory.mutateAsync(mapping.id);
+    } catch (error) {
+      console.error('Error deleting tracking category:', error);
+      notifyError(extractErrorMessage(error));
+    }
   };
 
   return (
@@ -326,7 +434,9 @@ export function XeroFieldMappings() {
           className="shrink-0 text-[#364153]"
           onClick={() => setFieldsExpanded((current) => !current)}
         >
-          {fieldsExpanded ? 'Hide tracking categories' : 'Manage tracking categories'}
+          {fieldsExpanded
+            ? 'Hide tracking categories'
+            : 'Manage tracking categories'}
           <ChevronDown
             className={cn(
               'ml-1 h-4 w-4 transition-transform',
@@ -353,16 +463,18 @@ export function XeroFieldMappings() {
                 variant="outline"
                 size="sm"
                 className="shrink-0"
+                disabled={isLoadingTrackingCategories}
                 onClick={handleStartAdd}
               >
                 <Plus className="h-4 w-4" />
-                Add category
+                {isLoadingTrackingCategories ? 'Loading...' : 'Add category'}
               </Button>
             )}
           </div>
 
           {isAdding && (
             <MappingForm
+              categories={fieldCategories}
               draftName={draftName}
               draftField={draftField}
               onNameChange={setDraftName}
@@ -372,6 +484,7 @@ export function XeroFieldMappings() {
               }}
               onCancel={handleCancelAdd}
               onSave={handleSaveAdd}
+              isSaving={isSaving}
             />
           )}
 
@@ -399,22 +512,26 @@ export function XeroFieldMappings() {
                 editingMappingId === mapping.id ? (
                   <MappingForm
                     key={mapping.id}
+                    categories={fieldCategories}
                     draftName={editDraftName}
                     draftField={editDraftField}
                     onNameChange={setEditDraftName}
-                    onFieldChange={(_category, field) => {
+                    onFieldChange={(category, field) => {
+                      setEditDraftCategory(category);
                       setEditDraftField(field);
                     }}
                     onCancel={handleCancelEdit}
                     onSave={handleSaveEdit}
                     autoOpenSelector
+                    isSaving={isSaving}
                   />
                 ) : (
                   <MappingRow
                     key={mapping.id}
                     mapping={mapping}
                     onEdit={() => handleStartEdit(mapping)}
-                    disabled={isAdding || editingMappingId !== null}
+                    onDelete={() => handleDelete(mapping)}
+                    disabled={isAdding || editingMappingId !== null || isSaving}
                   />
                 ),
               )}
