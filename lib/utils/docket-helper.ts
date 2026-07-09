@@ -4,6 +4,7 @@ export const formatUomLabel = (uom: string): string => {
   const normalized = uom.toLowerCase();
   if (normalized === 'kg_20' || normalized === '20kg') return 'x 20kg';
   if (normalized === 'm3') return 'm³';
+  if (normalized === 'bulka') return 'Bulka';
   return uom;
 };
 

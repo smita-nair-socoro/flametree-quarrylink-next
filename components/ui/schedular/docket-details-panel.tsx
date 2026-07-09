@@ -4,8 +4,14 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { X, User, MapPin, ExternalLink, Info } from 'lucide-react';
-import { calculateGrossWeight } from '@/lib/utils/docket-helper';
-import { formatTimeRange } from '@/lib/utils/dispatch-helper';
+import {
+  calculateGrossWeight,
+  formatUomLabel,
+} from '@/lib/utils/docket-helper';
+import {
+  formatTimeRange,
+  calculateConvertedQty,
+} from '@/lib/utils/dispatch-helper';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Input } from '@/components/ui/input';
@@ -20,7 +26,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import type { Address } from '@/lib/types/address';
 import { toast } from 'sonner';
-import { calculateConvertedQty } from '@/lib/utils/dispatch-helper';
+
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import {
   ChecklistReportModal,
@@ -83,7 +89,7 @@ export function DocketDetailsPanel({
   onUnassign,
   isDispatchView = false,
   onUtilisationLoadSizeChange,
-}: DocketDetailsPanelProps) {
+}: Readonly<DocketDetailsPanelProps>) {
   const { data: fullDocket, isLoading } = useQuery({
     ...DocketByIdQueryOptions(docketId),
     enabled: !!docketId,
@@ -103,19 +109,28 @@ export function DocketDetailsPanel({
   useEffect(() => {
     setPlannedLoadSizeValue(
       fullDocket?.plannedLoadSize?.toString() ||
-      fullDocket?.actualLoadSize?.toString() ||
-      '0',
+        fullDocket?.actualLoadSize?.toString() ||
+        '0',
     );
     setActualLoadSizeValue(
       fullDocket?.actualLoadSize?.toString() ||
-      fullDocket?.plannedLoadSize?.toString() ||
-      '0',
+        fullDocket?.plannedLoadSize?.toString() ||
+        '0',
     );
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
 
   useEffect(() => {
-    setTareWeightValue(fullDocket?.truck?.tareWeight?.toString() ?? '');
-  }, [fullDocket?.id, fullDocket?.truck?.tareWeight]);
+    // Prefer the tare weight saved on the docket; fall back to the truck's default.
+    setTareWeightValue(
+      fullDocket?.tareTruckWeight
+        ? fullDocket.tareTruckWeight.toString()
+        : (fullDocket?.truck?.tareWeight?.toString() ?? ''),
+    );
+  }, [
+    fullDocket?.id,
+    fullDocket?.tareTruckWeight,
+    fullDocket?.truck?.tareWeight,
+  ]);
 
   const handleSaveLoadSize = (type: 'planned' | 'actual') => {
     if (!fullDocket) return;
@@ -132,7 +147,7 @@ export function DocketDetailsPanel({
       fullDocket.docketStatus === DOCKET_STATUS.ASSIGNED
     ) {
       val =
-        parseFloat(
+        Number.parseFloat(
           type === 'planned' ? plannedLoadSizeValue : actualLoadSizeValue,
         ) || 0;
       payload = { plannedLoadSize: val, actualLoadSize: val };
@@ -141,7 +156,7 @@ export function DocketDetailsPanel({
       fullDocket.docketStatus === DOCKET_STATUS.ARRIVED ||
       fullDocket.docketStatus === DOCKET_STATUS.DELIVERED
     ) {
-      val = parseFloat(actualLoadSizeValue) || 0;
+      val = Number.parseFloat(actualLoadSizeValue) || 0;
       payload = { actualLoadSize: val };
     } else {
       return;
@@ -208,10 +223,20 @@ export function DocketDetailsPanel({
 
   const handleSaveTareWeight = () => {
     if (!fullDocket) return;
-    // const tareWeight = parseFloat(tareWeightValue) || 0;
-    // TODO(QLINK-2824): persist tare weight via operationalUpdateMutation once
-    // the backend exposes a tareWeight field. UI-only for now — the edited value
-    // already lives in local state and drives the gross weight / GVM calc below.
+
+    const tareTruckWeight = Number.parseFloat(tareWeightValue);
+    if (Number.isNaN(tareTruckWeight)) {
+      notifyError('Truck tare weight is required');
+      return;
+    }
+
+    operationalUpdateMutation.mutate(
+      { id: docketId, data: { tareTruckWeight } },
+      {
+        onSuccess: () => toast.success('Tare weight updated successfully'),
+        onError: (error) => notifyError(extractErrorMessage(error)),
+      },
+    );
   };
 
   const docket = fullDocket;
@@ -240,11 +265,13 @@ export function DocketDetailsPanel({
   // weight plus the planned load (converted to tonnes). When it exceeds the
   // truck's GVM limit we surface a warning. Only shown when a truck is assigned.
   const showWeightFields = !!docket.truck;
-  const parsedTareWeight = parseFloat(tareWeightValue);
-  const tareWeightForCalc = isNaN(parsedTareWeight) ? null : parsedTareWeight;
+  const parsedTareWeight = Number.parseFloat(tareWeightValue);
+  const tareWeightForCalc = Number.isNaN(parsedTareWeight)
+    ? null
+    : parsedTareWeight;
   const calculatedGrossWeight = calculateGrossWeight({
     tareWeight: tareWeightForCalc,
-    loadSize: parseFloat(plannedLoadSizeValue) || 0,
+    loadSize: Number.parseFloat(plannedLoadSizeValue) || 0,
     productUom: docket.jobItem?.productSellUom || 'TN',
     density:
       docket.jobItem?.product?.densityTonnagePerM3 ||
@@ -384,8 +411,8 @@ export function DocketDetailsPanel({
               )}
 
               {!isDocketFinalised ||
-                (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-                  docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <div className="text-xs text-gray-500 mb-1">
@@ -395,24 +422,18 @@ export function DocketDetailsPanel({
                       <Input
                         type="text"
                         key={`planned-${docket.id}`}
-                        suffix={
-                          docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
-                            ? 'm³'
-                            : docket.jobItem?.productSellUom === 'KG_20'
-                              ? 'x 20kg'
-                              : docket.jobItem?.productSellUom === 'BULKA'
-                                ? 'Bulka'
-                                : docket.jobItem?.productSellUom
-                        }
+                        suffix={formatUomLabel(
+                          docket.jobItem?.productSellUom || '',
+                        )}
                         value={plannedLoadSizeValue}
                         onChange={(e) => {
                           const inputVal = e.target.value;
-                          const numVal = parseFloat(inputVal);
+                          const numVal = Number.parseFloat(inputVal);
                           const maxVal =
                             (docket.plannedLoadSize || 0) +
                             (docket.jobItem?.remainingQuantity || 0);
 
-                          if (!isNaN(numVal) && numVal > maxVal) {
+                          if (!Number.isNaN(numVal) && numVal > maxVal) {
                             setPlannedLoadSizeValue(maxVal.toString());
                           } else {
                             setPlannedLoadSizeValue(inputVal);
@@ -451,15 +472,9 @@ export function DocketDetailsPanel({
                         <Input
                           type="text"
                           key={`actual-${docket.id}`}
-                          suffix={
-                            docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
-                              ? 'm³'
-                              : docket.jobItem?.productSellUom === 'KG_20'
-                                ? 'x 20kg'
-                                : docket.jobItem?.productSellUom === 'BULKA'
-                                  ? 'Bulka'
-                                  : docket.jobItem?.productSellUom
-                          }
+                          suffix={formatUomLabel(
+                            docket.jobItem?.productSellUom || '',
+                          )}
                           value={actualLoadSizeValue}
                           onChange={(e) =>
                             setActualLoadSizeValue(e.target.value)
@@ -489,11 +504,7 @@ export function DocketDetailsPanel({
                   <span className="text-sm text-gray-500">Quantity</span>
                   <span className="text-sm font-medium text-gray-900">
                     {formatNumberThousandSeparator(docket.actualLoadSize)}{' '}
-                    {docket.jobItem?.productSellUom === 'M3' || docket.jobItem?.productSellUom === 'm3'
-                      ? 'm³'
-                      : docket.jobItem?.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : docket.jobItem?.productSellUom}
+                    {formatUomLabel(docket.jobItem?.productSellUom || '')}
                   </span>
                 </div>
               )}
@@ -562,15 +573,7 @@ export function DocketDetailsPanel({
                   </div>
                   <div className="text-md font-bold text-[#0F172A]">
                     {docket.jobItem.totalQuantityRequired?.toFixed(1) || '0.0'}{' '}
-                    {docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
-                      ? 'm³'
-                      : docket.jobItem?.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : docket.jobItem?.productSellUom === 'BULKA'
-                          ? 'Bulka'
-                          : docket.jobItem?.productSellUom === 'TN'
-                            ? 'TN'
-                            : docket.jobItem?.productSellUom}
+                    {formatUomLabel(docket.jobItem?.productSellUom || '')}
                   </div>
                 </div>
                 <div>
@@ -579,15 +582,7 @@ export function DocketDetailsPanel({
                   </div>
                   <div className="text-md font-bold text-[#0F172A]">
                     {docket.jobItem.remainingQuantity?.toFixed(1) || '0.0'}{' '}
-                    {docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
-                      ? 'm³'
-                      : docket.jobItem?.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : docket.jobItem?.productSellUom === 'BULKA'
-                          ? 'Bulka'
-                          : docket.jobItem?.productSellUom === 'TN'
-                            ? 'TN'
-                            : docket.jobItem?.productSellUom}
+                    {formatUomLabel(docket.jobItem?.productSellUom || '')}
                   </div>
                 </div>
               </div>
@@ -596,23 +591,15 @@ export function DocketDetailsPanel({
                 <span className="text-[13px] font-medium text-[#475569]">
                   Delivered:{' '}
                   {docket.jobItem.deliveredQuantity?.toFixed(1) || '0.0'}{' '}
-                  {docket.jobItem.productSellUom === 'TN'
-                    ? 'TN'
-                    : docket.jobItem.productSellUom === 'M3' || docket.jobItem.productSellUom === 'm3'
-                      ? 'm³'
-                      : docket.jobItem.productSellUom === 'KG_20'
-                        ? 'x 20kg'
-                        : docket.jobItem.productSellUom === 'BULKA'
-                          ? 'Bulka'
-                          : docket.jobItem.productSellUom}
+                  {formatUomLabel(docket.jobItem?.productSellUom || '')}
                 </span>
                 <span className="text-[13px] font-bold text-[#0F172A]">
                   {docket.jobItem.totalQuantityRequired > 0
                     ? Math.round(
-                      (docket.jobItem.deliveredQuantity /
-                        docket.jobItem.totalQuantityRequired) *
-                      100,
-                    )
+                        (docket.jobItem.deliveredQuantity /
+                          docket.jobItem.totalQuantityRequired) *
+                          100,
+                      )
                     : 0}
                   %
                 </span>
@@ -624,8 +611,8 @@ export function DocketDetailsPanel({
                     width: `${Math.min(
                       docket.jobItem.totalQuantityRequired > 0
                         ? (docket.jobItem.deliveredQuantity /
-                          docket.jobItem.totalQuantityRequired) *
-                        100
+                            docket.jobItem.totalQuantityRequired) *
+                            100
                         : 0,
                       100,
                     )}%`,
@@ -651,13 +638,13 @@ export function DocketDetailsPanel({
               </div>
               {(!docket.jobItem ||
                 docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-                  <div className="flex flex-col gap-0 text-sm font-medium">
-                    <div className=" text-gray-500">Delivery</div>
-                    <div className=" text-gray-900">
-                      {dispatchAddressLabel(docket.deliveryAddress)}
-                    </div>
+                <div className="flex flex-col gap-0 text-sm font-medium">
+                  <div className=" text-gray-500">Delivery</div>
+                  <div className=" text-gray-900">
+                    {dispatchAddressLabel(docket.deliveryAddress)}
                   </div>
-                )}
+                </div>
+              )}
             </div>
           </div>
 
@@ -796,12 +783,12 @@ export function DocketDetailsPanel({
             (() => {
               const driverChecklist =
                 docket.hasTodayDriverPreStart &&
-                  docket.driverChecklistSubmissionId
+                docket.driverChecklistSubmissionId
                   ? docket.driverChecklistSubmission
                   : null;
               const truckChecklist =
                 docket.hasTodayTruckInspectionByCurrentDriver &&
-                  docket.truckChecklistSubmissionId
+                docket.truckChecklistSubmissionId
                   ? docket.truckChecklistSubmission
                   : null;
 
@@ -891,7 +878,10 @@ export function DocketDetailsPanel({
               <User className="w-4 h-4" /> Unassign from trip
             </button>
           )}
-          <button className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center cursor-pointer" onClick={() => actions.duplicate()}>
+          <button
+            className="w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
+            onClick={() => actions.duplicate()}
+          >
             Duplicate
           </button>
         </div>

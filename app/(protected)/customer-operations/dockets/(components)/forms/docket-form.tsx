@@ -67,6 +67,7 @@ import {
   getDeliveryDistanceQuantity,
   convertTruckVolumeToProductUom,
   calculateGrossWeight,
+  formatUomLabel,
 } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
@@ -1492,11 +1493,9 @@ export default function DocketForm({
                               ? docketForm.watch('actualLoadSize') || 0
                               : docketForm.watch('plannedLoadSize') || 0,
                           )}{' '}
-                          {selectedJobLineItemDetails().productUom === '20kg'
-                            ? 'x 20kg'
-                            : selectedJobLineItemDetails().productUom === 'm3'
-                              ? 'm³'
-                              : selectedJobLineItemDetails().productUom}{' '}
+                          {formatUomLabel(
+                            selectedJobLineItemDetails().productUom,
+                          )}{' '}
                         </span>
                       </div>
                       <div className="flex justify-between">
@@ -1513,11 +1512,9 @@ export default function DocketForm({
                                 ? docketForm.watch('actualLoadSize') || 0
                                 : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
-                          {selectedJobLineItemDetails().productUom === '20kg'
-                            ? 'x 20kg'
-                            : selectedJobLineItemDetails().productUom === 'm3'
-                              ? 'm³'
-                              : selectedJobLineItemDetails().productUom}{' '}
+                          {formatUomLabel(
+                            selectedJobLineItemDetails().productUom,
+                          )}{' '}
                           total
                         </span>
                       </div>

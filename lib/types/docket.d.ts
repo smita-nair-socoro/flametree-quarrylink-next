@@ -88,6 +88,7 @@ export interface DocketOperationalUpdateRequest {
   deliveryStartWindow?: string;
   deliveryEndWindow?: string;
   deliveryDistanceQuantity?: number;
+  tareTruckWeight?: number;
 }
 
 export interface DocketOperationalUpdateResponse {
