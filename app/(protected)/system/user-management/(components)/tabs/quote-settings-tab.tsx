@@ -9,110 +9,23 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { DataTableClient } from '@/components/ui/data-table-client';
-import { notifyInfo, notifySuccess } from '@/lib/toast';
+import { DataTableClientBasic } from '@/components/ui/data-table-client-basic';
+import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
-import {
-  QuoteSettingItem,
-  QuoteSettingItemType,
-} from '../(data-tables)/quote-settings/types';
-
-const initialItems: QuoteSettingItem[] = [
-  {
-    id: '1',
-    name: 'Standard Supply Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    isDefault: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: '2',
-    name: 'Credit Account Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    isDefault: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: '3',
-    name: 'Pre-Paid / COD Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    isDefault: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: '4',
-    name: 'Customer Collection Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    isDefault: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: '5',
-    name: 'TESTING',
-    type: QuoteSettingItemType.EXTERNAL_LINK,
-    url: '#',
-    isDefault: true,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: '6',
-    name: 'Delivery Policy',
-    type: QuoteSettingItemType.UPLOADED_DOCUMENT,
-    fileName: 'delivery-policy.pdf',
-    fileSizeLabel: '242.5 KB',
-    url: '#',
-    isDefault: false,
-    updatedAt: '2026-07-03',
-  },
-];
-
-const addItemMessages: Record<QuoteSettingItemType, string> = {
-  [QuoteSettingItemType.TEXT_TEMPLATE]: 'Adding a text template is coming soon.',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]:
-    'Replacing the policy document is coming soon.',
-  [QuoteSettingItemType.EXTERNAL_LINK]: 'Adding an external link is coming soon.',
-};
+import { QuoteSettingItemType } from '../(data-tables)/quote-settings/types';
 
 export default function QuoteSettingsTab() {
-  const [items, setItems] = React.useState<QuoteSettingItem[]>(initialItems);
-
-  const handleView = React.useCallback((item: QuoteSettingItem) => {
-    notifyInfo(`Viewing "${item.name}" is coming soon.`);
-  }, []);
-
-  const handleEdit = React.useCallback((item: QuoteSettingItem) => {
-    notifyInfo(`Editing "${item.name}" is coming soon.`);
-  }, []);
-
-  const handleSetDefault = React.useCallback((item: QuoteSettingItem) => {
-    setItems((prev) =>
-      prev.map((it) => ({ ...it, isDefault: it.id === item.id })),
-    );
-    notifySuccess(`"${item.name}" set as default.`);
-  }, []);
-
-  const handleDelete = React.useCallback((item: QuoteSettingItem) => {
-    setItems((prev) => prev.filter((it) => it.id !== item.id));
-    notifySuccess(`"${item.name}" deleted.`);
-  }, []);
-
-  const handleAdd = React.useCallback((type: QuoteSettingItemType) => {
-    notifyInfo(addItemMessages[type]);
-  }, []);
+  const { items, actions } = useQuoteSettingsActions();
 
   const columns = React.useMemo(
     () =>
       createQuoteSettingsColumns({
-        onView: handleView,
-        onEdit: handleEdit,
-        onSetDefault: handleSetDefault,
-        onDelete: handleDelete,
+        onView: actions.view,
+        onEdit: actions.edit,
+        onSetDefault: actions.setDefault,
+        onDelete: actions.remove,
       }),
-    [handleView, handleEdit, handleSetDefault, handleDelete],
+    [actions],
   );
 
   return (
@@ -137,19 +50,21 @@ export default function QuoteSettingsTab() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
-              onClick={() => handleAdd(QuoteSettingItemType.TEXT_TEMPLATE)}
+              onClick={() => actions.add(QuoteSettingItemType.TEXT_TEMPLATE)}
             >
               <FileText className="h-4 w-4 mr-2" />
               Text template
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleAdd(QuoteSettingItemType.UPLOADED_DOCUMENT)}
+              onClick={() =>
+                actions.add(QuoteSettingItemType.UPLOADED_DOCUMENT)
+              }
             >
               <Upload className="h-4 w-4 mr-2" />
               Replace document
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => handleAdd(QuoteSettingItemType.EXTERNAL_LINK)}
+              onClick={() => actions.add(QuoteSettingItemType.EXTERNAL_LINK)}
             >
               <Link2 className="h-4 w-4 mr-2" />
               External link
@@ -158,12 +73,13 @@ export default function QuoteSettingsTab() {
         </DropdownMenu>
       </div>
 
-      <div className="border border-[#E4E4E7] rounded-lg bg-white overflow-hidden p-2">
-        <DataTableClient
+      <div className="border border-[#E4E4E7] rounded-lg bg-white p-4">
+        <DataTableClientBasic
           tableId="quote_settings_data_table"
           data={items}
           columns={columns}
-          simpleTable
+          onRowClick={actions.view}
+          defaultSorting={[{ id: 'name', desc: false }]}
         />
       </div>
     </div>
