@@ -123,7 +123,7 @@ export default function DocketForm({
   jobId,
   canEdit = true,
   initialDocket,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel } =
     useTenantCurrencyTax();
@@ -185,8 +185,17 @@ export default function DocketForm({
   });
 
   React.useEffect(() => {
-    setTareWeightInput(selectedDocket?.truck?.tareWeight?.toString() ?? '');
-  }, [selectedDocket?.id, selectedDocket?.truck?.tareWeight]);
+    // Prefer the tare weight saved on the docket; fall back to the truck's default.
+    setTareWeightInput(
+      selectedDocket?.tareTruckWeight
+        ? selectedDocket.tareTruckWeight.toString()
+        : (selectedDocket?.truck?.tareWeight?.toString() ?? ''),
+    );
+  }, [
+    selectedDocket?.id,
+    selectedDocket?.tareTruckWeight,
+    selectedDocket?.truck?.tareWeight,
+  ]);
 
   const combineDateAndTime = (
     date: Date | undefined,
@@ -196,7 +205,12 @@ export default function DocketForm({
 
     const [hours, minutes] = timeString.split(':');
     const combined = new Date(date);
-    combined.setHours(parseInt(hours, 10), parseInt(minutes, 10), 0, 0);
+    combined.setHours(
+      Number.parseInt(hours, 10),
+      Number.parseInt(minutes, 10),
+      0,
+      0,
+    );
 
     return toLocalDateTime(combined);
   };
@@ -299,7 +313,9 @@ export default function DocketForm({
           : VOID_REASON_LABELS;
     const reason =
       labelMap[rawReasonKey] ||
-      rawReasonKey.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase()) ||
+      rawReasonKey
+        .replaceAll('_', ' ')
+        .replace(/^\w/, (c) => c.toUpperCase()) ||
       'N/A';
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
@@ -573,6 +589,7 @@ export default function DocketForm({
       !!dirtyFields.deliveryCollectionEndTime ||
       !!dirtyFields.deliveryCollectionDate;
 
+    const parsedTareTruckWeight = parseFloat(tareWeightInput);
     const assignedPayload = {
       deliveryCollectionDate: values.deliveryCollectionDate
         ? appendUtcSuffix(
@@ -589,6 +606,9 @@ export default function DocketForm({
       truckId: selectedDocket!.truckId,
       driverId: selectedDocket!.driverId,
       deliveryDistanceQuantity,
+      tareTruckWeight: isNaN(parsedTareTruckWeight)
+        ? undefined
+        : parsedTareTruckWeight,
     };
 
     try {
@@ -848,8 +868,10 @@ export default function DocketForm({
   // weight plus the planned load (converted to tonnes). When it exceeds the
   // truck's GVM limit we surface a warning and flag the gross weight field.
   const weightDetails = selectedJobLineItemDetails();
-  const parsedTareWeight = parseFloat(tareWeightInput);
-  const tareWeightForCalc = isNaN(parsedTareWeight) ? null : parsedTareWeight;
+  const parsedTareWeight = Number.parseFloat(tareWeightInput);
+  const tareWeightForCalc = Number.isNaN(parsedTareWeight)
+    ? null
+    : parsedTareWeight;
   const truckGvm =
     selectedDocket?.truck?.pbsApproved &&
     selectedDocket?.truck?.combinationGvmPbs != null
@@ -1217,7 +1239,9 @@ export default function DocketForm({
                                                 truckCapacityInProductUom,
                                               )
                                             : productMax;
-                                        const val = parseFloat(e.target.value);
+                                        const val = Number.parseFloat(
+                                          e.target.value,
+                                        );
                                         const uomNorm =
                                           details.productUom?.toLowerCase();
                                         const uomText =
@@ -1231,7 +1255,10 @@ export default function DocketForm({
                                                 ? 'TN'
                                                 : details.productUom || '';
 
-                                        if (!isNaN(val) && val > maxLimit) {
+                                        if (
+                                          !Number.isNaN(val) &&
+                                          val > maxLimit
+                                        ) {
                                           field.onChange(maxLimit);
                                           setAdjustedAlert({
                                             amount: maxLimit,
@@ -1290,7 +1317,9 @@ export default function DocketForm({
                                                 truckCapacityInProductUom,
                                               )
                                             : productMax;
-                                        const val = parseFloat(e.target.value);
+                                        const val = Number.parseFloat(
+                                          e.target.value,
+                                        );
                                         const uomNorm =
                                           details.productUom?.toLowerCase();
                                         const uomText =
@@ -1304,7 +1333,10 @@ export default function DocketForm({
                                                 ? 'TN'
                                                 : details.productUom || '';
 
-                                        if (!isNaN(val) && val > maxLimit) {
+                                        if (
+                                          !Number.isNaN(val) &&
+                                          val > maxLimit
+                                        ) {
                                           field.onChange(maxLimit);
                                           setAdjustedAlert({
                                             amount: maxLimit,
@@ -2013,7 +2045,7 @@ export default function DocketForm({
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.unloadedPhotos[0]}
-                              alt="Unloaded photo"
+                              alt="Unloaded"
                               className="w-full h-full object-cover"
                             />
                             <button
@@ -2052,7 +2084,7 @@ export default function DocketForm({
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.receivedPhotos[0]}
-                              alt="Receipt photo"
+                              alt="Receipt"
                               className="w-full h-full object-cover"
                             />
                             <button
