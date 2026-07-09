@@ -7,6 +7,7 @@ import { X, User, MapPin, ExternalLink, Info } from 'lucide-react';
 import {
   calculateGrossWeight,
   formatUomLabel,
+  shouldUseActualLoadSizeForGvm,
 } from '@/lib/utils/docket-helper';
 import {
   formatTimeRange,
@@ -261,27 +262,34 @@ export function DocketDetailsPanel({
     docket.docketStatus === DOCKET_STATUS.DELIVERED;
   const isDocketFinalised = docket.docketStatus === DOCKET_STATUS.INVOICED;
 
-  // Gross Vehicle Mass (GVM) check — Calculated Gross Weight is the truck's tare
-  // weight plus the planned load (converted to tonnes). When it exceeds the
-  // truck's GVM limit we surface a warning. Only shown when a truck is assigned.
+  // Gross Vehicle Mass (GVM) check — Calculated Gross Weight is the truck's
+  // tare weight plus the load (converted to tonnes). Delivery dockets past
+  // assignment use the actual load size, falling back to planned when no
+  // actual load is recorded. When the result exceeds the truck's GVM limit we
+  // surface a warning. Only shown when a truck is assigned.
   const showWeightFields = !!docket.truck;
   const parsedTareWeight = Number.parseFloat(tareWeightValue);
   const tareWeightForCalc = Number.isNaN(parsedTareWeight)
     ? null
     : parsedTareWeight;
+  const useActualLoadSizeForGvm = shouldUseActualLoadSizeForGvm(
+    docket.docketStatus,
+    docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY,
+  );
+  const loadSizeForGvm =
+    (useActualLoadSizeForGvm ? Number.parseFloat(actualLoadSizeValue) : 0) ||
+    Number.parseFloat(plannedLoadSizeValue) ||
+    0;
   const calculatedGrossWeight = calculateGrossWeight({
     tareWeight: tareWeightForCalc,
-    loadSize: Number.parseFloat(plannedLoadSizeValue) || 0,
+    loadSize: loadSizeForGvm,
     productUom: docket.jobItem?.productSellUom || 'TN',
     density:
       docket.jobItem?.product?.densityTonnagePerM3 ||
       docket.jobItem?.densityTonnagePerM3 ||
       1,
   });
-  const truckGvm =
-    docket.truck?.pbsApproved && docket.truck?.combinationGvmPbs != null
-      ? docket.truck.combinationGvmPbs
-      : (docket.truck?.combinationGvm ?? null);
+  const truckGvm = docket.truck?.combinationGvm ?? null;
   const gvmExceeded =
     truckGvm != null &&
     calculatedGrossWeight != null &&

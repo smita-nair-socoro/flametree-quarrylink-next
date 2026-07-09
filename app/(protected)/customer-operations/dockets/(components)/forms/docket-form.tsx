@@ -69,6 +69,7 @@ import {
   calculateGrossWeight,
   formatUomLabel,
   formatCapacityUomLabel,
+  shouldUseActualLoadSizeForGvm,
 } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
 import { ActionDialog } from '@/components/action-dialog';
@@ -877,16 +878,11 @@ export default function DocketForm({
   const tareWeightForCalc = Number.isNaN(parsedTareWeight)
     ? null
     : parsedTareWeight;
-  const truckGvm =
-    selectedDocket?.truck?.pbsApproved &&
-    selectedDocket?.truck?.combinationGvmPbs != null
-      ? selectedDocket.truck.combinationGvmPbs
-      : (selectedDocket?.truck?.combinationGvm ?? null);
-  const useActualLoadSizeForGvm =
-    isEditing &&
-    currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-    currentStatus !== DOCKET_STATUS.ASSIGNED &&
-    currentStatus !== DOCKET_STATUS.PENDING;
+  const truckGvm = selectedDocket?.truck?.combinationGvm ?? null;
+  const useActualLoadSizeForGvm = shouldUseActualLoadSizeForGvm(
+    currentStatus,
+    isDelivery,
+  );
   const loadSizeForGvm =
     (useActualLoadSizeForGvm ? docketForm.watch('actualLoadSize') : 0) ||
     docketForm.watch('plannedLoadSize') ||

@@ -1,5 +1,28 @@
 // Docket Helpers
 
+import { DOCKET_STATUS } from '../types/docket-enums';
+
+/**
+ * Delivery dockets past assignment use the recorded actual load size for the
+ * GVM check; earlier statuses (and collections) use the planned load size.
+ * Callers should still fall back to planned when no actual load is recorded.
+ */
+export function shouldUseActualLoadSizeForGvm(
+  docketStatus: string | undefined,
+  isDelivery: boolean,
+): boolean {
+  if (!isDelivery || !docketStatus) return false;
+  return (
+    docketStatus === DOCKET_STATUS.IN_TRANSIT ||
+    docketStatus === DOCKET_STATUS.ARRIVED ||
+    docketStatus === DOCKET_STATUS.DELIVERED ||
+    docketStatus === DOCKET_STATUS.STOPPED ||
+    docketStatus === DOCKET_STATUS.VOIDED ||
+    docketStatus === DOCKET_STATUS.CANCELLED ||
+    docketStatus === DOCKET_STATUS.INVOICED
+  );
+}
+
 export const formatUomLabel = (uom: string): string => {
   const normalized = uom.toLowerCase();
   if (normalized === 'kg_20' || normalized === '20kg') return 'x 20kg';
@@ -69,7 +92,9 @@ export function calculateGrossWeight({
     'TN',
     density,
   );
-  return parseFloat(String(tareWeight)) + parseFloat(String(loadInTn));
+  return (
+    Number.parseFloat(String(tareWeight)) + Number.parseFloat(String(loadInTn))
+  );
 }
 
 export function convertTruckVolumeToProductUom(
