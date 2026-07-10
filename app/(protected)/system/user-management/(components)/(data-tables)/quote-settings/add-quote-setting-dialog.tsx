@@ -12,6 +12,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { isAnyDropdownOpen } from '@/components/ui/dropdown-menu';
 import {
   Form,
   FormField,
@@ -58,10 +59,49 @@ export function AddQuoteSettingDialog({
   onSubmitReplaceDocument,
 }: Readonly<AddQuoteSettingDialogProps>) {
   const handleCancel = () => onOpenChange(false);
+  const isOpen = type !== null;
+
+  // Radix's dismissable-layer stack can leave document.body.style.pointerEvents
+  // stuck at 'none' when the "Add Item" dropdown and this dialog close in the
+  // same tick, freezing the rest of the page. Clear it defensively on close.
+  React.useEffect(() => {
+    if (isOpen) return;
+    const raf = globalThis.requestAnimationFrame(() => {
+      if (document.body?.style?.pointerEvents === 'none') {
+        document.body.style.pointerEvents = '';
+      }
+    });
+    return () => globalThis.cancelAnimationFrame(raf);
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    return () => {
+      if (document.body?.style?.pointerEvents === 'none') {
+        document.body.style.pointerEvents = '';
+      }
+    };
+  }, []);
 
   return (
-    <Dialog open={type !== null} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent
+        className="sm:max-w-md"
+        onEscapeKeyDown={(event) => {
+          if (isAnyDropdownOpen()) {
+            event.preventDefault();
+          }
+        }}
+        onInteractOutside={(event) => {
+          if (isAnyDropdownOpen()) {
+            event.preventDefault();
+          }
+        }}
+        onPointerDownOutside={(event) => {
+          if (isAnyDropdownOpen()) {
+            event.preventDefault();
+          }
+        }}
+      >
         {type === QuoteSettingItemType.TEXT_TEMPLATE && (
           <TextTemplateForm
             key={editingTextTemplate?.id ?? 'new'}

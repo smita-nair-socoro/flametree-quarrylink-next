@@ -83,12 +83,22 @@ export function useQuoteSettingsActions() {
   const [editingTextTemplate, setEditingTextTemplate] =
     React.useState<QuoteTextTemplateItem | null>(null);
 
-  const openTextTemplateEditor = React.useCallback(
-    (item: QuoteTextTemplateItem) => {
-      setEditingTextTemplate(item);
-      setAddDialogType(QuoteSettingItemType.TEXT_TEMPLATE);
+  // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
+  const openDialogDeferred = React.useCallback(
+    (type: QuoteSettingItemType, editingItem: QuoteTextTemplateItem | null = null) => {
+      setTimeout(() => {
+        setEditingTextTemplate(editingItem);
+        setAddDialogType(type);
+      }, 0);
     },
     [],
+  );
+
+  const openTextTemplateEditor = React.useCallback(
+    (item: QuoteTextTemplateItem) => {
+      openDialogDeferred(QuoteSettingItemType.TEXT_TEMPLATE, item);
+    },
+    [openDialogDeferred],
   );
 
   const view = React.useCallback(
@@ -109,12 +119,12 @@ export function useQuoteSettingsActions() {
         return;
       }
       if (item.type === QuoteSettingItemType.UPLOADED_DOCUMENT) {
-        setAddDialogType(QuoteSettingItemType.UPLOADED_DOCUMENT);
+        openDialogDeferred(QuoteSettingItemType.UPLOADED_DOCUMENT);
         return;
       }
       notifyInfo(`Editing "${item.name}" is coming soon.`);
     },
-    [openTextTemplateEditor],
+    [openTextTemplateEditor, openDialogDeferred],
   );
 
   const setDefault = React.useCallback((item: QuoteSettingItem) => {
@@ -129,9 +139,12 @@ export function useQuoteSettingsActions() {
     notifySuccess(`"${item.name}" deleted.`);
   }, []);
 
-  const openAddDialog = React.useCallback((type: QuoteSettingItemType) => {
-    setAddDialogType(type);
-  }, []);
+  const openAddDialog = React.useCallback(
+    (type: QuoteSettingItemType) => {
+      openDialogDeferred(type);
+    },
+    [openDialogDeferred],
+  );
 
   const closeAddDialog = React.useCallback(() => {
     setAddDialogType(null);

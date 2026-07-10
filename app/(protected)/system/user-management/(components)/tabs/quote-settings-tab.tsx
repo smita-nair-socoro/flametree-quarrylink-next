@@ -72,7 +72,7 @@ export default function QuoteSettingsTab() {
               }
             >
               <Upload className="h-4 w-4 mr-2" />
-              Replace document
+              Add document
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => actions.add(QuoteSettingItemType.EXTERNAL_LINK)}
