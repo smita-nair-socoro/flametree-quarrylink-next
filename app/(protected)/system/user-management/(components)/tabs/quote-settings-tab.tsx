@@ -31,7 +31,6 @@ export default function QuoteSettingsTab() {
   const columns = React.useMemo(
     () =>
       createQuoteSettingsColumns({
-        onView: actions.view,
         onEdit: actions.edit,
         onSetDefault: actions.setDefault,
         onDelete: actions.remove,

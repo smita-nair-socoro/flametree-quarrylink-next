@@ -1,14 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Eye,
-  MoreHorizontal,
-  Pencil,
-  Star,
-  Trash2,
-  Upload,
-} from 'lucide-react';
+import { MoreHorizontal, Pencil, Star, Trash2, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -22,7 +15,6 @@ import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 interface QuoteSettingsTableActionsProps {
   item: QuoteSettingItem;
-  onView: (item: QuoteSettingItem) => void;
   onEdit: (item: QuoteSettingItem) => void;
   onSetDefault: (item: QuoteSettingItem) => void;
   onDelete: (item: QuoteSettingItem) => void;
@@ -30,7 +22,6 @@ interface QuoteSettingsTableActionsProps {
 
 export function QuoteSettingsTableActions({
   item,
-  onView,
   onEdit,
   onSetDefault,
   onDelete,
@@ -50,31 +41,30 @@ export function QuoteSettingsTableActions({
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen(false);
-            onView(item);
-          }}
-        >
-          <Eye className="h-4 w-4 mr-2" />
-          View
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.stopPropagation();
-            setOpen(false);
-            onEdit(item);
-          }}
-        >
-          {isUploadedDocument ? (
+      <DropdownMenuContent align="end" className="w-56">
+        {isUploadedDocument ? (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onEdit(item);
+            }}
+          >
             <Upload className="h-4 w-4 mr-2" />
-          ) : (
+            View / Replace PDF
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen(false);
+              onEdit(item);
+            }}
+          >
             <Pencil className="h-4 w-4 mr-2" />
-          )}
-          {isUploadedDocument ? 'Replace PDF' : 'Edit'}
-        </DropdownMenuItem>
+            View / Edit
+          </DropdownMenuItem>
+        )}
         {!item.isDefault && (
           <DropdownMenuItem
             onClick={(e) => {

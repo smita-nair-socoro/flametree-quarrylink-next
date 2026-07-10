@@ -27,14 +27,12 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
 };
 
 interface CreateQuoteSettingsColumnsArgs {
-  onView: (item: QuoteSettingItem) => void;
   onEdit: (item: QuoteSettingItem) => void;
   onSetDefault: (item: QuoteSettingItem) => void;
   onDelete: (item: QuoteSettingItem) => void;
 }
 
 export const createQuoteSettingsColumns = ({
-  onView,
   onEdit,
   onSetDefault,
   onDelete,
@@ -95,7 +93,6 @@ export const createQuoteSettingsColumns = ({
     cell: ({ row }) => (
       <QuoteSettingsTableActions
         item={row.original}
-        onView={onView}
         onEdit={onEdit}
         onSetDefault={onSetDefault}
         onDelete={onDelete}
