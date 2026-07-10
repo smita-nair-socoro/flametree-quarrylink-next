@@ -32,6 +32,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
+import { NotesTermsSection } from './notes-terms-section';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
@@ -1016,6 +1017,11 @@ export default function QuotationForm({
                     </div>
                   )}
                 </div>
+
+                <NotesTermsSection
+                  control={quotationForm.control}
+                  disabled={isEditing && !isDuplicate && !canEdit}
+                />
 
                 {!isDuplicate && (
                   <AuditInformation

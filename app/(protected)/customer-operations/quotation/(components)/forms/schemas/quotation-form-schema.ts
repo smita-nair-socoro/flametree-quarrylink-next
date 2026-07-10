@@ -30,4 +30,9 @@ export const NewQuotationFormSchema = z.object({
       message: 'Invalid phone number',
     }),
   receiptEmail: z.string().optional(),
+  customerNotes: z
+    .string()
+    .max(2000, { message: 'Must be 2000 characters or fewer' })
+    .optional(),
+  attachedItemIds: z.array(z.string()).optional(),
 });

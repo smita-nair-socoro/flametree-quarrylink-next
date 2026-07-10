@@ -26,6 +26,8 @@ export function quotationToFormValues(
       expiryDate: undefined,
       phone: '',
       receiptEmail: '',
+      customerNotes: '',
+      attachedItemIds: [],
     };
   }
 
@@ -49,5 +51,8 @@ export function quotationToFormValues(
     phone: normalizePhoneNumber(
       quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
     ),
+    // Not yet persisted by the backend; local-only until the API supports it.
+    customerNotes: '',
+    attachedItemIds: [],
   };
 }
