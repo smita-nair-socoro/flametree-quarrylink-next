@@ -15,9 +15,9 @@ const typeLabels: Record<QuoteSettingItemType, string> = {
 };
 
 const typeBadgeClasses: Record<QuoteSettingItemType, string> = {
-  [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#EDE9FE] bg-[#F5F3FF] text-[#7008E7]',
-  [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#DBEAFE] bg-[#EFF6FF] text-[#1D4ED8]',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'border-red-200 bg-red-50 text-red-600',
+  [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
+  [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
+  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
 };
 
 const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
