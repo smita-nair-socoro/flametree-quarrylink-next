@@ -40,7 +40,7 @@ export function HaulierActionButtons({
         className="!rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
       >
         <a
-          href={`/logistics/trucks?haulierId=${haulier.id}`}
+          href={`/logistics/trucks/?haulierId=${haulier.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -55,7 +55,7 @@ export function HaulierActionButtons({
         className="!rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
       >
         <a
-          href={`/logistics/drivers?haulierId=${haulier.id}`}
+          href={`/logistics/drivers/?haulierId=${haulier.id}`}
           target="_blank"
           rel="noopener noreferrer"
         >
