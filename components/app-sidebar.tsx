@@ -145,7 +145,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <SidebarSeparator />
+        <SidebarSeparator className="mx-0 w-full" />
         <HelpCentreButton />
         <NavUser user={user} />
       </SidebarFooter>
