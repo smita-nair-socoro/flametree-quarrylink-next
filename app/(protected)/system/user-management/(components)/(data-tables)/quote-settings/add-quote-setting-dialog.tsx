@@ -35,6 +35,7 @@ import {
 } from '../../tabs/schemas/quote-setting-schema';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
+  QuoteExternalLinkItem,
   QuoteTermsAndConditionsDocument,
   QuoteTextTemplateItem,
 } from '@/lib/types/terms-conditions';
@@ -43,6 +44,7 @@ interface AddQuoteSettingDialogProps {
   type: QuoteSettingItemType | null;
   currentDocument?: QuoteTermsAndConditionsDocument;
   editingTextTemplate?: QuoteTextTemplateItem | null;
+  editingExternalLink?: QuoteExternalLinkItem | null;
   onOpenChange: (open: boolean) => void;
   onSubmitTextTemplate: (values: TextTemplateFormValues) => void;
   onSubmitExternalLink: (values: ExternalLinkFormValues) => void;
@@ -53,6 +55,7 @@ export function AddQuoteSettingDialog({
   type,
   currentDocument,
   editingTextTemplate,
+  editingExternalLink,
   onOpenChange,
   onSubmitTextTemplate,
   onSubmitExternalLink,
@@ -112,6 +115,8 @@ export function AddQuoteSettingDialog({
         )}
         {type === QuoteSettingItemType.EXTERNAL_LINK && (
           <ExternalLinkForm
+            key={editingExternalLink?.id ?? 'new'}
+            editingItem={editingExternalLink}
             onCancel={handleCancel}
             onSubmit={onSubmitExternalLink}
           />
@@ -228,21 +233,30 @@ function TextTemplateForm({
 }
 
 function ExternalLinkForm({
+  editingItem,
   onCancel,
   onSubmit,
 }: Readonly<{
+  editingItem?: QuoteExternalLinkItem | null;
   onCancel: () => void;
   onSubmit: (values: ExternalLinkFormValues) => void;
 }>) {
+  const isEditing = Boolean(editingItem);
   const form = useForm<ExternalLinkFormValues>({
     resolver: zodResolver(externalLinkFormSchema),
-    defaultValues: { name: '', url: '', isDefault: false },
+    defaultValues: {
+      name: editingItem?.name ?? '',
+      url: editingItem?.url ?? '',
+      isDefault: editingItem?.isDefault ?? false,
+    },
   });
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Add External Link</DialogTitle>
+        <DialogTitle>
+          {isEditing ? 'Edit External Link' : 'Add External Link'}
+        </DialogTitle>
         <DialogDescription>
           Link to policies hosted on SharePoint, Google Drive, or any external
           URL. Customers will see a clickable link on their quote.
@@ -303,7 +317,9 @@ function ExternalLinkForm({
             <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit">Add Link</Button>
+            <Button type="submit">
+              {isEditing ? 'Save Changes' : 'Add Link'}
+            </Button>
           </DialogFooter>
         </form>
       </Form>

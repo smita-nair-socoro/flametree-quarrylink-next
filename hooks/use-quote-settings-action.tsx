@@ -4,6 +4,7 @@ import * as React from 'react';
 import { notifyInfo, notifySuccess } from '@/lib/toast';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
+  QuoteExternalLinkItem,
   QuoteSettingItem,
   QuoteTermsAndConditionsDocument,
   QuoteTextTemplateItem,
@@ -82,12 +83,26 @@ export function useQuoteSettingsActions() {
     React.useState<QuoteSettingItemType | null>(null);
   const [editingTextTemplate, setEditingTextTemplate] =
     React.useState<QuoteTextTemplateItem | null>(null);
+  const [editingExternalLink, setEditingExternalLink] =
+    React.useState<QuoteExternalLinkItem | null>(null);
 
   // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
   const openDialogDeferred = React.useCallback(
-    (type: QuoteSettingItemType, editingItem: QuoteTextTemplateItem | null = null) => {
+    (
+      type: QuoteSettingItemType,
+      editingItem: QuoteTextTemplateItem | QuoteExternalLinkItem | null = null,
+    ) => {
       setTimeout(() => {
-        setEditingTextTemplate(editingItem);
+        setEditingTextTemplate(
+          editingItem?.type === QuoteSettingItemType.TEXT_TEMPLATE
+            ? editingItem
+            : null,
+        );
+        setEditingExternalLink(
+          editingItem?.type === QuoteSettingItemType.EXTERNAL_LINK
+            ? editingItem
+            : null,
+        );
         setAddDialogType(type);
       }, 0);
     },
@@ -101,15 +116,26 @@ export function useQuoteSettingsActions() {
     [openDialogDeferred],
   );
 
+  const openExternalLinkEditor = React.useCallback(
+    (item: QuoteExternalLinkItem) => {
+      openDialogDeferred(QuoteSettingItemType.EXTERNAL_LINK, item);
+    },
+    [openDialogDeferred],
+  );
+
   const view = React.useCallback(
     (item: QuoteSettingItem) => {
       if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
         openTextTemplateEditor(item);
         return;
       }
+      if (item.type === QuoteSettingItemType.EXTERNAL_LINK) {
+        openExternalLinkEditor(item);
+        return;
+      }
       notifyInfo(`Viewing "${item.name}" is coming soon.`);
     },
-    [openTextTemplateEditor],
+    [openTextTemplateEditor, openExternalLinkEditor],
   );
 
   const edit = React.useCallback(
@@ -118,13 +144,13 @@ export function useQuoteSettingsActions() {
         openTextTemplateEditor(item);
         return;
       }
-      if (item.type === QuoteSettingItemType.UPLOADED_DOCUMENT) {
-        openDialogDeferred(QuoteSettingItemType.UPLOADED_DOCUMENT);
+      if (item.type === QuoteSettingItemType.EXTERNAL_LINK) {
+        openExternalLinkEditor(item);
         return;
       }
-      notifyInfo(`Editing "${item.name}" is coming soon.`);
+      openDialogDeferred(QuoteSettingItemType.UPLOADED_DOCUMENT);
     },
-    [openTextTemplateEditor, openDialogDeferred],
+    [openTextTemplateEditor, openExternalLinkEditor, openDialogDeferred],
   );
 
   const setDefault = React.useCallback((item: QuoteSettingItem) => {
@@ -149,6 +175,7 @@ export function useQuoteSettingsActions() {
   const closeAddDialog = React.useCallback(() => {
     setAddDialogType(null);
     setEditingTextTemplate(null);
+    setEditingExternalLink(null);
   }, []);
 
   const documentItem = React.useMemo(
@@ -193,17 +220,21 @@ export function useQuoteSettingsActions() {
   const submitExternalLink = React.useCallback(
     (values: ExternalLinkFormValues) => {
       applyItem({
-        id: String(nextItemId++),
+        id: editingExternalLink?.id ?? String(nextItemId++),
         name: values.name,
         type: QuoteSettingItemType.EXTERNAL_LINK,
         url: values.url,
         isDefault: values.isDefault,
         updatedAt: new Date().toISOString(),
       });
-      notifySuccess(`"${values.name}" added.`);
+      notifySuccess(
+        editingExternalLink
+          ? `"${values.name}" updated.`
+          : `"${values.name}" added.`,
+      );
       closeAddDialog();
     },
-    [applyItem, closeAddDialog],
+    [applyItem, closeAddDialog, editingExternalLink],
   );
 
   const submitReplaceDocument = React.useCallback(
@@ -236,6 +267,7 @@ export function useQuoteSettingsActions() {
     addDialogType,
     documentItem,
     editingTextTemplate,
+    editingExternalLink,
     closeAddDialog,
     submitTextTemplate,
     submitExternalLink,

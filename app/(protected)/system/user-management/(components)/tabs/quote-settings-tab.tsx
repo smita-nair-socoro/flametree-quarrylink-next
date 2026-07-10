@@ -22,6 +22,7 @@ export default function QuoteSettingsTab() {
     addDialogType,
     documentItem,
     editingTextTemplate,
+    editingExternalLink,
     closeAddDialog,
     submitTextTemplate,
     submitExternalLink,
@@ -97,6 +98,7 @@ export default function QuoteSettingsTab() {
         type={addDialogType}
         currentDocument={documentItem}
         editingTextTemplate={editingTextTemplate}
+        editingExternalLink={editingExternalLink}
         onOpenChange={(open) => {
           if (!open) closeAddDialog();
         }}
