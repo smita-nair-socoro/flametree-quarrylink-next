@@ -132,6 +132,8 @@ export type FacetDefinition = {
   options?: Array<{ value: string; label: string; icon?: LucideIcon }>;
 };
 
+const SEARCH_MIN_WIDTH = 56; // just enough for the search icon + padding, no text
+
 const paginationSizeSelect = [
   { value: '10', label: '10' },
   { value: '25', label: '25' },
@@ -189,7 +191,7 @@ export function DataTableClient<TData, TValue>({
   onSortingChange,
   externalSorting,
   isLoading = false,
-}: DataTableProps<TData, TValue>) {
+}: Readonly<DataTableProps<TData, TValue>>) {
   const isMobile = useIsMobile();
 
   const getStorageKey = useCallback(
@@ -393,10 +395,7 @@ export function DataTableClient<TData, TValue>({
       const nextPageSize =
         externalPageSize !== undefined ? externalPageSize : prev.pageSize;
 
-      if (
-        nextPageIndex === prev.pageIndex &&
-        nextPageSize === prev.pageSize
-      ) {
+      if (nextPageIndex === prev.pageIndex && nextPageSize === prev.pageSize) {
         return prev;
       }
 
@@ -526,14 +525,18 @@ export function DataTableClient<TData, TValue>({
         pageIndex: externalPageIndex ?? old.pageIndex,
         pageSize: externalPageSize ?? old.pageSize,
       };
-      const newValue = typeof updater === 'function' ? updater(currentState) : updater;
+      const newValue =
+        typeof updater === 'function' ? updater(currentState) : updater;
 
       // if (!isMobile) {
       //   saveToStorage('pagination', newValue);
       // }
       if (onPaginationChange) {
         // Schedule it so we don't cause React state updates during render phase
-        setTimeout(() => onPaginationChange(newValue.pageIndex, newValue.pageSize), 0);
+        setTimeout(
+          () => onPaginationChange(newValue.pageIndex, newValue.pageSize),
+          0,
+        );
       }
       return newValue;
     });
@@ -594,7 +597,10 @@ export function DataTableClient<TData, TValue>({
     // }
     table.setPageSize(Number(value));
     if (onPaginationChange) {
-      onPaginationChange(externalPageIndex ?? pagination.pageIndex, Number(value));
+      onPaginationChange(
+        externalPageIndex ?? pagination.pageIndex,
+        Number(value),
+      );
     }
   };
 
@@ -678,7 +684,10 @@ export function DataTableClient<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     getFacetedMinMaxValues: getFacetedMinMaxValues(),
     getRowId: (originalRow, index) => {
-      const r = originalRow as TData & { id?: number | string | null; sub?: string };
+      const r = originalRow as TData & {
+        id?: number | string | null;
+        sub?: string;
+      };
       if (r?.id != null && r.id !== 0) return String(r.id);
       if (typeof r?.sub === 'string' && r.sub.length > 0) return r.sub;
       return String(index);
@@ -706,9 +715,9 @@ export function DataTableClient<TData, TValue>({
 
     enableRowSelection: enableRowSelection
       ? (row: Row<TData>) => {
-        if (!rowSelectionFilter) return true;
-        return rowSelectionFilter(row.original);
-      }
+          if (!rowSelectionFilter) return true;
+          return rowSelectionFilter(row.original);
+        }
       : undefined,
 
     state: {
@@ -774,11 +783,14 @@ export function DataTableClient<TData, TValue>({
     const calculate = () => {
       if (!rowRef.current || !filterMeasureRef.current) return;
       const containerWidth = rowRef.current.offsetWidth;
-      const searchWidth = searchRef.current?.offsetWidth ?? 0;
+      // Reserve only the search bar's minimum width (it can shrink further via
+      // flex-1/min-w) rather than its current stretched width, so filters
+      // aren't pushed to row 2 just because the search bar hasn't shrunk yet.
       const showHideWidth = showHideRef.current?.offsetWidth ?? 0;
       const filterWidth = filterMeasureRef.current.scrollWidth;
       const gap = 8; // gap-2 = 8px
-      const available = containerWidth - searchWidth - showHideWidth - gap * 2;
+      const available =
+        containerWidth - SEARCH_MIN_WIDTH - showHideWidth - gap * 2;
       setFiltersInline(filterWidth > 0 && filterWidth <= available);
     };
 
@@ -889,7 +901,7 @@ export function DataTableClient<TData, TValue>({
                     (columnFilters.find((f) => f.id === filter.column)
                       ?.value as string[]) || []
                   }
-                  onFilterChange={() => { }}
+                  onFilterChange={() => {}}
                 />
               ))}
               {columnFilters.length > 0 && (
@@ -906,7 +918,7 @@ export function DataTableClient<TData, TValue>({
           )}
           {/* Row 1: Search bar + Show/Hide Columns */}
           <div ref={rowRef} className="flex flex-wrap items-center gap-2">
-            <div ref={searchRef} className="flex-1 min-w-0 max-w-xl">
+            <div ref={searchRef} className="flex-1 min-w-0 max-w-[11rem]">
               <InputIcon
                 placeholder={searchPlaceHolder}
                 type="search"
@@ -997,12 +1009,12 @@ export function DataTableClient<TData, TValue>({
                                         onClick={() => {
                                           const newValues = isSelected
                                             ? currentFilterValues.filter(
-                                              (v) => v !== option.value,
-                                            )
+                                                (v) => v !== option.value,
+                                              )
                                             : [
-                                              ...currentFilterValues,
-                                              option.value,
-                                            ];
+                                                ...currentFilterValues,
+                                                option.value,
+                                              ];
                                           handleTempFilterChange(
                                             filter.column,
                                             newValues,
@@ -1028,7 +1040,7 @@ export function DataTableClient<TData, TValue>({
                                         </div>
                                         {filter.counts &&
                                           filter.counts[option.value] !=
-                                          null && (
+                                            null && (
                                             <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
                                               {filter.counts[option.value]}
                                             </span>
@@ -1348,40 +1360,40 @@ export function DataTableClient<TData, TValue>({
                             simpleTable && 'border-b-0 font-medium',
                             !simpleTable && 'first:pl-4 last:pr-4 py-2',
                             !simpleTable &&
-                            headerIndex === 0 &&
-                            'rounded-tl-md',
+                              headerIndex === 0 &&
+                              'rounded-tl-md',
                             !simpleTable &&
-                            headerIndex === hg.headers.length - 1 &&
-                            'rounded-tr-md',
+                              headerIndex === hg.headers.length - 1 &&
+                              'rounded-tr-md',
                             // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
                             ((header.column.id === 'actions' &&
                               headerIndex === hg.headers.length - 1) ||
                               (!simpleTable &&
                                 headerIndex === hg.headers.length - 1)) &&
-                            'w-auto text-right',
+                              'w-auto text-right',
                           )}
                           style={
                             useColumnSizing
                               ? {
-                                width: header.column.columnDef.size
-                                  ? `${header.column.columnDef.size}px`
-                                  : undefined,
-                                minWidth: header.column.columnDef.size
-                                  ? `${header.column.columnDef.size}px`
-                                  : undefined,
-                                maxWidth: header.column.columnDef.size
-                                  ? `${header.column.columnDef.size}px`
-                                  : undefined,
-                              }
+                                  width: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
+                                    : undefined,
+                                  minWidth: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
+                                    : undefined,
+                                  maxWidth: header.column.columnDef.size
+                                    ? `${header.column.columnDef.size}px`
+                                    : undefined,
+                                }
                               : undefined
                           }
                         >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -1404,12 +1416,12 @@ export function DataTableClient<TData, TValue>({
                               : 'bg-white hover:bg-gray-100',
                             !simpleTable && onRowClick && 'cursor-pointer',
                             row.getIsSelected() &&
-                            '!bg-[#EFF6FF] hover:!bg-blue-100',
+                              '!bg-[#EFF6FF] hover:!bg-blue-100',
                             isNewRecord &&
-                            !isSyncError &&
-                            '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                              !isSyncError &&
+                              '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
                             isSyncError &&
-                            '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
+                              '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements
@@ -1452,25 +1464,25 @@ export function DataTableClient<TData, TValue>({
                                 !simpleTable && 'first:pl-4 last:pr-4 py-2',
                                 ((cell.column.id === 'actions' &&
                                   cellIndex ===
-                                  row.getVisibleCells().length - 1) ||
+                                    row.getVisibleCells().length - 1) ||
                                   (!simpleTable &&
                                     cellIndex ===
-                                    row.getVisibleCells().length - 1)) &&
-                                'w-auto text-right',
+                                      row.getVisibleCells().length - 1)) &&
+                                  'w-auto text-right',
                               )}
                               style={
                                 useColumnSizing
                                   ? {
-                                    width: cell.column.columnDef.size
-                                      ? `${cell.column.columnDef.size}px`
-                                      : undefined,
-                                    minWidth: cell.column.columnDef.size
-                                      ? `${cell.column.columnDef.size}px`
-                                      : undefined,
-                                    maxWidth: cell.column.columnDef.size
-                                      ? `${cell.column.columnDef.size}px`
-                                      : undefined,
-                                  }
+                                      width: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                      minWidth: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                      maxWidth: cell.column.columnDef.size
+                                        ? `${cell.column.columnDef.size}px`
+                                        : undefined,
+                                    }
                                   : undefined
                               }
                             >
@@ -1526,7 +1538,10 @@ export function DataTableClient<TData, TValue>({
                   <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
                     Total Records:
                     <span className="text-accent-foreground ml-2">
-                      {formatNumberThousandSeparatorWithoutDecimal(totalElements ?? table.getFilteredRowModel().rows.length)}
+                      {formatNumberThousandSeparatorWithoutDecimal(
+                        totalElements ??
+                          table.getFilteredRowModel().rows.length,
+                      )}
                     </span>
                   </p>
 
@@ -1561,7 +1576,8 @@ export function DataTableClient<TData, TValue>({
                 {table.getPageCount() > 1 && (
                   <div className="flex items-center space-x-4">
                     <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
-                      Page {effectivePagination.pageIndex + 1} of {table.getPageCount()}
+                      Page {effectivePagination.pageIndex + 1} of{' '}
+                      {table.getPageCount()}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
