@@ -287,7 +287,7 @@ const getDialogConfigs = (
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
                   <a
-                    href={`/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((quote) => quote.id).join(',')}`}
+                    href={`/customer-operations/quotation/?linkedQuotationIds=${blockingQuotes.map((quote) => quote.id).join(',')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[14px] text-[#155DFC] font-medium underline"
@@ -309,7 +309,7 @@ const getDialogConfigs = (
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
                   <a
-                    href={`/customer-operations/dockets?ids=${blockingDockets.map((docket) => docket.id).join(',')}`}
+                    href={`/customer-operations/dockets/?ids=${blockingDockets.map((docket) => docket.id).join(',')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[14px] text-[#155DFC] font-medium underline"
@@ -331,7 +331,7 @@ const getDialogConfigs = (
                 </span>
                 <div className="bg-orange-50 border border-[#FFD6A7] rounded-md p-3">
                   <a
-                    href={`/customer-operations/jobs?ids=${blockingJobs.map((job) => job.id).join(',')}`}
+                    href={`/customer-operations/jobs/?ids=${blockingJobs.map((job) => job.id).join(',')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[14px] text-[#155DFC] font-medium underline"

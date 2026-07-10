@@ -152,7 +152,7 @@ export function QuotationTableActions({
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <a
-                  href={`/customer-operations/jobs?ids=${quotation.jobId}`}
+                  href={`/customer-operations/jobs/?ids=${quotation.jobId}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setDropdownOpen(false)}

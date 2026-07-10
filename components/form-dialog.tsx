@@ -586,7 +586,7 @@ export function FormDialog({
     ) {
       links.push({
         label: selectedQuotation.jobNumber,
-        href: `/customer-operations/jobs?ids=${selectedQuotation.jobId}`,
+        href: `/customer-operations/jobs/?ids=${selectedQuotation.jobId}`,
       });
     }
 
@@ -599,7 +599,7 @@ export function FormDialog({
     ) {
       links.push({
         label: selectedJob.quoteNumber,
-        href: `/customer-operations/quotation?openQuoteId=${selectedJob.quoteId}`,
+        href: `/customer-operations/quotation/?openQuoteId=${selectedJob.quoteId}`,
       });
     }
 
@@ -611,7 +611,7 @@ export function FormDialog({
     ) {
       links.push({
         label: selectedDocket.job?.jobNumber ?? `#${selectedDocket.jobId}`,
-        href: `/customer-operations/jobs?ids=${selectedDocket.jobId}`,
+        href: `/customer-operations/jobs/?ids=${selectedDocket.jobId}`,
       });
     }
 
