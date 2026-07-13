@@ -11,6 +11,7 @@ import {
 	getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
 	Tooltip,
@@ -164,12 +165,7 @@ export const getJobLineItemsColumns = (
 		},
 		cell: ({ row }) => {
 			const productSellQty = row.original.productSellQty;
-			const productSellUom =
-				row.original.productSellUom === 'KG_20'
-					? 'x 20kg'
-					: row.original.productSellUom === 'M3'
-						? 'm³'
-						: row.original.productSellUom;
+			const productSellUom = formatUomLabel(row.original.productSellUom || '');
 
 			const displayText = `${formatNumberThousandSeparator(productSellQty)} ${productSellUom}`;
 			return (
@@ -195,12 +191,7 @@ export const getJobLineItemsColumns = (
 		},
 		cell: ({ row }) => {
 			const remainingQuantity = row.original.remainingQuantity;
-			const productSellUom =
-				row.original.productSellUom === 'KG_20'
-					? 'x 20kg'
-					: row.original.productSellUom === 'M3'
-						? 'm³'
-						: row.original.productSellUom;
+			const productSellUom = formatUomLabel(row.original.productSellUom || '');
 			const displayText = `${formatNumberThousandSeparator(remainingQuantity)} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>
