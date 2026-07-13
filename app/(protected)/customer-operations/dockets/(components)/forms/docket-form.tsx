@@ -68,7 +68,6 @@ import {
   convertTruckVolumeToProductUom,
   calculateGrossWeight,
   formatUomLabel,
-  formatCapacityUomLabel,
   shouldUseActualLoadSizeForGvm,
 } from '@/lib/utils/docket-helper';
 import { format } from 'date-fns';
@@ -242,24 +241,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -407,7 +406,7 @@ export default function DocketForm({
         const diff = Math.floor(
           (new Date(selectedDocket.deliveredAt).getTime() -
             new Date(selectedDocket.arrivedAt).getTime()) /
-            1000,
+          1000,
         );
         if (diff >= 0) {
           const h = Math.floor(diff / 3600);
@@ -596,8 +595,8 @@ export default function DocketForm({
     const assignedPayload = {
       deliveryCollectionDate: values.deliveryCollectionDate
         ? appendUtcSuffix(
-            format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
-          )
+          format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
+        )
         : undefined,
       deliveryStartWindow: startDateTime
         ? appendUtcSuffix(startDateTime)
@@ -671,18 +670,18 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
         new Set(
@@ -767,18 +766,18 @@ export default function DocketForm({
         deliveryAddress: isCollection
           ? undefined
           : {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            },
+            googlePlaceId: deliveryAddress.googlePlaceId,
+            formattedAddress: deliveryAddress.formattedAddress,
+            streetDetailsPrimary: deliveryAddress.address1,
+            streetDetailsOptional: deliveryAddress.address2,
+            city: deliveryAddress.city,
+            suburb: deliveryAddress.city,
+            state: deliveryAddress.region,
+            postcode: deliveryAddress.postalCode,
+            country: deliveryAddress.country,
+            latitude: deliveryAddress.lat,
+            longitude: deliveryAddress.lng,
+          },
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
         deliveryCollectionDate: values.deliveryCollectionDate
@@ -945,16 +944,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -1129,10 +1128,10 @@ export default function DocketForm({
                     const truckCapacityInProductUom =
                       truckVolumeM3 != null
                         ? convertTruckVolumeToProductUom(
-                            truckVolumeM3,
-                            details.productUom,
-                            details.densityTonnagePerM3 || 1,
-                          )
+                          truckVolumeM3,
+                          details.productUom,
+                          details.densityTonnagePerM3 || 1,
+                        )
                         : null;
                     const isGenericTruck =
                       selectedDocket?.truck?.licensePlate
@@ -1244,14 +1243,14 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                                productMax,
-                                                truckCapacityInProductUom,
-                                              )
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomText = formatCapacityUomLabel(
+                                        const uomText = formatUomLabel(
                                           details.productUom,
                                         );
 
@@ -1313,14 +1312,14 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                                productMax,
-                                                truckCapacityInProductUom,
-                                              )
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomText = formatCapacityUomLabel(
+                                        const uomText = formatUomLabel(
                                           details.productUom,
                                         );
 
@@ -1390,7 +1389,7 @@ export default function DocketForm({
                                   className={cn(
                                     'w-full',
                                     gvmExceeded &&
-                                      'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
+                                    'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
                                   )}
                                   disabled
                                   isNumber
@@ -1430,13 +1429,13 @@ export default function DocketForm({
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
                         {adjustedAlert.isGenericTruck &&
-                        adjustedAlert.productMax != null &&
-                        adjustedAlert.overProductMax
+                          adjustedAlert.productMax != null &&
+                          adjustedAlert.overProductMax
                           ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry up to ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                           : adjustedAlert.truckCapacity != null &&
-                              adjustedAlert.productMax != null &&
-                              adjustedAlert.truckCapacity <
-                                adjustedAlert.productMax
+                            adjustedAlert.productMax != null &&
+                            adjustedAlert.truckCapacity <
+                            adjustedAlert.productMax
                             ? adjustedAlert.overProductMax
                               ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                               : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
@@ -1495,12 +1494,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {formatUomLabel(
                             selectedJobLineItemDetails().productUom,
@@ -1523,7 +1522,7 @@ export default function DocketForm({
                             ?.toUpperCase()
                             .startsWith('GENERIC') ?? false;
                         const uomNorm = d.productUom?.toLowerCase();
-                        const uomText = formatCapacityUomLabel(d.productUom);
+                        const uomText = formatUomLabel(d.productUom);
                         const isM3 = uomNorm === 'm3' || uomNorm === 'bulka';
                         const calcLabel = isM3
                           ? `${formatNumberThousandSeparator(vol)} m³`
@@ -1869,12 +1868,12 @@ export default function DocketForm({
               {(() => {
                 const driverChecklist =
                   selectedDocket?.hasTodayDriverPreStart &&
-                  selectedDocket?.driverChecklistSubmissionId
+                    selectedDocket?.driverChecklistSubmissionId
                     ? selectedDocket?.driverChecklistSubmission
                     : null;
                 const truckChecklist =
                   selectedDocket?.hasTodayTruckInspectionByCurrentDriver &&
-                  selectedDocket?.truckChecklistSubmissionId
+                    selectedDocket?.truckChecklistSubmissionId
                     ? selectedDocket?.truckChecklistSubmission
                     : null;
 

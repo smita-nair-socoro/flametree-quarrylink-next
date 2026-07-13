@@ -31,18 +31,6 @@ export const formatUomLabel = (uom: string): string => {
   return uom;
 };
 
-/**
- * UOM label for truck-capacity contexts. Unlike formatUomLabel, BULKA maps to
- * 'm³' because capacity and adjusted-load amounts are expressed in volume.
- */
-export const formatCapacityUomLabel = (uom: string | undefined): string => {
-  const normalized = uom?.toLowerCase();
-  if (normalized === 'kg_20' || normalized === '20kg') return 'x 20kg';
-  if (normalized === 'm3' || normalized === 'bulka') return 'm³';
-  if (normalized === 'tn') return 'TN';
-  return uom || '';
-};
-
 export const calculateConvertedQty = (
   quantity: number,
   fromUom: string,
