@@ -28,10 +28,16 @@ interface LineItemsTabProps {
 export default function LineItemsTab({
   jobLineItems,
   jobTotals,
-}: LineItemsTabProps) {
+}: Readonly<LineItemsTabProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const { currencyCode, currencySymbol, taxLabel, taxPercentage, exTaxLabel, taxRateLabel } =
-    useTenantCurrencyTax();
+  const {
+    currencyCode,
+    currencySymbol,
+    taxLabel,
+    taxPercentage,
+    exTaxLabel,
+    taxRateLabel,
+  } = useTenantCurrencyTax();
 
   const pricingBreakdown = React.useMemo(() => {
     if (jobTotals) {
@@ -77,7 +83,11 @@ export default function LineItemsTab({
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
-          columns={getJobLineItemsColumns(currencyCode, taxLabel, taxPercentage)}
+          columns={getJobLineItemsColumns(
+            currencyCode,
+            taxLabel,
+            taxPercentage,
+          )}
           data={jobLineItems}
           simpleTable={true}
           defaultSorting={[{ id: 'productName', desc: false }]}
@@ -96,26 +106,39 @@ export default function LineItemsTab({
                     <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                       <div>
                         <span>Product Cost</span>
-                        <span>{currencySymbol}{pricingBreakdown.totalProductCostPrice}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.totalProductCostPrice}
+                        </span>
                       </div>
                       {!isAllCollection && (
                         <div>
                           <span>Truck Cost</span>
-                          <span>{currencySymbol}{pricingBreakdown.totalTruckCostPrice}</span>
+                          <span>
+                            {currencySymbol}
+                            {pricingBreakdown.totalTruckCostPrice}
+                          </span>
                         </div>
                       )}
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span>Subtotal {exTaxLabel}</span>
-                        <span>{currencySymbol}{pricingBreakdown.costSubtotalExGST}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.costSubtotalExGST}
+                        </span>
                       </div>
                       <div>
                         <span>{taxRateLabel}</span>
-                        <span>{currencySymbol}{pricingBreakdown.costGst}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.costGst}
+                        </span>
                       </div>
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span className="font-bold text-lg">Total Cost</span>
                         <span className="font-bold text-lg">
-                          {currencySymbol}{pricingBreakdown.totalCost}
+                          {currencySymbol}
+                          {pricingBreakdown.totalCost}
                         </span>
                       </div>
                     </div>
@@ -126,26 +149,39 @@ export default function LineItemsTab({
                     <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
                       <div>
                         <span>Product Sell</span>
-                        <span>{currencySymbol}{pricingBreakdown.totalProductSellPrice}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.totalProductSellPrice}
+                        </span>
                       </div>
                       {!isAllCollection && (
                         <div>
                           <span>Truck Sell</span>
-                          <span>{currencySymbol}{pricingBreakdown.totalTruckSellPrice}</span>
+                          <span>
+                            {currencySymbol}
+                            {pricingBreakdown.totalTruckSellPrice}
+                          </span>
                         </div>
                       )}
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span>Subtotal {exTaxLabel}</span>
-                        <span>{currencySymbol}{pricingBreakdown.invoiceSubtotalExGST}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.invoiceSubtotalExGST}
+                        </span>
                       </div>
                       <div>
                         <span>{taxRateLabel}</span>
-                        <span>{currencySymbol}{pricingBreakdown.invoiceGst}</span>
+                        <span>
+                          {currencySymbol}
+                          {pricingBreakdown.invoiceGst}
+                        </span>
                       </div>
                       <div className={`pt-2 ${separatorBorder}`}>
                         <span className="font-bold text-lg">Total Invoice</span>
                         <span className="font-bold text-lg">
-                          {currencySymbol}{pricingBreakdown.totalInvoice}
+                          {currencySymbol}
+                          {pricingBreakdown.totalInvoice}
                         </span>
                       </div>
                     </div>

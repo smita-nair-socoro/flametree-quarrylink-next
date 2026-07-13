@@ -10,16 +10,15 @@ import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/
 import type { MapMarker } from '@/components/ui/map';
 import { useQuery } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
-import { JobsListQueryOptions, JobItemsQueryOptions } from '@/lib/api/job';
+import { useJobsForForm } from '@/hooks/job/use-jobs-for-form';
+import { useJobLineItemsForForm } from '@/hooks/job/use-job-line-items-for-form';
 import { DocketByIdQueryOptions } from '@/lib/api/docket';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
-import { BADGE_COLORS } from '@/lib/utils';
 import {
   normalizeDeliveryTimeWindowEnd,
   normalizeDeliveryTimeWindowStart,
@@ -244,51 +243,69 @@ export function useDocketFormState({
   });
 
   const selectedJobId = docketForm.watch('jobId');
-
-  const { data: jobsData } = useQuery(JobsListQueryOptions());
-  const jobsList = jobsData?.jobs?.content ?? [];
-
-  const allJobs = React.useMemo(
-    () =>
-      jobsList.map((job) => {
-        const isPaused = job.jobStatus === JOB_STATUS.PAUSED;
-        return {
-          label: `${job.jobNumber} - ${job.projectName}`,
-          value: job.id,
-          disabled: isPaused,
-          badge: isPaused
-            ? { label: 'Paused', className: BADGE_COLORS.PAUSED }
-            : undefined,
-        };
-      }),
-    [jobsList],
-  );
-
   const effectiveJobId = isJobLocked && jobId ? jobId : selectedJobId;
 
-  const { data: selectedJobDetails } = useQuery({
-    ...JobItemsQueryOptions(effectiveJobId),
-    enabled: !!effectiveJobId,
+  /**
+   * Product select: infinite load of the selected job's line items. The
+   * product can't change on an existing docket and the docket embeds its own
+   * jobItem, so this is only fetched when creating.
+   */
+  const {
+    jobDetails: selectedJobDetails,
+    jobLineItems,
+    lineItemSelectProps,
+  } = useJobLineItemsForForm({
+    jobId: effectiveJobId,
+    enabled: !isEditing,
   });
 
-  const jobLineItems = React.useMemo(() => {
-    return selectedJobDetails?.jobItems ?? [];
-  }, [selectedJobDetails]);
+  /**
+   * Job select: infinite load + server-side search (same pattern as the
+   * customer select in the quotation form). Not fetched in edit mode where
+   * the job is locked and comes embedded in the docket.
+   */
+  const { jobs: jobsList, jobSelectProps } = useJobsForForm({
+    enabled: !isEditing,
+    selectedJobId: effectiveJobId,
+    fallbackJob:
+      selectedJobDetails?.id === effectiveJobId
+        ? selectedJobDetails
+        : selectedDocket?.job?.id === effectiveJobId
+          ? selectedDocket.job
+          : null,
+  });
 
-  const jobLineItemOptions = React.useMemo(
-    () =>
-      jobLineItems
-        .filter((lineItem) => lineItem.id !== undefined)
-        .map((lineItem) => ({
-          label: lineItem.product?.productName ?? 'Unknown Product',
-          value: lineItem.id as number,
-        })),
-    [jobLineItems],
-  );
+  const jobLineItemOptions = React.useMemo(() => {
+    if (isEditing) {
+      return selectedDocket?.jobItem
+        ? [
+            {
+              label:
+                selectedDocket.jobItem.product?.productName ??
+                'Unknown Product',
+              value: selectedDocket.jobItem.id,
+            },
+          ]
+        : [];
+    }
+
+    return jobLineItems
+      .filter((lineItem) => lineItem.id !== undefined)
+      .map((lineItem) => ({
+        label: lineItem.product?.productName ?? 'Unknown Product',
+        value: lineItem.id as number,
+      }));
+  }, [isEditing, selectedDocket?.jobItem, jobLineItems]);
 
   const selectedJob = React.useMemo<SelectedJobPrefill>(() => {
     const jobFromList = jobsList.find((job) => job.id === effectiveJobId);
     const jobDetails = selectedJobDetails;
+
+    const customerEmail =
+      jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
+      jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
+      selectedDocket?.job?.customerDto?.contactPersonEmail ??
+      '';
 
     return {
       deliveryStartDate:
@@ -308,19 +325,12 @@ export function useDocketFormState({
       contactPhone:
         jobDetails?.contactPersonPhone ?? jobFromList?.contactPersonPhone ?? '',
 
-      customerEmail:
-        jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
-        jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
-        '',
+      customerEmail,
 
       additionalDocketEmails: (() => {
-        const contactEmail =
-          jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
-          jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
-          '';
         const recipients =
           jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
-        return recipients.filter((e) => e !== contactEmail).join(', ');
+        return recipients.filter((e) => e !== customerEmail).join(', ');
       })(),
 
       createdBy: '',
@@ -328,7 +338,7 @@ export function useDocketFormState({
       createdAt: '',
       updatedAt: '',
     };
-  }, [effectiveJobId, jobsList, selectedJobDetails]);
+  }, [effectiveJobId, jobsList, selectedJobDetails, selectedDocket]);
 
   const resetAddressState = React.useCallback(() => {
     setPickUpAddress(EMPTY_ADDRESS);
@@ -473,9 +483,11 @@ export function useDocketFormState({
 
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
-    const selectedJobLineItem = jobLineItems.find(
-      (lineItem) => lineItem.id === selectedJobLineItemId,
-    );
+    // In edit mode the product is locked, so read the line item embedded in
+    // the docket instead of the (not fetched) job line items.
+    const selectedJobLineItem = isEditing
+      ? selectedDocket?.jobItem
+      : jobLineItems.find((lineItem) => lineItem.id === selectedJobLineItemId);
 
     const restoredAllocatedQty =
       isEditing && selectedDocket?.jobItemId === selectedJobLineItemId
@@ -596,12 +608,16 @@ export function useDocketFormState({
   ]);
 
   React.useEffect(() => {
+    // Edit mode hydrates jobLineItemType from the docket itself; job line
+    // items are not fetched there, so this would wipe the value.
+    if (isEditing) return;
+
     const currentJobLineItemId = docketForm.getValues('jobLineItemId');
     const lineItem = jobLineItems.find(
       (item) => item.id === currentJobLineItemId,
     );
     docketForm.setValue('jobLineItemType', lineItem?.jobItemType ?? '');
-  }, [docketForm.watch('jobLineItemId'), jobLineItems, docketForm]);
+  }, [docketForm.watch('jobLineItemId'), jobLineItems, docketForm, isEditing]);
 
   const productDetailsQuery = useQuery({
     queryKey: ['product', selectedJobLineItemDetails().productId],
@@ -689,8 +705,9 @@ export function useDocketFormState({
     docketForm,
     isEditing,
     isJobLocked,
-    allJobs,
+    jobSelectProps,
     jobLineItemOptions,
+    jobLineItemSelectProps: lineItemSelectProps,
     selectedJobId: effectiveJobId,
     selectedJob,
     selectedJobLineItemDetails,

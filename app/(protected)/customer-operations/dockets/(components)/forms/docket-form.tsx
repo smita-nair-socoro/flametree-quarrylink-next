@@ -160,8 +160,9 @@ export default function DocketForm({
     docketForm,
     isEditing,
     isJobLocked,
-    allJobs,
+    jobSelectProps,
     jobLineItemOptions,
+    jobLineItemSelectProps,
     selectedJobId,
     selectedJob,
     selectedJobLineItemDetails,
@@ -1039,9 +1040,9 @@ export default function DocketForm({
                   name="jobId"
                   label="Job Reference*"
                   searchLabel="Job References"
-                  options={allJobs}
                   placeholder="Select Job"
                   disabled={isJobLocked || isReadOnly || isEditing}
+                  {...jobSelectProps}
                   formItemClassName={
                     isEditing && isDesktop
                       ? 'col-span-1 col-start-1'
@@ -1082,6 +1083,7 @@ export default function DocketForm({
                         jobLineItemOptions.length === 0 ||
                         isEditing
                       }
+                      {...jobLineItemSelectProps}
                     />
 
                     <FormItem>
