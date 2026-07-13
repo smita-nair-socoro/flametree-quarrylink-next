@@ -13,14 +13,19 @@ import { CustomerAttachmentDTO } from '@/lib/types/customer';
 import { useCustomerAttachmentActions } from '@/hooks/use-customer-attachment-actions';
 
 interface CustomerAttachmentTableActionsProps {
+  customerId: number;
   attachment: CustomerAttachmentDTO;
 }
 
 export function CustomerAttachmentTableActions({
+  customerId,
   attachment,
 }: CustomerAttachmentTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs } = useCustomerAttachmentActions(attachment);
+  const { actions, confirmDialogs } = useCustomerAttachmentActions(
+    customerId,
+    attachment,
+  );
 
   const handleRemove = () => {
     setDropdownOpen(false);

@@ -7,6 +7,7 @@ import { Trash2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { CUSTOMER_ATTACHMENT_CATEGORY_LABELS } from '@/app/(protected)/customer-operations/customers/(components)/forms/schemas/customer-attachment-form-schema';
+import { useDeleteCustomerAttachment } from '@/lib/api/customer';
 
 function RemoveCustomerAttachmentDescription({
   attachment,
@@ -57,8 +58,10 @@ function RemoveCustomerAttachmentContent() {
 }
 
 export function useCustomerAttachmentActions(
+  customerId: number,
   initialData?: CustomerAttachmentDTO | null,
 ) {
+  const deleteAttachmentMutation = useDeleteCustomerAttachment();
   const [removeOpen, setRemoveOpen] = React.useState(false);
   const [attachmentData, setAttachmentData] = React.useState<
     CustomerAttachmentDTO | null | undefined
@@ -69,10 +72,13 @@ export function useCustomerAttachmentActions(
   }, [initialData]);
 
   const handleConfirmRemove = async () => {
-    if (!attachmentData?.id) return;
+    if (!customerId || !attachmentData?.id) return;
 
     try {
-      // TODO: wire delete API when available
+      await deleteAttachmentMutation.mutateAsync({
+        customerId,
+        attachmentId: attachmentData.id,
+      });
       setRemoveOpen(false);
       notifySuccess('Attachment removed successfully');
     } catch (error) {
@@ -100,6 +106,7 @@ export function useCustomerAttachmentActions(
       confirmVariant="destructive"
       confirmCustomColor="#E7000B"
       cancelText="Cancel"
+      confirmDisabled={deleteAttachmentMutation.isPending}
       onConfirmAction={() => void handleConfirmRemove()}
     />
   );

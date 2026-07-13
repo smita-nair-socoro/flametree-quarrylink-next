@@ -16,6 +16,7 @@ import {
   CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
+  CustomerAttachmentDTO,
 } from '../types/customer';
 import {
   Quarry,
@@ -87,7 +88,13 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
+import {
+  HaulierCreateDTO,
+  HaulierDTO,
+  HaulierDeleteResponse,
+  HaulierStatistics,
+  HauliersPage,
+} from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -720,6 +727,37 @@ export const APIClient = {
       appClient.Put<UnarchiveCustomerResponseDTO>(
         `/socoro/quarrylink/api/customer/${id}/unarchive`,
       ),
+    getAttachments: (customerId: number) =>
+      appClient.Get<CustomerAttachmentDTO[]>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments`,
+      ),
+    uploadAttachment: (
+      customerId: number,
+      params: { category: string; fileName: string; file: File },
+    ) => {
+      const formData = new FormData();
+      formData.append('file', params.file);
+      return appClient.Post<CustomerAttachmentDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments`,
+        {
+          body: formData,
+          queryString: {
+            category: params.category,
+            fileName: params.fileName,
+          },
+        },
+      );
+    },
+    getAttachment: async (customerId: number, attachmentId: number) => {
+      const response = await appClient.Get<Response>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments/${attachmentId}`,
+      );
+      return response.blob();
+    },
+    deleteAttachment: (customerId: number, attachmentId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments/${attachmentId}`,
+      ),
   },
 
   quotations: {
@@ -1348,7 +1386,9 @@ export const APIClient = {
         body: data,
       }),
     getStatistics: () =>
-      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+      appClient.Get<HaulierStatistics>(
+        '/socoro/quarrylink/api/haulier/statistics',
+      ),
     delete: (id: number) =>
       appClient.Delete<HaulierDeleteResponse>(
         `/socoro/quarrylink/api/haulier/${id}`,

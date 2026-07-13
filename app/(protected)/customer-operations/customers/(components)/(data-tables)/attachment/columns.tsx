@@ -13,8 +13,9 @@ import { formatLocalDate } from '@/lib/utils/date';
 import { openCustomerAttachment } from '@/lib/utils/customer-attachment-helper';
 import { CustomerAttachmentTableActions } from './customer-attachment-table-actions';
 
-export const getCustomerAttachmentColumns =
-  (): ColumnDef<CustomerAttachmentDTO>[] => [
+export const getCustomerAttachmentColumns = (
+  customerId: number,
+): ColumnDef<CustomerAttachmentDTO>[] => [
     {
       id: 'fileName',
       accessorFn: (row) => row.fileName,
@@ -31,7 +32,7 @@ export const getCustomerAttachmentColumns =
               <button
                 type="button"
                 className="block w-[180px] truncate text-left text-sm font-medium text-[#155DFC] underline sm:w-[210px] md:w-[250px] lg:w-[270px] xl:w-[290px] cursor-pointer"
-                onClick={() => openCustomerAttachment(attachment)}
+                onClick={() => void openCustomerAttachment(customerId, attachment)}
               >
                 {value}
               </button>
@@ -90,7 +91,12 @@ export const getCustomerAttachmentColumns =
       },
       cell: ({ row }) => {
         const attachment = row.original;
-        return <CustomerAttachmentTableActions attachment={attachment} />;
+        return (
+          <CustomerAttachmentTableActions
+            customerId={customerId}
+            attachment={attachment}
+          />
+        );
       },
     },
   ];

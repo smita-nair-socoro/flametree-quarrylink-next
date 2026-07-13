@@ -10,6 +10,9 @@ import {
   AddCustomerAttachmentDescription,
 } from '@/hooks/customer/add-customer-attachment-content';
 import { customerAttachmentFormSchema } from './schemas/customer-attachment-form-schema';
+import { useUploadCustomerAttachment } from '@/lib/api/customer';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 type AttachmentFieldErrors = Partial<
   Record<'category' | 'fileName' | 'file', string>
@@ -47,6 +50,7 @@ export function AddCustomerAttachmentDialog({
   onOpenChange,
   customerId,
 }: AddCustomerAttachmentDialogProps) {
+  const uploadAttachmentMutation = useUploadCustomerAttachment();
   const [formState, setFormState] = React.useState(EMPTY_ATTACHMENT_FORM);
   const [fieldErrors, setFieldErrors] = React.useState<AttachmentFieldErrors>(
     {},
@@ -57,7 +61,7 @@ export function AddCustomerAttachmentDialog({
     setFieldErrors({});
   }, []);
 
-  const handleConfirmAdd = () => {
+  const handleConfirmAdd = async () => {
     const result = customerAttachmentFormSchema.safeParse({
       category: formState.category,
       fileName: formState.fileName,
@@ -69,11 +73,24 @@ export function AddCustomerAttachmentDialog({
       return;
     }
 
+    if (!customerId) {
+      notifyError('Customer ID is required to upload an attachment');
+      return;
+    }
 
-    // TODO: wire create API when available using customerId and result.data
-
-    resetForm();
-    onOpenChange(false);
+    try {
+      await uploadAttachmentMutation.mutateAsync({
+        customerId,
+        category: result.data.category,
+        fileName: result.data.fileName,
+        file: result.data.file,
+      });
+      notifySuccess('Attachment uploaded successfully');
+      resetForm();
+      onOpenChange(false);
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to upload attachment');
+    }
   };
 
   return (
@@ -110,7 +127,8 @@ export function AddCustomerAttachmentDialog({
       confirmText="Add Attachment"
       confirmCustomColor="#8E51FF"
       cancelText="Cancel"
-      onConfirmAction={handleConfirmAdd}
+      confirmDisabled={uploadAttachmentMutation.isPending}
+      onConfirmAction={() => void handleConfirmAdd()}
       customWidth="600px"
     />
   );

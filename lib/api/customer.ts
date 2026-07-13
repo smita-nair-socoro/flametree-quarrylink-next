@@ -358,3 +358,63 @@ export const useUnarchiveCustomer = () => {
     },
   });
 };
+
+export const useGetCustomerAttachments = (customerId: number) =>
+  queryOptions({
+    queryKey: CustomerKeys.attachments(customerId),
+    queryFn: () => APIClient.customers.getAttachments(customerId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!customerId,
+  });
+
+export type UploadCustomerAttachmentParams = {
+  customerId: number;
+  category: string;
+  fileName: string;
+  file: File;
+};
+
+export const useUploadCustomerAttachment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      category,
+      fileName,
+      file,
+    }: UploadCustomerAttachmentParams) =>
+      APIClient.customers.uploadAttachment(customerId, {
+        category,
+        fileName,
+        file,
+      }),
+
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: CustomerKeys.attachments(variables.customerId),
+      });
+    },
+  });
+};
+
+export const useDeleteCustomerAttachment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      attachmentId,
+    }: {
+      customerId: number;
+      attachmentId: number;
+    }) => APIClient.customers.deleteAttachment(customerId, attachmentId),
+
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: CustomerKeys.attachments(variables.customerId),
+      });
+    },
+  });
+};

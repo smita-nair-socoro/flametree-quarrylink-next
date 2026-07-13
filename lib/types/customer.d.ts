@@ -249,12 +249,16 @@ export interface AdditionalContactDTO {
   position?: string;
 }
 
+// Get all and Post
 export interface CustomerAttachmentDTO {
-  id?: number;
-  customerId?: number;
+  id: number;
   fileName: string;
   category: string;
-  uploadedAt?: string;
-  sourceType: 'LINK' | 'FILE';
-  href: string;
+  uploadedAt: string;
+  fileExtension: string;
+  fileSizeBytes: number;
+}
+
+export interface customerAttachmentResponseDTO {
+  string;
 }

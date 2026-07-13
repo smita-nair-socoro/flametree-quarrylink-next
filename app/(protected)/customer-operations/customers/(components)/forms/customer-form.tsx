@@ -45,6 +45,7 @@ import {
 import {
   useCreateCustomer,
   CustomerDetailQueryOptions,
+  useGetCustomerAttachments,
 } from '@/lib/api/customer';
 import { useRouter } from 'next/navigation';
 import { CustomerDTO } from '@/lib/types/customer';
@@ -73,7 +74,6 @@ import { AddCustomerAttachmentDialog } from './add-customer-attachment-dialog';
 import { getAdditionalContactColumns } from '../(data-tables)/additional-contact/columns';
 import { MOCK_DATA } from '../(data-tables)/additional-contact/mock-data';
 import { getCustomerAttachmentColumns } from '../(data-tables)/attachment/columns';
-import { MOCK_ATTACHMENT_DATA } from '../(data-tables)/attachment/mock-data';
 
 interface FormProps {
   id?: number;
@@ -103,6 +103,17 @@ export default function CustomerForm({
     ...CustomerDetailQueryOptions(customerId),
     enabled: isEditing && customerId > 0,
   });
+
+  const { data: customerAttachments = [], isLoading: isAttachmentsLoading } =
+    useQuery({
+      ...useGetCustomerAttachments(customerId),
+      enabled: isEditing && customerId > 0,
+    });
+
+  const attachmentTableData = React.useMemo(
+    () => (Array.isArray(customerAttachments) ? customerAttachments : []),
+    [customerAttachments],
+  );
 
   // Fetch account managers
   // const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
@@ -1281,9 +1292,10 @@ export default function CustomerForm({
 
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                     <DataTableClient
-                      columns={getCustomerAttachmentColumns()}
-                      data={MOCK_ATTACHMENT_DATA}
+                      columns={getCustomerAttachmentColumns(customerId)}
+                      data={attachmentTableData}
                       simpleTable={true}
+                      isLoading={isAttachmentsLoading}
                       defaultSorting={[{ id: 'fileName', desc: false }]}
                     />
                   </div>
