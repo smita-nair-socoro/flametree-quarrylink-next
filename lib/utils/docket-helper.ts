@@ -28,6 +28,10 @@ export const formatUomLabel = (uom: string): string => {
   if (normalized === 'kg_20' || normalized === '20kg') return 'x 20kg';
   if (normalized === 'm3') return 'm³';
   if (normalized === 'bulka') return 'Bulka';
+  if (normalized === 'tn') return 'TN';
+  if (normalized === 'hourly') return 'Hourly';
+  if (normalized === 'load') return 'Load';
+  if (normalized === 'km') return 'km';
   return uom;
 };
 

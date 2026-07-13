@@ -18,7 +18,10 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { centsToDollarsNum, roundToTwoDecimals } from '@/lib/utils/currency';
 import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
-import { calculateConvertedQty } from '@/lib/utils/docket-helper';
+import {
+  calculateConvertedQty,
+  formatUomLabel,
+} from '@/lib/utils/docket-helper';
 import {
   normalizeDeliveryTimeWindowEnd,
   normalizeDeliveryTimeWindowStart,
@@ -83,22 +86,6 @@ type SelectedJobPrefill = {
   lastModifiedBy: string;
   createdAt: string;
   updatedAt: string;
-};
-
-/** API UOM value → display label used by the pricing/conversion helpers. */
-const PRODUCT_UOM_LABELS: Record<string, string> = {
-  TN: 'TN',
-  M3: 'm3',
-  m3: 'm3',
-  BULKA: 'Bulka',
-  KG_20: '20kg',
-};
-
-const TRUCK_UOM_LABELS: Record<string, string> = {
-  ...PRODUCT_UOM_LABELS,
-  HOURLY: 'Hourly',
-  LOAD: 'Load',
-  KM: 'km',
 };
 
 const TRUCK_TYPE_MAP: Record<string, string> = {
@@ -512,10 +499,11 @@ export function useDocketFormState({
         ? selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize || 0
         : 0;
 
-    const productUom =
-      PRODUCT_UOM_LABELS[selectedJobLineItem?.productSellUom ?? ''] ?? '';
-    const truckUom =
-      TRUCK_UOM_LABELS[selectedJobLineItem?.truckSellUom ?? ''] ?? '';
+    // Raw API UOM enums ('M3', 'KG_20', ...): the conversion helpers
+    // normalize case themselves. Display sites use the pre-formatted
+    // *UomLabel values instead of re-converting.
+    const productUom = selectedJobLineItem?.productSellUom ?? '';
+    const truckUom = selectedJobLineItem?.truckSellUom ?? '';
 
     return {
       pickUpAddress: selectedJobLineItem?.quarrySupplier ?? null,
@@ -528,6 +516,7 @@ export function useDocketFormState({
         selectedJobLineItem?.product?.densityTonnagePerM3 ??
         0,
       productUom,
+      productUomLabel: formatUomLabel(productUom),
       truckType: selectedJobLineItem?.truckType ?? '',
       truckTypeLabel: selectedJobLineItem?.truckType
         ? (TRUCK_TYPE_MAP[selectedJobLineItem.truckType] ??
@@ -536,6 +525,7 @@ export function useDocketFormState({
       truckSell: selectedJobLineItem?.truckSellPrice ?? 0,
       truckSellQty: selectedJobLineItem?.truckSellQty ?? 0,
       truckUom,
+      truckUomLabel: formatUomLabel(truckUom),
       productSell: selectedJobLineItem?.productSellPrice ?? 0,
       productSellQty: selectedJobLineItem?.productSellQty ?? 0,
       remainingQty:
