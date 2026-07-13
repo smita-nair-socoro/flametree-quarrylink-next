@@ -151,10 +151,17 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
     staleTime: 5_000,
   });
 
-export const JobItemsQueryOptions = (jobId: number) =>
+export type JobItemsParams = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+export const JobItemsQueryOptions = (jobId: number, params?: JobItemsParams) =>
   queryOptions({
-    queryKey: JobKeys.items(jobId),
-    queryFn: () => APIClient.jobs.getJobItems(jobId),
+    queryKey: params ? [...JobKeys.items(jobId), params] : JobKeys.items(jobId),
+    queryFn: () => APIClient.jobs.getJobItems(jobId, params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
