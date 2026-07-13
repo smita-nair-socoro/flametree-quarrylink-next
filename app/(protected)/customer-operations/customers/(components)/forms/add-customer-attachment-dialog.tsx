@@ -69,7 +69,6 @@ export function AddCustomerAttachmentDialog({
       return;
     }
 
-    console.log('Add attachment:', { customerId, ...result.data });
 
     // TODO: wire create API when available using customerId and result.data
 
