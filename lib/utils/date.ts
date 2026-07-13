@@ -59,6 +59,24 @@ export function parseCalendarDate(dateString: string): Date {
 }
 
 /**
+ * Returns YYYY-MM-DD using local calendar components (no UTC conversion).
+ */
+export function getCalendarDateString(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Extracts YYYY-MM-DD from a backend naive datetime string.
+ */
+export function getCalendarDatePart(dateString: string): string {
+  const match = dateString.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match?.[1] ?? dateString.split('T')[0];
+}
+
+/**
  * Format a backend date/datetime using only the YYYY-MM-DD portion.
  * Ignores any time component so the displayed calendar day is not shifted by timezone.
  */
@@ -330,8 +348,7 @@ function formatRelativeTime(
  */
 export function getRelativeTime(date: Date | string | number): string {
   const now = new Date();
-  const pastDate =
-    typeof date === 'string' ? parseAsUTC(date) : new Date(date);
+  const pastDate = typeof date === 'string' ? parseAsUTC(date) : new Date(date);
   const diffInSeconds = Math.floor((now.getTime() - pastDate.getTime()) / 1000);
 
   return formatRelativeTime(diffInSeconds, 'ago', 'Just now');
@@ -346,7 +363,7 @@ export function getRelativeTimeFuture(date: Date | string | number): string {
   const futureDate =
     typeof date === 'string' ? parseAsUTC(date) : new Date(date);
   const diffInSeconds = Math.floor(
-    (futureDate.getTime() - now.getTime()) / 1000
+    (futureDate.getTime() - now.getTime()) / 1000,
   );
 
   return formatRelativeTime(diffInSeconds, '', 'Now');
@@ -416,8 +433,7 @@ export function getRelativeTimePastOrFuture(
   date: Date | string | number,
 ): string {
   const now = new Date();
-  const target =
-    typeof date === 'string' ? parseAsUTC(date) : new Date(date);
+  const target = typeof date === 'string' ? parseAsUTC(date) : new Date(date);
 
   const diffInSeconds = target.getTime() - now.getTime();
 
@@ -435,11 +451,7 @@ export function getRelativeTimePastOrFuture(
 
   // Past: calendar days from target to now (now - target)
   const calendarDiffSec = getCalendarDayDiffInSeconds(now, target);
-  return formatRelativeTimeCalendarDays(
-    calendarDiffSec,
-    'ago',
-    'Just now',
-  );
+  return formatRelativeTimeCalendarDays(calendarDiffSec, 'ago', 'Just now');
 }
 
 /**
