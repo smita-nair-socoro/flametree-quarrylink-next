@@ -12,12 +12,15 @@ import {
   Plus,
   Truck,
   Trash2,
+  AlertTriangle,
   type LucideIcon,
   ChevronRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { ActionDialog } from '@/components/action-dialog';
 import {
   GroupedFieldSelector,
   type GroupedFieldCategory,
@@ -151,6 +154,7 @@ function CategoryIcon({ category }: { category: string }) {
     </div>
   );
 }
+
 
 function MappingForm({
   categories,
@@ -297,6 +301,9 @@ export function XeroFieldMappings({
   const [editDraftName, setEditDraftName] = React.useState('');
   const [editDraftCategory, setEditDraftCategory] = React.useState('');
   const [editDraftField, setEditDraftField] = React.useState('');
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleteTargetMapping, setDeleteTargetMapping] =
+    React.useState<FieldMapping | null>(null);
   const createTrackingCategory = useCreateTrackingCategory();
   const updateTrackingCategory = useUpdateTrackingCategory();
   const deleteTrackingCategory = useDeleteTrackingCategory();
@@ -415,9 +422,17 @@ export function XeroFieldMappings({
     setIsAdding(false);
   };
 
-  const handleDelete = async (mapping: FieldMapping) => {
+  const handleOpenDelete = (mapping: FieldMapping) => {
+    setDeleteTargetMapping(mapping);
+    setDeleteOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTargetMapping) return;
+
     try {
-      await deleteTrackingCategory.mutateAsync(mapping.id);
+      await deleteTrackingCategory.mutateAsync(deleteTargetMapping.id);
+      setDeleteTargetMapping(null);
     } catch (error) {
       console.error('Error deleting tracking category:', error);
       notifyError(extractErrorMessage(error));
@@ -450,11 +465,20 @@ export function XeroFieldMappings({
         <div className="flex flex-col gap-4 border-t pt-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold text-[#101828]">
-                Tracking Categories
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-semibold text-[#101828]">
+                  Tracking Categories
+                </p>
+                <Badge
+                  variant="destructive"
+                  className="rounded-full border-transparent px-2.5 py-0.5 text-xs font-medium"
+                >
+                  {mappings.length} of {MAX_FIELD_MAPPINGS} used
+                </Badge>
+              </div>
               <p className="text-sm text-[#6A7282]">
-                Configure custom tracking categories using your QuarryLink data.
+                Configure up to {MAX_FIELD_MAPPINGS} custom tracking categories
+                using your QuarryLink data.
               </p>
             </div>
             {showAddButton && (
@@ -530,7 +554,7 @@ export function XeroFieldMappings({
                     key={mapping.id}
                     mapping={mapping}
                     onEdit={() => handleStartEdit(mapping)}
-                    onDelete={() => handleDelete(mapping)}
+                    onDelete={() => handleOpenDelete(mapping)}
                     disabled={isAdding || editingMappingId !== null || isSaving}
                   />
                 ),
@@ -539,6 +563,52 @@ export function XeroFieldMappings({
           )}
         </div>
       )}
+
+      <ActionDialog
+        open={deleteOpen}
+        onOpenChangeAction={(open) => {
+          setDeleteOpen(open);
+          if (!open) {
+            setDeleteTargetMapping(null);
+          }
+        }}
+        title="Delete tracking category?"
+        titleIcon={
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">
+            <AlertTriangle className="h-5 w-5 text-[#E7000B]" />
+          </div>
+        }
+        content={
+          deleteTargetMapping ? (
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-[#364153]">
+                Are you sure you want to delete the tracking category &quot;
+                {deleteTargetMapping?.name}&quot;?
+              </p>
+              <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-4">
+                <p className="text-sm font-semibold text-[#101828]">What happens next:</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#364153]">
+                  <li>This category will be removed from the integration mapping.</li>
+                  <li>
+                    Invoices already pushed to Xero will keep their existing tracking
+                    value.
+                  </li>
+                  <li>New invoices will no longer include this tracking category.</li>
+                  <li>You can recreate it at any time from this page.</li>
+                </ul>
+              </div>
+            </div>
+          ) : null
+        }
+        confirmText={
+          deleteTrackingCategory.isPending ? 'Deleting...' : 'Delete category'
+        }
+        confirmVariant="destructive"
+        confirmCustomColor="#E7000B"
+        confirmDisabled={deleteTrackingCategory.isPending}
+        cancelText="Cancel"
+        onConfirmAction={() => void handleConfirmDelete()}
+      />
     </div>
   );
 }
