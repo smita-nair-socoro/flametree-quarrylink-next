@@ -1,42 +1,29 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 
-import { cn, addNewRecordId, addSyncErrorRecordId, scrollToFirstError } from '@/lib/utils';
+import {
+  cn,
+  addNewRecordId,
+  addSyncErrorRecordId,
+  scrollToFirstError,
+} from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
-import { FormSelect } from '@/components/ui/form-select';
+import { Tab } from '@/components/ui/tabs';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { NewCustomerFormSchema } from './schemas/customer-form-schema';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Loader2,
-  Info,
-  TriangleAlert,
-  RefreshCw,
-  Settings,
-} from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
-import AddressAutoComplete from '@/components/ui/address-autocomplete';
-import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
-import { PhoneInput } from '@/components/ui/phone-input';
 import { Spinner } from '@/components/ui/spinner';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { useQuery } from '@tanstack/react-query';
 // import { AccountManagersListQueryOptions } from '@/lib/api/user';
-// TODO: Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
+// Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
 import { UsersListQueryOptions } from '@/lib/api/user';
 import {
   extractErrorMessage,
@@ -46,7 +33,6 @@ import {
   useCreateCustomer,
   CustomerDetailQueryOptions,
 } from '@/lib/api/customer';
-import { useRouter } from 'next/navigation';
 import { CustomerDTO } from '@/lib/types/customer';
 import {
   CUSTOMER_STATUS,
@@ -58,14 +44,246 @@ import {
   CustomerFormBlockBanner,
   getCustomerFormBlockState,
 } from './customer-form-blocker';
-import { toAddressPayload } from '@/lib/utils/address-helper';
-import { useAddressSync } from '@/lib/utils/address-helper';
+import { toAddressPayload, useAddressSync } from '@/lib/utils/address-helper';
 import {
   useCustomerFormState,
   EMPTY_CUSTOMER_FORM_VALUES,
 } from '@/hooks/customer/use-customer-form-state';
-import { AuditInformation } from '@/components/audit-information';
 import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
+import { AddressType } from '@/lib/types/address';
+import NotesTab from './tabs/notes/notes-tab';
+import DetailsTab from './tabs/details/details-tab';
+
+type CustomerFormValues = z.infer<typeof NewCustomerFormSchema>;
+
+function getSubmitButtonLabel(isSubmitting: boolean, isEditing: boolean): string {
+  if (isSubmitting) {
+    return isEditing ? 'Saving Changes...' : 'Adding Customer...';
+  }
+  return isEditing ? 'Save Changes' : 'Add Customer';
+}
+
+/** Zero out fields that don't belong to the submitted customer/payment type. */
+function normalizeCustomerFormValues(
+  rawValues: CustomerFormValues,
+): CustomerFormValues {
+  return {
+    ...rawValues,
+    ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
+      ? {
+          business_name: '',
+          business_email: '',
+          business_phone: '',
+          abn: '',
+          contact_person_first_name: '',
+          contact_person_last_name: '',
+        }
+      : {
+          contact_person_name: '',
+        }),
+    ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
+      ? { credit_limit: 0, payment_terms_day: 0 }
+      : {}),
+  };
+}
+
+interface BuildCustomerPayloadContext {
+  id?: number;
+  selectedCustomer?: CustomerDTO;
+  address: AddressType;
+}
+
+interface ResolvedBillingAddress {
+  billingAddressData: ReturnType<typeof toAddressPayload>;
+  billingAddressId?: number;
+}
+
+function resolveBillingAddress(
+  address: AddressType,
+  isEditing: boolean,
+  selectedCustomer?: CustomerDTO,
+): ResolvedBillingAddress {
+  const billingAddressData = toAddressPayload(
+    address,
+    isEditing && selectedCustomer ? selectedCustomer.billingAddress : null,
+  );
+
+  // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
+  const existingBillingAddressId =
+    isEditing && selectedCustomer
+      ? (selectedCustomer.billingAddressId ?? selectedCustomer.billingAddress?.id)
+      : undefined;
+
+  return {
+    billingAddressData,
+    billingAddressId: existingBillingAddressId ?? billingAddressData?.id,
+  };
+}
+
+/** Sets the CREDIT/PREPAID-specific fields; the two are mutually exclusive. */
+function applyPaymentTypeFields(
+  customerData: Partial<CustomerDTO>,
+  values: CustomerFormValues,
+): void {
+  if (values.payment_type === 'CREDIT') {
+    customerData.paymentTermType =
+      values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
+    return;
+  }
+
+  if (values.payment_type === PAYMENT_TYPE.PREPAID) {
+    customerData.creditLimit = 0;
+    customerData.invoiceDueDateDayCount = 0;
+  }
+}
+
+/** Adds the id and existing accounting-software contact id for updates. */
+function applyEditingIdentifiers(
+  customerData: Partial<CustomerDTO>,
+  isEditing: boolean,
+  id: number | undefined,
+  selectedCustomer?: CustomerDTO,
+): void {
+  if (!isEditing || !id) return;
+  customerData.id = id;
+  if (selectedCustomer?.accSoftwareContactId) {
+    customerData.accSoftwareContactId = selectedCustomer.accSoftwareContactId;
+  }
+}
+
+/** Sets the BUSINESS/INDIVIDUAL-specific fields; the two are mutually exclusive. */
+function applyCustomerTypeFields(
+  customerData: Partial<CustomerDTO>,
+  values: CustomerFormValues,
+): void {
+  if (values.customer_type === CUSTOMER_TYPE.BUSINESS) {
+    customerData.businessName = values.business_name || '';
+    customerData.businessEmail = values.business_email || '';
+    customerData.businessPhone = values.business_phone || '';
+    customerData.individualContactName =
+      values.contact_person_first_name + ' ' + values.contact_person_last_name ||
+      '';
+    customerData.contactPersonFirstName = values.contact_person_first_name || '';
+    customerData.contactPersonLastName = values.contact_person_last_name || '';
+    customerData.abn = values.abn || '';
+    // Default fields, actually not needed but is mandatory in backend
+    customerData.acn = '997744';
+    customerData.vatNumber = '123';
+    return;
+  }
+
+  if (values.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
+    customerData.individualContactName = values.contact_person_name || '';
+    customerData.abn = 'N/A';
+    // Default fields for INDIVIDUAL type
+    customerData.dateOfBirth = new Date().toISOString();
+    customerData.govId = '123';
+  }
+}
+
+function buildCustomerPayload(
+  values: CustomerFormValues,
+  { id, selectedCustomer, address }: BuildCustomerPayloadContext,
+): Partial<CustomerDTO> {
+  const isEditing = Boolean(id);
+  const { billingAddressData, billingAddressId } = resolveBillingAddress(
+    address,
+    isEditing,
+    selectedCustomer,
+  );
+
+  const customerData: Partial<CustomerDTO> = {
+    customerType:
+      values.customer_type === 'BUSINESS'
+        ? CUSTOMER_TYPE.BUSINESS
+        : CUSTOMER_TYPE.INDIVIDUAL,
+    contactPersonPhone: values.contact_person_phone || '',
+    contactPersonEmail: values.contact_person_email || '',
+    ...(billingAddressId ? { billingAddressId } : {}),
+    billingAddress: billingAddressData,
+    creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
+    accountManagerSub: values.account_manager,
+    invoiceDueDateDayCount: values.payment_terms_day || 0,
+    customerStatus: CUSTOMER_STATUS.ACTIVE,
+    paymentType: values.payment_type,
+    version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
+  };
+
+  applyPaymentTypeFields(customerData, values);
+  applyEditingIdentifiers(customerData, isEditing, id, selectedCustomer);
+  applyCustomerTypeFields(customerData, values);
+
+  return customerData;
+}
+
+interface DuplicateFieldError {
+  field: 'business_email' | 'contact_person_email' | 'abn';
+  message: string;
+}
+
+interface CustomerSubmitErrorInfo {
+  duplicate: DuplicateFieldError | null;
+  fallbackMessage: string;
+}
+
+/** Matches a save error against the known unique-constraint conflicts, so the
+ * caller can surface it on the relevant field instead of a generic toast. */
+function resolveCustomerSubmitError(
+  error: unknown,
+  values: CustomerFormValues,
+): CustomerSubmitErrorInfo {
+  const err = extractErrorResponse(error);
+  const extractedMessage = extractErrorMessage(error);
+  const codeStr = err?.code ? String(err.code) : undefined;
+  const messageFromErr = err?.message || extractedMessage;
+  const fallbackMessage =
+    messageFromErr || 'Failed to save customer. Please try again.';
+
+  if (codeStr !== '409' || typeof messageFromErr !== 'string') {
+    return { duplicate: null, fallbackMessage };
+  }
+
+  // Duplicate business email
+  const duplicateEmailPhrase = `Key (business_email)=(${values.business_email}) already exists`;
+  if (messageFromErr.includes(duplicateEmailPhrase)) {
+    return {
+      duplicate: {
+        field: 'business_email',
+        message: `Duplicate business email "${values.business_email}" already exists.`,
+      },
+      fallbackMessage,
+    };
+  }
+
+  // Duplicate contact email - checks both the specific key format and constraint name
+  const emailKeyPattern = `Key (email)=(${values.contact_person_email}) already exists`;
+  if (
+    messageFromErr.includes(emailKeyPattern) ||
+    messageFromErr.includes('customers_email_key')
+  ) {
+    return {
+      duplicate: {
+        field: 'contact_person_email',
+        message: 'The contact person email already exists.',
+      },
+      fallbackMessage,
+    };
+  }
+
+  // Duplicate ABN
+  const duplicateABNPhrase = `Key (abn)=(${values.abn}) already exists`;
+  if (messageFromErr.includes(duplicateABNPhrase)) {
+    return {
+      duplicate: {
+        field: 'abn',
+        message: `Duplicate ABN "${values.abn}" already exists.`,
+      },
+      fallbackMessage,
+    };
+  }
+
+  return { duplicate: null, fallbackMessage };
+}
 
 interface FormProps {
   id?: number;
@@ -83,8 +301,7 @@ export default function CustomerForm({
   onDirtyChange,
   className,
   onSuccess,
-}: FormProps) {
-  const router = useRouter();
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const customerId = id ?? 0;
@@ -98,12 +315,13 @@ export default function CustomerForm({
 
   // Fetch account managers
   // const { data: users = [] } = useQuery(AccountManagersListQueryOptions());
-  // TODO: Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
+  // Revert to AccountManagersListQueryOptions once frontend has UI to allow user to change role to account manager.
   const { data: allUsers = [] } = useQuery(UsersListQueryOptions());
   const users = React.useMemo(
     () =>
       allUsers.filter(
-        (user) => !user.groups.some((group) => group.toLowerCase().includes('driver')),
+        (user) =>
+          !user.groups.some((group) => group.toLowerCase().includes('driver')),
       ),
     [allUsers],
   );
@@ -128,10 +346,12 @@ export default function CustomerForm({
   );
   const isFormBlocked = blockState !== null;
 
-  const [accSoftwareSyncError, setAccSoftwareSyncError] = React.useState<string | null>(null);
+  const [accSoftwareSyncError, setAccSoftwareSyncError] = React.useState<
+    string | null
+  >(null);
   const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
 
-  const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
+  const customerForm = useForm<CustomerFormValues>({
     resolver: zodResolver(NewCustomerFormSchema),
     mode: 'onChange',
     defaultValues: EMPTY_CUSTOMER_FORM_VALUES,
@@ -149,6 +369,7 @@ export default function CustomerForm({
   } = useCustomerFormState(selectedCustomer ?? null, isEditing, customerForm);
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [notesCount, setNotesCount] = React.useState(0);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -247,116 +468,17 @@ export default function CustomerForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCustomer?.id, isEditing]);
 
-  async function onSubmit(rawValues: z.infer<typeof NewCustomerFormSchema>) {
-    // Zero out fields that don't belong to the current customer/payment type
-    const values: typeof rawValues = {
-      ...rawValues,
-      ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
-        ? {
-            business_name: '',
-            business_email: '',
-            business_phone: '',
-            abn: '',
-            contact_person_first_name: '',
-            contact_person_last_name: '',
-          }
-        : {
-            contact_person_name: '',
-          }),
-      ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
-        ? { credit_limit: 0, payment_terms_day: 0 }
-        : {}),
-    };
-
-    console.log('onSubmit function called!');
-    console.log('Customer Form Values:', values);
+  async function onSubmit(rawValues: CustomerFormValues) {
+    const values = normalizeCustomerFormValues(rawValues);
 
     try {
       setIsSubmitting(true);
 
-      // Convert address using helper function
-      const billingAddressData = toAddressPayload(
+      const customerData = buildCustomerPayload(values, {
+        id,
+        selectedCustomer,
         address,
-        isEditing && selectedCustomer ? selectedCustomer.billingAddress : null,
-      );
-
-      // Backend requires billingAddressId (maps to customers.billing_address_id) on update.
-      const billingAddressIdFromExisting =
-        (isEditing && selectedCustomer
-          ? (selectedCustomer.billingAddressId ??
-            selectedCustomer.billingAddress?.id)
-          : undefined) ?? billingAddressData?.id;
-
-      // Build the CustomerDTO payload
-      const customerData: Partial<CustomerDTO> = {
-        customerType:
-          values.customer_type === 'BUSINESS'
-            ? CUSTOMER_TYPE.BUSINESS
-            : CUSTOMER_TYPE.INDIVIDUAL,
-        contactPersonPhone: values.contact_person_phone || '',
-        contactPersonEmail: values.contact_person_email || '',
-        ...(billingAddressIdFromExisting
-          ? { billingAddressId: billingAddressIdFromExisting }
-          : {}),
-        billingAddress: billingAddressData,
-        creditLimit: Math.round(Number(values.credit_limit || 0) * 100), // Convert to cents
-        accountManagerSub: values.account_manager,
-        invoiceDueDateDayCount: values.payment_terms_day || 0,
-        customerStatus: CUSTOMER_STATUS.ACTIVE,
-        paymentType: values.payment_type,
-        version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
-      };
-
-      // Only set paymentTermType for CREDIT payment type
-      if (values.payment_type === 'CREDIT') {
-        customerData.paymentTermType =
-          values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
-      }
-
-      // Add id and existing Xero contact ID for updates
-      if (isEditing && id) {
-        customerData.id = id;
-        if (selectedCustomer?.accSoftwareContactId) {
-          customerData.accSoftwareContactId =
-            selectedCustomer.accSoftwareContactId;
-        }
-      }
-
-      // Handle BUSINESS type specific fields
-      if (values.customer_type === CUSTOMER_TYPE.BUSINESS) {
-        customerData.businessName = values.business_name || '';
-        customerData.businessEmail = values.business_email || '';
-        customerData.businessPhone = values.business_phone || '';
-        customerData.individualContactName =
-          values.contact_person_first_name +
-          ' ' +
-          values.contact_person_last_name || '';
-        customerData.contactPersonFirstName =
-          values.contact_person_first_name || '';
-        customerData.contactPersonLastName =
-          values.contact_person_last_name || '';
-        customerData.abn = values.abn || '';
-        // Default fields, actually not needed but is mandatory in backend
-        customerData.acn = '997744';
-        customerData.vatNumber = '123';
-      }
-
-      // Handle INDIVIDUAL type specific fields
-      if (values.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
-        customerData.individualContactName = values.contact_person_name || '';
-        customerData.abn = 'N/A';
-        // Default fields for INDIVIDUAL type
-        customerData.dateOfBirth = new Date().toISOString();
-        customerData.govId = '123';
-      }
-
-      // Handle PREPAID payment type
-      if (values.payment_type === PAYMENT_TYPE.PREPAID) {
-        customerData.creditLimit = 0;
-        customerData.invoiceDueDateDayCount = 0;
-      }
-
-      console.log('Customer Data Payload:', customerData);
+      });
 
       const result = await createCustomer.mutateAsync(customerData);
 
@@ -384,65 +506,21 @@ export default function CustomerForm({
         error,
       );
 
-      // Extract normalized error response and message
-      const err = extractErrorResponse(error);
-      const extractedMessage = extractErrorMessage(error);
-      const codeStr = err?.code ? String(err.code) : undefined;
-      const messageFromErr = err?.message || extractedMessage;
-
-      // Duplicate business email (HTTP 409)
-      const duplicateEmailPhrase = `Key (business_email)=(${values.business_email}) already exists`;
-      const isDuplicateEmail =
-        codeStr === '409' &&
-        typeof messageFromErr === 'string' &&
-        messageFromErr.includes(duplicateEmailPhrase);
-
-      if (isDuplicateEmail) {
-        const msg = `Duplicate business email "${values.business_email}" already exists.`;
-        notifyError(msg);
-        customerForm.setError('business_email', {
-          type: 'manual',
-          message: msg,
-        });
-        return;
-      }
-
-      // Duplicate contact email - Check both the specific key format and constraint name
-      const emailKeyPattern = `Key (email)=(${values.contact_person_email}) already exists`;
-      const isDuplicateContactEmail =
-        codeStr === '409' &&
-        typeof messageFromErr === 'string' &&
-        (messageFromErr.includes(emailKeyPattern) ||
-          messageFromErr.includes('customers_email_key'));
-
-      if (isDuplicateContactEmail) {
-        const msg = 'The contact person email already exists.';
-        notifyError(msg);
-        customerForm.setError('contact_person_email', {
-          type: 'manual',
-          message: msg,
-        });
-        return;
-      }
-
-      // Duplicate ABN (HTTP 409)
-      const duplicateABNPhrase = `Key (abn)=(${values.abn}) already exists`;
-      const isDuplicateABN =
-        codeStr === '409' &&
-        typeof messageFromErr === 'string' &&
-        messageFromErr.includes(duplicateABNPhrase);
-
-      if (isDuplicateABN) {
-        const msg = `Duplicate ABN "${values.abn}" already exists.`;
-        notifyError(msg);
-        customerForm.setError('abn', { type: 'manual', message: msg });
-        return;
-      }
-
-      // Fallback error using extracted message
-      notifyError(
-        messageFromErr || 'Failed to save customer. Please try again.',
+      const { duplicate, fallbackMessage } = resolveCustomerSubmitError(
+        error,
+        values,
       );
+
+      if (duplicate) {
+        notifyError(duplicate.message);
+        customerForm.setError(duplicate.field, {
+          type: 'manual',
+          message: duplicate.message,
+        });
+        return;
+      }
+
+      notifyError(fallbackMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -472,16 +550,8 @@ export default function CustomerForm({
           type="submit"
           disabled={isSubmitting || isFormBlocked}
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
-          {isSubmitting
-            ? isEditing
-              ? 'Saving Changes...'
-              : 'Adding Customer...'
-            : isEditing
-              ? 'Save Changes'
-              : 'Add Customer'}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {getSubmitButtonLabel(isSubmitting, isEditing)}
         </Button>
       </div>
     ) : null,
@@ -496,6 +566,39 @@ export default function CustomerForm({
       </div>
     );
   }
+
+  // Rendered inside the "Details" tab when editing, or directly (no tabs)
+  // when creating a new customer, since Notes only applies to an existing,
+  // saved customer.
+  const detailsTabContent = (
+    <DetailsTab
+      form={customerForm}
+      isEditing={isEditing}
+      isDesktop={isDesktop}
+      isSubmitting={isSubmitting}
+      accSoftware={accSoftware}
+      accSoftwareSyncError={accSoftwareSyncError}
+      notLinkedWarning={notLinkedWarning}
+      onRetrySync={() => {
+        isRetrySyncRef.current = true;
+        customerForm
+          .handleSubmit(onSubmit, onError)()
+          .finally(() => {
+            isRetrySyncRef.current = false;
+          });
+      }}
+      selectedCustomer={selectedCustomer}
+      selectedCustomerType={selectedCustomerType}
+      selectedPaymentType={selectedPaymentType}
+      onFormFieldChange={handleFormFieldChange}
+      accountManagerOptions={accountManagerOptions}
+      paymentTermsOptions={paymentTermsOptions}
+      address={address}
+      onAddressChange={handleAddressChange}
+      searchInput={searchInput}
+      setSearchInput={setSearchInput}
+    />
+  );
 
   return (
     <div className="w-full relative">
@@ -534,697 +637,39 @@ export default function CustomerForm({
             id="add-new-customer-form"
             className={cn(
               'p-1 gap-1 w-full',
-              isEditing && isDesktop
-                ? 'grid grid-cols-2 gap-x-8'
-                : 'grid grid-cols-1',
               className,
               isSubmitting && 'pointer-events-none',
             )}
             onSubmit={customerForm.handleSubmit(onSubmit, onError)}
           >
-            {/* Accounting software sync error banner */}
-            {accSoftwareSyncError && (
-              <div className="col-span-full border border-[#DC2626] bg-[#FEF2F2] rounded-md p-4 flex items-center justify-between gap-4 mb-2">
-                <div className="flex items-start gap-3">
-                  <TriangleAlert className="h-4 w-4 text-[#DC2626] flex-shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-semibold text-[#7F1D1D]">
-                      {accSoftware} contact could not be created
-                    </span>
-                    <span className="text-sm text-[#DC2626]">
-                      This customer is saved in QuarryLink, but a matching{' '}
-                      {accSoftware} contact was not created (e.g. validation or
-                      connection issue). Review the details below, then use
-                      Retry sync button.
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-shrink-0 gap-2 border-[#FFA2A2] text-[#82181A] hover:text-[#82181A]"
-                  disabled={isSubmitting}
-                  onClick={() => {
-                    isRetrySyncRef.current = true;
-                    customerForm
-                      .handleSubmit(onSubmit, onError)()
-                      .finally(() => {
-                        isRetrySyncRef.current = false;
-                      });
-                  }}
-                >
-                  <RefreshCw
-                    className={cn('h-4 w-4', isSubmitting && 'animate-spin')}
-                  />
-                  Retry sync
-                </Button>
-              </div>
-            )}
-
-            {/* Accounting not linked banner */}
-            {notLinkedWarning && (
-              <div className="col-span-full border border-[#D97706] bg-[#FFFBEB] rounded-md p-4 flex items-center justify-between gap-4 mb-2">
-                <div className="flex items-start gap-3">
-                  <TriangleAlert className="h-4 w-4 text-[#D97706] flex-shrink-0 mt-0.5" />
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm font-semibold text-[#92400E]">
-                      Accounting integration not set up
-                    </span>
-                    <span className="text-sm text-[#B45309]">
-                      This customer will be saved in QuarryLink only. To sync
-                      customers with your accounting system, please configure
-                      your connection in Settings first.
-                    </span>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-shrink-0 gap-2 border-[#D97706] text-[#92400E] hover:text-[#92400E]"
-                  onClick={() =>
-                    router.push('/system/user-management?tab=Integration')
-                  }
-                >
-                  <Settings className="h-4 w-4" />
-                  Go to Settings
-                </Button>
-              </div>
-            )}
-
-            {/* Warning for incomplete data from accounting software sync */}
-            {isEditing &&
-              selectedCustomer &&
-              (() => {
-                const isBusiness = selectedCustomer.customerType === 'BUSINESS';
-                const isIndividual =
-                  selectedCustomer.customerType === 'INDIVIDUAL';
-
-                // Check for missing fields
-                const missingFields = [];
-
-                // Common required fields
-                if (
-                  !selectedCustomer.contactPersonEmail ||
-                  selectedCustomer.contactPersonEmail.trim() === ''
-                ) {
-                  missingFields.push('email');
-                }
-                if (
-                  !selectedCustomer.contactPersonPhone ||
-                  selectedCustomer.contactPersonPhone.trim() === ''
-                ) {
-                  missingFields.push('phone');
-                }
-                if (
-                  !selectedCustomer.accountManagerSub ||
-                  selectedCustomer.accountManagerSub.trim() === ''
-                ) {
-                  missingFields.push('account manager');
-                }
-
-                // Business-specific required fields
-                if (isBusiness) {
-                  if (
-                    !selectedCustomer.businessName ||
-                    selectedCustomer.businessName.trim() === ''
-                  ) {
-                    missingFields.push('business name');
-                  }
-                  if (
-                    !selectedCustomer.abn ||
-                    selectedCustomer.abn.trim() === '' ||
-                    selectedCustomer.abn === 'N/A'
-                  ) {
-                    missingFields.push('ABN');
-                  }
-                  // Check if firstName and lastName exist
-                  if (
-                    !selectedCustomer.contactPersonFirstName ||
-                    selectedCustomer.contactPersonFirstName.trim() === ''
-                  ) {
-                    missingFields.push('contact person first name');
-                  }
-                  if (
-                    !selectedCustomer.contactPersonLastName ||
-                    selectedCustomer.contactPersonLastName.trim() === ''
-                  ) {
-                    missingFields.push('contact person last name');
-                  }
-                }
-
-                // Individual-specific required fields
-                if (isIndividual) {
-                  if (
-                    !selectedCustomer.individualContactName ||
-                    selectedCustomer.individualContactName.trim() === ''
-                  ) {
-                    missingFields.push('contact person name');
-                  }
-                }
-
-                const showWarning = missingFields.length > 0;
-
-                return showWarning ? (
-                  <div className="border border-blue-600 bg-blue-50 p-4 rounded-md mb-4 flex flex-col col-span-full">
-                    <div className="flex items-center gap-2 text-[#09090B] text-sm">
-                      <Info className="h-4 w-4 text-[#0075FF]" />
-                      <span>
-                        This customer was synced from {accSoftware} with partial
-                        data. Please complete the missing fields to continue
-                        using this customer in QuarryLink.
+            {isEditing ? (
+              <Tab
+                tabsClassName="w-fit mb-4"
+                tabsTriggerClassName="w-auto px-4"
+                tabs={[
+                  { name: 'Details', content: detailsTabContent },
+                  {
+                    name: 'Notes',
+                    rightElement: (
+                      <span className="text-muted-foreground">
+                        {notesCount}
                       </span>
-                    </div>
-                  </div>
-                ) : null;
-              })()}
-
-            {/* Customer Type */}
-            <FormField
-              control={customerForm.control}
-              name="customer_type"
-              render={({ field }) => (
-                <FormItem className="col-span-1 col-start-1">
-                  <FormLabel>Customer Type*</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleFormFieldChange('customer_type', value);
-                      }}
-                      className="grid grid-flow-col auto-cols-max gap-4"
-                    >
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="BUSINESS" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Business</FormLabel>
-                      </FormItem>
-
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="INDIVIDUAL" />
-                        </FormControl>
-                        <FormLabel className="font-normal">
-                          Individual
-                        </FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Payment Type */}
-            <FormField
-              control={customerForm.control}
-              name="payment_type"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-1 col-start-1'
-                  }
-                >
-                  <FormLabel>Payment Type*</FormLabel>
-                  <FormControl>
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleFormFieldChange('payment_type', value);
-                      }}
-                      className="grid grid-flow-col auto-cols-max gap-4"
-                    >
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="CREDIT" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Credit</FormLabel>
-                      </FormItem>
-
-                      <FormItem className="flex items-center gap-3">
-                        <FormControl>
-                          <RadioGroupItem value="PREPAID" />
-                        </FormControl>
-                        <FormLabel className="font-normal">Pre-Paid</FormLabel>
-                      </FormItem>
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Business Name */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="business_name"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Business Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Business Name"
-                        {...field}
+                    ),
+                    content: (
+                      <NotesTab
+                        customerId={customerId}
+                        onCountChange={setNotesCount}
                       />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                    ),
+                  },
+                ]}
               />
-            )}
-
-            {/* Business Email */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="business_email"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Business Email*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="email@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Business Phone */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="business_phone"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Business Phone*</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        className="w-full"
-                        defaultCountry="AU"
-                        placeholder="Enter phone number"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* ABN */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="abn"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>ABN*</FormLabel>
-                    <FormControl>
-                      <ABNInput className="w-full" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Contact Person Name - For INDIVIDUAL type only */}
-            {selectedCustomerType === 'INDIVIDUAL' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_name"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Contact Person Name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            {/* Contact Person First Name - For BUSINESS type only */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_first_name"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person First Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter First Name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Contact Person Last Name - For BUSINESS type only */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_last_name"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Last Name*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="Enter Last Name"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Contact Person Email - For BUSINESS type */}
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_email"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Email*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="email@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {selectedCustomerType === 'BUSINESS' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_phone"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Phone*</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        className="w-full"
-                        defaultCountry="AU"
-                        placeholder="Enter phone number"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Contact Person Email - For INDIVIDUAL type */}
-            {selectedCustomerType === 'INDIVIDUAL' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_email"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Email*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        placeholder="email@example.com"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Contact Person Phone - For INDIVIDUAL type */}
-            {selectedCustomerType === 'INDIVIDUAL' && (
-              <FormField
-                control={customerForm.control}
-                name="contact_person_phone"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-1'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Contact Person Phone*</FormLabel>
-                    <FormControl>
-                      <PhoneInput
-                        className="w-full"
-                        defaultCountry="AU"
-                        placeholder="Enter phone number"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Credit Limit */}
-            {selectedPaymentType === 'CREDIT' && (
-              <FormField
-                control={customerForm.control}
-                name="credit_limit"
-                render={({ field }) => (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? selectedCustomerType === 'BUSINESS'
-                          ? 'col-span-1 col-start-1'
-                          : 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Credit Limit*</FormLabel>
-                    <FormControl>
-                      <CurrencyInput
-                        id="credit_limit"
-                        className="w-full"
-                        placeholder="Enter Credit Limit"
-                        value={field.value}
-                        onValueChange={(value) =>
-                          field.onChange(value === '' ? 0 : value)
-                        }
-                        decimalPlaces={2}
-                        allowNegative={false}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-
-            {/* Payment Terms */}
-            {selectedPaymentType === 'CREDIT' && (
-              <div
-                className={cn(
-                  'space-y-2',
-                  isEditing && isDesktop
-                    ? selectedCustomerType === 'BUSINESS'
-                      ? 'col-span-1 col-start-2'
-                      : 'col-span-1 col-start-1'
-                    : 'col-span-2',
-                )}
-              >
-                <FormLabel>Invoice Due Date*</FormLabel>
-                <div className="grid grid-cols-[2fr_8fr] w-full">
-                  <FormField
-                    control={customerForm.control}
-                    name="payment_terms_day"
-                    render={({ field }) => (
-                      <FormItem className="relative">
-                        <FormControl>
-                          <Input
-                            type="number"
-                            className="rounded-r-none border-r-0 focus-visible:z-10 w-full"
-                            placeholder="Days"
-                            {...field}
-                            isNumber
-                            onChange={(e) => {
-                              field.onChange(e);
-                              // Trigger validation for both payment_terms_day and payment_terms fields
-                              customerForm.trigger([
-                                'payment_terms_day',
-                                'payment_terms',
-                              ]);
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage className="absolute mt-9 whitespace-nowrap" />
-                      </FormItem>
-                    )}
-                  />
-                  <FormSelect
-                    control={customerForm.control}
-                    name="payment_terms"
-                    options={paymentTermsOptions}
-                    placeholder="Select Payment Terms"
-                    className="rounded-l-none w-full"
-                    showSearch={false}
-                    onChange={() => {
-                      // Trigger validation for payment_terms_day when payment_terms changes
-                      customerForm.trigger([
-                        'payment_terms_day',
-                        'payment_terms',
-                      ]);
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Account Manager */}
-            <FormSelect
-              control={customerForm.control}
-              name="account_manager"
-              label="Account Manager*"
-              options={accountManagerOptions}
-              placeholder="Select Account Manager"
-              formItemClassName={
-                isEditing && isDesktop
-                  ? selectedCustomerType === 'BUSINESS'
-                    ? 'col-span-1 col-start-1'
-                    : 'col-span-1 col-start-2'
-                  : 'col-span-2'
-              }
-            />
-
-            {/* Billing Address */}
-            <FormField
-              control={customerForm.control}
-              name="billing_address"
-              render={({ field }) => (
-                <FormItem
-                  className={
-                    isEditing && isDesktop
-                      ? selectedCustomerType === 'BUSINESS'
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-1 col-start-1'
-                      : 'col-span-2'
-                  }
-                >
-                  <FormLabel>Billing Address*</FormLabel>
-                  <FormControl>
-                    <AddressAutoComplete
-                      address={address}
-                      setAddress={handleAddressChange}
-                      searchInput={searchInput}
-                      setSearchInput={setSearchInput}
-                      dialogTitle="Search for Billing Address"
-                      placeholder="Search for Billing Address..."
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Audit Information */}
-            {isEditing && (
-              <AuditInformation
-                createdBy={selectedCustomer?.createdBy}
-                lastModifiedBy={selectedCustomer?.lastModifiedBy}
-                createdAt={selectedCustomer?.createdAt}
-                updatedAt={selectedCustomer?.updatedAt}
-              />
+            ) : (
+              detailsTabContent
             )}
 
             {!isDesktop && (
-              <div className="flex flex-col col-span-2 gap-3 mb-6">
+              <div className="flex flex-col gap-3 mb-6">
                 <Button
                   type="submit"
                   className="cursor-pointer"
@@ -1233,20 +678,13 @@ export default function CustomerForm({
                   {isSubmitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {isSubmitting
-                    ? isEditing
-                      ? 'Saving Changes...'
-                      : 'Adding Customer...'
-                    : isEditing
-                      ? 'Save Changes'
-                      : 'Add Customer'}
+                  {getSubmitButtonLabel(isSubmitting, isEditing)}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}
                 </Button>
               </div>
             )}
-
           </form>
         </Form>
       </div>

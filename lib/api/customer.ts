@@ -63,7 +63,7 @@ function getFacetFilterValues(
 ): string[] {
   const filter = filters.find((f) => f.id === columnId);
   if (!filter || !Array.isArray(filter.value)) return [];
-  return filter.value.map((v) => String(v));
+  return filter.value.map(String);
 }
 
 export function toCustomerApiFilterParams(
@@ -191,7 +191,7 @@ export const CustomersListQueryOptions = (params?: CustomersListParams) =>
     queryFn: () =>
       APIClient.customers.getAll({
         ...params,
-        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
@@ -205,7 +205,7 @@ export const CustomersInfiniteListQueryOptions = (
     queryFn: ({ pageParam }) =>
       APIClient.customers.getAll({
         ...params,
-        page: pageParam as number,
+        page: pageParam,
         pageSize: params.pageSize ?? 25,
       }),
     initialPageParam: 1,
@@ -214,7 +214,7 @@ export const CustomersInfiniteListQueryOptions = (
       if (!page) return undefined;
       const content = page.content ?? [];
       if (content.length === 0) return undefined;
-      const nextPage = (lastPageParam as number) + 1;
+      const nextPage = lastPageParam + 1;
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
