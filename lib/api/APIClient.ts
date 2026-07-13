@@ -105,6 +105,11 @@ import {
   PatchDriverHaulierDTO,
   PutDriverDTO,
 } from '../types/driver';
+import {
+  TrackingCategory,
+  TrackingCategoryDefinition,
+  createUpdateTrackingCategory,
+} from '../types/accounting';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
 
@@ -1214,9 +1219,25 @@ export const APIClient = {
       );
       return response;
     },
-    getJobItems: async (jobId: number) => {
+    getJobItems: async (
+      jobId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        sortBy?: string;
+        sortOrder?: string;
+      },
+    ) => {
       const response = await appClient.Get<JobDetails>(
         `/socoro/quarrylink/api/job/${jobId}/job-items`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+          },
+        },
       );
       return response;
     },
@@ -1629,6 +1650,31 @@ export const APIClient = {
         {
           queryString: { start, end },
         },
+      ),
+  },
+
+  accounting: {
+    getTrackingCategories: () =>
+      appClient.Get<TrackingCategory[]>(
+        `/socoro/quarrylink/api/accounting/tracking-categories`,
+      ),
+    getTrackingCategoriesDefinitions: () =>
+      appClient.Get<TrackingCategoryDefinition[]>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/definitions`,
+      ),
+    createTrackingCategory: (data: createUpdateTrackingCategory) =>
+      appClient.Post<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories`,
+        { body: data },
+      ),
+    updateTrackingCategory: (id: number, data: createUpdateTrackingCategory) =>
+      appClient.Put<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/${id}`,
+        { body: data },
+      ),
+    deleteTrackingCategory: (id: number) =>
+      appClient.Delete<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/${id}`,
       ),
   },
 };
