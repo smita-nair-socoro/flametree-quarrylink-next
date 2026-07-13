@@ -116,6 +116,7 @@ export interface JobItem {
     productCode: string;
     materialId: number;
     densityTonnagePerM3: number;
+    needDensityOverride?: boolean;
     productDescription: string;
     isActive: boolean;
     deleted?: boolean;
@@ -128,6 +129,7 @@ export interface JobItem {
 
   totalQuantityRequired: number;
   allocatedQuantity: number;
+  deliveredQuantity?: number;
   remainingQuantity: number;
 
   productCostUom: string;
@@ -157,8 +159,25 @@ export interface JobItem {
   version: number;
 }
 
+/** Paginated job items from GET /job/{id}/job-items. */
+export interface JobItemsPage {
+  content: JobItem[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
 export interface JobDetails extends JobDTO {
-  jobItems?: JobItem[];
+  jobItems?: JobItemsPage;
+  totalProductCostPrice?: number;
+  totalTruckCostPrice?: number;
+  totalProductSellPrice?: number;
+  totalTruckSellPrice?: number;
   createdBy?: string;
   lastModifiedBy?: string;
   createdAt?: string;

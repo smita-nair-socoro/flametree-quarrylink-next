@@ -170,7 +170,9 @@ export interface DocketDTO {
     jobNumber: string;
     customerId: number;
     customerName?: string;
-    customerDto?: CustomerDTO;
+    // The embedded customer uses flat contact fields (contactName/phone/email)
+    // rather than CustomerDTO's contactPerson* fields.
+    customerDto?: CustomerDTO & { email?: string; phone?: string };
     accountManagerName?: string;
     projectName: string;
     jobStatus: JOB_STATUS;

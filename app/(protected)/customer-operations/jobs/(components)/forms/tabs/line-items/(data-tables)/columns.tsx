@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
+import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 
 export const getJobLineItemsColumns = (
 	currencyCode: string = DEFAULT_CURRENCY_CODE,
@@ -29,9 +30,9 @@ export const getJobLineItemsColumns = (
 	{
 		id: 'productName',
 		accessorFn: (row) => row.product?.productName,
-		header: () => {
-			return <div>Product</div>;
-		},
+		header: ({ column }) => (
+			<TableClientSortableHeader column={column} title="Product" />
+		),
 		cell: ({ row }) => {
 			const productName = row.original.product?.productName || 'N/A';
 			const deliveryAddress =
@@ -186,9 +187,9 @@ export const getJobLineItemsColumns = (
 	{
 		id: 'remainingQuantity',
 		accessorFn: (row) => row.remainingQuantity,
-		header: () => {
-			return <div>Remaining QTY</div>;
-		},
+		header: ({ column }) => (
+			<TableClientSortableHeader column={column} title="Remaining QTY" />
+		),
 		cell: ({ row }) => {
 			const remainingQuantity = row.original.remainingQuantity;
 			const productSellUom = formatUomLabel(row.original.productSellUom || '');
