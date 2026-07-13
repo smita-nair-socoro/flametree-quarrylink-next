@@ -22,7 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import {
@@ -88,7 +88,11 @@ export function AddQuoteSettingDialog({
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent
-        className="sm:max-w-md"
+        className={
+          type === QuoteSettingItemType.TEXT_TEMPLATE
+            ? 'sm:max-w-2xl'
+            : 'sm:max-w-md'
+        }
         onEscapeKeyDown={(event) => {
           if (isAnyDropdownOpen()) {
             event.preventDefault();
@@ -152,8 +156,6 @@ function TextTemplateForm({
     },
   });
 
-  const contentLength = form.watch('content')?.length ?? 0;
-
   return (
     <>
       <DialogHeader>
@@ -187,16 +189,13 @@ function TextTemplateForm({
               <FormItem>
                 <FormLabel>Terms &amp; conditions text</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Enter numbered terms and conditions..."
-                    className="min-h-40 resize-none"
+                  <RichTextEditor
+                    placeholder="Enter terms and conditions..."
                     maxLength={8000}
-                    {...field}
+                    value={field.value}
+                    onChange={field.onChange}
                   />
                 </FormControl>
-                <div className="text-right text-xs text-muted-foreground">
-                  {contentLength}/8000
-                </div>
                 <FormMessage />
               </FormItem>
             )}
