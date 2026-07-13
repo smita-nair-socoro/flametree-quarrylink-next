@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import { Info, Layers, Truck, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
@@ -9,8 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { useAuth } from '@/hooks/use-auth';
-import { getLocalStorage, setLocalStorage } from '@/lib/utils';
 
 const HELP_CENTRE_URL =
   'https://socoro.atlassian.net/wiki/external/NTAxZTRkMDFiYzA1NDEwNGE4N2NlNDFkNTI2MWZmYmQ';
@@ -37,18 +35,9 @@ const features = [
 ];
 
 export function HelpCentreButton() {
+  // Auto-open on first login is disabled until the backend flag lands;
+  // re-enable by restoring the useEffect that set `open` from that flag.
   const [open, setOpen] = useState(false);
-  const { user: amplifyUser } = useAuth();
-  const userId = amplifyUser?.userId;
-
-  useEffect(() => {
-    if (!userId) return;
-    const key = `helpCentreWelcomeSeen:${userId}`;
-    if (!getLocalStorage(key, false)) {
-      setLocalStorage(key, true);
-      setOpen(true);
-    }
-  }, [userId]);
 
   return (
     <>
