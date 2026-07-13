@@ -33,7 +33,7 @@ export const CUSTOMER_ATTACHMENT_CATEGORY_OPTIONS: readonly FormSelectOption[] =
       value: CUSTOMER_ATTACHMENT_CATEGORY.CREDIT_APPLICATION,
     },
     {
-      label: 'signed Terms & Conditions',
+      label: 'Signed Terms & Conditions',
       value: CUSTOMER_ATTACHMENT_CATEGORY.SIGNED_TERMS_AND_CONDITIONS,
     },
     {
@@ -41,20 +41,28 @@ export const CUSTOMER_ATTACHMENT_CATEGORY_OPTIONS: readonly FormSelectOption[] =
       value: CUSTOMER_ATTACHMENT_CATEGORY.ABN_GST_REGISTRATION,
     },
     {
-      label: 'Contract / Agreement',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.CONTRACT_AGREEMENT,
+      label: 'Insurance Certificate',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.INSURANCE_CERTIFICATE,
     },
     {
-      label: 'INsuarance Certificate',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.INSURANCE_CERTIFICATE,
+      label: 'Purchase Order',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.PURCHASE_ORDER,
+    },
+    {
+      label: 'Quote / Quotation',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.QUOTE_QUOTATION,
+    },
+    {
+      label: 'Contract / Agreement',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.CONTRACT_AGREEMENT,
     },
     {
       label: 'Identification',
       value: CUSTOMER_ATTACHMENT_CATEGORY.IDENTIFICATION,
     },
     {
-      label: 'Other',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.OTHER,
+      label: 'Correspondence',
+      value: CUSTOMER_ATTACHMENT_CATEGORY.CORRESPONDENCE,
     },
   ];
 
