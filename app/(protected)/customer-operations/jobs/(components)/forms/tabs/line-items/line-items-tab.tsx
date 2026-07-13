@@ -7,7 +7,11 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { getJobLineItemsColumns } from './(data-tables)/columns';
 import { JobItem } from '@/lib/types/job';
-import { calculateJobPricing } from '@/lib/utils/job-helpers';
+import {
+  calculateJobPricing,
+  calculateJobPricingFromTotals,
+  JobPricingTotals,
+} from '@/lib/utils/job-helpers';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
@@ -17,16 +21,28 @@ import { JOB_STATUS } from '@/lib/types/job-enums';
 
 interface LineItemsTabProps {
   jobLineItems: JobItem[];
+  /** Backend-computed job totals; job items are paginated so summing the visible page would undercount. */
+  jobTotals?: JobPricingTotals;
 }
 
-export default function LineItemsTab({ jobLineItems }: LineItemsTabProps) {
+export default function LineItemsTab({
+  jobLineItems,
+  jobTotals,
+}: LineItemsTabProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { currencyCode, currencySymbol, taxLabel, taxPercentage, exTaxLabel, taxRateLabel } =
     useTenantCurrencyTax();
 
   const pricingBreakdown = React.useMemo(() => {
+    if (jobTotals) {
+      return calculateJobPricingFromTotals(
+        jobTotals,
+        currencyCode,
+        taxPercentage,
+      );
+    }
     return calculateJobPricing(jobLineItems, currencyCode, taxPercentage);
-  }, [jobLineItems, currencyCode, taxPercentage]);
+  }, [jobTotals, jobLineItems, currencyCode, taxPercentage]);
 
   const isAllCollection = React.useMemo(() => {
     if (!jobLineItems || jobLineItems.length === 0) return false;

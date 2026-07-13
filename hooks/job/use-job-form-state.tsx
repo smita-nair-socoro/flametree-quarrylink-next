@@ -15,7 +15,10 @@ import {
   useUpdateJob,
 } from '@/lib/api/job';
 import { useCustomersForForm } from '@/hooks/customer/use-customers-for-form';
-import { calculateJobPricing } from '@/lib/utils/job-helpers';
+import {
+  calculateJobPricing,
+  calculateJobPricingFromTotals,
+} from '@/lib/utils/job-helpers';
 import { JobDTO, JobItem } from '@/lib/types/job';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
@@ -28,7 +31,7 @@ import {
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { addNewRecordId } from '@/lib/utils';
-import LineItemsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/line-items/line-itmes-tab';
+import LineItemsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/line-items/line-items-tab';
 import DocketsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/dockets/dockets-tab';
 import InvoicesTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/invoices/invoices-tab';
 import { useJobStore } from '@/app/stores/job-store';
@@ -113,16 +116,18 @@ export function useJobFormState({
   const isPending = createJob.isPending || updateJob.isPending;
 
   const jobItems: JobItem[] = React.useMemo(() => {
-    return jobDetails?.jobItems ?? [];
+    return jobDetails?.jobItems?.content ?? [];
   }, [jobDetails?.jobItems]);
 
   const pricingBreakdown = React.useMemo(() => {
-    if (!isEditing || !jobItems.length) {
+    if (!isEditing || !jobDetails) {
       return calculateJobPricing(null);
     }
 
-    return calculateJobPricing(jobItems);
-  }, [isEditing, jobItems]);
+    // Job items are paginated, so derive pricing from the backend-computed
+    // job totals rather than summing the current page of line items.
+    return calculateJobPricingFromTotals(jobDetails);
+  }, [isEditing, jobDetails]);
 
   React.useEffect(() => {
     hasHydratedJobRef.current = false;
@@ -245,7 +250,9 @@ export function useJobFormState({
     () => [
       {
         name: 'Products',
-        content: <LineItemsTab jobLineItems={jobItems} />,
+        content: (
+          <LineItemsTab jobLineItems={jobItems} jobTotals={jobDetails} />
+        ),
       },
       {
         name: 'Dockets',
