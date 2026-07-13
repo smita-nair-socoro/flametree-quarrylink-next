@@ -43,11 +43,7 @@ import {
   Infinity,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import {
-  toLocalDateTime,
-  formatLocalDateTime,
-  appendUtcSuffix,
-} from '@/lib/utils/date';
+import { toLocalDateTime, formatLocalDateTime } from '@/lib/utils/date';
 import { AuditInformation } from '@/components/audit-information';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { Map } from '@/components/ui/map';
@@ -454,8 +450,9 @@ export default function DocketForm({
 
     if (canEditCollectionDate) {
       if (values.deliveryCollectionDate) {
-        payload.deliveryCollectionDate = appendUtcSuffix(
-          format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
+        payload.deliveryCollectionDate = format(
+          values.deliveryCollectionDate,
+          "yyyy-MM-dd'T'00:00:00.000",
         );
       }
       let startDateTime = values.deliveryCollectionStartTime;
@@ -472,9 +469,8 @@ export default function DocketForm({
             endDateTime;
         }
       }
-      if (startDateTime)
-        payload.deliveryStartWindow = appendUtcSuffix(startDateTime);
-      if (endDateTime) payload.deliveryEndWindow = appendUtcSuffix(endDateTime);
+      if (startDateTime) payload.deliveryStartWindow = startDateTime;
+      if (endDateTime) payload.deliveryEndWindow = endDateTime;
     }
     if (canEditDocketEmail) {
       payload.docketEmailRecipients = docketEmails;
@@ -569,14 +565,10 @@ export default function DocketForm({
 
     const assignedPayload = {
       deliveryCollectionDate: values.deliveryCollectionDate
-        ? appendUtcSuffix(
-            format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000"),
-          )
+        ? format(values.deliveryCollectionDate, "yyyy-MM-dd'T'00:00:00.000")
         : undefined,
-      deliveryStartWindow: startDateTime
-        ? appendUtcSuffix(startDateTime)
-        : undefined,
-      deliveryEndWindow: endDateTime ? appendUtcSuffix(endDateTime) : undefined,
+      deliveryStartWindow: startDateTime || undefined,
+      deliveryEndWindow: endDateTime || undefined,
       plannedLoadSize: values.plannedLoadSize,
       actualLoadSize: values.plannedLoadSize,
       docketEmailRecipients,

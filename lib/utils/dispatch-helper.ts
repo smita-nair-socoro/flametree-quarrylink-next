@@ -1,5 +1,4 @@
 import { format, startOfDay } from 'date-fns';
-import { appendUtcSuffix } from '@/lib/utils/date';
 import type { ConflictingDocket } from '@/lib/types/docket';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
@@ -666,9 +665,9 @@ export function buildDispatchAssignmentWindows(
   return {
     startWindow,
     endWindow,
-    deliveryCollectionDate: appendUtcSuffix(dateIso),
-    deliveryStartWindow: appendUtcSuffix(startIso),
-    deliveryEndWindow: appendUtcSuffix(endIso),
+    deliveryCollectionDate: dateIso,
+    deliveryStartWindow: startIso,
+    deliveryEndWindow: endIso,
   };
 }
 

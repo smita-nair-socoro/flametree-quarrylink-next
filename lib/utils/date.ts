@@ -4,27 +4,42 @@ import { format, parseISO } from 'date-fns';
  * ============================================================================
  * TIMEZONE-AWARE DATE FORMATTING UTILITIES
  * ============================================================================
- * These functions convert UTC dates from the backend to the user's local
- * browser timezone for display. All display dates should use these functions
- * to ensure consistent timezone handling across the application.
+ * The backend sends naive datetimes (no 'Z'/offset) already expressed in the
+ * tenant's local timezone. These functions parse and render those wall-clock
+ * values as-is, with no further timezone conversion. All display dates should
+ * use these functions to ensure consistent handling across the application.
  * ============================================================================
  */
 
 /**
- * Parse a date string from the backend, treating it as UTC.
- * The backend sends timestamps without the 'Z' suffix, so we need to
- * append it to ensure JavaScript interprets the time as UTC.
+ * Parse a date string from the backend.
+ * The backend sends naive timestamps (no timezone indicator) already in the
+ * tenant's local time, so we parse the wall-clock components directly rather
+ * than converting - the digits shown should match the digits sent.
  *
  * @param dateString - Date string from backend (e.g., "2025-01-28T06:00:00")
- * @returns Date object representing the UTC time in local timezone
+ * @returns Date object whose local components match the string's digits
  */
 export function parseAsUTC(dateString: string): Date {
-  // If already has timezone indicator, parse as-is
+  // If it carries an explicit timezone indicator, it's a real instant - parse as-is.
   if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) {
     return parseISO(dateString);
   }
-  // Otherwise, append Z to treat as UTC
-  return parseISO(dateString + 'Z');
+  const match = dateString.match(
+    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?/,
+  );
+  if (!match) return parseISO(dateString);
+  const [, year, month, day, hour, minute, second, msRaw] = match;
+  const ms = msRaw ? Number(msRaw.slice(0, 3).padEnd(3, '0')) : 0;
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+    ms,
+  );
 }
 
 /**
@@ -69,30 +84,16 @@ export function formatCalendarDate(
 }
 
 /**
- * Append 'Z' (UTC) to a backend datetime string that lacks timezone info.
- * Use when sending datetime strings back to APIs that require timezone context.
+ * Format a naive backend datetime (already tenant-local) for display.
+ * The wall-clock digits are rendered as-is, with no timezone conversion.
  *
- * @param dateString - Date string from backend (e.g., "2026-05-22T08:00:00")
- * @returns The same string with 'Z' appended if no timezone was present
- */
-export function appendUtcSuffix(dateString: string): string {
-  if (!dateString) return dateString;
-  if (dateString.endsWith('Z') || /[+-]\d{2}:\d{2}$/.test(dateString)) return dateString;
-  return dateString + 'Z';
-}
-
-/**
- * Format a date string to the user's local timezone.
- * Converts UTC dates from backend to browser local time for display.
- *
- * @param dateString - ISO-8601 date string (e.g., "2025-01-28T14:00:00Z")
+ * @param dateString - Date string from backend (e.g., "2025-01-28T14:00:00")
  * @param formatPattern - date-fns format pattern (default: 'dd MMM yyyy')
- * @returns Formatted date string in local timezone (e.g., "29 Jan 2025")
+ * @returns Formatted date string (e.g., "28 Jan 2025")
  *
  * @example
- * // Backend returns UTC: "2025-01-28T14:00:00Z"
- * // User in Sydney (UTC+11) sees: "29 Jan 2025" (1am next day)
- * formatLocalDate("2025-01-28T14:00:00Z") // Returns "29 Jan 2025"
+ * // Backend sends tenant-local: "2025-01-28T14:00:00"
+ * formatLocalDate("2025-01-28T14:00:00") // Returns "28 Jan 2025"
  */
 export function formatLocalDate(
   dateString: string | Date | null | undefined,
@@ -172,7 +173,6 @@ export function formatTimeRange(
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
-        timeZone: 'UTC',
       });
     };
 
@@ -204,13 +204,10 @@ export function formatLocalDateTime(
 }
 
 /**
- * Format a date in short format using browser's local timezone and locale.
+ * Format a date in short format (tenant-local, no conversion).
  * Output format: "29/01/25" (dd/mm/yy based on user's locale)
  *
- * The date is converted to user's local timezone, so the same UTC timestamp
- * may show different dates for users in different timezones.
- *
- * @param dateString - ISO-8601 date string or Date object
+ * @param dateString - Date string from backend or Date object
  * @returns Formatted date with 2-digit year (e.g., "29/01/25")
  */
 export function formatLocalDateShort(
@@ -412,7 +409,8 @@ function formatRelativeTimeCalendarDays(
 /**
  * Get relative time for any date: past ("2 days ago") or future ("in 2 days").
  * Uses calendar-day difference for day+ so "30 Jan" = 3 days ago, "29 Jan" = 4 days ago.
- * Backend sends UTC (no Z); we parse as UTC then compare in local calendar days.
+ * Backend sends naive datetimes already in tenant-local time; we parse them
+ * as-is (no conversion) then compare in calendar days.
  */
 export function getRelativeTimePastOrFuture(
   date: Date | string | number,
