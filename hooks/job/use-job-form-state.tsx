@@ -250,9 +250,7 @@ export function useJobFormState({
     () => [
       {
         name: 'Products',
-        content: (
-          <LineItemsTab jobLineItems={jobItems} jobTotals={jobDetails} />
-        ),
+        content: <LineItemsTab jobId={jobId} jobTotals={jobDetails} />,
       },
       {
         name: 'Dockets',
@@ -263,7 +261,7 @@ export function useJobFormState({
         content: <InvoicesTab jobId={jobId} />,
       },
     ],
-    [jobItems, jobDetails, jobId],
+    [jobDetails, jobId],
   );
 
   const onSubmit = React.useCallback(

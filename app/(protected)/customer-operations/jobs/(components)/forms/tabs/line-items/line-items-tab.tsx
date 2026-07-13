@@ -1,12 +1,14 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { SortingState } from '@tanstack/react-table';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { getJobLineItemsColumns } from './(data-tables)/columns';
-import { JobItem } from '@/lib/types/job';
+import { JobItemsQueryOptions } from '@/lib/api/job';
 import {
   calculateJobPricing,
   calculateJobPricingFromTotals,
@@ -20,13 +22,24 @@ import { useSelectedJob } from '@/app/stores/job-store';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 
 interface LineItemsTabProps {
-  jobLineItems: JobItem[];
+  jobId: number;
   /** Backend-computed job totals; job items are paginated so summing the visible page would undercount. */
   jobTotals?: JobPricingTotals;
 }
 
+const DEFAULT_SORTING: SortingState = [{ id: 'productName', desc: false }];
+
+/**
+ * Table column id → job-items API sortBy key. Only these columns are
+ * server-sortable; the rest keep plain headers.
+ */
+const LINE_ITEM_COLUMN_TO_API_SORT: Record<string, string> = {
+  productName: 'productName',
+  remainingQuantity: 'remainingQuantity',
+};
+
 export default function LineItemsTab({
-  jobLineItems,
+  jobId,
   jobTotals,
 }: Readonly<LineItemsTabProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -39,16 +52,58 @@ export default function LineItemsTab({
     taxRateLabel,
   } = useTenantCurrencyTax();
 
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [sorting, setSorting] = React.useState<SortingState>(DEFAULT_SORTING);
+
+  const sortParams = React.useMemo(() => {
+    const sort = sorting[0];
+    if (!sort) return {};
+    return {
+      sortBy: LINE_ITEM_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+      sortOrder: sort.desc ? 'desc' : 'asc',
+    };
+  }, [sorting]);
+
+  const { data: jobDetails, isFetching } = useQuery({
+    // Job-items API pagination is 1-based (page 1 = first page).
+    ...JobItemsQueryOptions(jobId, {
+      page: pageIndex + 1,
+      pageSize,
+      ...sortParams,
+    }),
+    enabled: jobId > 0,
+  });
+
+  const jobLineItems = React.useMemo(
+    () => jobDetails?.jobItems?.content ?? [],
+    [jobDetails?.jobItems],
+  );
+  const totalElements = jobDetails?.jobItems?.totalElements ?? 0;
+  const totalPages =
+    jobDetails?.jobItems?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(newSorting.length > 0 ? newSorting : DEFAULT_SORTING);
+    setPageIndex(0);
+  }, []);
+
   const pricingBreakdown = React.useMemo(() => {
-    if (jobTotals) {
-      return calculateJobPricingFromTotals(
-        jobTotals,
-        currencyCode,
-        taxPercentage,
-      );
+    const totals = jobTotals ?? jobDetails;
+    if (totals) {
+      return calculateJobPricingFromTotals(totals, currencyCode, taxPercentage);
     }
     return calculateJobPricing(jobLineItems, currencyCode, taxPercentage);
-  }, [jobTotals, jobLineItems, currencyCode, taxPercentage]);
+  }, [jobTotals, jobDetails, jobLineItems, currencyCode, taxPercentage]);
 
   const isAllCollection = React.useMemo(() => {
     if (!jobLineItems || jobLineItems.length === 0) return false;
@@ -88,12 +143,21 @@ export default function LineItemsTab({
             taxLabel,
             taxPercentage,
           )}
+          tableId={`job_line_items_${jobId}`}
           data={jobLineItems}
           simpleTable={true}
-          defaultSorting={[{ id: 'productName', desc: false }]}
+          defaultSorting={DEFAULT_SORTING}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          externalPageIndex={pageIndex}
+          externalPageSize={pageSize}
+          externalSorting={sorting}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          isLoading={isFetching}
         />
       </div>
-      {jobLineItems.length > 0 && (
+      {totalElements > 0 && (
         <div className="flex flex-col gap-3">
           {(() => {
             const separatorBorder = 'border-t border-dashed border-[#8E51FF]';

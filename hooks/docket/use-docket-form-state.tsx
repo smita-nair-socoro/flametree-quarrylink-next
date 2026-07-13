@@ -85,6 +85,22 @@ type SelectedJobPrefill = {
   updatedAt: string;
 };
 
+/** API UOM value → display label used by the pricing/conversion helpers. */
+const PRODUCT_UOM_LABELS: Record<string, string> = {
+  TN: 'TN',
+  M3: 'm3',
+  m3: 'm3',
+  BULKA: 'Bulka',
+  KG_20: '20kg',
+};
+
+const TRUCK_UOM_LABELS: Record<string, string> = {
+  ...PRODUCT_UOM_LABELS,
+  HOURLY: 'Hourly',
+  LOAD: 'Load',
+  KM: 'km',
+};
+
 const TRUCK_TYPE_MAP: Record<string, string> = {
   TRUCK: 'Truck',
   SEMI_TRAILER: 'Semi-Trailer',
@@ -301,10 +317,12 @@ export function useDocketFormState({
     const jobFromList = jobsList.find((job) => job.id === effectiveJobId);
     const jobDetails = selectedJobDetails;
 
+    // The docket's embedded customerDto uses a flat `email` field rather than
+    // CustomerDTO's `contactPersonEmail`.
     const customerEmail =
       jobDetails?.customerWithAddressResponse?.contactPersonEmail ??
       jobFromList?.customerWithAddressResponse?.contactPersonEmail ??
-      selectedDocket?.job?.customerDto?.contactPersonEmail ??
+      selectedDocket?.job?.customerDto?.email ??
       '';
 
     return {
@@ -494,27 +512,22 @@ export function useDocketFormState({
         ? selectedDocket.actualLoadSize || selectedDocket.plannedLoadSize || 0
         : 0;
 
+    const productUom =
+      PRODUCT_UOM_LABELS[selectedJobLineItem?.productSellUom ?? ''] ?? '';
+    const truckUom =
+      TRUCK_UOM_LABELS[selectedJobLineItem?.truckSellUom ?? ''] ?? '';
+
     return {
       pickUpAddress: selectedJobLineItem?.quarrySupplier ?? null,
       customerDeliveryAddress:
         selectedJobLineItem?.customerDeliveryAddress ?? null,
       productName: selectedJobLineItem?.product?.productName ?? '',
-      quarryName: selectedJobLineItem?.quarrySupplierName ?? '',
+      quarryName: selectedJobLineItem?.quarrySupplier?.name ?? '',
       densityTonnagePerM3:
         selectedJobLineItem?.densityTonnagePerM3 ??
         selectedJobLineItem?.product?.densityTonnagePerM3 ??
         0,
-      productUom:
-        selectedJobLineItem?.productSellUom === 'TN'
-          ? 'TN'
-          : selectedJobLineItem?.productSellUom === 'M3' ||
-              selectedJobLineItem?.productSellUom === 'm3'
-            ? 'm3'
-            : selectedJobLineItem?.productSellUom === 'BULKA'
-              ? 'Bulka'
-              : selectedJobLineItem?.productSellUom === 'KG_20'
-                ? '20kg'
-                : '',
+      productUom,
       truckType: selectedJobLineItem?.truckType ?? '',
       truckTypeLabel: selectedJobLineItem?.truckType
         ? (TRUCK_TYPE_MAP[selectedJobLineItem.truckType] ??
@@ -522,23 +535,7 @@ export function useDocketFormState({
         : '',
       truckSell: selectedJobLineItem?.truckSellPrice ?? 0,
       truckSellQty: selectedJobLineItem?.truckSellQty ?? 0,
-      truckUom:
-        selectedJobLineItem?.truckSellUom === 'TN'
-          ? 'TN'
-          : selectedJobLineItem?.truckSellUom === 'M3' ||
-              selectedJobLineItem?.truckSellUom === 'm3'
-            ? 'm3'
-            : selectedJobLineItem?.truckSellUom === 'BULKA'
-              ? 'Bulka'
-              : selectedJobLineItem?.truckSellUom === 'KG_20'
-                ? '20kg'
-                : selectedJobLineItem?.truckSellUom === 'HOURLY'
-                  ? 'Hourly'
-                  : selectedJobLineItem?.truckSellUom === 'LOAD'
-                    ? 'Load'
-                    : selectedJobLineItem?.truckSellUom === 'KM'
-                      ? 'km'
-                      : '',
+      truckUom,
       productSell: selectedJobLineItem?.productSellPrice ?? 0,
       productSellQty: selectedJobLineItem?.productSellQty ?? 0,
       remainingQty:
