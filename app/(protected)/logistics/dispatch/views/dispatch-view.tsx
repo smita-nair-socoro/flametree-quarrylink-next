@@ -157,8 +157,8 @@ export function DispatchView({
     }
   }, [viewType]);
 
-  const start = useMemo(() => `${formatLocalISO(startOfDay(date))}Z`, [date]);
-  const end = useMemo(() => `${formatLocalISO(endOfDay(date))}Z`, [date]);
+  const start = useMemo(() => formatLocalISO(startOfDay(date)), [date]);
+  const end = useMemo(() => formatLocalISO(endOfDay(date)), [date]);
   const isPastDispatchDate = useMemo(
     () => isBefore(startOfDay(date), startOfDay(new Date())),
     [date],

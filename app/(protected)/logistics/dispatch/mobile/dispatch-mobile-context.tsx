@@ -184,11 +184,8 @@ export function DispatchMobileProvider({
     setQueueDateScopeState(scope);
   }, []);
 
-  const start = React.useMemo(
-    () => `${formatLocalISO(startOfDay(date))}Z`,
-    [date],
-  );
-  const end = React.useMemo(() => `${formatLocalISO(endOfDay(date))}Z`, [date]);
+  const start = React.useMemo(() => formatLocalISO(startOfDay(date)), [date]);
+  const end = React.useMemo(() => formatLocalISO(endOfDay(date)), [date]);
 
   const needsTrucksScheduler =
     activeTab === 'trucks' ||
