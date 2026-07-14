@@ -618,6 +618,12 @@ export const formatLocalISO = (d: Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
+/** Date-only LocalDate for scheduler/dispatch range params; docket window updates keep formatLocalISO. */
+export const formatLocalDate = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 export function buildDispatchAssignmentWindows(
   assignmentDate: Date,
   slotTime: string,

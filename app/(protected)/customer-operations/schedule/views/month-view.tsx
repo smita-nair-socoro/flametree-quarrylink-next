@@ -37,7 +37,7 @@ import {
   buildSchedulerFilterTruckOptions,
   docketMatchesScheduleJobFilters,
   docketPassesScheduleFleetFilters,
-  formatLocalISO,
+  formatLocalDate,
 } from '@/lib/utils/dispatch-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
@@ -159,8 +159,8 @@ export function ScheduleMonthView({
   const startDate = startOfWeek(monthStart, { weekStartsOn: 0 }); // 0 = Sunday
   const endDate = endOfWeek(monthEnd, { weekStartsOn: 0 });
 
-  const startIso = formatLocalISO(startDate);
-  const endIso = formatLocalISO(endDate);
+  const startIso = formatLocalDate(startDate);
+  const endIso = formatLocalDate(endDate);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery(
     SchedulerTrucksQueryOptions(startIso, endIso),

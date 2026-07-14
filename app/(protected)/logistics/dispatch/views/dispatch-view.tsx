@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import UnassignedDockets from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
-import { format, startOfDay, endOfDay, isBefore } from 'date-fns';
+import { format, startOfDay, isBefore } from 'date-fns';
 import {
   DndContext,
   DragEndEvent,
@@ -53,6 +53,7 @@ import {
   assignmentDateDisplayForUnassign,
   resolveUnassignAssignmentLabels,
   formatTimeRange,
+  formatLocalDate,
   formatLocalISO,
   isDocketOnSelectedLocalDay,
 } from '@/lib/utils/dispatch-helper';
@@ -157,8 +158,8 @@ export function DispatchView({
     }
   }, [viewType]);
 
-  const start = useMemo(() => formatLocalISO(startOfDay(date)), [date]);
-  const end = useMemo(() => formatLocalISO(endOfDay(date)), [date]);
+  const start = useMemo(() => formatLocalDate(date), [date]);
+  const end = useMemo(() => formatLocalDate(date), [date]);
   const isPastDispatchDate = useMemo(
     () => isBefore(startOfDay(date), startOfDay(new Date())),
     [date],

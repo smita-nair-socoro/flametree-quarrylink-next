@@ -40,7 +40,7 @@ import {
   buildSchedulerFilterTruckOptions,
   docketMatchesScheduleJobFilters,
   driverRowMatchesFilters,
-  formatLocalISO,
+  formatLocalDate,
   inferDriverBusinessType,
   inferTruckBusinessType,
   isDispatchDriverResource,
@@ -224,8 +224,8 @@ export function ScheduleWeekView({
   const startDate = startOfWeek(date, { weekStartsOn: 1 });
   const endDate = endOfWeek(date, { weekStartsOn: 1 });
 
-  const startIso = formatLocalISO(startDate);
-  const endIso = formatLocalISO(endDate);
+  const startIso = formatLocalDate(startDate);
+  const endIso = formatLocalDate(endDate);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(startIso, endIso),
