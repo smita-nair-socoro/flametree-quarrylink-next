@@ -55,6 +55,8 @@ export type DocketsListParams = {
   types?: string[];
   customerIds?: number[];
   productIds?: number[];
+  /** Restrict results to specific docket ids (e.g. linking from a job/customer dialog). */
+  ids?: number[];
 };
 
 const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
