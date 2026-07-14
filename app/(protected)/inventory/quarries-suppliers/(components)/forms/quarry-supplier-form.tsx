@@ -11,6 +11,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 
 import { cn, scrollToFirstError } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,6 +48,9 @@ import {
   useQuarrySupplierFormState,
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
 } from '@/hooks/quarry-supplier/use-quarry-supplier-form-state';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { useGetAccountCodes } from '@/lib/api/accounting';
+import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
 
 interface FormProps {
   id?: number;
@@ -70,6 +74,24 @@ export default function QuarrySupplierForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
+
+  const { accountingSoftware } = useTenantStore();
+  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
+  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const accountCodesQuery = useGetAccountCodes({
+    enabled: showXeroMapping,
+  });
+  const accountCodes = accountCodesQuery.data ?? [];
+  const accountCodeOptions = React.useMemo<FormSelectOption[]>(
+    () =>
+      accountCodes
+        .filter((accountCode) => accountCode.id !== undefined)
+        .map((accountCode) => ({
+          value: accountCode.id as number,
+          label: `${accountCode.code} - ${accountCode.name}`,
+        })),
+    [accountCodes],
+  );
 
   const createQuarryMutation = useCreateQuarry();
   const updateQuarryMutation = useUpdateQuarry();
@@ -108,7 +130,7 @@ export default function QuarrySupplierForm({
   const handleTypeChange = (value: string) => {
     const quarryType = value as QuarryType;
     setSelectedType(quarryType);
-    quarrySupplierForm.setValue('quarry_supplier_type', quarryType);
+    quarrySupplierForm.setValue('quarrySupplierType', quarryType);
     // Clear all form errors when switching types
     quarrySupplierForm.clearErrors();
     // Notify parent component of type change
@@ -142,16 +164,19 @@ export default function QuarrySupplierForm({
 
       const quarrySupplierData = {
         name: values.name ?? '',
-        quarrySupplierType: values.quarry_supplier_type as QuarryType,
+        quarrySupplierType: values.quarrySupplierType as QuarryType,
         email: values.email ?? '',
         phone: formatPhoneNumber(values.phone),
         isActive: true,
-        openingClosingInfo: values.opening_closing_info || '',
+        openingClosingInfo: values.openingClosingInfo || '',
         notes: values.notes || '',
-        weighbridgeInfo: values.weighbridge_info || '',
-        contactPersonName: values.contact_person_name || '',
-        contactPersonPhone: formatPhoneNumber(values.contact_person_phone),
-        contactPersonEmail: values.contact_person_email || '',
+        weighbridgeInfo: values.weighbridgeInfo || '',
+        contactPersonName: values.contactPersonName || '',
+        contactPersonPhone: formatPhoneNumber(values.contactPersonPhone),
+        contactPersonEmail: values.contactPersonEmail || '',
+        ...(showXeroMapping && values.accountCodeId
+          ? { accountCodeId: Number(values.accountCodeId) }
+          : {}),
         ...(websiteValue ? { website: websiteValue } : {}),
         address: addressData,
         version:
@@ -166,7 +191,7 @@ export default function QuarrySupplierForm({
           data: quarrySupplierData,
         });
         notifySuccess(
-          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
+          `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
       } else {
         const newQuarrySupplier =
@@ -175,14 +200,14 @@ export default function QuarrySupplierForm({
           addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
         }
         notifySuccess(
-          `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
+          `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
       }
       onSaved?.();
       onSuccess?.();
     } catch (error) {
       console.error(
-        `Error ${isEditing ? 'updating' : 'creating'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}:`,
+        `Error ${isEditing ? 'updating' : 'creating'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}:`,
         error,
       );
 
@@ -198,7 +223,7 @@ export default function QuarrySupplierForm({
         messageFromErr.includes(duplicateNamePhrase);
 
       if (isDuplicateName) {
-        const msg = `${values.quarry_supplier_type === 'QUARRY' ? 'Quarry' : 'Supplier'} with name "${values.name}" already exists.`;
+        const msg = `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} with name "${values.name}" already exists.`;
         notifyError(msg);
         quarrySupplierForm.setError('name', { type: 'manual', message: msg });
         return;
@@ -222,7 +247,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarry_supplier_type === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -278,12 +303,15 @@ export default function QuarrySupplierForm({
             className,
             isSubmitting && 'pointer-events-none',
           )}
-          onSubmit={quarrySupplierForm.handleSubmit(onSubmit, scrollToFirstError)}
+          onSubmit={quarrySupplierForm.handleSubmit(
+            onSubmit,
+            scrollToFirstError,
+          )}
         >
           {/* Type Selection */}
           <FormField
             control={quarrySupplierForm.control}
-            name="quarry_supplier_type"
+            name="quarrySupplierType"
             render={({ field }) => (
               <FormItem className="col-span-1 col-start-1">
                 <FormLabel className="mb-3">Type*</FormLabel>
@@ -461,7 +489,7 @@ export default function QuarrySupplierForm({
             {/* Contact Person Name */}
             <FormField
               control={quarrySupplierForm.control}
-              name="contact_person_name"
+              name="contactPersonName"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
@@ -480,7 +508,7 @@ export default function QuarrySupplierForm({
             {/* Contact Person Phone */}
             <FormField
               control={quarrySupplierForm.control}
-              name="contact_person_phone"
+              name="contactPersonPhone"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
@@ -500,7 +528,7 @@ export default function QuarrySupplierForm({
             {/* Contact Person Email */}
             <FormField
               control={quarrySupplierForm.control}
-              name="contact_person_email"
+              name="contactPersonEmail"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Email</FormLabel>
@@ -528,7 +556,7 @@ export default function QuarrySupplierForm({
           {/* Opening & Closing Times */}
           <FormField
             control={quarrySupplierForm.control}
-            name="opening_closing_info"
+            name="openingClosingInfo"
             render={({ field }) => (
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'}
@@ -549,7 +577,7 @@ export default function QuarrySupplierForm({
           {/* Weighbridge Info */}
           <FormField
             control={quarrySupplierForm.control}
-            name="weighbridge_info"
+            name="weighbridgeInfo"
             render={({ field }) => (
               <FormItem
                 className={isDesktop ? 'col-span-1 col-start-2' : 'col-span-2'}
@@ -585,6 +613,30 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
+          {showXeroMapping && (
+            <>
+              <Separator className="col-span-full my-2 mb-5" />
+
+              <div className="flex flex-col mb-3">
+                <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                <p className="text-xs text-muted-foreground">
+                  Optional account code pushed to Xero on invoice creation.
+                </p>
+              </div>
+              <FormSelect
+                control={quarrySupplierForm.control}
+                name="accountCodeId"
+                label="Account Code"
+                options={accountCodeOptions}
+                placeholder="Select account code (optional)"
+                searchLabel="account codes"
+                popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
+                formItemClassName="col-span-full"
+                className="w-full"
+                disabled={accountCodesQuery.isLoading}
+              />
+            </>
+          )}
           <Separator className="col-span-full my-2 mb-5" />
           {isEditing && (
             <AuditInformation
@@ -612,7 +664,6 @@ export default function QuarrySupplierForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>

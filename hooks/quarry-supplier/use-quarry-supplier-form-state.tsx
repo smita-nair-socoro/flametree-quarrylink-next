@@ -20,22 +20,23 @@ const EMPTY_ADDRESS: AddressType = {
 };
 
 export const EMPTY_QUARRY_SUPPLIER_FORM_VALUES = {
-	quarry_supplier_type: 'QUARRY' as const,
+	quarrySupplierType: 'QUARRY' as const,
 	name: '',
 	website: '',
 	email: '',
 	phone: '',
 	address: '',
-	contact_person_name: '',
-	contact_person_phone: '',
-	contact_person_email: '',
-	opening_closing_info: '',
-	weighbridge_info: '',
+	contactPersonName: '',
+	contactPersonPhone: '',
+	contactPersonEmail: '',
+	openingClosingInfo: '',
+	weighbridgeInfo: '',
 	notes: '',
-	created_at: undefined as Date | undefined,
-	updated_at: undefined as Date | undefined,
-	created_by: 'current_user',
-	last_modified_by: 'current_user',
+	accountCodeId: '',
+	createdAt: undefined as Date | undefined,
+	updatedAt: undefined as Date | undefined,
+	createdBy: 'current_user',
+	lastModifiedBy: 'current_user',
 };
 
 function addressFromQuarry(quarry: Quarry | null): AddressType {
@@ -59,22 +60,25 @@ function formValuesFromQuarry(quarry: Quarry) {
 	const opt = (v: string | undefined, na = 'N/A') =>
 		v === na ? '' : v ?? '';
 	return {
-		quarry_supplier_type: quarry.quarrySupplierType ?? 'QUARRY',
+		quarrySupplierType: quarry.quarrySupplierType ?? 'QUARRY',
 		name: quarry.name ?? '',
 		website: quarry.website === 'N/A' ? '' : quarry.website ?? '',
 		email: quarry.email ?? '',
 		phone: quarry.phone ?? '',
 		address: quarry.address?.formattedAddress ?? '',
-		contact_person_name: opt(quarry.contactPersonName),
-		contact_person_phone: opt(quarry.contactPersonPhone),
-		contact_person_email: opt(quarry.contactPersonEmail),
-		opening_closing_info: opt(quarry.openingClosingInfo),
-		weighbridge_info: opt(quarry.weighbridgeInfo),
+		contactPersonName: opt(quarry.contactPersonName),
+		contactPersonPhone: opt(quarry.contactPersonPhone),
+		contactPersonEmail: opt(quarry.contactPersonEmail),
+		openingClosingInfo: opt(quarry.openingClosingInfo),
+		weighbridgeInfo: opt(quarry.weighbridgeInfo),
 		notes: opt(quarry.notes),
-		created_at: quarry.createdAt ? new Date(quarry.createdAt) : undefined,
-		updated_at: quarry.updatedAt ? new Date(quarry.updatedAt) : undefined,
-		created_by: quarry.createdBy ?? 'current_user',
-		last_modified_by: quarry.lastModifiedBy ?? 'current_user',
+		accountCodeId:
+			(quarry as Quarry & { accountCodeId?: number | string }).accountCodeId?.toString() ??
+			'',
+		createdAt: quarry.createdAt ? new Date(quarry.createdAt) : undefined,
+		updatedAt: quarry.updatedAt ? new Date(quarry.updatedAt) : undefined,
+		createdBy: quarry.createdBy ?? 'current_user',
+		lastModifiedBy: quarry.lastModifiedBy ?? 'current_user',
 	};
 }
 
