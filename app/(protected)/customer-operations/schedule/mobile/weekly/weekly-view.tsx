@@ -18,6 +18,7 @@ import type { DispatchTruckResource } from '@/lib/types/docket';
 import { type DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import {
   docketMatchesScheduleJobFilters,
+  formatLocalISO,
   isDispatchTruckResource,
   isSchedulerQueryLoading,
   parseCollectionStartMs,
@@ -52,7 +53,10 @@ export function ScheduleMobileWeeklyView({
     isPending,
     isPlaceholderData,
   } = useQuery(
-    SchedulerTrucksQueryOptions(weekStart.toISOString(), weekEnd.toISOString()),
+    SchedulerTrucksQueryOptions(
+      formatLocalISO(weekStart),
+      formatLocalISO(weekEnd),
+    ),
   );
 
   const isLoadingSchedule = isSchedulerQueryLoading({
