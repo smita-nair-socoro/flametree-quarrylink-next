@@ -43,7 +43,7 @@ export interface ChecklistSubmitRequest {
   additionalNotes?: string;
   truckType?: TRUCK_TYPE;
   answers: ChecklistSubmitAnswerRequest[];
-  submittedAt: string;
+  submittedAt?: string;
 }
 
 export interface ChecklistSubmission {
@@ -54,7 +54,7 @@ export interface ChecklistSubmission {
   status: CHECKLIST_STATUS;
   driverName: string;
   truckIdentifier: string;
-  submittedAt: string;
+  submittedAt?: string;
   summaryNotes: string;
   additionalNotes?: string;
   sections: ChecklistSubmissionSection[];

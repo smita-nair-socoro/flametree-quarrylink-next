@@ -182,14 +182,17 @@ export function splitReasonNote(raw: string | null | undefined): {
 } {
   const trimmed = raw?.trim();
   if (!trimmed) return { reason: '', note: undefined };
+
+  const formatReason = (reason: string) =>
+    reason.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+
   const hyphenIndex = trimmed.indexOf('-');
-  if (hyphenIndex === -1) return { reason: trimmed, note: undefined };
+  if (hyphenIndex === -1) {
+    // Reasons stored without a note still need the underscore cleanup.
+    return { reason: formatReason(trimmed), note: undefined };
+  }
   return {
-    reason: trimmed
-      .slice(0, hyphenIndex)
-      .trim()
-      .replace(/_/g, ' ')
-      .replace(/^\w/, (c) => c.toUpperCase()),
+    reason: formatReason(trimmed.slice(0, hyphenIndex).trim()),
     note: trimmed.slice(hyphenIndex + 1).trim() || undefined,
   };
 }

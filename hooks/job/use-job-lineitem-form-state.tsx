@@ -350,6 +350,15 @@ export function useJobLineItemFormState({
     [quarrySuppliers],
   );
 
+  // True while the selected product's quarry/supplier list is still loading
+  // (keepPreviousData can leave another product's details in the cache), so
+  // the UI can distinguish "loading" from "this product has no suppliers".
+  const isLoadingQuarrySuppliers =
+    selectedProductId > 0 &&
+    !productDetailsQuery.isError &&
+    (productDetailsQuery.isFetching ||
+      productDetailsQuery.data?.id !== selectedProductId);
+
   // Selected QSP (product + quarry)
   const watchedQuarrySupplierId = form.watch('quarrySupplierId');
   const selectedQuarrySupplierProduct = React.useMemo(() => {
@@ -574,6 +583,51 @@ export function useJobLineItemFormState({
       opts.push({ label: 'Bulka', value: 'BULKA' });
     return opts;
   }, [selectedQuarrySupplierProduct]);
+
+  /**
+   * Auto-select when only one choice exists (create mode only), instead of
+   * waiting for the user to pick it: product → quarry/supplier → product UOMs.
+   * Truck UOMs are left alone (already handled by the truck rate flow).
+   */
+  React.useEffect(() => {
+    if (isEditing) return;
+    // Don't auto-pick while the user is searching or when more pages may
+    // hold other products.
+    if (productSearch.trim() || hasMoreProductOptions) return;
+    if (productOptions.length !== 1) return;
+    if (Number(form.getValues('productId') || 0)) return;
+
+    form.setValue('productId', Number(productOptions[0].value), {
+      shouldDirty: false,
+      shouldValidate: true,
+    });
+  }, [isEditing, productSearch, hasMoreProductOptions, productOptions, form]);
+
+  React.useEffect(() => {
+    if (isEditing) return;
+    if (!selectedProductId || quarryOptions.length !== 1) return;
+    if (Number(form.getValues('quarrySupplierId') || 0)) return;
+
+    form.setValue('quarrySupplierId', Number(quarryOptions[0].value), {
+      shouldDirty: false,
+      shouldValidate: true,
+    });
+  }, [isEditing, selectedProductId, quarryOptions, form]);
+
+  React.useEffect(() => {
+    if (isEditing) return;
+    if (productUnitOptions.length !== 1) return;
+
+    const onlyUom = String(productUnitOptions[0].value);
+    const opts = { shouldDirty: false, shouldValidate: true } as const;
+
+    if (!form.getValues('productSellUom')) {
+      form.setValue('productSellUom', onlyUom, opts);
+    }
+    if (!form.getValues('productCostUom')) {
+      form.setValue('productCostUom', onlyUom, opts);
+    }
+  }, [isEditing, productUnitOptions, form]);
 
   // Auto-fill product pricing on UOM changes
   const productCostUom = form.watch('productCostUom');
@@ -869,6 +923,47 @@ export function useJobLineItemFormState({
       form.setValue('truckSellUom', '', { shouldDirty: false });
     }
   }, [truckType, isEditing, jobLineItemData?.truckType, form]);
+
+  /**
+   * Auto-fill truck UOMs once truck type and product pricing UOMs are
+   * selected (create mode only): prefer the truck rate unit matching the
+   * product UOM, otherwise fall back to the only available truck rate unit.
+   */
+  React.useEffect(() => {
+    if (isEditing) return;
+    if (jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION) return;
+    if (!form.getValues('truckType')) return;
+    if (truckUnitOptions.length === 0) return;
+
+    const opts = { shouldDirty: false, shouldValidate: true } as const;
+    const available = new Set(
+      truckUnitOptions.map((option) => String(option.value)),
+    );
+
+    const resolveTruckUom = (productUom: string): string => {
+      if (productUom && available.has(productUom)) return productUom;
+      if (truckUnitOptions.length === 1)
+        return String(truckUnitOptions[0].value);
+      return '';
+    };
+
+    if (!form.getValues('truckSellUom')) {
+      const uom = resolveTruckUom(form.getValues('productSellUom') || '');
+      if (uom) form.setValue('truckSellUom', uom, opts);
+    }
+    if (!form.getValues('truckCostUom')) {
+      const uom = resolveTruckUom(form.getValues('productCostUom') || '');
+      if (uom) form.setValue('truckCostUom', uom, opts);
+    }
+  }, [
+    isEditing,
+    jobItemType,
+    truckType,
+    productSellUom,
+    productCostUom,
+    truckUnitOptions,
+    form,
+  ]);
 
   // Auto-calculate truck sell qty when UOM is TN, M3, BULKA, or KG_20
   React.useEffect(() => {
@@ -1193,6 +1288,7 @@ export function useJobLineItemFormState({
     isLoadingMoreProductOptions,
     onProductOptionsScrollEnd,
     quarryOptions,
+    isLoadingQuarrySuppliers,
     truckTypeOptions,
     productUnitOptions,
     truckUnitOptions,

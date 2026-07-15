@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/form';
 import { Loader2, Info } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
-import { cn, scrollToFirstError } from '@/lib/utils';
+import { cn, scrollToFirstError, splitReasonNote } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
@@ -87,7 +87,8 @@ export default function JobForm({
 
     const actorName = liveJob.lastModifiedBy || 'Unknown';
     const actionDate = formatLocalDateTime(liveJob.updatedAt);
-    const reason = liveJob.reason || 'N/A';
+    // splitReasonNote also converts underscore reason keys to readable text.
+    const reason = splitReasonNote(liveJob.reason).reason || 'N/A';
     const notes = liveJob.notes;
 
     return (

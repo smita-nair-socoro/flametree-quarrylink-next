@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/tooltip';
 import { DocketTableActions } from './docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { HelpCircle, TriangleAlert } from 'lucide-react';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import {
@@ -202,16 +203,9 @@ export const getDocketColumns = (
       }
       const productUom = row.original.jobItem.productSellUom;
       const formattedQty = formatNumberThousandSeparator(loadSize);
-      const formattedLoadSize =
-        productUom === 'TN'
-          ? `${formattedQty} TN`
-          : productUom === 'M3' || productUom === 'm3'
-            ? `${formattedQty} m³`
-            : productUom === 'KG_20'
-              ? `${formattedQty} x 20kg`
-              : productUom === 'BULKA'
-                ? `${formattedQty} Bulka`
-                : formattedQty;
+      const formattedLoadSize = productUom
+        ? `${formattedQty} ${formatUomLabel(productUom)}`
+        : formattedQty;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
@@ -256,7 +250,9 @@ export const getDocketColumns = (
       );
     },
     cell: ({ row }) => {
-      const cents = parseFloat(row.original.totalInvoiceAmount.toString());
+      const cents = Number.parseFloat(
+        row.original.totalInvoiceAmount.toString(),
+      );
       const dollars = cents / 100;
       const formatted = formatCurrency(dollars, currencyCode);
       return (
