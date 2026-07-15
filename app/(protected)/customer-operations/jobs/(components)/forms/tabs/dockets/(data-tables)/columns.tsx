@@ -13,6 +13,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { DocketTableActions } from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-actions';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { TriangleAlert } from 'lucide-react';
 
 export const docketsColumns: ColumnDef<DocketDTO>[] = [
@@ -98,16 +99,9 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
         row.original.actualLoadSize ?? row.original.plannedLoadSize ?? 0;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedQty = formatNumberThousandSeparator(loadSize);
-      const formattedLoadSize =
-        productSellUom === 'TN'
-          ? `${formattedQty} TN`
-          : productSellUom === 'M3' || productSellUom === 'm3'
-            ? `${formattedQty} m³`
-            : productSellUom === 'KG_20'
-              ? `${formattedQty} x 20kg`
-              : productSellUom === 'BULKA'
-                ? `${formattedQty} Bulka`
-                : formattedQty;
+      const formattedLoadSize = productSellUom
+        ? `${formattedQty} ${formatUomLabel(productSellUom)}`
+        : formattedQty;
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>

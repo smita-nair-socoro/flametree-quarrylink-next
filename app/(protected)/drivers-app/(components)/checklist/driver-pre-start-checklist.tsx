@@ -5,6 +5,7 @@ import { useSubmitChecklist } from '@/lib/api/checklist';
 import { Spinner } from '@/components/ui/spinner';
 import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
+import { toLocalDateTime } from '@/lib/utils/date';
 
 export default function DriverPreStartChecklist({
   onSubmit,
@@ -54,7 +55,7 @@ export default function DriverPreStartChecklist({
         checklistType: CHECKLIST_TYPE.DRIVER,
         driverId,
         confirmed: false,
-        submittedAt: new Date().toISOString(),
+        submittedAt: toLocalDateTime(new Date()),
         answers: answers.map((a) => {
           const failOn = failOnAnswerMap.get(a.questionId);
           return {

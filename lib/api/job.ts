@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
   useMutation,
@@ -8,6 +9,7 @@ import { APIClient } from './APIClient';
 import { DocketKeys, JobKeys } from './keys';
 import type {
   JobDTO,
+  JobDetails,
   JobItem,
   JobsListResponse,
   JobsPage,
@@ -151,13 +153,102 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
     staleTime: 5_000,
   });
 
-export const JobItemsQueryOptions = (jobId: number) =>
+/** Jobs API pagination is 1-based, matching JobsListQueryOptions. */
+export const JobsInfiniteListQueryOptions = (
+  params: Omit<JobsListParams, 'page'> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: [...JobKeys.list(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.jobs.getAll({
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getJobsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      if ((page.content ?? []).length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export function getJobsFromInfinitePages(
+  pages: (JobsListResponse | null | undefined)[] | undefined,
+): JobDTO[] {
+  const seenIds = new Set<number>();
+  const result: JobDTO[] = [];
+
+  for (const page of pages ?? []) {
+    for (const job of page?.jobs?.content ?? []) {
+      if (job.id == null || seenIds.has(job.id)) continue;
+      seenIds.add(job.id);
+      result.push(job);
+    }
+  }
+
+  return result;
+}
+
+export type JobItemsParams = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+export const JobItemsQueryOptions = (jobId: number, params?: JobItemsParams) =>
   queryOptions({
-    queryKey: JobKeys.items(jobId),
-    queryFn: () => APIClient.jobs.getJobItems(jobId),
+    queryKey: params ? [...JobKeys.items(jobId), params] : JobKeys.items(jobId),
+    queryFn: () => APIClient.jobs.getJobItems(jobId, params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const JobItemsInfiniteQueryOptions = (
+  jobId: number,
+  params: Omit<JobItemsParams, 'page'> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: [...JobKeys.items(jobId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.jobs.getJobItems(jobId, {
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = lastPage?.jobItems;
+      if (!page) return undefined;
+      if ((page.content ?? []).length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export function getJobLineItemsFromInfinitePages(
+  pages: (JobDetails | null | undefined)[] | undefined,
+): JobItem[] {
+  const seenIds = new Set<number>();
+  const result: JobItem[] = [];
+
+  for (const page of pages ?? []) {
+    for (const item of page?.jobItems?.content ?? []) {
+      if (item.id == null || seenIds.has(item.id)) continue;
+      seenIds.add(item.id);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
 
 export const JobItemByIdQueryOptions = (jobItemId: number) =>
   queryOptions({

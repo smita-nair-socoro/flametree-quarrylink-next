@@ -25,6 +25,7 @@ import { type DispatchBoardFilterState } from '@/app/(protected)/logistics/dispa
 import {
   docketMatchesScheduleJobFilters,
   docketPassesScheduleFleetFilters,
+  formatLocalDate,
   isDispatchTruckResource,
   isSchedulerQueryLoading,
   parseCollectionStartMs,
@@ -72,8 +73,8 @@ export function ScheduleMobileMonthlyView({
     isPlaceholderData,
   } = useQuery(
     SchedulerTrucksQueryOptions(
-      calendarStart.toISOString(),
-      calendarEnd.toISOString(),
+      formatLocalDate(calendarStart),
+      formatLocalDate(calendarEnd),
     ),
   );
 

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { endOfDay, startOfDay } from 'date-fns';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   DocketsInfiniteListQueryOptions,
@@ -30,6 +29,7 @@ import {
   buildDispatchAssignmentWindows,
   DispatchDocket,
   formatCargoLineForUnassign,
+  formatLocalDate,
   formatLocalISO,
   formatTimeRange,
   isDispatchDriverResource,
@@ -184,11 +184,8 @@ export function DispatchMobileProvider({
     setQueueDateScopeState(scope);
   }, []);
 
-  const start = React.useMemo(
-    () => `${formatLocalISO(startOfDay(date))}Z`,
-    [date],
-  );
-  const end = React.useMemo(() => `${formatLocalISO(endOfDay(date))}Z`, [date]);
+  const start = React.useMemo(() => formatLocalDate(date), [date]);
+  const end = React.useMemo(() => formatLocalDate(date), [date]);
 
   const needsTrucksScheduler =
     activeTab === 'trucks' ||

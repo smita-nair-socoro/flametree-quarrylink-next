@@ -82,6 +82,7 @@ export default function JobLineItemForm({
     isLoadingMoreProductOptions,
     onProductOptionsScrollEnd,
     quarryOptions,
+    isLoadingQuarrySuppliers,
     truckTypeOptions,
     productUnitOptions,
     truckUnitOptions,
@@ -382,11 +383,24 @@ export default function JobLineItemForm({
                 label="Quarry/Supplier*"
                 searchLabel="Quarry/Supplier"
                 options={quarryOptions}
-                placeholder="Select Quarry/Supplier"
+                placeholder={
+                  !selectedProductId
+                    ? 'Select Product First'
+                    : isLoadingQuarrySuppliers
+                      ? 'Loading Quarry/Suppliers...'
+                      : quarryOptions.length === 0
+                        ? 'No Quarry/Supplier Found'
+                        : 'Select Quarry/Supplier'
+                }
                 formItemClassName={
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
-                disabled={!selectedProductId || isReadOnly || isEditing}
+                disabled={
+                  !selectedProductId ||
+                  isReadOnly ||
+                  isEditing ||
+                  (!isLoadingQuarrySuppliers && quarryOptions.length === 0)
+                }
               />
 
               {isCollection && (
