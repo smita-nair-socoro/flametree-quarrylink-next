@@ -300,6 +300,30 @@ export function useDocketFormState({
       }));
   }, [isEditing, selectedDocket?.jobItem, jobLineItems]);
 
+  /**
+   * Create mode: when the selected job has exactly one product, auto-select
+   * it instead of making the user pick. Line items load in 25-item pages, so
+   * a single option only counts as "the only product" once there are no
+   * further pages. Watching jobLineItemId keeps this effect re-running after
+   * a job change resets the field to 0.
+   */
+  React.useEffect(() => {
+    if (isEditing) return;
+    if (jobLineItemOptions.length !== 1 || lineItemSelectProps.hasMoreOptions)
+      return;
+
+    const onlyOption = jobLineItemOptions[0].value;
+    if (docketForm.getValues('jobLineItemId') === onlyOption) return;
+
+    docketForm.setValue('jobLineItemId', onlyOption, { shouldValidate: true });
+  }, [
+    isEditing,
+    jobLineItemOptions,
+    lineItemSelectProps.hasMoreOptions,
+    docketForm.watch('jobLineItemId'),
+    docketForm,
+  ]);
+
   const selectedJob = React.useMemo<SelectedJobPrefill>(() => {
     const jobFromList = jobsList.find((job) => job.id === effectiveJobId);
     const jobDetails = selectedJobDetails;

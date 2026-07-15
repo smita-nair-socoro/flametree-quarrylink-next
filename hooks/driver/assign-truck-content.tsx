@@ -30,21 +30,32 @@ export function AssignTruckContent({
   assignedTruckIds = [],
   haulierName,
   onSelectionChange,
-}: {
+}: Readonly<{
   trucks: TruckDTO[];
   assignedTruckIds?: number[];
   /** Haulier name sourced from the driver's haulier — used as the section header. */
   haulierName?: string;
   onSelectionChange?: (ids: number[]) => void;
-}) {
+}>) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
+  const autoSelected = React.useRef(false);
 
   const availableTrucks = React.useMemo(
     () => trucks.filter((t) => !assignedTruckIds.includes(t.id ?? 0)),
     [trucks, assignedTruckIds],
   );
+
+  React.useEffect(() => {
+    if (autoSelected.current) return;
+    if (availableTrucks.length === 1 && availableTrucks[0].id != null) {
+      autoSelected.current = true;
+      const ids = [availableTrucks[0].id];
+      setSelectedIds(ids);
+      onSelectionChange?.(ids);
+    }
+  }, [availableTrucks, onSelectionChange]);
 
   const filteredTrucks = React.useMemo(
     () =>
@@ -72,7 +83,9 @@ export function AssignTruckContent({
   if (selectedIds.length === 0) {
     triggerLabel = 'Select trucks...';
   } else if (selectedIds.length === 1) {
-    triggerLabel = availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected';
+    triggerLabel =
+      availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ??
+      '1 selected';
   } else {
     triggerLabel = `${selectedIds.length} trucks selected`;
   }

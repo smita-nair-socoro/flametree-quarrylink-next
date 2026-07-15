@@ -39,11 +39,22 @@ export function AssignDriverContent({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
+  const autoSelected = React.useRef(false);
 
   const availableDrivers = React.useMemo(
     () => drivers.filter((d) => !assignedDriverIds.includes(d.id ?? 0)),
     [drivers, assignedDriverIds],
   );
+
+  React.useEffect(() => {
+    if (autoSelected.current) return;
+    if (availableDrivers.length === 1 && availableDrivers[0].id != null) {
+      autoSelected.current = true;
+      const ids = [availableDrivers[0].id];
+      setSelectedIds(ids);
+      onSelectionChange?.(ids);
+    }
+  }, [availableDrivers, onSelectionChange]);
 
   const filteredDrivers = React.useMemo(
     () =>
