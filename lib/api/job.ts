@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
   useMutation,
@@ -8,6 +9,7 @@ import { APIClient } from './APIClient';
 import { DocketKeys, JobKeys } from './keys';
 import type {
   JobDTO,
+  JobDetails,
   JobItem,
   JobsListResponse,
   JobsPage,
@@ -22,18 +24,19 @@ export type JobsListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
-  status?: string[];
-  customerId?: number[];
-  accountManagerSub?: string[];
+  statuses?: string[];
+  customerIds?: number[];
+  accountManagerSubs?: string[];
+  /** Restrict results to specific job ids (e.g. linking from a converted quotation/docket). */
+  ids?: number[];
 };
 
 const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   jobNumber: 'jobNumber',
   customerName: 'customerName',
   projectName: 'projectName',
-  status: 'jobStatus',
   uninvoicedDockets: 'uninvoicedDocketsAmount',
-  accountManagerName: 'accountManagerName',
+  status: 'jobStatus',
 };
 
 export function toJobApiSortParams(
@@ -58,19 +61,24 @@ function getFacetFilterValues(
 
 export function toJobApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<JobsListParams, 'status' | 'customerId' | 'accountManagerSub'> {
+): Pick<JobsListParams, 'statuses' | 'customerIds' | 'accountManagerSubs'> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const customerValues = getFacetFilterValues(filters, 'customerName');
-  const accountManagerValues = getFacetFilterValues(filters, 'accountManagerName');
+  const accountManagerValues = getFacetFilterValues(
+    filters,
+    'accountManagerName',
+  );
 
   const customerIds = customerValues
     .map(Number)
     .filter((n) => Number.isFinite(n));
 
   return {
-    status: statusValues.length ? statusValues : undefined,
-    customerId: customerIds.length ? customerIds : undefined,
-    accountManagerSub: accountManagerValues.length ? accountManagerValues : undefined,
+    statuses: statusValues.length ? statusValues : undefined,
+    customerIds: customerIds.length ? customerIds : undefined,
+    accountManagerSubs: accountManagerValues.length
+      ? accountManagerValues
+      : undefined,
   };
 }
 
@@ -145,13 +153,102 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
     staleTime: 5_000,
   });
 
-export const JobItemsQueryOptions = (jobId: number) =>
+/** Jobs API pagination is 1-based, matching JobsListQueryOptions. */
+export const JobsInfiniteListQueryOptions = (
+  params: Omit<JobsListParams, 'page'> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: [...JobKeys.list(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.jobs.getAll({
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getJobsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      if ((page.content ?? []).length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export function getJobsFromInfinitePages(
+  pages: (JobsListResponse | null | undefined)[] | undefined,
+): JobDTO[] {
+  const seenIds = new Set<number>();
+  const result: JobDTO[] = [];
+
+  for (const page of pages ?? []) {
+    for (const job of page?.jobs?.content ?? []) {
+      if (job.id == null || seenIds.has(job.id)) continue;
+      seenIds.add(job.id);
+      result.push(job);
+    }
+  }
+
+  return result;
+}
+
+export type JobItemsParams = {
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+export const JobItemsQueryOptions = (jobId: number, params?: JobItemsParams) =>
   queryOptions({
-    queryKey: JobKeys.items(jobId),
-    queryFn: () => APIClient.jobs.getJobItems(jobId),
+    queryKey: params ? [...JobKeys.items(jobId), params] : JobKeys.items(jobId),
+    queryFn: () => APIClient.jobs.getJobItems(jobId, params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const JobItemsInfiniteQueryOptions = (
+  jobId: number,
+  params: Omit<JobItemsParams, 'page'> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: [...JobKeys.items(jobId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.jobs.getJobItems(jobId, {
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = lastPage?.jobItems;
+      if (!page) return undefined;
+      if ((page.content ?? []).length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export function getJobLineItemsFromInfinitePages(
+  pages: (JobDetails | null | undefined)[] | undefined,
+): JobItem[] {
+  const seenIds = new Set<number>();
+  const result: JobItem[] = [];
+
+  for (const page of pages ?? []) {
+    for (const item of page?.jobItems?.content ?? []) {
+      if (item.id == null || seenIds.has(item.id)) continue;
+      seenIds.add(item.id);
+      result.push(item);
+    }
+  }
+
+  return result;
+}
 
 export const JobItemByIdQueryOptions = (jobItemId: number) =>
   queryOptions({
@@ -353,9 +450,14 @@ export const usePauseJob = () => {
       collectionPauseStrategy,
     }: {
       id: number;
-      deliveryPauseStrategy: 'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE';
-      collectionPauseStrategy: 'STOP_ACTIVE_COLLECTION_DOCKETS' | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE';
-    }) => APIClient.jobs.pause(id, deliveryPauseStrategy, collectionPauseStrategy),
+      deliveryPauseStrategy:
+        | 'STOP_ALL_DELIVERY_DOCKETS'
+        | 'ALLOW_DRIVERS_TO_COMPLETE';
+      collectionPauseStrategy:
+        | 'STOP_ACTIVE_COLLECTION_DOCKETS'
+        | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE';
+    }) =>
+      APIClient.jobs.pause(id, deliveryPauseStrategy, collectionPauseStrategy),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: JobKeys.list() });
       queryClient.invalidateQueries({ queryKey: JobKeys.detail(data.id) });

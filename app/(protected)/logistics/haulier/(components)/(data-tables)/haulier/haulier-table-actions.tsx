@@ -47,7 +47,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
-              href={`/logistics/trucks?haulierId=${haulier.id}`}
+              href={`/logistics/trucks/?haulierId=${haulier.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >
@@ -58,7 +58,7 @@ export function HaulierTableActions({ haulier }: HaulierTableActionsProps) {
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
             <a
-              href={`/logistics/drivers?haulierId=${haulier.id}`}
+              href={`/logistics/drivers/?haulierId=${haulier.id}`}
               target="_blank"
               rel="noopener noreferrer"
             >

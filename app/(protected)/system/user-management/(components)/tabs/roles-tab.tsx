@@ -1,17 +1,27 @@
 'use client';
 
-// import { useState } from 'react';
-// import { FileText, Truck } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { FileText, Truck } from 'lucide-react';
 
+import {
+  UsersListQueryOptions,
+  OperationsListQueryOptions,
+  useAddUserToOperations,
+  useRemoveUserFromOperations,
+} from '@/lib/api/user';
+import { UserKeys } from '@/lib/api/keys';
+import { getRoleLabel } from '@/lib/utils/user-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import { PermissionMatrix } from './roles/permission-matrix';
-// import {
-//   EmailNotificationGroups,
-//   type NotificationGroup,
-// } from './roles/email-notification-groups';
-// import {
-//   ManageGroupDialog,
-//   type GroupMember,
-// } from './roles/manage-group-dialog';
+import {
+  EmailNotificationGroups,
+  type NotificationGroup,
+} from './roles/email-notification-groups';
+import {
+  ManageGroupDialog,
+  type GroupMember,
+} from './roles/manage-group-dialog';
 
 const roles = [
   { name: 'Super Admin', isAdmin: true },
@@ -118,106 +128,105 @@ const sections = [
   },
 ];
 
-// const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
-//   {
-//     name: 'Operations',
-//     icon: Truck,
-//     description:
-//       'Receives operational notifications about deliveries, drivers, jobs, and logistics.',
-//     emailTypes: [
-//       'Driver assignment changes',
-//       'Delivery status updates',
-//       'Job scheduling alerts',
-//       'Fleet dispatch notifications',
-//       'Docket completion alerts',
-//     ],
-//   },
-//   {
-//     name: 'Account Manager',
-//     icon: FileText,
-//     manageable: false,
-//     description:
-//       'Receives commercial notifications about quotes, customers, and sales activity.',
-//     emailTypes: [
-//       'New quote requests',
-//       'Quote approval notifications',
-//       'Customer status changes',
-//       'Pricing updates',
-//       'Sales activity summaries',
-//     ],
-//   },
-// ];
-
-// Dummy current members until the notification group API is available
-// const initialGroupMembers: Record<string, GroupMember[]> = {
-//   Operations: [
-//     {
-//       id: 'sarah.chen@quarrydemo.com',
-//       name: 'Sarah Chen',
-//       email: 'sarah.chen@quarrydemo.com',
-//       role: 'Admin',
-//     },
-//     {
-//       id: 'mike.j@quarrydemo.com',
-//       name: 'Mike Johnson',
-//       email: 'mike.j@quarrydemo.com',
-//       role: 'User',
-//     },
-//     {
-//       id: 'lisa.w@quarrydemo.com',
-//       name: 'Lisa Wong',
-//       email: 'lisa.w@quarrydemo.com',
-//       role: 'User',
-//     },
-//   ],
-//   'Account Manager': [
-//     {
-//       id: 'emma.d@quarrydemo.com',
-//       name: 'Emma Davis',
-//       email: 'emma.d@quarrydemo.com',
-//       role: 'Admin',
-//     },
-//     {
-//       id: 'james.w@quarrydemo.com',
-//       name: 'James Wilson',
-//       email: 'james.w@quarrydemo.com',
-//       role: 'User',
-//     },
-//   ],
-// };
+const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
+  {
+    name: 'Operations',
+    icon: Truck,
+    description:
+      'Receives operational notifications about jobs, dockets, deliveries, and vehicle compliance.',
+    emailTypes: [
+      'Pre-start check failures',
+      'Vehicle inspection failures',
+      'Job status changes',
+      'Docket interruptions (Stop/Cancel/Void)',
+    ],
+  },
+  {
+    name: 'Account Manager',
+    icon: FileText,
+    manageable: false,
+    description:
+      'Receives job, docket, and quote notifications for their linked customer accounts.',
+    emailTypes: [
+      'Quote approval notifications',
+      'Quote decline notifications',
+      'Job status changes',
+      'Docket interruptions (Stop/Cancel/Void)',
+    ],
+  },
+];
 
 export default function RolesTab() {
-  // const [groupMembers, setGroupMembers] =
-  //   useState<Record<string, GroupMember[]>>(initialGroupMembers);
-  // const [managedGroupName, setManagedGroupName] = useState<string | null>(null);
+  const [managedGroupName, setManagedGroupName] = useState<string | null>(null);
 
-  // const notificationGroups: NotificationGroup[] = groupDefinitions.map(
-  //   (group) => ({
-  //     ...group,
-  //     memberCount: groupMembers[group.name]?.length ?? 0,
-  //   }),
-  // );
+  const queryClient = useQueryClient();
+  const { data: users = [] } = useQuery(UsersListQueryOptions());
+  const { data: operations = [] } = useQuery(OperationsListQueryOptions());
 
-  // const managedGroup =
-  //   notificationGroups.find((group) => group.name === managedGroupName) ?? null;
+  const addToOperations = useAddUserToOperations();
+  const removeFromOperations = useRemoveUserFromOperations();
 
-  // const handleAddMembers = (added: GroupMember[]) => {
-  //   if (!managedGroupName) return;
-  //   setGroupMembers((prev) => ({
-  //     ...prev,
-  //     [managedGroupName]: [...(prev[managedGroupName] ?? []), ...added],
-  //   }));
-  // };
+  const refreshOperations = () =>
+    queryClient.invalidateQueries({ queryKey: UserKeys.operations() });
 
-  // const handleRemoveMember = (member: GroupMember) => {
-  //   if (!managedGroupName) return;
-  //   setGroupMembers((prev) => ({
-  //     ...prev,
-  //     [managedGroupName]: (prev[managedGroupName] ?? []).filter(
-  //       (m) => m.id !== member.id,
-  //     ),
-  //   }));
-  // };
+  // Every non-driver user belongs to the Account Manager group.
+  const accountManagerCount = users.filter(
+    (user) => getRoleLabel(user.groups) !== 'Driver',
+  ).length;
+
+  // Current members of the Operations notification group.
+  const operationMembers: GroupMember[] = operations.map((user) => ({
+    id: user.sub,
+    name: user.name,
+    email: user.email,
+    role: getRoleLabel(user.groups),
+  }));
+
+  const memberCountByGroup: Record<string, number> = {
+    'Account Manager': accountManagerCount,
+    Operations: operationMembers.length,
+  };
+
+  const notificationGroups: NotificationGroup[] = groupDefinitions.map(
+    (group) => ({
+      ...group,
+      memberCount: memberCountByGroup[group.name] ?? 0,
+    }),
+  );
+
+  const managedGroup =
+    notificationGroups.find((group) => group.name === managedGroupName) ?? null;
+
+  const managedMembers =
+    managedGroupName === 'Operations' ? operationMembers : [];
+
+  const handleAddMembers = async (added: GroupMember[]) => {
+    if (managedGroupName !== 'Operations' || added.length === 0) return;
+    try {
+      await Promise.all(
+        added.map((member) => addToOperations.mutateAsync(member.id)),
+      );
+      notifySuccess(
+        `Added ${added.length} member${added.length > 1 ? 's' : ''} to the Operations group.`,
+      );
+    } catch {
+      notifyError('Failed to add some members to the Operations group.');
+    } finally {
+      refreshOperations();
+    }
+  };
+
+  const handleRemoveMember = async (member: GroupMember) => {
+    if (managedGroupName !== 'Operations') return;
+    try {
+      await removeFromOperations.mutateAsync(member.id);
+      notifySuccess(`Removed ${member.name} from the Operations group.`);
+    } catch {
+      notifyError(`Failed to remove ${member.name} from the Operations group.`);
+    } finally {
+      refreshOperations();
+    }
+  };
 
   return (
     <div className="py-3 space-y-3">
@@ -229,13 +238,11 @@ export default function RolesTab() {
       </div>
 
       <PermissionMatrix
-        description="Access levels for each permission role across QuarryLink Core modules. ✓ means full access in the web app or Driver App as applicable."
+        description="Access levels for each permission role across QuarryLink Core modules."
         roles={roles}
         sections={sections}
-        footerNote="Super Admins have full access including billing and subscription settings. Admins can manage users and operational data. Users have access to day-to-day operations. Drivers are limited to the Driver App for their assigned deliveries."
       />
 
-      {/* EmailNotificationGroups and ManageGroupDialog hidden until backend support is available
       <EmailNotificationGroups
         description="Allocate team members to notification groups based on their operational responsibilities. These groups control which transactional emails users receive from the system."
         groups={notificationGroups}
@@ -247,7 +254,7 @@ export default function RolesTab() {
 
       <ManageGroupDialog
         group={managedGroup}
-        members={managedGroupName ? (groupMembers[managedGroupName] ?? []) : []}
+        members={managedMembers}
         open={managedGroup !== null}
         onOpenChange={(open) => {
           if (!open) setManagedGroupName(null);
@@ -255,7 +262,6 @@ export default function RolesTab() {
         onAddMembers={handleAddMembers}
         onRemoveMember={handleRemoveMember}
       />
-      */}
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { format, startOfDay } from 'date-fns';
-import { appendUtcSuffix } from '@/lib/utils/date';
 import type { ConflictingDocket } from '@/lib/types/docket';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
@@ -619,6 +618,12 @@ export const formatLocalISO = (d: Date) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 };
 
+/** Date-only LocalDate for scheduler/dispatch range params; docket window updates keep formatLocalISO. */
+export const formatLocalDate = (d: Date) => {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+};
+
 export function buildDispatchAssignmentWindows(
   assignmentDate: Date,
   slotTime: string,
@@ -666,9 +671,9 @@ export function buildDispatchAssignmentWindows(
   return {
     startWindow,
     endWindow,
-    deliveryCollectionDate: appendUtcSuffix(dateIso),
-    deliveryStartWindow: appendUtcSuffix(startIso),
-    deliveryEndWindow: appendUtcSuffix(endIso),
+    deliveryCollectionDate: dateIso,
+    deliveryStartWindow: startIso,
+    deliveryEndWindow: endIso,
   };
 }
 

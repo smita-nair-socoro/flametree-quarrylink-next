@@ -187,7 +187,7 @@ export function useCustomersForForm({
   } = useInfiniteQuery({
     ...CustomersInfiniteListQueryOptions({
       pageSize: 25,
-      status: CUSTOMER_STATUS.ACTIVE,
+      statuses: [CUSTOMER_STATUS.ACTIVE],
       search: debouncedCustomerSearch.trim() || undefined,
     }),
     enabled: loadPaginatedCustomers,

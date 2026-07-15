@@ -26,8 +26,10 @@ export function TableClientSortableHeader<TData>({
       // asc → descending
       column.toggleSorting(true);
     } else {
-      // desc → clear sort (back to unsorted)
-      column.clearSorting();
+      // desc → ascending. Never clear: for a table whose default sort is this
+      // column, clearing resets straight back to the same sort, so the click
+      // appears to do nothing and the other direction is unreachable
+      column.toggleSorting(false);
     }
   };
 

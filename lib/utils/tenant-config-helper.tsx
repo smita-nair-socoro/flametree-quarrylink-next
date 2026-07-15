@@ -16,15 +16,33 @@ export const DEFAULT_TAX_PERCENTAGE = 10;
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
 
+export type AccountingSoftwareProvider = 'XERO' | 'MYOB';
+
+/** Normalizes the tenant's raw accounting software value for feature routing. */
+export function getAccountingSoftwareProvider(
+  accountingSoftware?: string,
+): AccountingSoftwareProvider | null {
+  const value = (accountingSoftware || '').toUpperCase();
+  if (value.includes('MYOB')) return 'MYOB';
+  if (value.includes('XERO')) return 'XERO';
+  return null;
+}
+
+/** Reads the normalized accounting software provider from the tenant store. */
+export function useAccountingSoftwareProvider(): AccountingSoftwareProvider | null {
+  const accountingSoftware = useTenantStore((s) => s.accountingSoftware);
+  return getAccountingSoftwareProvider(accountingSoftware);
+}
+
 /**
  * Maps the tenant's raw accounting software value (e.g. "XERO",
  * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB"). Falls back to
  * Xero for tenants without the field set.
  */
 export function getAccountingSoftwareLabel(accountingSoftware?: string): string {
-  const value = (accountingSoftware || '').toUpperCase();
-  if (value.includes('MYOB')) return 'MYOB';
-  if (value.includes('XERO')) return 'Xero';
+  const provider = getAccountingSoftwareProvider(accountingSoftware);
+  if (provider === 'MYOB') return 'MYOB';
+  if (provider === 'XERO') return 'Xero';
   return DEFAULT_ACCOUNTING_SOFTWARE_LABEL;
 }
 

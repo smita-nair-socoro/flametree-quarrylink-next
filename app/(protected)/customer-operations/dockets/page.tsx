@@ -59,6 +59,17 @@ export default function DocketsPage() {
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [truckIdParam]);
 
+  // `ids` is the canonical param; `docketId` is kept for older links.
+  const docketIdsParam = searchParams.get('ids') ?? searchParams.get('docketId');
+  const idsFilter = React.useMemo(() => {
+    if (!docketIdsParam) return undefined;
+    const ids = docketIdsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return ids.length ? ids : undefined;
+  }, [docketIdsParam]);
+
   const { data: statistics, isLoading: isStatisticsLoading } = useQuery(
     DocketStatisticsQueryOptions(),
   );
@@ -86,10 +97,11 @@ export default function DocketsPage() {
       page: pageIndex,
       pageSize,
       search: search.trim() || undefined,
+      ids: idsFilter,
       ...apiSortParams,
       ...apiFilterParams,
     }),
-    [pageIndex, pageSize, search, apiSortParams, apiFilterParams],
+    [pageIndex, pageSize, search, idsFilter, apiSortParams, apiFilterParams],
   );
 
   const useAllDocketsQuery = !linkedJobId && !driverId && !truckId;
@@ -267,22 +279,26 @@ export default function DocketsPage() {
     },
   ];
 
-  const docketIdsParam = searchParams.get('docketId');
-  const docketIdsSet = React.useMemo(() => {
-    if (!docketIdsParam) return null;
-    const ids = docketIdsParam
-      .split(',')
-      .map((v) => Number(v.trim()))
-      .filter((n) => Number.isFinite(n) && n > 0);
-    return new Set(ids);
-  }, [docketIdsParam]);
-
-  const filteredItems = React.useMemo(() => {
-    if (!docketIdsSet) return items;
-    return items.filter((d) => docketIdsSet.has(d.id));
-  }, [items, docketIdsSet]);
-
   const { actions, viewDialog, confirmDialogs } = useDocketActions();
+
+  // Keep `ids` in the URL after auto-opening so an accidental dialog close
+  // still shows just that docket instead of the full list.
+  const autoOpenedIdRef = React.useRef<number | null>(null);
+  React.useEffect(() => {
+    const singleId = idsFilter?.length === 1 ? idsFilter[0] : null;
+    if (!singleId) {
+      autoOpenedIdRef.current = null;
+      return;
+    }
+    if (autoOpenedIdRef.current === singleId) return;
+
+    const docket = items.find((d) => d.id === singleId);
+    if (docket) {
+      autoOpenedIdRef.current = singleId;
+      actions.view(docket);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idsFilter, items]);
 
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [
@@ -362,15 +378,15 @@ export default function DocketsPage() {
           </div>
         ) : (
           <>
-            {(linkedJobId || docketIdsSet || driverId || truckId) && (
+            {(linkedJobId || idsFilter || driverId || truckId) && (
               <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
                 <div className="mt-1 text-sm text-muted-foreground">
-                  {docketIdsSet ? (
+                  {idsFilter ? (
                     <span>
                       Showing{' '}
-                      {docketIdsSet.size === 1
+                      {idsFilter.length === 1
                         ? 'a selected docket'
-                        : `${docketIdsSet.size} selected dockets`}
+                        : `${idsFilter.length} selected dockets`}
                     </span>
                   ) : driverId ? (
                     <>
@@ -408,8 +424,8 @@ export default function DocketsPage() {
               </div>
             )}
             {(() => {
-              const tableId = docketIdsSet
-                ? `docket_filtered_${Array.from(docketIdsSet).join('_')}`
+              const tableId = idsFilter
+                ? `docket_filtered_${idsFilter.join('_')}`
                 : driverId
                   ? `docket_driver_${driverId}`
                   : truckId
@@ -421,7 +437,7 @@ export default function DocketsPage() {
                 <DataTableClient
                   key={tableId}
                   tableId={tableId}
-                  data={filteredItems ?? []}
+                  data={items ?? []}
                   columns={getDocketColumns(currencyCode, taxLabel)}
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."

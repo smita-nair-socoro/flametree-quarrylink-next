@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { AppSidebar } from '@/components/app-sidebar';
+import { TimezoneBanner } from '@/components/timezone-banner';
 import {
   SidebarInset,
   SidebarProvider,
@@ -124,23 +125,29 @@ export default function ProtectedLayout({
   return (
     <SidebarProvider>
       {!isDriversApp && <AppSidebar />}
-      <SidebarInset className="flex min-h-0 min-w-0 flex-col">
+      <SidebarInset className="flex h-svh min-h-0 min-w-0 flex-col overflow-hidden">
         {!isDriversApp && !isDeliveries && (
-          <header className="flex h-10 shrink-0 items-center gap-2 px-4 bg-[#F9FAFB]">
+          <header className="flex min-h-10 shrink-0 items-center gap-2 px-4 py-1.5 bg-[#F9FAFB]">
             {/* Mobile trigger - only visible when sidebar is closed */}
             <SidebarTrigger className="md:hidden" />
+            <TimezoneBanner />
           </header>
+        )}
+        {(isDriversApp || isDeliveries) && (
+          <div className="shrink-0 px-4 bg-[#F9FAFB]">
+            <TimezoneBanner standalone />
+          </div>
         )}
         <div
           className={
-            isDeliveries
+            isDeliveries || isDriversApp
               ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-[#F9FAFB]'
               : 'flex-1 overflow-auto bg-[#F9FAFB]'
           }
         >
           <div
             className={
-              isDeliveries
+              isDeliveries || isDriversApp
                 ? 'flex h-full min-h-0 flex-col overflow-hidden'
                 : 'h-full overflow-auto'
             }

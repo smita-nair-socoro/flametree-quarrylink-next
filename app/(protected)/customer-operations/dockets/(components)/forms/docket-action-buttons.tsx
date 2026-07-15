@@ -111,6 +111,15 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     // { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Invoice', icon: Receipt, action: 'invoice', },
     { label: 'Duplicate', icon: Copy, action: 'duplicate' },
+
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },

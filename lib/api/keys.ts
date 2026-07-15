@@ -82,6 +82,7 @@ export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
   accountManagers: () => [...UserKeys.all, 'account-managers'] as const,
+  operations: () => [...UserKeys.all, 'operations'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
@@ -173,4 +174,17 @@ export const DriverAppKeys = {
   assignedDockets: () => [...DriverAppKeys.all, 'assigned'] as const,
   assignedDocketDetail: (docketId: number) =>
     [...DriverAppKeys.all, 'assigned', docketId] as const,
+};
+
+export const AccountingKeys = {
+  trackingCategories: ['tracking-categories'] as const,
+  trackingCategoryDefinitions: ['tracking-categories-definitions'] as const,
+  accountCodes: ['account-codes'] as const,
+  accountCodeById: (id: number) =>
+    [...AccountingKeys.accountCodes, id] as const,
+};
+
+export const DepartmentKeys = {
+  all: ['departments'] as const,
+  list: () => [...DepartmentKeys.all, 'list'] as const,
 };

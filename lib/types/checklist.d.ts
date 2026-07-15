@@ -3,7 +3,7 @@ import { CHECKLIST_STATUS } from './checklist-enums';
 export interface ChecklistItem {
   submissionId: number;
   submissionNumber: string;
-  submittedAt: string;
+  submittedAt?: string;
   status: CHECKLIST_STATUS;
   summaryNotes: string;
   viewDetailsAvailable: boolean;

@@ -39,8 +39,9 @@ export const getInvoicesColumns = (
   {
     id: 'dockets',
     accessorFn: (row) => row.docketCount,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Dockets" />;
+    enableSorting: false,
+    header: () => {
+      return <div>Dockets</div>;
     },
     cell: ({ row }) => {
       const docketCount = row.original.docketCount;
@@ -93,8 +94,9 @@ export const getInvoicesColumns = (
   {
     id: 'status',
     accessorFn: (row) => row.status,
-    header: ({ column }) => {
-      return <TableClientSortableHeader column={column} title="Status" />;
+    enableSorting: false,
+    header: () => {
+      return <div>Status</div>;
     },
     cell: ({ getValue }) => {
       const status = getValue<string>() as INVOICE_STATUS;

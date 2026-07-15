@@ -14,7 +14,6 @@ import {
   ProductsListResponse,
   ProductsPage,
 } from '../types/product';
-import { Material } from '../types/material';
 import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { removeNewRecordId } from '../utils';
 
@@ -25,14 +24,16 @@ export type ProductsListParams = {
   search?: string;
   sortBy?: string;
   sortOrder?: string;
-  materialId?: number;
-  isActive?: boolean;
+  materialIds?: number[];
+  isActive?: boolean[];
+  /** Restrict results to specific product ids (e.g. linking from a quarry/supplier). */
+  ids?: number[];
 };
 
 const PRODUCT_COLUMN_TO_API_SORT: Record<string, string> = {
-  product_name: 'productName',
-  product_code: 'productCode',
-  material_type: 'materialName',
+  productName: 'productName',
+  productCode: 'productCode',
+  materialType: 'materialName',
   status: 'isActive',
 };
 
@@ -47,10 +48,16 @@ export function toProductApiSortParams(
     return { sortBy: 'productName', sortOrder: 'asc' };
   }
 
-  return {
-    sortBy: PRODUCT_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
-    sortOrder: sort.desc ? 'desc' : 'asc',
-  };
+  const sortBy = PRODUCT_COLUMN_TO_API_SORT[sort.id] ?? sort.id;
+  let sortOrder: 'asc' | 'desc' = sort.desc ? 'desc' : 'asc';
+
+  // isActive is a boolean on the API: asc puts false before true, but the UI
+  // label order is Active (true) then Unavailable (false).
+  if (sortBy === 'isActive') {
+    sortOrder = sort.desc ? 'asc' : 'desc';
+  }
+
+  return { sortBy, sortOrder };
 }
 
 function getFacetFilterValues(
@@ -64,31 +71,55 @@ function getFacetFilterValues(
 
 export function toProductApiFilterParams(
   filters: { id: string; value: unknown }[],
-  materials?: Material[],
-): Pick<ProductsListParams, 'materialId' | 'isActive'> {
+): Pick<ProductsListParams, 'materialIds' | 'isActive'> {
   const statusValues = getFacetFilterValues(filters, 'status');
-  const materialValues = getFacetFilterValues(filters, 'material_type');
+  const materialValues = getFacetFilterValues(filters, 'materialType');
 
-  let isActive: boolean | undefined;
-  if (statusValues.length === 1) {
-    if (statusValues[0] === 'AVAILABLE') isActive = true;
-    else if (statusValues[0] === 'UNAVAILABLE') isActive = false;
-  }
+  const isActive = statusValues
+    .map((value) => {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      return undefined;
+    })
+    .filter((value): value is boolean => value !== undefined);
 
-  let materialId: number | undefined;
-  if (materialValues.length === 1 && materials?.length) {
-    const selected = materialValues[0].toUpperCase();
-    materialId = materials.find(
-      (material) => material.name.toUpperCase() === selected,
-    )?.id;
-  }
+  const materialIds = materialValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
 
-  return { materialId, isActive };
+  return {
+    materialIds: materialIds.length ? materialIds : undefined,
+    isActive: isActive.length ? isActive : undefined,
+  };
 }
 
 /** Products API pagination is 1-based (page 1 = first page). */
 function toApiPage(page: number): number {
   return page + 1;
+}
+
+export function isProductsListResponse(
+  data: unknown,
+): data is ProductsListResponse {
+  return (
+    typeof data === 'object' &&
+    data != null &&
+    'products' in data &&
+    typeof (data as ProductsListResponse).products === 'object'
+  );
+}
+
+export function buildProductFacetOptions(response?: ProductsListResponse | null) {
+  return {
+    materials: (response?.materials ?? []).map((material) => ({
+      value: String(material.id),
+      label: material.name,
+    })),
+    statuses: (response?.statuses ?? []).map((isActive) => ({
+      value: String(isActive),
+      label: isActive ? 'Available' : 'Unavailable',
+    })),
+  };
 }
 
 export function getProductsPageFromListResponse(

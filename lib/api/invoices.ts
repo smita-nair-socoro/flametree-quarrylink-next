@@ -10,10 +10,53 @@ import { useJobStore } from '@/app/stores/job-store';
 import { toast } from 'sonner';
 import { CreateInvoiceResponseDTO } from '@/lib/types/job';
 
-export const InvoicesListQueryOptions = (jobId: number) =>
+export type InvoicesListParams = {
+  /** 0-based page index from UI tables (converted to 1-based for the API). */
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: string;
+};
+
+const INVOICE_COLUMN_TO_API_SORT: Record<string, string> = {
+  invoice: 'invoiceNumber',
+  amount: 'amount',
+  'Due Date': 'dueDate',
+};
+
+export function toInvoiceApiSortParams(
+  sorting: {
+    id: string;
+    desc: boolean;
+  }[],
+): Pick<InvoicesListParams, 'sortBy' | 'sortOrder'> {
+  const sort = sorting[0];
+  if (!sort) {
+    return { sortBy: 'invoiceNumber', sortOrder: 'asc' };
+  }
+
+  return {
+    sortBy: INVOICE_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+    sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
+/** Invoices API pagination is 1-based (page 1 = first page). */
+function toApiPage(page: number): number {
+  return page + 1;
+}
+
+export const InvoicesListQueryOptions = (
+  jobId: number,
+  params?: InvoicesListParams,
+) =>
   queryOptions({
-    queryKey: InvoicesKeys.list(jobId),
-    queryFn: () => APIClient.invoices.getAll(jobId),
+    queryKey: [...InvoicesKeys.list(jobId), params],
+    queryFn: () =>
+      APIClient.invoices.getAll(jobId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
