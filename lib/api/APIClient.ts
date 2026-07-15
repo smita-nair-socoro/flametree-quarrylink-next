@@ -17,6 +17,8 @@ import {
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
   CustomerAttachmentDTO,
+  AdditionalContactApiDTO,
+  AdditionalContactsPage,
 } from '../types/customer';
 import {
   Quarry,
@@ -757,6 +759,44 @@ export const APIClient = {
     deleteAttachment: (customerId: number, attachmentId: number) =>
       appClient.Delete(
         `/socoro/quarrylink/api/customer/${customerId}/attachments/${attachmentId}`,
+      ),
+    getAdditionalContacts: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<AdditionalContactsPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    getAdditionalContact: (customerId: number, contactId: number) =>
+      appClient.Get<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
+      ),
+    createAdditionalContact: (
+      customerId: number,
+      data: Omit<AdditionalContactApiDTO, 'id'>,
+    ) =>
+      appClient.Post<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts`,
+        { body: data },
+      ),
+    updateAdditionalContact: (
+      customerId: number,
+      contactId: number,
+      data: Omit<AdditionalContactApiDTO, 'id'>,
+    ) =>
+      appClient.Put<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
+        { body: data },
+      ),
+    deleteAdditionalContact: (customerId: number, contactId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
       ),
   },
 

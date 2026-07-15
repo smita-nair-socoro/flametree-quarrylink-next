@@ -239,6 +239,24 @@ export interface UnarchiveCustomerResponseDTO {
   reason: string;
 }
 
+export interface AdditionalContactApiDTO {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneCountryCode: string;
+  phoneNumber: string;
+  positionRole: string;
+}
+
+export interface AdditionalContactsPage {
+  content: AdditionalContactApiDTO[];
+  totalElements: number;
+  totalPages: number;
+  number?: number;
+  size?: number;
+}
+
 export interface AdditionalContactDTO {
   id?: number;
   customerId?: number;

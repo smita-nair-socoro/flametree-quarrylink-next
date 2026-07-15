@@ -39,6 +39,11 @@ export const CustomerKeys = {
     [...CustomerKeys.all, 'delivery-addresses', customerId, limit] as const,
   attachments: (customerId: number) =>
     [...CustomerKeys.all, 'attachments', customerId] as const,
+  additionalContacts: (
+    customerId: number,
+    params?: { page?: number; pageSize?: number },
+  ) =>
+    [...CustomerKeys.all, 'additional-contacts', customerId, params] as const,
 };
 
 export const QuotationKeys = {

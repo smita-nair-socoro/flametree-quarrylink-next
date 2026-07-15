@@ -370,9 +370,9 @@ export function FormDialog({
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [
-          normalizeTruckStatus(selectedTruck.truckStatus) ??
-            selectedTruck.truckStatus,
-        ]
+        normalizeTruckStatus(selectedTruck.truckStatus) ??
+        selectedTruck.truckStatus,
+      ]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType
       ? [selectedTruck.truckBusinessType]
@@ -473,12 +473,12 @@ export function FormDialog({
     () =>
       React.isValidElement(children)
         ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-            id: effectiveId,
-            onCancel: close,
-            onSuccess: handleChildSuccess,
-            onDirtyChange: handleChildDirtyChange,
-            onSaved: handleChildSaved,
-          })
+          id: effectiveId,
+          onCancel: close,
+          onSuccess: handleChildSuccess,
+          onDirtyChange: handleChildDirtyChange,
+          onSaved: handleChildSaved,
+        })
         : children,
     [children, effectiveId, close, handleChildSuccess, handleChildDirtyChange, handleChildSaved],
   );

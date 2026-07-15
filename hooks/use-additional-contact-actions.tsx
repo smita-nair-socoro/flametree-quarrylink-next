@@ -12,6 +12,7 @@ import {
   formatPhoneNumber,
   normalizePhoneNumber,
 } from '@/lib/utils/phone-helper';
+import { useDeleteAdditionalContact } from '@/lib/api/customer';
 
 const getContactDisplayName = (contact?: AdditionalContactDTO | null) =>
   [contact?.firstName, contact?.lastName].filter(Boolean).join(' ') ||
@@ -108,9 +109,11 @@ function RemoveAdditionalContactContent({
 }
 
 export function useAdditionalContactActions(
+  customerId: number,
   initialData?: AdditionalContactDTO | null,
   { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
 ) {
+  const deleteAdditionalContact = useDeleteAdditionalContact();
   const [viewOpen, setViewOpen] = React.useState(false);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [contactData, setContactData] = React.useState<
@@ -122,10 +125,13 @@ export function useAdditionalContactActions(
   }, [initialData]);
 
   const handleConfirmDelete = async () => {
-    if (!contactData?.id) return;
+    if (!customerId || !contactData?.id) return;
 
     try {
-      // TODO: wire delete API when available
+      await deleteAdditionalContact.mutateAsync({
+        customerId,
+        contactId: contactData.id,
+      });
       setDeleteOpen(false);
       notifySuccess('Contact removed successfully');
       onDeleteSuccess?.();
@@ -154,9 +160,12 @@ export function useAdditionalContactActions(
         <RemoveAdditionalContactDescription contact={contactData} />
       }
       content={<RemoveAdditionalContactContent contact={contactData} />}
-      confirmText="Remove Contact"
+      confirmText={
+        deleteAdditionalContact.isPending ? 'Removing...' : 'Remove Contact'
+      }
       confirmVariant="destructive"
       confirmCustomColor="#E7000B"
+      confirmDisabled={deleteAdditionalContact.isPending}
       cancelText="Cancel"
       onConfirmAction={() => void handleConfirmDelete()}
     />
@@ -165,7 +174,7 @@ export function useAdditionalContactActions(
   const viewDialog = viewOpen ? (
     <FormDialog
       id={contactData?.id}
-      dialogDescription="Review the contact information below."
+      dialogDescription="Review or update the contact information below."
       open={viewOpen}
       onOpenChangeAction={(open) => setViewOpen(open)}
       hideTrigger
@@ -179,6 +188,7 @@ export function useAdditionalContactActions(
       preventAutoFocus
     >
       <AdditionalContactForm
+        customerId={customerId}
         contact={contactData}
         onCancel={() => setViewOpen(false)}
         onSuccess={() => setViewOpen(false)}

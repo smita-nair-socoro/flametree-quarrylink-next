@@ -10,8 +10,9 @@ import {
 import { AdditionalContactTableActions } from './additional-contacat-table-actions';
 import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
-export const getAdditionalContactColumns =
-  (): ColumnDef<AdditionalContactDTO>[] => [
+export const getAdditionalContactColumns = (
+  customerId: number,
+): ColumnDef<AdditionalContactDTO>[] => [
     {
       id: 'name',
       accessorFn: (row) =>
@@ -48,7 +49,7 @@ export const getAdditionalContactColumns =
         return (
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <div className="truncate block w-[145px] sm:w-[165px] md:w-[185px] lg:w-[205px] xl:w-[225px]">
+              <div className="truncate block w-[105px] sm:w-[125px] md:w-[145px] lg:w-[165px] xl:w-[185px]">
                 {value}
               </div>
             </TooltipTrigger>
@@ -112,7 +113,10 @@ export const getAdditionalContactColumns =
       cell: ({ row }) => {
         const additionalContact = row.original;
         return (
-          <AdditionalContactTableActions additionalContact={additionalContact} />
+          <AdditionalContactTableActions
+            customerId={customerId}
+            additionalContact={additionalContact}
+          />
         );
       },
     },

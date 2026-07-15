@@ -14,12 +14,19 @@ import { AdditionalContactDTO } from '@/lib/types/customer';
 import { useAdditionalContactActions } from '@/hooks/use-additional-contact-actions';
 
 interface AdditionalContactTableActionsProps {
+  customerId: number;
   additionalContact: AdditionalContactDTO;
 }
 
-export function AdditionalContactTableActions({ additionalContact }: AdditionalContactTableActionsProps) {
+export function AdditionalContactTableActions({
+  customerId,
+  additionalContact,
+}: AdditionalContactTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useAdditionalContactActions(additionalContact);
+  const { actions, confirmDialogs, viewDialog } = useAdditionalContactActions(
+    customerId,
+    additionalContact,
+  );
 
   const handleView = () => {
     setDropdownOpen(false);
