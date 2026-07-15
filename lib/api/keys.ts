@@ -175,3 +175,16 @@ export const DriverAppKeys = {
   assignedDocketDetail: (docketId: number) =>
     [...DriverAppKeys.all, 'assigned', docketId] as const,
 };
+
+export const AccountingKeys = {
+  trackingCategories: ['tracking-categories'] as const,
+  trackingCategoryDefinitions: ['tracking-categories-definitions'] as const,
+  accountCodes: ['account-codes'] as const,
+  accountCodeById: (id: number) =>
+    [...AccountingKeys.accountCodes, id] as const,
+};
+
+export const DepartmentKeys = {
+  all: ['departments'] as const,
+  list: () => [...DepartmentKeys.all, 'list'] as const,
+};

@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
-import { FormSelect } from '@/components/ui/form-select';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { Spinner } from '@/components/ui/spinner';
@@ -40,6 +40,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useGetDepartments } from '@/lib/api/department';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+
 
 interface FormProps {
   productId?: number;
@@ -74,6 +78,29 @@ export default function SupplierForm({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  const accountingSoftware = useAccountingSoftwareProvider();
+  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
+  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const departmentsQuery = useGetDepartments({
+    enabled: showXeroMapping,
+  });
+
+  const departments = React.useMemo(() => {
+    return departmentsQuery.data ?? [];
+  }, [departmentsQuery.data]);
+
+  const departmentOptions = React.useMemo<FormSelectOption[]>(
+    () =>
+      departments
+        .filter((department) => department.id !== undefined)
+        .map((department) => ({
+          value: department.id as number,
+          label: `${department.departmentName}`,
+        })),
+    [departments],
+  );
+
+
   // Fetch quarry-supplier-product details if editing
   const {
     data: quarrySupplierProductData,
@@ -104,12 +131,6 @@ export default function SupplierForm({
       console.error('Quarries API Error:', quarriesError);
     }
   }, [isDataError, dataError, isQuarriesError, quarriesError]);
-
-  // Convert API response from camelCase to snake_case
-  const convertedQuarrySupplierProduct = React.useMemo(() => {
-    if (!quarrySupplierProductData) return null;
-    return quarrySupplierProductData;
-  }, [quarrySupplierProductData]);
 
   // Map quarries to supplier options, excluding already-linked quarries (unless editing that quarry)
   const supplierOptions = React.useMemo(() => {
@@ -150,7 +171,7 @@ export default function SupplierForm({
     watchedCostBulk,
     watchedSellBulk,
   } = useQuarrySupplierProductState(
-    convertedQuarrySupplierProduct,
+    quarrySupplierProductData ?? null,
     isEditing,
     supplierForm,
     defaultProductDensity,
@@ -175,7 +196,7 @@ export default function SupplierForm({
           <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <FormSelect
               control={supplierForm.control}
-              name="quarry_supplier_id"
+              name="quarrySupplierId"
               label="Quarry / Supplier Name*"
               searchLabel="Suppliers"
               options={supplierOptions}
@@ -184,7 +205,7 @@ export default function SupplierForm({
             />
             <FormField
               control={supplierForm.control}
-              name="supplier_product_name"
+              name="supplierProductName"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Product Name*</FormLabel>
@@ -201,7 +222,7 @@ export default function SupplierForm({
             />
             <FormField
               control={supplierForm.control}
-              name="supplier_product_code"
+              name="supplierProductCode"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Product Code*</FormLabel>
@@ -218,7 +239,7 @@ export default function SupplierForm({
             />
             <FormField
               control={supplierForm.control}
-              name="density_tonnage_per_m3"
+              name="densityTonnagePerM3"
               render={({ field }) => (
                 <FormItem className="w-full">
                   <FormLabel>Product Density (TN/m³)*</FormLabel>
@@ -237,6 +258,30 @@ export default function SupplierForm({
                 </FormItem>
               )}
             />
+
+            {showXeroMapping && (
+              <>
+                <Separator className="col-span-full my-2 mb-5" />
+
+                <div className="flex flex-col mb-3">
+                  <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Optional fields pushed to Xero on invoice creation.
+                  </p>
+                </div>
+                <FormSelect
+                  control={supplierForm.control}
+                  name="departmentId"
+                  label="Department"
+                  options={departmentOptions}
+                  placeholder="Select department (optional)"
+                  searchLabel="departments"
+                  formItemClassName="col-span-full"
+                  className="w-full"
+                  disabled={departmentsQuery.isLoading}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       ),
@@ -324,21 +369,21 @@ export default function SupplierForm({
 
       // Convert prices from dollars to cents for database storage
       const priceFieldsToConvert = [
-        'cost_price_tn',
-        'sell_price_tn',
-        'cost_price_m3',
-        'sell_price_m3',
-        'cost_price_kg',
-        'sell_price_kg',
-        'cost_price_bulka',
-        'sell_price_bulka',
-        'truck_tn_rate',
-        'truck_m3_rate',
-        'truck_kg_rate',
-        'truck_bulka_rate',
-        'truck_hourly_rate',
-        'truck_load_rate',
-        'truck_km_rate',
+        'costPriceTn',
+        'sellPriceTn',
+        'costPriceM3',
+        'sellPriceM3',
+        'costPriceKg',
+        'sellPriceKg',
+        'costPriceBulka',
+        'sellPriceBulka',
+        'truckTnRate',
+        'truckM3Rate',
+        'truckKgRate',
+        'truckBulkaRate',
+        'truckHourlyRate',
+        'truckLoadRate',
+        'truckKmRate',
       ] as const;
 
       priceFieldsToConvert.forEach((field) => {
@@ -354,47 +399,50 @@ export default function SupplierForm({
 
       // Build available units array based on availability switches
       const availableUnits: string[] = [];
-      if (processedValues.available_for_sale_tn) availableUnits.push('TN');
-      if (processedValues.available_for_sale_m3) availableUnits.push('M3');
-      if (processedValues.available_for_sale_kg) availableUnits.push('20KG');
-      if (processedValues.available_for_sale_bulka)
+      if (processedValues.availableForSaleTn) availableUnits.push('TN');
+      if (processedValues.availableForSaleM3) availableUnits.push('M3');
+      if (processedValues.availableForSaleKg) availableUnits.push('20KG');
+      if (processedValues.availableForSaleBulka)
         availableUnits.push('BULKA');
 
       const payload = {
-        quarrySupplierId: processedValues.quarry_supplier_id, // Quarry ID from dropdown
+        quarrySupplierId: processedValues.quarrySupplierId,
         productId: productId,
-        supplierProductName: processedValues.supplier_product_name,
-        supplierProductCode: processedValues.supplier_product_code,
-        densityTonnagePerM3: processedValues.density_tonnage_per_m3,
-        availableUnits: availableUnits, // Send as array, not JSON string
-        perTnCostPrice: processedValues.cost_price_tn,
-        perTnSellPrice: processedValues.sell_price_tn,
-        perM3CostPrice: processedValues.cost_price_m3,
-        perM3SellPrice: processedValues.sell_price_m3,
-        per20kgCostPrice: processedValues.cost_price_kg,
-        per20kgSellPrice: processedValues.sell_price_kg,
-        perBulkaCostPrice: processedValues.cost_price_bulka,
-        perBulkaSellPrice: processedValues.sell_price_bulka,
-        tnTruckRate: processedValues.truck_tn_rate,
-        m3TruckRate: processedValues.truck_m3_rate,
-        hourlyTruckRate: processedValues.truck_hourly_rate,
-        loadTruckRate: processedValues.truck_load_rate,
-        kmTruckRate: processedValues.truck_km_rate,
-        kg20TruckRate: processedValues.truck_kg_rate,
-        bulkaTruckRate: processedValues.truck_bulka_rate,
-        availableForSaleTn: processedValues.available_for_sale_tn,
-        availableForSaleM3: processedValues.available_for_sale_m3,
-        availableForSale20kg: processedValues.available_for_sale_kg,
-        availableForSaleBulka: processedValues.available_for_sale_bulka,
-        availableForTruckRateTn: processedValues.available_truck_tn_rate,
-        availableForTruckRateM3: processedValues.available_truck_m3_rate,
-        availableForTruckRate20kg: processedValues.available_truck_kg_rate,
-        availableForTruckRateBulka: processedValues.available_truck_bulka_rate,
-        availableForTruckRateHour: processedValues.available_truck_hourly_rate,
-        availableForTruckRateLoad: processedValues.available_truck_load_rate,
-        availableForTruckRateKm: processedValues.available_truck_km_rate,
+        supplierProductName: processedValues.supplierProductName,
+        supplierProductCode: processedValues.supplierProductCode,
+        densityTonnagePerM3: processedValues.densityTonnagePerM3,
+        ...(showXeroMapping && processedValues.departmentId != null
+          ? { departmentId: processedValues.departmentId }
+          : {}),
+        availableUnits: availableUnits,
+        perTnCostPrice: processedValues.costPriceTn,
+        perTnSellPrice: processedValues.sellPriceTn,
+        perM3CostPrice: processedValues.costPriceM3,
+        perM3SellPrice: processedValues.sellPriceM3,
+        per20kgCostPrice: processedValues.costPriceKg,
+        per20kgSellPrice: processedValues.sellPriceKg,
+        perBulkaCostPrice: processedValues.costPriceBulka,
+        perBulkaSellPrice: processedValues.sellPriceBulka,
+        tnTruckRate: processedValues.truckTnRate,
+        m3TruckRate: processedValues.truckM3Rate,
+        hourlyTruckRate: processedValues.truckHourlyRate,
+        loadTruckRate: processedValues.truckLoadRate,
+        kmTruckRate: processedValues.truckKmRate,
+        kg20TruckRate: processedValues.truckKgRate,
+        bulkaTruckRate: processedValues.truckBulkaRate,
+        availableForSaleTn: processedValues.availableForSaleTn,
+        availableForSaleM3: processedValues.availableForSaleM3,
+        availableForSale20kg: processedValues.availableForSaleKg,
+        availableForSaleBulka: processedValues.availableForSaleBulka,
+        availableForTruckRateTn: processedValues.availableTruckTnRate,
+        availableForTruckRateM3: processedValues.availableTruckM3Rate,
+        availableForTruckRate20kg: processedValues.availableTruckKgRate,
+        availableForTruckRateBulka: processedValues.availableTruckBulkaRate,
+        availableForTruckRateHour: processedValues.availableTruckHourlyRate,
+        availableForTruckRateLoad: processedValues.availableTruckLoadRate,
+        availableForTruckRateKm: processedValues.availableTruckKmRate,
         isActive: true,
-        version: convertedQuarrySupplierProduct?.version || 0,
+        version: quarrySupplierProductData?.version || 0,
       };
 
       if (isEditing && quarrySupplierId) {
@@ -412,17 +460,37 @@ export default function SupplierForm({
       }
 
       // Check if there are any negative margins and show info notification
-      const units = ['tn', 'm3', 'kg', 'bulka'] as const;
       const negativeMarginUnits: string[] = [];
+      const pricingFieldByUnit = {
+        tn: {
+          cost: 'costPriceTn',
+          sell: 'sellPriceTn',
+          available: 'availableForSaleTn',
+        },
+        m3: {
+          cost: 'costPriceM3',
+          sell: 'sellPriceM3',
+          available: 'availableForSaleM3',
+        },
+        kg: {
+          cost: 'costPriceKg',
+          sell: 'sellPriceKg',
+          available: 'availableForSaleKg',
+        },
+        bulka: {
+          cost: 'costPriceBulka',
+          sell: 'sellPriceBulka',
+          available: 'availableForSaleBulka',
+        },
+      } as const;
 
-      for (const unit of units) {
+      for (const unit of ['tn', 'm3', 'kg', 'bulka'] as const) {
+        const fields = pricingFieldByUnit[unit];
         const costPrice =
-          (processedValues[`cost_price_${unit}`] as number) || 0;
+          (processedValues[fields.cost] as number) || 0;
         const sellPrice =
-          (processedValues[`sell_price_${unit}`] as number) || 0;
-        const isAvailable = processedValues[
-          `available_for_sale_${unit}`
-        ] as boolean;
+          (processedValues[fields.sell] as number) || 0;
+        const isAvailable = processedValues[fields.available] as boolean;
 
         // Convert back from cents to dollars for comparison
         const costInDollars = costPrice / 100;
@@ -472,16 +540,16 @@ export default function SupplierForm({
       const messageFromErr = err?.message || extractedMessage;
 
       // Duplicate supplier product code (HTTP 409)
-      const duplicateKeyPhrase = `Key (supplier_product_code)=(${values.supplier_product_code}) already exists`;
+      const duplicateKeyPhrase = `Key (supplier_product_code)=(${values.supplierProductCode}) already exists`;
       const isDuplicateProductCode =
         codeStr === '409' &&
         typeof messageFromErr === 'string' &&
         messageFromErr.includes(duplicateKeyPhrase);
 
       if (isDuplicateProductCode) {
-        const msg = `Duplicate supplier product code "${values.supplier_product_code}" already exists for this product.`;
+        const msg = `Duplicate supplier product code "${values.supplierProductCode}" already exists for this product.`;
         notifyError(msg);
-        supplierForm.setError('supplier_product_code', {
+        supplierForm.setError('supplierProductCode', {
           type: 'manual',
           message: msg,
         });
@@ -503,7 +571,7 @@ export default function SupplierForm({
       if (isDuplicateSupplierForProduct) {
         const msg = 'Duplicate supplier already exists for this product.';
         notifyError(msg);
-        supplierForm.setError('quarry_supplier_id', {
+        supplierForm.setError('quarrySupplierId', {
           type: 'manual',
           message: msg,
         });

@@ -108,8 +108,10 @@ import {
 import {
   TrackingCategory,
   TrackingCategoryDefinition,
+  AccountCode,
   createUpdateTrackingCategory,
 } from '../types/accounting';
+import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
 
@@ -1051,24 +1053,25 @@ export const APIClient = {
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
 
-      return appClient.Get<
-        DocketDTO[] | DocketsListResponse | DocketsPage
-      >(`/socoro/quarrylink/api/dockets/truck/${truckId}`, {
-        queryString: {
-          page: params?.page?.toString(),
-          pageSize: pageSize?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
-          search: params?.search?.trim() || undefined,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          customerId: params?.customerId?.toString(),
-          productId: params?.productId?.toString(),
+      return appClient.Get<DocketDTO[] | DocketsListResponse | DocketsPage>(
+        `/socoro/quarrylink/api/dockets/truck/${truckId}`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            type: params?.type,
+            customerId: params?.customerId?.toString(),
+            productId: params?.productId?.toString(),
+          },
         },
-      });
+      );
     },
     getDocketsByDriverId: async (
       driverId: number,
@@ -1089,24 +1092,25 @@ export const APIClient = {
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
 
-      return appClient.Get<
-        DocketDTO[] | DocketsListResponse | DocketsPage
-      >(`/socoro/quarrylink/api/dockets/driver/${driverId}`, {
-        queryString: {
-          page: params?.page?.toString(),
-          pageSize: pageSize?.toString(),
-          size: isPaginated
-            ? (pageSize?.toString() ?? '10')
-            : (params?.size?.toString() ?? '1000'),
-          search: params?.search?.trim() || undefined,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          customerId: params?.customerId?.toString(),
-          productId: params?.productId?.toString(),
+      return appClient.Get<DocketDTO[] | DocketsListResponse | DocketsPage>(
+        `/socoro/quarrylink/api/dockets/driver/${driverId}`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            status: params?.status,
+            type: params?.type,
+            customerId: params?.customerId?.toString(),
+            productId: params?.productId?.toString(),
+          },
         },
-      });
+      );
     },
   },
 
@@ -1678,5 +1682,41 @@ export const APIClient = {
       appClient.Delete<TrackingCategory>(
         `/socoro/quarrylink/api/accounting/tracking-categories/${id}`,
       ),
+    getAccountCodes: () =>
+      appClient.Get<AccountCode[]>(
+        `/socoro/quarrylink/api/accounting/account-codes`,
+      ),
+    getAccountCodeById: (id: number) =>
+      appClient.Get<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+      ),
+    createAccountCode: (data: AccountCode) =>
+      appClient.Post<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes`,
+        { body: data },
+      ),
+    updateAccountCode: (id: number, data: AccountCode) =>
+      appClient.Put<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+        { body: data },
+      ),
+    deleteAccountCode: (id: number) =>
+      appClient.Delete<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+      ),
+  },
+  departments: {
+    getDepartments: () =>
+      appClient.Get<Department[]>(`/socoro/quarrylink/api/departments`),
+    createDepartment: (data: Department) =>
+      appClient.Post<Department>(`/socoro/quarrylink/api/departments`, {
+        body: data,
+      }),
+    updateDepartment: (id: number, data: Department) =>
+      appClient.Put<Department>(`/socoro/quarrylink/api/departments/${id}`, {
+        body: data,
+      }),
+    deleteDepartment: (id: number) =>
+      appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
   },
 };
