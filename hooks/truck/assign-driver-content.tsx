@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/popover';
 import { DriverDTO } from '@/lib/types/driver';
 import { cn } from '@/lib/utils';
+import { useAutoSelectSingle } from '@/hooks/use-auto-select-single';
 
 export function AssignDriverDescription({
   driver,
@@ -39,22 +40,31 @@ export function AssignDriverContent({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
-  const autoSelected = React.useRef(false);
 
   const availableDrivers = React.useMemo(
     () => drivers.filter((d) => !assignedDriverIds.includes(d.id ?? 0)),
     [drivers, assignedDriverIds],
   );
 
-  React.useEffect(() => {
-    if (autoSelected.current) return;
-    if (availableDrivers.length === 1 && availableDrivers[0].id != null) {
-      autoSelected.current = true;
-      const ids = [availableDrivers[0].id];
+  const selectableDrivers = React.useMemo(
+    () =>
+      availableDrivers.filter(
+        (d): d is DriverDTO & { id: number } => d.id != null,
+      ),
+    [availableDrivers],
+  );
+
+  // once: deselecting the only driver must not re-check it.
+  useAutoSelectSingle({
+    items: selectableDrivers,
+    once: true,
+    isEmpty: () => selectedIds.length === 0,
+    onSelect: (driver) => {
+      const ids = [driver.id];
       setSelectedIds(ids);
       onSelectionChange?.(ids);
-    }
-  }, [availableDrivers, onSelectionChange]);
+    },
+  });
 
   const filteredDrivers = React.useMemo(
     () =>

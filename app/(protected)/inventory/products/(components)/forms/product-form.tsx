@@ -596,6 +596,7 @@ export default function ProductForm({
                   showSearch={true}
                   className="col-span-1"
                   disabled={productJustCreated}
+                  autoSelectForOnlyOneOption={!isEditing}
                 />
 
                 {/* Density (TN/m³) */}

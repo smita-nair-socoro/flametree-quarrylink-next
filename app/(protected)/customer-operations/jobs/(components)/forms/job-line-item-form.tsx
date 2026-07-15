@@ -375,6 +375,7 @@ export default function JobLineItemForm({
                 onOptionsListScrollEnd={onProductOptionsScrollEnd}
                 hasMoreOptions={hasMoreProductOptions}
                 isLoadingMoreOptions={isLoadingMoreProductOptions}
+                autoSelectForOnlyOneOption={!isEditing}
               />
 
               <FormSelect
@@ -401,6 +402,7 @@ export default function JobLineItemForm({
                   isEditing ||
                   (!isLoadingQuarrySuppliers && quarryOptions.length === 0)
                 }
+                autoSelectForOnlyOneOption={!isEditing}
               />
 
               {isCollection && (
@@ -506,6 +508,7 @@ export default function JobLineItemForm({
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={isReadOnly}
+                    autoSelectForOnlyOneOption={!isEditing}
                   />
 
                   <FormField
@@ -621,6 +624,7 @@ export default function JobLineItemForm({
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={isReadOnly}
+                    autoSelectForOnlyOneOption={!isEditing}
                   />
 
                   <FormField

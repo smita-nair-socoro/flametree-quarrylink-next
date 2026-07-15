@@ -347,6 +347,7 @@ export default function QuoteLineItemForm({
                 onOptionsListScrollEnd={onProductOptionsScrollEnd}
                 hasMoreOptions={hasMoreProductOptions}
                 isLoadingMoreOptions={isLoadingMoreProductOptions}
+                autoSelectForOnlyOneOption={!isEditing}
               />
 
               <FormSelect
@@ -360,6 +361,7 @@ export default function QuoteLineItemForm({
                   isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
                 }
                 disabled={!selectedProductId || isReadOnly}
+                autoSelectForOnlyOneOption={!isEditing}
               />
 
               {isCollection && (
@@ -470,6 +472,7 @@ export default function QuoteLineItemForm({
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={isReadOnly}
+                    autoSelectForOnlyOneOption={!isEditing}
                   />
 
                   <FormField
@@ -580,6 +583,7 @@ export default function QuoteLineItemForm({
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
                     disabled={isReadOnly}
+                    autoSelectForOnlyOneOption={!isEditing}
                   />
 
                   <FormField

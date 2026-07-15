@@ -12,6 +12,7 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { TruckDTO } from '@/lib/types/truck';
 import { cn } from '@/lib/utils';
+import { useAutoSelectSingle } from '@/hooks/use-auto-select-single';
 
 export function AssignTruckDescription({
   driver,
@@ -40,22 +41,31 @@ export function AssignTruckContent({
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
-  const autoSelected = React.useRef(false);
 
   const availableTrucks = React.useMemo(
     () => trucks.filter((t) => !assignedTruckIds.includes(t.id ?? 0)),
     [trucks, assignedTruckIds],
   );
 
-  React.useEffect(() => {
-    if (autoSelected.current) return;
-    if (availableTrucks.length === 1 && availableTrucks[0].id != null) {
-      autoSelected.current = true;
-      const ids = [availableTrucks[0].id];
+  const selectableTrucks = React.useMemo(
+    () =>
+      availableTrucks.filter(
+        (t): t is TruckDTO & { id: number } => t.id != null,
+      ),
+    [availableTrucks],
+  );
+
+  // once: deselecting the only truck must not re-check it.
+  useAutoSelectSingle({
+    items: selectableTrucks,
+    once: true,
+    isEmpty: () => selectedIds.length === 0,
+    onSelect: (truck) => {
+      const ids = [truck.id];
       setSelectedIds(ids);
       onSelectionChange?.(ids);
-    }
-  }, [availableTrucks, onSelectionChange]);
+    },
+  });
 
   const filteredTrucks = React.useMemo(
     () =>
