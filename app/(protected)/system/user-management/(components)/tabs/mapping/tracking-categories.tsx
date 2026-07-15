@@ -268,9 +268,14 @@ export function TrackingCategoriesMapping() {
   });
   const trackingCategoriesDefinitionsQuery =
     useGetTrackingCategoriesDefinitions({ enabled: false });
-  const trackingCategories = trackingCategoriesQuery.data ?? [];
-  const trackingCategoryDefinitions =
-    trackingCategoriesDefinitionsQuery.data ?? [];
+  const trackingCategories = React.useMemo(
+    () => trackingCategoriesQuery.data ?? [],
+    [trackingCategoriesQuery.data],
+  );
+  const trackingCategoryDefinitions = React.useMemo(
+    () => trackingCategoriesDefinitionsQuery.data ?? [],
+    [trackingCategoriesDefinitionsQuery.data],
+  );
   const isLoadingTrackingCategories =
     trackingCategoriesDefinitionsQuery.isFetching;
   const [isAdding, setIsAdding] = React.useState(false);

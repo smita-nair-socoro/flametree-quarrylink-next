@@ -98,6 +98,20 @@ export interface FormTableRow {
   data?: FormTableRowData;
 }
 
+function toPascalCase(segment: string): string {
+  return segment
+    .split('_')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+}
+
+export function buildFormTableFieldName(
+  cellKey: string,
+  rowId: string,
+): string {
+  return `${cellKey}${toPascalCase(rowId)}`;
+}
+
 export interface FormTableProps<T extends FieldValues = FieldValues> {
   headers: FormTableHeader[];
   rows: FormTableRow[];
@@ -129,7 +143,10 @@ export function FormTable<T extends FieldValues = FieldValues>({
   mobileStackedLabelRender,
 }: FormTableProps<T>) {
   const renderCell = (cell: CellConfig<T>, row: FormTableRow) => {
-    const fieldName = `${cell.key}_${row.id}` as FieldPath<T>;
+    const fieldName = buildFormTableFieldName(
+      cell.key,
+      row.id,
+    ) as FieldPath<T>;
 
     switch (cell.type) {
       case 'text':
