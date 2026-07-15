@@ -14,6 +14,8 @@ const Base = z.object({
     .number()
     .positive({ message: 'Density must be greater than 0' }),
 
+  departmentId: z.number().optional(),
+
   cost_price_tn: z.coerce.number().optional(),
   sell_price_tn: z.coerce.number().optional(),
   cost_price_m3: z.coerce.number().optional(),

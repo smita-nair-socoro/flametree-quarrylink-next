@@ -28,6 +28,8 @@ import {
 import {
   useCreateTrackingCategory,
   useDeleteTrackingCategory,
+  useGetTrackingCategories,
+  useGetTrackingCategoriesDefinitions,
   useUpdateTrackingCategory,
 } from '@/lib/api/accounting';
 import type {
@@ -259,18 +261,18 @@ function MappingRow({
   );
 }
 
-export function TrackingCategoriesMapping({
-  trackingCategories,
-  trackingCategoryDefinitions,
-  onLoadTrackingCategoryDefinitions,
-  isLoadingTrackingCategories,
-}: {
-  trackingCategories: TrackingCategory[];
-  trackingCategoryDefinitions: TrackingCategoryDefinition[];
-  onLoadTrackingCategoryDefinitions?: () => Promise<void>;
-  isLoadingTrackingCategories?: boolean;
-}) {
+export function TrackingCategoriesMapping() {
   const [fieldsExpanded, setFieldsExpanded] = React.useState(false);
+  const trackingCategoriesQuery = useGetTrackingCategories({
+    enabled: fieldsExpanded,
+  });
+  const trackingCategoriesDefinitionsQuery =
+    useGetTrackingCategoriesDefinitions({ enabled: false });
+  const trackingCategories = trackingCategoriesQuery.data ?? [];
+  const trackingCategoryDefinitions =
+    trackingCategoriesDefinitionsQuery.data ?? [];
+  const isLoadingTrackingCategories =
+    trackingCategoriesDefinitionsQuery.isFetching;
   const [isAdding, setIsAdding] = React.useState(false);
   const apiMappings = React.useMemo(
     () => buildFieldMappings(trackingCategories),
@@ -318,7 +320,7 @@ export function TrackingCategoriesMapping({
     resetDraft();
     setEditingMappingId(null);
     try {
-      await onLoadTrackingCategoryDefinitions?.();
+      await trackingCategoriesDefinitionsQuery.refetch();
     } catch (error) {
       console.error('Error loading tracking category definitions:', error);
       notifyError(extractErrorMessage(error));
@@ -332,9 +334,15 @@ export function TrackingCategoriesMapping({
     setIsAdding(false);
   };
 
-  const handleStartEdit = (mapping: FieldMapping) => {
+  const handleStartEdit = async (mapping: FieldMapping) => {
     setIsAdding(false);
     resetDraft();
+    try {
+      await trackingCategoriesDefinitionsQuery.refetch();
+    } catch (error) {
+      console.error('Error loading tracking category definitions:', error);
+      notifyError(extractErrorMessage(error));
+    }
     setEditingMappingId(mapping.id);
     setEditDraftName(mapping.name);
     setEditDraftCategory(mapping.category);
@@ -501,7 +509,9 @@ export function TrackingCategoriesMapping({
             />
           )}
 
-          {!isAdding && mappings.length === 0 && (
+          {!isAdding &&
+            !trackingCategoriesQuery.isLoading &&
+            mappings.length === 0 && (
             <button
               type="button"
               className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#D1D5DC] bg-[#FAFAFA] px-6 py-8 text-center transition-colors hover:border-[#9CA3AF]"
@@ -517,6 +527,12 @@ export function TrackingCategoriesMapping({
                 No tracking categories have been configured yet.
               </p>
             </button>
+          )}
+
+          {trackingCategoriesQuery.isLoading && (
+            <div className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-5 text-sm text-[#6A7282]">
+              Loading tracking categories...
+            </div>
           )}
 
           {mappings.length > 0 && (

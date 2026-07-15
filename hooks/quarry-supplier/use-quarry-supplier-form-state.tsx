@@ -32,7 +32,7 @@ export const EMPTY_QUARRY_SUPPLIER_FORM_VALUES = {
 	openingClosingInfo: '',
 	weighbridgeInfo: '',
 	notes: '',
-	accountCodeId: '',
+	accountCodeId: undefined as number | undefined,
 	createdAt: undefined as Date | undefined,
 	updatedAt: undefined as Date | undefined,
 	createdBy: 'current_user',
@@ -72,9 +72,7 @@ function formValuesFromQuarry(quarry: Quarry) {
 		openingClosingInfo: opt(quarry.openingClosingInfo),
 		weighbridgeInfo: opt(quarry.weighbridgeInfo),
 		notes: opt(quarry.notes),
-		accountCodeId:
-			(quarry as Quarry & { accountCodeId?: number | string }).accountCodeId?.toString() ??
-			'',
+		accountCodeId: quarry.accountingSoftwareAccountingCode?.id,
 		createdAt: quarry.createdAt ? new Date(quarry.createdAt) : undefined,
 		updatedAt: quarry.updatedAt ? new Date(quarry.updatedAt) : undefined,
 		createdBy: quarry.createdBy ?? 'current_user',

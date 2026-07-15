@@ -11,8 +11,6 @@ import { useMyobIntegrationActions } from '@/hooks/use-myob-integration-actions'
 import { useQuery } from '@tanstack/react-query';
 import { TenantInternalDetailsQueryOptions } from '@/lib/api/tenant';
 import { XeroFieldMappings } from './xero-field-mappings';
-import { useGetTrackingCategories } from '@/lib/api/accounting';
-import { useGetTrackingCategoriesDefinitions } from '@/lib/api/accounting';
 
 export default function IntegrationTab() {
   const {
@@ -25,16 +23,6 @@ export default function IntegrationTab() {
     actions: myobActions,
     connectDialog: myobConnectDialog,
   } = useMyobIntegrationActions();
-
-  const trackingCategoriesQuery = useGetTrackingCategories({
-    enabled: xeroConnected,
-  });
-  const trackingCategoriesDefinitionsQuery =
-    useGetTrackingCategoriesDefinitions({ enabled: false });
-
-  const loadTrackingCategoryDefinitions = React.useCallback(async () => {
-    await trackingCategoriesDefinitionsQuery.refetch();
-  }, [trackingCategoriesDefinitionsQuery]);
 
   const { data: tenantInternalDetails } = useQuery(
     TenantInternalDetailsQueryOptions(),
@@ -102,20 +90,7 @@ export default function IntegrationTab() {
               )}
             </div>
 
-            {xeroConnected && (
-              <XeroFieldMappings
-                trackingCategories={trackingCategoriesQuery.data}
-                trackingCategoryDefinitions={
-                  trackingCategoriesDefinitionsQuery.data
-                }
-                onLoadTrackingCategoryDefinitions={
-                  loadTrackingCategoryDefinitions
-                }
-                isLoadingTrackingCategories={
-                  trackingCategoriesDefinitionsQuery.isFetching
-                }
-              />
-            )}
+            {xeroConnected && <XeroFieldMappings />}
           </CardContent>
         </Card>
       )}

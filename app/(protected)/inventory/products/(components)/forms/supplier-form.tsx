@@ -17,7 +17,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
 import React from 'react';
-import { FormSelect } from '@/components/ui/form-select';
+import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { Spinner } from '@/components/ui/spinner';
@@ -40,6 +40,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useGetDepartments } from '@/lib/api/department';
+
 
 interface FormProps {
   productId?: number;
@@ -73,6 +77,29 @@ export default function SupplierForm({
   const [isEditing] = React.useState(Boolean(quarrySupplierId && productId));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const { accountingSoftware } = useTenantStore();
+  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
+  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const departmentsQuery = useGetDepartments({
+    enabled: showXeroMapping,
+  });
+
+  const departments = React.useMemo(() => {
+    return departmentsQuery.data ?? [];
+  }, [departmentsQuery.data]);
+
+  const departmentOptions = React.useMemo<FormSelectOption[]>(
+    () =>
+      departments
+        .filter((department) => department.id !== undefined)
+        .map((department) => ({
+          value: department.id as number,
+          label: `${department.departmentName}`,
+        })),
+    [departments],
+  );
+
 
   // Fetch quarry-supplier-product details if editing
   const {
@@ -237,6 +264,31 @@ export default function SupplierForm({
                 </FormItem>
               )}
             />
+
+            {showXeroMapping && (
+              <>
+                <Separator className="col-span-full my-2 mb-5" />
+
+                <div className="flex flex-col mb-3">
+                  <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                  <p className="text-xs text-muted-foreground">
+                    Optional fields pushed to Xero on invoice creation.
+                  </p>
+                </div>
+                <FormSelect
+                  control={supplierForm.control}
+                  name="departmentId"
+                  label="Department"
+                  options={departmentOptions}
+                  placeholder="Select department (optional)"
+                  searchLabel="departments"
+                  popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
+                  formItemClassName="col-span-full"
+                  className="w-full"
+                  disabled={departmentsQuery.isLoading}
+                />
+              </>
+            )}
           </CardContent>
         </Card>
       ),
@@ -366,6 +418,9 @@ export default function SupplierForm({
         supplierProductName: processedValues.supplier_product_name,
         supplierProductCode: processedValues.supplier_product_code,
         densityTonnagePerM3: processedValues.density_tonnage_per_m3,
+        ...(showXeroMapping && processedValues.departmentId != null
+          ? { departmentId: processedValues.departmentId }
+          : {}),
         availableUnits: availableUnits, // Send as array, not JSON string
         perTnCostPrice: processedValues.cost_price_tn,
         perTnSellPrice: processedValues.sell_price_tn,

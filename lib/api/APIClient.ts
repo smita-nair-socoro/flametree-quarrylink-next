@@ -111,6 +111,7 @@ import {
   AccountCode,
   createUpdateTrackingCategory,
 } from '../types/accounting';
+import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
 
@@ -1701,5 +1702,19 @@ export const APIClient = {
       appClient.Delete<AccountCode>(
         `/socoro/quarrylink/api/accounting/account-codes/${id}`,
       ),
+  },
+  departments: {
+    getDepartments: () =>
+      appClient.Get<Department[]>(`/socoro/quarrylink/api/departments`),
+    createDepartment: (data: Department) =>
+      appClient.Post<Department>(`/socoro/quarrylink/api/departments`, {
+        body: data,
+      }),
+    updateDepartment: (id: number, data: Department) =>
+      appClient.Put<Department>(`/socoro/quarrylink/api/departments/${id}`, {
+        body: data,
+      }),
+    deleteDepartment: (id: number) =>
+      appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
   },
 };

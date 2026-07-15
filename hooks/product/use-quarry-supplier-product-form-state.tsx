@@ -47,6 +47,7 @@ function formValuesFromQuarrySupplierProduct(data: QuarrySupplierProduct) {
     supplier_product_name: data.supplierProductName || '',
     supplier_product_code: data.supplierProductCode || '',
     density_tonnage_per_m3: data.densityTonnagePerM3 || 0,
+    departmentId: data.department?.id || undefined,
     cost_price_tn: (data.perTnCostPrice || 0) / 100,
     sell_price_tn: (data.perTnSellPrice || 0) / 100,
     cost_price_m3: (data.perM3CostPrice || 0) / 100,

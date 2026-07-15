@@ -81,7 +81,19 @@ export default function QuarrySupplierForm({
   const accountCodesQuery = useGetAccountCodes({
     enabled: showXeroMapping,
   });
-  const accountCodes = accountCodesQuery.data ?? [];
+  const accountCodes = React.useMemo(
+    () => accountCodesQuery.data ?? [],
+    [accountCodesQuery.data],
+  );
+
+  const createQuarryMutation = useCreateQuarry();
+  const updateQuarryMutation = useUpdateQuarry();
+
+  const { data: selectedQuarrySupplier } = useQuery({
+    ...QuarryDetailQueryOptions(quarryId),
+    enabled: isEditing && quarryId > 0,
+  });
+
   const accountCodeOptions = React.useMemo<FormSelectOption[]>(
     () =>
       accountCodes
@@ -92,14 +104,6 @@ export default function QuarrySupplierForm({
         })),
     [accountCodes],
   );
-
-  const createQuarryMutation = useCreateQuarry();
-  const updateQuarryMutation = useUpdateQuarry();
-
-  const { data: selectedQuarrySupplier } = useQuery({
-    ...QuarryDetailQueryOptions(quarryId),
-    enabled: isEditing && quarryId > 0,
-  });
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -174,8 +178,8 @@ export default function QuarrySupplierForm({
         contactPersonName: values.contactPersonName || '',
         contactPersonPhone: formatPhoneNumber(values.contactPersonPhone),
         contactPersonEmail: values.contactPersonEmail || '',
-        ...(showXeroMapping && values.accountCodeId
-          ? { accountCodeId: Number(values.accountCodeId) }
+        ...(showXeroMapping && values.accountCodeId != null
+          ? { accountingSoftwareAccountingCodeId: values.accountCodeId }
           : {}),
         ...(websiteValue ? { website: websiteValue } : {}),
         address: addressData,
@@ -247,7 +251,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);

@@ -183,3 +183,8 @@ export const AccountingKeys = {
   accountCodeById: (id: number) =>
     [...AccountingKeys.accountCodes, id] as const,
 };
+
+export const DepartmentKeys = {
+  all: ['departments'] as const,
+  list: () => [...DepartmentKeys.all, 'list'] as const,
+};
