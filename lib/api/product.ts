@@ -31,9 +31,9 @@ export type ProductsListParams = {
 };
 
 const PRODUCT_COLUMN_TO_API_SORT: Record<string, string> = {
-  product_name: 'productName',
-  product_code: 'productCode',
-  material_type: 'materialName',
+  productName: 'productName',
+  productCode: 'productCode',
+  materialType: 'materialName',
   status: 'isActive',
 };
 
@@ -73,7 +73,7 @@ export function toProductApiFilterParams(
   filters: { id: string; value: unknown }[],
 ): Pick<ProductsListParams, 'materialIds' | 'isActive'> {
   const statusValues = getFacetFilterValues(filters, 'status');
-  const materialValues = getFacetFilterValues(filters, 'material_type');
+  const materialValues = getFacetFilterValues(filters, 'materialType');
 
   const isActive = statusValues
     .map((value) => {

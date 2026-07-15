@@ -325,14 +325,11 @@ export function FormSelect<TFieldValues extends FieldValues>({
                     className={cn(
                       'w-full flex items-center justify-between overflow-hidden whitespace-nowrap',
                       !hasValidSelection && 'text-muted-foreground',
-                      className,
+                      className
                     )}
                     disabled={disabled}
                   >
-                    <span
-                      className="flex-1 text-left truncate"
-                      title={hasValidSelection ? selectedLabel : placeholder}
-                    >
+                    <span className="flex-1 text-left truncate" title={hasValidSelection ? selectedLabel : placeholder}>
                       {hasValidSelection ? selectedLabel : placeholder}
                     </span>
                     <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
@@ -358,9 +355,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       onWheel={(event) => event.stopPropagation()}
                     >
                       <CommandEmpty>
-                        {isSearchingOptions
-                          ? 'Searching...'
-                          : `No ${label} found.`}
+                        {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
                       </CommandEmpty>
                       <CommandGroup>
                         {options.map((opt) => (
@@ -376,8 +371,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                             }}
                             className={cn(
                               'cursor-pointer',
-                              opt.disabled &&
-                                'cursor-not-allowed text-muted-foreground',
+                              opt.disabled && 'cursor-not-allowed text-muted-foreground'
                             )}
                           >
                             <span className="flex-1">{opt.label}</span>
@@ -385,7 +379,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                               <span
                                 className={cn(
                                   'ml-2 rounded-full border px-2 py-0.5 text-xs font-medium',
-                                  opt.badge.className,
+                                  opt.badge.className
                                 )}
                               >
                                 {opt.badge.label}
@@ -396,7 +390,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                                 'ml-auto h-4 w-4',
                                 String(field.value) === String(opt.value)
                                   ? 'opacity-100'
-                                  : 'opacity-0',
+                                  : 'opacity-0'
                               )}
                             />
                           </CommandItem>
@@ -409,9 +403,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                             disabled={isLoadingMoreOptions}
                             className="justify-center text-primary cursor-pointer"
                           >
-                            {isLoadingMoreOptions
-                              ? 'Loading more...'
-                              : 'Load more...'}
+                            {isLoadingMoreOptions ? 'Loading more...' : 'Load more...'}
                           </CommandItem>
                         )}
 
@@ -425,7 +417,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                               }}
                               className={cn(
                                 'text-primary cursor-pointer',
-                                addButtonClassName,
+                                addButtonClassName
                               )}
                             >
                               {addButtonLabel}

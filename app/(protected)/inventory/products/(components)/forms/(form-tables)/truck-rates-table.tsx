@@ -20,7 +20,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
 
   // Headers configuration
   const headers: FormTableHeader[] = [
-    { key: 'rate_type', label: 'Rate Type', className: 'w-30' },
+    { key: 'rateType', label: 'Rate Type', className: 'w-30' },
     {
       key: 'rate',
       label: `Rate (${currencySymbol})`,
@@ -39,37 +39,37 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   // Rows configuration
   const rows: FormTableRow[] = [
     {
-      id: 'tn_rate',
+      id: 'tnRate',
       label: 'TN Rate',
       data: { unit: 'per TN' },
     },
     {
-      id: 'm3_rate',
+      id: 'm3Rate',
       label: 'm³ Rate',
       data: { unit: 'per m³' },
     },
     {
-      id: 'kg_rate',
+      id: 'kgRate',
       label: '20kg Rate',
       data: { unit: 'per 20kg' },
     },
     {
-      id: 'bulka_rate',
+      id: 'bulkaRate',
       label: 'Bulka Rate',
       data: { unit: 'per bulka' },
     },
     {
-      id: 'hourly_rate',
+      id: 'hourlyRate',
       label: 'Hourly Rate',
       data: { unit: 'per hour' },
     },
     {
-      id: 'load_rate',
+      id: 'loadRate',
       label: 'Load Rate',
       data: { unit: 'per load' },
     },
     {
-      id: 'km_rate',
+      id: 'kmRate',
       label: 'Distance Rate',
       data: { unit: 'per KM' },
     },
@@ -78,7 +78,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
   // Cells configuration
   const cells: CellConfig<z.infer<typeof NewSupplierFormSchema>>[] = [
     {
-      key: 'rate_type',
+      key: 'rateType',
       type: 'display',
       className: 'w-30',
       render: (row) => (
@@ -103,10 +103,10 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       render: (row) => row.data?.unit,
     },
     {
-      key: 'available_truck',
+      key: 'availableTruck',
       type: 'switch',
       className: 'w-20',
-      disabled: (row) => row.id === 'tn_rate',
+      disabled: (row) => row.id === 'tnRate',
     },
   ];
 
