@@ -282,7 +282,6 @@ export default function SupplierForm({
                   options={departmentOptions}
                   placeholder="Select department (optional)"
                   searchLabel="departments"
-                  popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
                   formItemClassName="col-span-full"
                   className="w-full"
                   disabled={departmentsQuery.isLoading}
