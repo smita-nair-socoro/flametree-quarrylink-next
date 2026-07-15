@@ -1,6 +1,7 @@
 import { QuarryStatus, QuarryType } from './quarry-enums';
 import { Address } from './address';
 import type { AccountCode } from './accounting';
+import type { Department } from './department';
 
 export interface Quarry {
   id: number;
