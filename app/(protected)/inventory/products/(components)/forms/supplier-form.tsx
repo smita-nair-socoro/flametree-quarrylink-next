@@ -202,6 +202,7 @@ export default function SupplierForm({
               options={supplierOptions}
               placeholder="Select a Supplier"
               formItemClassName="w-full"
+              autoSelectForOnlyOneOption={!isEditing}
             />
             <FormField
               control={supplierForm.control}

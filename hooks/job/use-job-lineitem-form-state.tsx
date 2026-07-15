@@ -584,51 +584,6 @@ export function useJobLineItemFormState({
     return opts;
   }, [selectedQuarrySupplierProduct]);
 
-  /**
-   * Auto-select when only one choice exists (create mode only), instead of
-   * waiting for the user to pick it: product → quarry/supplier → product UOMs.
-   * Truck UOMs are left alone (already handled by the truck rate flow).
-   */
-  React.useEffect(() => {
-    if (isEditing) return;
-    // Don't auto-pick while the user is searching or when more pages may
-    // hold other products.
-    if (productSearch.trim() || hasMoreProductOptions) return;
-    if (productOptions.length !== 1) return;
-    if (Number(form.getValues('productId') || 0)) return;
-
-    form.setValue('productId', Number(productOptions[0].value), {
-      shouldDirty: false,
-      shouldValidate: true,
-    });
-  }, [isEditing, productSearch, hasMoreProductOptions, productOptions, form]);
-
-  React.useEffect(() => {
-    if (isEditing) return;
-    if (!selectedProductId || quarryOptions.length !== 1) return;
-    if (Number(form.getValues('quarrySupplierId') || 0)) return;
-
-    form.setValue('quarrySupplierId', Number(quarryOptions[0].value), {
-      shouldDirty: false,
-      shouldValidate: true,
-    });
-  }, [isEditing, selectedProductId, quarryOptions, form]);
-
-  React.useEffect(() => {
-    if (isEditing) return;
-    if (productUnitOptions.length !== 1) return;
-
-    const onlyUom = String(productUnitOptions[0].value);
-    const opts = { shouldDirty: false, shouldValidate: true } as const;
-
-    if (!form.getValues('productSellUom')) {
-      form.setValue('productSellUom', onlyUom, opts);
-    }
-    if (!form.getValues('productCostUom')) {
-      form.setValue('productCostUom', onlyUom, opts);
-    }
-  }, [isEditing, productUnitOptions, form]);
-
   // Auto-fill product pricing on UOM changes
   const productCostUom = form.watch('productCostUom');
   const productSellUom = form.watch('productSellUom');

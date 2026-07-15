@@ -1034,6 +1034,7 @@ export default function DocketForm({
                   placeholder="Select Job"
                   disabled={isJobLocked || isReadOnly || isEditing}
                   {...jobSelectProps}
+                  autoSelectForOnlyOneOption={!isEditing}
                   formItemClassName={
                     isEditing && isDesktop
                       ? 'col-span-1 col-start-1'
@@ -1075,6 +1076,7 @@ export default function DocketForm({
                         isEditing
                       }
                       {...jobLineItemSelectProps}
+                      autoSelectForOnlyOneOption={!isEditing}
                     />
 
                     <FormItem>

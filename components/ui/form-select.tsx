@@ -1,5 +1,16 @@
 import * as React from 'react';
-import { Control, FieldValues, Path } from 'react-hook-form';
+import {
+  Control,
+  FieldValues,
+  Path,
+  PathValue,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import {
+  isEmptySingleSelectValue,
+  useAutoSelectSingle,
+} from '@/hooks/use-auto-select-single';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -180,6 +191,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
 
   /** Whether options are being loaded for the current search query. */
   isSearchingOptions?: boolean;
+
+  /**
+   * Auto-select the only option while the field is empty. Pass gates the
+   * component can't know (e.g. `!isEditing`); needs `<Form {...form}>`.
+   */
+  autoSelectForOnlyOneOption?: boolean;
 }
 
 /**
@@ -214,9 +231,38 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onSearchChange,
   serverSideSearch,
   isSearchingOptions = false,
-}: FormSelectProps<TFieldValues>) {
+  autoSelectForOnlyOneOption = false,
+}: Readonly<FormSelectProps<TFieldValues>>) {
   const [open, setOpen] = React.useState(false);
   const useServerSideSearch = serverSideSearch ?? Boolean(onSearchChange);
+
+  // formContext is null without <Form {...form}>; auto-select no-ops then.
+  const formContext = useFormContext<TFieldValues>();
+  const watchedValue = useWatch({ control, name });
+  const selectableOptions = React.useMemo(
+    () => options.filter((opt) => !opt.disabled),
+    [options],
+  );
+
+  useAutoSelectSingle({
+    items: selectableOptions,
+    enabled:
+      autoSelectForOnlyOneOption &&
+      !disabled &&
+      formContext != null &&
+      !hasMoreOptions &&
+      !isLoadingMoreOptions &&
+      !isSearchingOptions &&
+      !(searchValue ?? '').trim(),
+    isEmpty: () => isEmptySingleSelectValue(formContext.getValues(name)),
+    onSelect: (opt) =>
+      formContext.setValue(
+        name,
+        opt.value as PathValue<TFieldValues, Path<TFieldValues>>,
+        { shouldValidate: true, shouldDirty: false, shouldTouch: false },
+      ),
+    revalidateKey: watchedValue,
+  });
 
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean) => {
@@ -227,7 +273,12 @@ export function FormSelect<TFieldValues extends FieldValues>({
   );
 
   const tryLoadMoreOptions = React.useCallback(() => {
-    if (!open || !onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
+    if (
+      !open ||
+      !onOptionsListScrollEnd ||
+      !hasMoreOptions ||
+      isLoadingMoreOptions
+    ) {
       return;
     }
     onOptionsListScrollEnd();
@@ -253,7 +304,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => {
         const selectedOption = options.find(
-          (o) => String(o.value) === String(field.value)
+          (o) => String(o.value) === String(field.value),
         );
         const hasValidSelection =
           field.value != null &&

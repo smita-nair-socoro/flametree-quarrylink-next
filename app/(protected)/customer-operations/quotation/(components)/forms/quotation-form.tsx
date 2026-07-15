@@ -565,6 +565,7 @@ export default function QuotationForm({
               onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
               hasMoreOptions={hasMoreCustomerOptions}
               isLoadingMoreOptions={isLoadingMoreCustomerOptions}
+              autoSelectForOnlyOneOption={!isEditing}
             />
 
             <FormField

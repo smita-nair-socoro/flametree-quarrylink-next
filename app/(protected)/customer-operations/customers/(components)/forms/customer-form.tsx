@@ -1172,6 +1172,7 @@ export default function CustomerForm({
               name="account_manager"
               label="Account Manager*"
               options={accountManagerOptions}
+              autoSelectForOnlyOneOption={!isEditing}
               placeholder="Select Account Manager"
               formItemClassName={
                 isEditing && isDesktop
