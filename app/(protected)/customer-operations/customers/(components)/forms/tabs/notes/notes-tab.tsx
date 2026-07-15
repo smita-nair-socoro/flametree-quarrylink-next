@@ -248,7 +248,7 @@ export default function NotesTab({
                       </button>
                       <button
                         type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-[#FC0000] focus-visible:bg-muted focus-visible:text-[#FC0000] active:bg-muted active:text-[#FC0000]"
                         onClick={() => setDeleteTarget(note)}
                         aria-label="Delete note"
                       >
