@@ -77,7 +77,6 @@ export interface QuarrySupplierProduct {
   version: number;
 }
 
-
 export type QuarriesWithProduct = QuarrySupplierProduct;
 
 export interface QuarryReporting {

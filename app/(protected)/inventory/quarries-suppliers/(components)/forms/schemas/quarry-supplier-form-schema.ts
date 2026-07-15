@@ -80,7 +80,7 @@ const Base = z.object({
   openingClosingInfo: z.string().trim().optional(),
   weighbridgeInfo: z.string().trim().optional(),
   notes: z.string().trim().optional(),
-  accountCodeId: z.string().trim().optional(),
+  accountCodeId: z.number().optional(),
 
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
