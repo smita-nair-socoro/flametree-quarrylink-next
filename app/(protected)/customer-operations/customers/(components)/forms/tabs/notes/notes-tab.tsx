@@ -211,7 +211,10 @@ export default function NotesTab({
           </div>
         )}
         {sortedNotes.map((note) => {
-          const isMine = note.authorSub === currentUserSub;
+          // Placeholder notes use synthetic author IDs. Keep them manageable
+          // until the notes API supplies real ownership data.
+          const canManageNote =
+            note.id.startsWith('mock-') || note.authorSub === currentUserSub;
           const isEditingNote = editingId === note.id;
           return (
             <div
@@ -224,7 +227,7 @@ export default function NotesTab({
                   <div className="text-sm">
                     <span className="font-semibold">{note.authorName}</span>{' '}
                     <span className="text-muted-foreground">
-                      {formatNoteTimestamp(note.createdAt)}
+                      {formatNoteTimestamp(note.editedAt ?? note.createdAt)}
                     </span>
                     {note.editedAt && (
                       <span className="italic text-muted-foreground">
@@ -233,23 +236,23 @@ export default function NotesTab({
                       </span>
                     )}
                   </div>
-                  {isMine && !isEditingNote && (
+                  {canManageNote && !isEditingNote && (
                     <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
                         onClick={() => startEdit(note)}
                         aria-label="Edit note"
                       >
-                        <Pencil className="h-3.5 w-3.5" />
+                        <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                         onClick={() => setDeleteTarget(note)}
                         aria-label="Delete note"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   )}
@@ -272,30 +275,29 @@ export default function NotesTab({
                       }}
                       className="min-h-16 w-full"
                     />
-                    <div className="mt-2 flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">
-                        Cmd/Ctrl + Enter to save, Esc to cancel.
-                      </span>
-                      <div className="flex items-center gap-3">
-                        <button
-                          type="button"
-                          className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
-                          onClick={cancelEdit}
-                        >
-                          <X className="h-3.5 w-3.5" />
-                          Cancel
-                        </button>
-                        <Button
-                          type="button"
-                          size="sm"
-                          className="gap-1.5"
-                          onClick={saveEdit}
-                        >
-                          <Check className="h-3.5 w-3.5" />
-                          Save
-                        </Button>
-                      </div>
+                    <div className="mt-3 flex items-center justify-end gap-3">
+                      <button
+                        type="button"
+                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                        onClick={cancelEdit}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Cancel
+                      </button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={!editDraft.trim()}
+                        onClick={saveEdit}
+                      >
+                        <Check className="h-3.5 w-3.5" />
+                        Save
+                      </Button>
                     </div>
+                    <span className="mt-4 block text-xs text-muted-foreground">
+                      Cmd/Ctrl + Enter to save, Esc to cancel.
+                    </span>
                   </div>
                 ) : (
                   <p className="mt-1 text-sm">{note.note}</p>
