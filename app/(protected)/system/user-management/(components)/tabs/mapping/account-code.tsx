@@ -98,6 +98,8 @@ function AccountCodeRow({
   onDelete: () => void;
   disabled?: boolean;
 }) {
+  const isProtectedAccountCode = accountCode.code === '200';
+
   return (
     <div className="flex items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-4 py-5">
       <div className="flex min-w-0 items-center gap-3">
@@ -111,28 +113,32 @@ function AccountCodeRow({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-4">
+      <div
+        className={cn(
+          'ml-auto flex shrink-0 items-center gap-4',
+          isProtectedAccountCode && 'invisible pointer-events-none',
+        )}
+        aria-hidden={isProtectedAccountCode}
+      >
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground"
           aria-label={`Edit ${accountCode.name}`}
-          disabled={disabled}
+          disabled={disabled || isProtectedAccountCode}
           onClick={onEdit}
         >
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-3 w-3" />
         </Button>
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground"
           aria-label={`Delete ${accountCode.name}`}
-          disabled={disabled}
+          disabled={disabled || isProtectedAccountCode}
           onClick={onDelete}
         >
-          <Trash2 className="h-4 w-4 text-destructive" />
+          <Trash2 className="h-3 w-3 text-destructive" />
         </Button>
       </div>
     </div>
@@ -289,7 +295,7 @@ export function AccountCodeMapping() {
                 Account Codes
               </p>
               <p className="text-sm text-[#6A7282]">
-                Map QuarryLink quarry and supplier records to Xero account
+                Map QuarryLink Quarry / Supplier records to Xero account
                 codes.
               </p>
             </div>
