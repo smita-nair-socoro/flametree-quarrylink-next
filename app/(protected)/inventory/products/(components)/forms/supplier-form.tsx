@@ -40,9 +40,9 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { useTenantStore } from '@/app/stores/tenant-store';
 import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
 import { useGetDepartments } from '@/lib/api/department';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 
 interface FormProps {
@@ -78,7 +78,7 @@ export default function SupplierForm({
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const { accountingSoftware } = useTenantStore();
+  const accountingSoftware = useAccountingSoftwareProvider();
   const { isConnected: isXeroConnected } = useXeroIntegrationActions();
   const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
   const departmentsQuery = useGetDepartments({

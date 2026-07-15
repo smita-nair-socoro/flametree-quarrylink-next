@@ -48,9 +48,9 @@ import {
   useQuarrySupplierFormState,
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
 } from '@/hooks/quarry-supplier/use-quarry-supplier-form-state';
-import { useTenantStore } from '@/app/stores/tenant-store';
 import { useGetAccountCodes } from '@/lib/api/accounting';
 import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -75,7 +75,7 @@ export default function QuarrySupplierForm({
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
 
-  const { accountingSoftware } = useTenantStore();
+  const accountingSoftware = useAccountingSoftwareProvider();
   const { isConnected: isXeroConnected } = useXeroIntegrationActions();
   const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
   const accountCodesQuery = useGetAccountCodes({

@@ -30,14 +30,14 @@ function AccountCodeForm({
   onSave,
   isSaving,
   submitText = 'Save',
-}: {
+}: Readonly<{
   draft: AccountCode;
   onDraftChange: (draft: AccountCode) => void;
   onCancel: () => void;
   onSave: () => void;
   isSaving: boolean;
   submitText?: string;
-}) {
+}>) {
   const canSave = draft.code.trim().length > 0 && draft.name.trim().length > 0;
 
   return (
@@ -48,12 +48,11 @@ function AccountCodeForm({
           <Input
             id="account-code-code"
             placeholder="e.g. 208"
-            maxLength={3}
+            maxLength={10}
             value={draft.code}
             onChange={(event) =>
               onDraftChange({ ...draft, code: event.target.value })
             }
-            isNumber
           />
           <p className="text-xs text-[#6A7282]">Xero max 10 characters.</p>
         </div>
