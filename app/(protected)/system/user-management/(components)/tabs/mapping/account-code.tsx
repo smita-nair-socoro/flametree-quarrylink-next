@@ -61,7 +61,7 @@ function AccountCodeForm({
           <Label htmlFor="account-code-name">Name</Label>
           <Input
             id="account-code-name"
-            placeholder="e.g. Sales Wave Hill Quarry"
+            placeholder="e.g. Quarry Sales Account"
             value={draft.name}
             onChange={(event) =>
               onDraftChange({ ...draft, name: event.target.value })
