@@ -25,7 +25,9 @@ export function MarkArrivedDescription({
           </span>
           <span className="text-sm text-[#6A7282] font-bold">•</span>
           <span className="text-sm text-[#6A7282]">
-            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
+            {formatNumberThousandSeparator(
+              docket?.actualLoadSize || docket?.plannedLoadSize,
+            )}{' '}
             {docket?.jobItem?.productSellUom === 'M3'
               ? 'm³'
               : docket?.jobItem?.productSellUom === 'KG_20'
@@ -42,7 +44,13 @@ export function MarkArrivedDescription({
   );
 }
 
-export function MarkArrivedContent({ docket, isAdmin }: { docket?: DocketDTO | null; isAdmin: boolean }) {
+export function MarkArrivedContent({
+  docket,
+  isAdmin,
+}: {
+  docket?: DocketDTO | null;
+  isAdmin: boolean;
+}) {
   const now = getTenantNow();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
@@ -97,13 +105,13 @@ export function MarkArrivedContent({ docket, isAdmin }: { docket?: DocketDTO | n
           </div>
           <div className="flex flex-col">
             <span className="text-[14px] font-medium text-[#166534]">
-              {docket?.customerContactName ?? '—'}
+              {docket?.driver?.driverName ?? '—'}
             </span>
-            {docket?.truckType && (
-              <span className="text-[12px] font-normal text-[#15803D]">
-                {docket.jobItem.truckType}
-              </span>
-            )}
+            <span className="text-[12px] font-normal text-[#15803D]">
+              {docket?.truck?.licensePlate && docket?.truck?.model
+                ? `${docket.truck.licensePlate} (${docket.truck.model})`
+                : '—'}
+            </span>
           </div>
         </div>
       </div>
