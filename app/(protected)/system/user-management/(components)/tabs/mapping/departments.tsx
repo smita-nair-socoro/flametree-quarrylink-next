@@ -46,7 +46,7 @@ function DepartmentForm({
         <Label htmlFor="department-name">Department Name</Label>
         <Input
           id="department-name"
-          placeholder="e.g. Wave Hill Quarry"
+          placeholder="e.g. Quarry or Batch Plant"
           value={draft.departmentName}
           onChange={(event) =>
             onDraftChange({ departmentName: event.target.value })
