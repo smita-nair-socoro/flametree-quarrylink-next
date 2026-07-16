@@ -54,13 +54,14 @@ export function MarkDeliveredDescription({
   );
 }
 
-/** "0h 46m" style duration between arrival and now. */
+/** "0h 46m" (or "2d 3h 46m" past a day) duration between arrival and now. */
 function formatWaitingDuration(diffMs: number): string {
   if (Number.isNaN(diffMs)) return '—';
   const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
-  const hours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor(totalMinutes / 60) % 24;
   const minutes = totalMinutes % 60;
-  return `${hours}h ${minutes}m`;
+  return days > 0 ? `${days}d ${hours}h ${minutes}m` : `${hours}h ${minutes}m`;
 }
 
 interface MarkDeliveredContentProps {
