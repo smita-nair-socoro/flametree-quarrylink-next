@@ -234,7 +234,7 @@ function MappingRow({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        <Button
+        {/* <Button
           type="button"
           variant="ghost"
           size="icon"
@@ -244,7 +244,7 @@ function MappingRow({
           onClick={onEdit}
         >
           <Pencil className="h-4 w-4" />
-        </Button>
+        </Button> */}
         <Button
           type="button"
           variant="ghost"
@@ -517,22 +517,22 @@ export function TrackingCategoriesMapping() {
           {!isAdding &&
             !trackingCategoriesQuery.isLoading &&
             mappings.length === 0 && (
-            <button
-              type="button"
-              className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#D1D5DC] bg-[#FAFAFA] px-6 py-8 text-center transition-colors hover:border-[#9CA3AF]"
-              onClick={handleStartAdd}
-            >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6]">
-                <Plus className="h-5 w-5 text-[#9CA3AF]" />
-              </div>
-              <p className="text-sm font-medium text-[#101828]">
-                Add your first tracking category
-              </p>
-              <p className="text-sm text-[#6A7282]">
-                No tracking categories have been configured yet.
-              </p>
-            </button>
-          )}
+              <button
+                type="button"
+                className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#D1D5DC] bg-[#FAFAFA] px-6 py-8 text-center transition-colors hover:border-[#9CA3AF]"
+                onClick={handleStartAdd}
+              >
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#F3F4F6]">
+                  <Plus className="h-5 w-5 text-[#9CA3AF]" />
+                </div>
+                <p className="text-sm font-medium text-[#101828]">
+                  Add your first tracking category
+                </p>
+                <p className="text-sm text-[#6A7282]">
+                  No tracking categories have been configured yet.
+                </p>
+              </button>
+            )}
 
           {trackingCategoriesQuery.isLoading && (
             <div className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-5 text-sm text-[#6A7282]">
