@@ -3,6 +3,7 @@ import { MapPin, Shield, User, Clock } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { getTenantNow } from '@/lib/utils/tenant-config-helper';
 
 export function MarkArrivedDescription({
   docket,
@@ -42,7 +43,7 @@ export function MarkArrivedDescription({
 }
 
 export function MarkArrivedContent({ docket, isAdmin }: { docket?: DocketDTO | null; isAdmin: boolean }) {
-  const now = new Date();
+  const now = getTenantNow();
   const arrivalTime = formatTimeOnly(now);
   const arrivalDate = formatWeekdayDate(now);
 
