@@ -266,13 +266,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleMarkArrived = async () => {
     if (!docketData?.id) return;
     try {
-      await updateDocketStatusMutation.mutateAsync({
+      const updated = await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.ARRIVED,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.ARRIVED,
+        arrivedAt: updated?.arrivedAt ?? selectedDocket?.arrivedAt,
       });
       notifySuccess('Docket marked as Arrived');
       setActiveDialog(null);
@@ -607,6 +608,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
+            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
