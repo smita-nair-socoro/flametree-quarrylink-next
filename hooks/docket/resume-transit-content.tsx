@@ -56,7 +56,7 @@ export function ResumeTransitContent({
           <div>
             <span className="font-medium text-[#364153]">Truck:</span>{' '}
             {docket?.truck?.licensePlate && docket?.truck?.model
-              ? `${docket.truck.licensePlate} - ${docket.truck.model}`
+              ? `${docket.truck.licensePlate} (${docket.truck.model})`
               : '—'}
           </div>
           <div>

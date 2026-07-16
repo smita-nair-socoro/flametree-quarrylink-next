@@ -109,7 +109,7 @@ export function MarkArrivedContent({
             </span>
             <span className="text-[12px] font-normal text-[#15803D]">
               {docket?.truck?.licensePlate && docket?.truck?.model
-                ? `${docket.truck.licensePlate} - ${docket.truck.model}`
+                ? `${docket.truck.licensePlate} (${docket.truck.model})`
                 : '—'}
             </span>
           </div>

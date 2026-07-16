@@ -43,7 +43,7 @@ export function StartTransitContent({ docket }: { docket?: DocketDTO | null }) {
   const driverName = docket?.driver?.driverName ?? '—';
   const truckLabel =
     docket?.truck?.licensePlate && docket?.truck?.model
-      ? `${docket.truck.licensePlate} - ${docket.truck.model}`
+      ? `${docket.truck.licensePlate} (${docket.truck.model})`
       : '—';
 
   return (
