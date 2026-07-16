@@ -1043,10 +1043,11 @@ export const APIClient = {
         search?: string;
         sortBy?: string;
         sortOrder?: string;
-        status?: string;
-        type?: string;
-        customerId?: number;
-        productId?: number;
+        statuses?: string[];
+        types?: string[];
+        customerIds?: number[];
+        productIds?: number[];
+        ids?: number[];
       },
     ) => {
       const isPaginated =
@@ -1065,10 +1066,11 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            type: params?.type,
-            customerId: params?.customerId?.toString(),
-            productId: params?.productId?.toString(),
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
           },
         },
       );
@@ -1082,10 +1084,11 @@ export const APIClient = {
         search?: string;
         sortBy?: string;
         sortOrder?: string;
-        status?: string;
-        type?: string;
-        customerId?: number;
-        productId?: number;
+        statuses?: string[];
+        types?: string[];
+        customerIds?: number[];
+        productIds?: number[];
+        ids?: number[];
       },
     ) => {
       const isPaginated =
@@ -1104,10 +1107,11 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            type: params?.type,
-            customerId: params?.customerId?.toString(),
-            productId: params?.productId?.toString(),
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
           },
         },
       );
