@@ -26,7 +26,7 @@ export const docketPdfStyles = StyleSheet.create({
     fontSize: 9,
     paddingTop: 32,
     paddingBottom: 32,
-    paddingHorizontal: 40,
+    paddingHorizontal: 20,
     fontFamily: 'Geist',
     backgroundColor: colors.white,
     color: colors.gray900,
