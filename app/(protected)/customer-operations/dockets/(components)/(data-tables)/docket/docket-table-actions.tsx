@@ -240,7 +240,9 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
 };
 
-export function DocketTableActions({ docket }: DocketTableActionsProps) {
+export function DocketTableActions({
+  docket,
+}: Readonly<DocketTableActionsProps>) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
@@ -256,23 +258,25 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
 
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
 
-  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
-    currentActions = [{
-      label: 'Retry Sync',
-      icon: RefreshCw,
-      action: 'retrySync',
-      separator: true,
-    }];
+  if (
+    docket.docketStatus === DOCKET_STATUS.INVOICED &&
+    docket.invoiceStatus === 'FAILED'
+  ) {
+    currentActions = [
+      {
+        label: 'Retry Sync',
+        icon: RefreshCw,
+        action: 'retrySync',
+        separator: true,
+      },
+    ];
   }
 
   return (
     <div>
       {confirmDialogs}
       {viewDialog}
-      <DropdownMenu
-        open={dropdownOpen}
-        onOpenChange={setDropdownOpen}
-      >
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />

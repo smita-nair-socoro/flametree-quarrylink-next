@@ -216,14 +216,10 @@ export function CancelJobContent({
       </div>
 
       <div className="flex flex-col gap-2">
-        <label
-          htmlFor="cancel-job-reason"
-          className="text-[14px] font-medium text-[#364153]"
-        >
+        <label className="text-[14px] font-medium text-[#364153]">
           Cancellation Reason <span className="text-[#111827]">*</span>
         </label>
         <SelectOptions
-          id="cancel-job-reason"
           searchLabel="cancellation reason"
           options={CANCEL_REASONS}
           value={cancelReason}
