@@ -40,8 +40,11 @@ export function StartTransitDescription({
 
 export function StartTransitContent({ docket }: { docket?: DocketDTO | null }) {
   const destination = docket?.deliveryAddress?.formattedAddress ?? '—';
-  const driverName = docket?.customerContactName ?? '—';
-  const truckLabel = docket?.truckType ?? '—';
+  const driverName = docket?.driver?.driverName ?? '—';
+  const truckLabel =
+    docket?.truck?.licensePlate && docket?.truck?.model
+      ? `${docket.truck.licensePlate} (${docket.truck.model})`
+      : '—';
 
   return (
     <div className="flex flex-col gap-6">

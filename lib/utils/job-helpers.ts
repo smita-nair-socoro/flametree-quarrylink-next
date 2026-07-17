@@ -25,49 +25,29 @@ export interface JobPricingBreakdown {
   totalInvoice: string | number;
 }
 
-export const calculateJobPricing = (
-  lineItems: (JobLineItem | JobItem)[] | undefined | null,
-  currencyCode: string = DEFAULT_CURRENCY_CODE,
-  taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
+const EMPTY_JOB_PRICING_BREAKDOWN: JobPricingBreakdown = {
+  totalProductCostPrice: 0,
+  totalTruckCostPrice: 0,
+  totalProductSellPrice: 0,
+  totalTruckSellPrice: 0,
+  grossProfit: 0,
+  grossProfitPercentage: 0,
+  costSubtotalExGST: 0,
+  costGst: 0,
+  totalCost: 0,
+  invoiceSubtotalExGST: 0,
+  invoiceGst: 0,
+  totalInvoice: 0,
+};
+
+const buildJobPricingBreakdown = (
+  totalProductCostCents: number,
+  totalTruckCostCents: number,
+  totalProductSellCents: number,
+  totalTruckSellCents: number,
+  currencyCode: string,
+  taxPercentage: number,
 ): JobPricingBreakdown => {
-  // Handle empty or null line items
-  if (!lineItems || lineItems.length === 0) {
-    return {
-      totalProductCostPrice: 0,
-      totalTruckCostPrice: 0,
-      totalProductSellPrice: 0,
-      totalTruckSellPrice: 0,
-      grossProfit: 0,
-      grossProfitPercentage: 0,
-      costSubtotalExGST: 0,
-      costGst: 0,
-      totalCost: 0,
-      invoiceSubtotalExGST: 0,
-      invoiceGst: 0,
-      totalInvoice: 0,
-    };
-  }
-
-  // Sum up the values (in cents)
-  const totalProductCostCents = lineItems.reduce(
-    (sum, item) => sum + (item.totalProductCostPrice || 0),
-    0,
-  );
-  const totalTruckCostCents = lineItems.reduce((sum, item) => {
-    const type = 'type' in item ? item.type : item.jobItemType;
-    if (type === 'COLLECTION') return sum;
-    return sum + (item.totalTruckCostPrice || 0);
-  }, 0);
-  const totalProductSellCents = lineItems.reduce(
-    (sum, item) => sum + (item.totalProductSellPrice || 0),
-    0,
-  );
-  const totalTruckSellCents = lineItems.reduce((sum, item) => {
-    const type = 'type' in item ? item.type : item.jobItemType;
-    if (type === 'COLLECTION') return sum;
-    return sum + (item.totalTruckSellPrice || 0);
-  }, 0);
-
   const totalCostCents = totalProductCostCents + totalTruckCostCents;
   const totalInvoiceCents = totalProductSellCents + totalTruckSellCents;
 
@@ -99,4 +79,76 @@ export const calculateJobPricing = (
     invoiceGst: centsToDollars(gstCents),
     totalInvoice: centsToDollars(totalInvoiceCentsWithGST),
   };
+};
+
+export const calculateJobPricing = (
+  lineItems: (JobLineItem | JobItem)[] | undefined | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
+): JobPricingBreakdown => {
+  // Handle empty or null line items
+  if (!lineItems || lineItems.length === 0) {
+    return EMPTY_JOB_PRICING_BREAKDOWN;
+  }
+
+  // Sum up the values (in cents)
+  const totalProductCostCents = lineItems.reduce(
+    (sum, item) => sum + (item.totalProductCostPrice || 0),
+    0,
+  );
+  const totalTruckCostCents = lineItems.reduce((sum, item) => {
+    const type = 'type' in item ? item.type : item.jobItemType;
+    if (type === 'COLLECTION') return sum;
+    return sum + (item.totalTruckCostPrice || 0);
+  }, 0);
+  const totalProductSellCents = lineItems.reduce(
+    (sum, item) => sum + (item.totalProductSellPrice || 0),
+    0,
+  );
+  const totalTruckSellCents = lineItems.reduce((sum, item) => {
+    const type = 'type' in item ? item.type : item.jobItemType;
+    if (type === 'COLLECTION') return sum;
+    return sum + (item.totalTruckSellPrice || 0);
+  }, 0);
+
+  return buildJobPricingBreakdown(
+    totalProductCostCents,
+    totalTruckCostCents,
+    totalProductSellCents,
+    totalTruckSellCents,
+    currencyCode,
+    taxPercentage,
+  );
+};
+
+/** Job-level totals (in cents) as returned by GET /job/{id}/job-items. */
+export interface JobPricingTotals {
+  totalProductCostPrice?: number;
+  totalTruckCostPrice?: number;
+  totalProductSellPrice?: number;
+  totalTruckSellPrice?: number;
+}
+
+/**
+ * Pricing breakdown from the backend-computed job totals. Preferred over
+ * calculateJobPricing when job items are paginated, since summing a single
+ * page of line items would undercount the job.
+ */
+export const calculateJobPricingFromTotals = (
+  totals: JobPricingTotals | undefined | null,
+  currencyCode: string = DEFAULT_CURRENCY_CODE,
+  taxPercentage: number = DEFAULT_TAX_PERCENTAGE,
+): JobPricingBreakdown => {
+  if (!totals) {
+    return EMPTY_JOB_PRICING_BREAKDOWN;
+  }
+
+  return buildJobPricingBreakdown(
+    totals.totalProductCostPrice || 0,
+    totals.totalTruckCostPrice || 0,
+    totals.totalProductSellPrice || 0,
+    totals.totalTruckSellPrice || 0,
+    currencyCode,
+    taxPercentage,
+  );
 };

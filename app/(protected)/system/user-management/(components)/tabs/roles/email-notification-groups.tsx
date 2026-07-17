@@ -82,11 +82,8 @@ export function EmailNotificationGroups({
           <Table aria-label="Email notification groups">
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[140px] font-medium text-[13px]">
+                <TableHead className="w-[260px] font-medium text-[13px]">
                   Group
-                </TableHead>
-                <TableHead className="w-[320px] font-medium text-[13px]">
-                  Description
                 </TableHead>
                 <TableHead className="font-medium text-[13px]">
                   Email Types
@@ -105,16 +102,18 @@ export function EmailNotificationGroups({
                   key={group.name}
                   className="bg-white hover:bg-gray-50"
                 >
-                  <TableCell className="text-[13px] font-medium">
-                    <div className="flex items-center gap-2">
+                  <TableCell>
+                    <div className="flex items-start gap-2">
                       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#F5F3FF] shrink-0">
                         <group.icon className="h-4 w-4" />
                       </span>
-                      {group.name}
+                      <div className="space-y-0.5">
+                        <p className="text-[13px] font-medium">{group.name}</p>
+                        <p className="text-[13px] font-normal text-muted-foreground whitespace-normal">
+                          {group.description}
+                        </p>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell className="text-[13px] text-muted-foreground whitespace-normal">
-                    {group.description}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1.5">

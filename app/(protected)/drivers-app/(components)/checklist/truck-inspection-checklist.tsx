@@ -7,6 +7,7 @@ import { CHECKLIST_TYPE, ANSWER_VALUE } from '@/lib/types/checklist-template-enu
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
+import { toLocalDateTime } from '@/lib/utils/date';
 
 export default function TruckInspectionChecklist({
   onSubmit,
@@ -86,7 +87,7 @@ export default function TruckInspectionChecklist({
         driverId,
         docketId,
         confirmed: false,
-        submittedAt: new Date().toISOString(),
+        submittedAt: toLocalDateTime(new Date()),
         additionalNotes: additionalNotes.trim() || undefined,
         answers: mappedAnswers,
       },

@@ -64,7 +64,7 @@ export function PermissionMatrix({
 
       <Separator className="md:hidden" />
 
-      <CardContent className="md:pt-4 pt-0 pb-0">
+      <CardContent className={`md:pt-4 pt-0 ${footerNote ? 'pb-0' : 'pb-4'}`}>
         {/* Desktop Table */}
         <div className="hidden md:block overflow-x-auto">
           <Table aria-label="Permission matrix showing feature access by role">

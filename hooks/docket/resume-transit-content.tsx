@@ -51,11 +51,13 @@ export function ResumeTransitContent({
         <div className="space-y-2 text-sm text-[#6A7282]">
           <div>
             <span className="font-medium text-[#364153]">Driver:</span>{' '}
-            {docket?.customerContactName ?? '—'}
+            {docket?.driver?.driverName ?? '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Truck:</span>{' '}
-            {docket?.jobItem.truckType ?? '—'}
+            {docket?.truck?.licensePlate && docket?.truck?.model
+              ? `${docket.truck.licensePlate} (${docket.truck.model})`
+              : '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Stop Reason:</span>{' '}

@@ -1,5 +1,16 @@
 import * as React from 'react';
-import { Control, FieldValues, Path } from 'react-hook-form';
+import {
+  Control,
+  FieldValues,
+  Path,
+  PathValue,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import {
+  isEmptySingleSelectValue,
+  useAutoSelectSingle,
+} from '@/hooks/use-auto-select-single';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -180,6 +191,12 @@ export interface FormSelectProps<TFieldValues extends FieldValues> {
 
   /** Whether options are being loaded for the current search query. */
   isSearchingOptions?: boolean;
+
+  /**
+   * Auto-select the only option while the field is empty. Pass gates the
+   * component can't know (e.g. `!isEditing`); needs `<Form {...form}>`.
+   */
+  autoSelectForOnlyOneOption?: boolean;
 }
 
 /**
@@ -214,9 +231,38 @@ export function FormSelect<TFieldValues extends FieldValues>({
   onSearchChange,
   serverSideSearch,
   isSearchingOptions = false,
-}: FormSelectProps<TFieldValues>) {
+  autoSelectForOnlyOneOption = false,
+}: Readonly<FormSelectProps<TFieldValues>>) {
   const [open, setOpen] = React.useState(false);
   const useServerSideSearch = serverSideSearch ?? Boolean(onSearchChange);
+
+  // formContext is null without <Form {...form}>; auto-select no-ops then.
+  const formContext = useFormContext<TFieldValues>();
+  const watchedValue = useWatch({ control, name });
+  const selectableOptions = React.useMemo(
+    () => options.filter((opt) => !opt.disabled),
+    [options],
+  );
+
+  useAutoSelectSingle({
+    items: selectableOptions,
+    enabled:
+      autoSelectForOnlyOneOption &&
+      !disabled &&
+      formContext != null &&
+      !hasMoreOptions &&
+      !isLoadingMoreOptions &&
+      !isSearchingOptions &&
+      !(searchValue ?? '').trim(),
+    isEmpty: () => isEmptySingleSelectValue(formContext.getValues(name)),
+    onSelect: (opt) =>
+      formContext.setValue(
+        name,
+        opt.value as PathValue<TFieldValues, Path<TFieldValues>>,
+        { shouldValidate: true, shouldDirty: false, shouldTouch: false },
+      ),
+    revalidateKey: watchedValue,
+  });
 
   const handleOpenChange = React.useCallback(
     (nextOpen: boolean) => {
@@ -227,7 +273,12 @@ export function FormSelect<TFieldValues extends FieldValues>({
   );
 
   const tryLoadMoreOptions = React.useCallback(() => {
-    if (!open || !onOptionsListScrollEnd || !hasMoreOptions || isLoadingMoreOptions) {
+    if (
+      !open ||
+      !onOptionsListScrollEnd ||
+      !hasMoreOptions ||
+      isLoadingMoreOptions
+    ) {
       return;
     }
     onOptionsListScrollEnd();
@@ -253,7 +304,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
       name={name}
       render={({ field }) => {
         const selectedOption = options.find(
-          (o) => String(o.value) === String(field.value)
+          (o) => String(o.value) === String(field.value),
         );
         const hasValidSelection =
           field.value != null &&
@@ -263,125 +314,125 @@ export function FormSelect<TFieldValues extends FieldValues>({
         const selectedLabel = selectedOption?.label;
 
         return (
-        <FormItem className={formItemClassName}>
-          {label && <FormLabel>{label}</FormLabel>}
-          <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
-            <PopoverTrigger asChild>
-              <FormControl>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  className={cn(
-                    'w-full flex items-center justify-between overflow-hidden whitespace-nowrap',
-                    !hasValidSelection && 'text-muted-foreground',
-                    className
-                  )}
-                  disabled={disabled}
+          <FormItem className={formItemClassName}>
+            {label && <FormLabel>{label}</FormLabel>}
+            <Popover open={open} onOpenChange={handleOpenChange} modal={true}>
+              <PopoverTrigger asChild>
+                <FormControl>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className={cn(
+                      'w-full flex items-center justify-between overflow-hidden whitespace-nowrap',
+                      !hasValidSelection && 'text-muted-foreground',
+                      className
+                    )}
+                    disabled={disabled}
+                  >
+                    <span className="flex-1 text-left truncate" title={hasValidSelection ? selectedLabel : placeholder}>
+                      {hasValidSelection ? selectedLabel : placeholder}
+                    </span>
+                    <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
+                  </Button>
+                </FormControl>
+              </PopoverTrigger>
+              {open && (
+                <PopoverContent
+                  className={cn(popoverWidthClass, 'p-1 w-auto')}
+                  align="start"
                 >
-                  <span className="flex-1 text-left truncate" title={hasValidSelection ? selectedLabel : placeholder}>
-                    {hasValidSelection ? selectedLabel : placeholder}
-                  </span>
-                  <ChevronsUpDown className="opacity-50 ml-2 flex-shrink-0" />
-                </Button>
-              </FormControl>
-            </PopoverTrigger>
-            {open && (
-            <PopoverContent
-              className={cn(popoverWidthClass, 'p-1 w-auto')}
-              align="start"
-            >
-              <Command shouldFilter={!useServerSideSearch}>
-                {showSearch && (
-                  <CommandInput
-                    placeholder={`Search ${searchLabel}...`}
-                    className="h-9"
-                    value={searchValue}
-                    onValueChange={onSearchChange}
-                  />
-                )}
-                <CommandList
-                  onScroll={handleOptionsListScroll}
-                  onWheel={(event) => event.stopPropagation()}
-                >
-                  <CommandEmpty>
-                    {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
-                  </CommandEmpty>
-                  <CommandGroup>
-                    {options.map((opt) => (
-                      <CommandItem
-                        key={opt.value}
-                        value={`${opt.label} __${String(opt.value)}`}
-                        disabled={opt.disabled}
-                        onSelect={() => {
-                          if (opt.disabled) return;
-                          field.onChange(opt.value);
-                          onChange?.(String(opt.value));
-                          handleOpenChange(false);
-                        }}
-                        className={cn(
-                          'cursor-pointer',
-                          opt.disabled && 'cursor-not-allowed text-muted-foreground'
-                        )}
-                      >
-                        <span className="flex-1">{opt.label}</span>
-                        {opt.badge && (
-                          <span
+                  <Command shouldFilter={!useServerSideSearch}>
+                    {showSearch && (
+                      <CommandInput
+                        placeholder={`Search ${searchLabel}...`}
+                        className="h-9"
+                        value={searchValue}
+                        onValueChange={onSearchChange}
+                      />
+                    )}
+                    <CommandList
+                      onScroll={handleOptionsListScroll}
+                      onWheel={(event) => event.stopPropagation()}
+                    >
+                      <CommandEmpty>
+                        {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {options.map((opt) => (
+                          <CommandItem
+                            key={opt.value}
+                            value={`${opt.label} __${String(opt.value)}`}
+                            disabled={opt.disabled}
+                            onSelect={() => {
+                              if (opt.disabled) return;
+                              field.onChange(opt.value);
+                              onChange?.(String(opt.value));
+                              handleOpenChange(false);
+                            }}
                             className={cn(
-                              'ml-2 rounded-full border px-2 py-0.5 text-xs font-medium',
-                              opt.badge.className
+                              'cursor-pointer',
+                              opt.disabled && 'cursor-not-allowed text-muted-foreground'
                             )}
                           >
-                            {opt.badge.label}
-                          </span>
+                            <span className="flex-1">{opt.label}</span>
+                            {opt.badge && (
+                              <span
+                                className={cn(
+                                  'ml-2 rounded-full border px-2 py-0.5 text-xs font-medium',
+                                  opt.badge.className
+                                )}
+                              >
+                                {opt.badge.label}
+                              </span>
+                            )}
+                            <Check
+                              className={cn(
+                                'ml-auto h-4 w-4',
+                                String(field.value) === String(opt.value)
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+
+                        {hasMoreOptions && (
+                          <CommandItem
+                            value="__load_more_options__"
+                            onSelect={tryLoadMoreOptions}
+                            disabled={isLoadingMoreOptions}
+                            className="justify-center text-primary cursor-pointer"
+                          >
+                            {isLoadingMoreOptions ? 'Loading more...' : 'Load more...'}
+                          </CommandItem>
                         )}
-                        <Check
-                          className={cn(
-                            'ml-auto h-4 w-4',
-                            String(field.value) === String(opt.value)
-                              ? 'opacity-100'
-                              : 'opacity-0'
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
 
-                    {hasMoreOptions && (
-                      <CommandItem
-                        value="__load_more_options__"
-                        onSelect={tryLoadMoreOptions}
-                        disabled={isLoadingMoreOptions}
-                        className="justify-center text-primary cursor-pointer"
-                      >
-                        {isLoadingMoreOptions ? 'Loading more...' : 'Load more...'}
-                      </CommandItem>
-                    )}
-
-                    {onAddClick && (
-                      <>
-                        <CommandSeparator className="mb-1" />
-                        <CommandItem
-                          onSelect={() => {
-                            onAddClick();
-                            handleOpenChange(false);
-                          }}
-                          className={cn(
-                            'text-primary cursor-pointer',
-                            addButtonClassName
-                          )}
-                        >
-                          {addButtonLabel}
-                        </CommandItem>
-                      </>
-                    )}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-            )}
-          </Popover>
-          {showErrorMessage && <FormMessage />}
-        </FormItem>
-      );
+                        {onAddClick && (
+                          <>
+                            <CommandSeparator className="mb-1" />
+                            <CommandItem
+                              onSelect={() => {
+                                onAddClick();
+                                handleOpenChange(false);
+                              }}
+                              className={cn(
+                                'text-primary cursor-pointer',
+                                addButtonClassName
+                              )}
+                            >
+                              {addButtonLabel}
+                            </CommandItem>
+                          </>
+                        )}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              )}
+            </Popover>
+            {showErrorMessage && <FormMessage />}
+          </FormItem>
+        );
       }}
     />
   );

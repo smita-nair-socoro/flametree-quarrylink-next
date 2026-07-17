@@ -1,9 +1,37 @@
 // Docket Helpers
 
+import { DOCKET_STATUS } from '../types/docket-enums';
+
+/**
+ * Delivery dockets past assignment use the recorded actual load size for the
+ * GVM check; earlier statuses (and collections) use the planned load size.
+ * Callers should still fall back to planned when no actual load is recorded.
+ */
+export function shouldUseActualLoadSizeForGvm(
+  docketStatus: string | undefined,
+  isDelivery: boolean,
+): boolean {
+  if (!isDelivery || !docketStatus) return false;
+  return (
+    docketStatus === DOCKET_STATUS.IN_TRANSIT ||
+    docketStatus === DOCKET_STATUS.ARRIVED ||
+    docketStatus === DOCKET_STATUS.DELIVERED ||
+    docketStatus === DOCKET_STATUS.STOPPED ||
+    docketStatus === DOCKET_STATUS.VOIDED ||
+    docketStatus === DOCKET_STATUS.CANCELLED ||
+    docketStatus === DOCKET_STATUS.INVOICED
+  );
+}
+
 export const formatUomLabel = (uom: string): string => {
   const normalized = uom.toLowerCase();
   if (normalized === 'kg_20' || normalized === '20kg') return 'x 20kg';
   if (normalized === 'm3') return 'm³';
+  if (normalized === 'bulka') return 'Bulka';
+  if (normalized === 'tn') return 'TN';
+  if (normalized === 'hourly') return 'Hourly';
+  if (normalized === 'load') return 'Load';
+  if (normalized === 'km') return 'km';
   return uom;
 };
 
@@ -33,6 +61,33 @@ export const calculateConvertedQty = (
 
   return quantityInTn;
 };
+
+/**
+ * Calculated Gross Weight = truck tare weight + the load converted to tonnes.
+ * Returns null when no tare weight is available (e.g. no truck assigned).
+ */
+export function calculateGrossWeight({
+  tareWeight,
+  loadSize,
+  productUom,
+  density = 1,
+}: {
+  tareWeight: number | null | undefined;
+  loadSize: number;
+  productUom: string;
+  density?: number;
+}): number | null {
+  if (tareWeight == null) return null;
+  const loadInTn = calculateConvertedQty(
+    loadSize || 0,
+    productUom || 'TN',
+    'TN',
+    density,
+  );
+  return (
+    Number.parseFloat(String(tareWeight)) + Number.parseFloat(String(loadInTn))
+  );
+}
 
 export function convertTruckVolumeToProductUom(
   tankVolumeM3: number,

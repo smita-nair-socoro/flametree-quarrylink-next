@@ -17,6 +17,7 @@ import {
   getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { HelpCircle } from 'lucide-react';
 
 export const getCreateInvoiceColumns = (
@@ -90,16 +91,9 @@ export const getCreateInvoiceColumns = (
       const productSellQty = row.original.actualLoadSize;
       const productSellUom = row.original.jobItem.productSellUom;
       const formattedQty = formatNumberThousandSeparator(productSellQty);
-      const formattedLoadSize =
-        productSellUom === 'TN'
-          ? `${formattedQty} TN`
-          : productSellUom === 'M3'
-            ? `${formattedQty} m³`
-            : productSellUom === 'KG_20'
-              ? `${formattedQty} x 20kg`
-              : productSellUom === 'BULKA'
-                ? `${formattedQty} Bulka`
-                : formattedQty || 'N/A';
+      const formattedLoadSize = productSellUom
+        ? `${formattedQty} ${formatUomLabel(productSellUom)}`
+        : formattedQty || 'N/A';
       const displayText = `${formattedLoadSize}`;
       return (
         <Tooltip delayDuration={300}>

@@ -156,7 +156,6 @@ export default function QuarriesSuppliersPage() {
           suburb: quarry.address?.suburb || '',
           email: quarry.email || '',
           phone: quarry.phone || '',
-          opening_closing_times: quarry.openingClosingInfo || '',
         };
 
         return transformed;
@@ -215,7 +214,7 @@ export default function QuarriesSuppliersPage() {
   );
 
   const facetDefs: FacetDefinition[] = [
-    { column: 'quarry_supplier_type', title: 'Type' },
+    { column: 'quarrySupplierType', title: 'Type' },
     { column: 'status', title: 'Status' },
     { column: 'suburb', title: 'Suburb' },
   ];

@@ -130,7 +130,7 @@ export function CannotDeleteHaulierContent({
           </span>
           <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
             <a
-              href={`/logistics/drivers?haulierId=${haulier?.id}`}
+              href={`/logistics/drivers/?haulierId=${haulier?.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[14px] text-[#155DFC] underline font-medium"
@@ -150,7 +150,7 @@ export function CannotDeleteHaulierContent({
           </span>
           <div className="rounded-md border border-[#FECACA] bg-[#FEF2F2] px-4 py-3">
             <a
-              href={`/logistics/trucks?haulierId=${haulier?.id}`}
+              href={`/logistics/trucks/?haulierId=${haulier?.id}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[14px] text-[#155DFC] underline font-medium"

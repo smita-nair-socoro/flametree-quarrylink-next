@@ -141,8 +141,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
-  const selectedDocket = useDocketStore((s) => s.selectedDocket);
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+  const selectedDocket = useDocketStore((s) => {
+    if (docketData) {
+      return s.selectedDocket?.id === docketData.id ? s.selectedDocket : null;
+    }
+    return s.selectedDocket;
+  });
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
   const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
@@ -174,7 +179,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const assignDocketMutation = useAssignDocket();
   const unassignDocketMutation = useUnassignDocket();
   const duplicateDocketMutation = useDuplicateDocket();
-  const effectiveDocket = selectedDocket ?? docketData;
+  const effectiveDocket = docketData ?? selectedDocket;
 
   // Assign state
   const [assignHauler, setAssignHauler] = React.useState<number | undefined>(
@@ -261,13 +266,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const handleMarkArrived = async () => {
     if (!docketData?.id) return;
     try {
-      await updateDocketStatusMutation.mutateAsync({
+      const updated = await updateDocketStatusMutation.mutateAsync({
         docketId: docketData.id,
         docketStatus: DOCKET_STATUS.ARRIVED,
       });
       setSelectedDocket({
         ...(selectedDocket as DocketDTO),
         docketStatus: DOCKET_STATUS.ARRIVED,
+        arrivedAt: updated?.arrivedAt ?? selectedDocket?.arrivedAt,
       });
       notifySuccess('Docket marked as Arrived');
       setActiveDialog(null);
@@ -602,6 +608,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
+            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
@@ -789,11 +796,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     ],
   );
 
-  const createDialogAction = (actionKey: string) => {
-    return () => {
-      setSelectedAction({ key: actionKey });
-      setActiveDialog(actionKey);
-    };
+  const createDialogAction = (actionKey: string) => () => {
+    setActiveDialog(actionKey);
   };
 
   const actions = {
@@ -814,7 +818,11 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
-    cancel: createDialogAction('cancel'),
+    cancel: () => {
+      setCancelReason('');
+      setCancelNotes('');
+      setActiveDialog('cancel');
+    },
     unassign: () => {
       if (loadSizeDiffersFromPlanned) {
         console.log('Load size differs from planned');
@@ -941,7 +949,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   );
   const viewDialog = viewOpen ? (
     <FormDialog
-      id={selectedDocket?.id}
+      id={effectiveDocket?.id}
       dialogTitle="View / Edit Docket"
       open={viewOpen}
       onOpenChangeAction={(open) => {

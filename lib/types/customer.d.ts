@@ -238,3 +238,45 @@ export interface UnarchiveCustomerResponseDTO {
   duplicateCustomerId: number;
   reason: string;
 }
+
+export interface AdditionalContactApiDTO {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneCountryCode: string;
+  phoneNumber: string;
+  positionRole: string;
+}
+
+export interface AdditionalContactsPage {
+  content: AdditionalContactApiDTO[];
+  totalElements: number;
+  totalPages: number;
+  number?: number;
+  size?: number;
+}
+
+export interface AdditionalContactDTO {
+  id?: number;
+  customerId?: number;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+}
+
+// Get all and Post
+export interface CustomerAttachmentDTO {
+  id: number;
+  fileName: string;
+  category: string;
+  uploadedAt: string;
+  fileExtension: string;
+  fileSizeBytes: number;
+}
+
+export interface customerAttachmentResponseDTO {
+  string;
+}

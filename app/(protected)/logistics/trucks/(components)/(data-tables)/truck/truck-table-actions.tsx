@@ -6,7 +6,7 @@ import {
   PowerOff,
   Power,
   Delete,
-  // FileText,
+  FileText,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -38,26 +38,10 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
     actions.view();
   };
 
-  // const handleLinkedDockets = async () => {
-  //   setDropdownOpen(false);
-  //   try {
-  //     const data = await queryClient.fetchQuery(
-  //       TruckWithDocketsQueryOptions(truck.id!),
-  //     );
-  //     const dockets = data?.dockets ?? [];
-  //     if (dockets.length === 0) {
-  //       notifyError('No dockets assigned to this truck.');
-  //       return;
-  //     }
-  //     const docketIds = dockets.map((d) => d.id).join(',');
-  //     window.open(
-  //       `/customer-operations/dockets/?docketId=${docketIds}`,
-  //       '_blank',
-  //     );
-  //   } catch {
-  //     notifyError('Failed to load truck dockets.');
-  //   }
-  // };
+  const handleViewDockets = () => {
+    setDropdownOpen(false);
+    actions.viewDockets(truck.id ?? 0);
+  };
 
   const handleDeactivate = () => {
     setDropdownOpen(false);
@@ -90,11 +74,11 @@ export function TruckTableActions({ truck }: TruckTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {/* <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleLinkedDockets}>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={handleViewDockets}>
             <FileText className="h-4 w-4 mr-2" />
             Linked Dockets
-          </DropdownMenuItem> */}
+          </DropdownMenuItem>
           {status === TRUCK_STATUS.DEACTIVATED && (
             <>
               <DropdownMenuSeparator />

@@ -19,7 +19,6 @@ import { useTenantStore } from '@/app/stores/tenant-store';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
 import { calculateConvertedQty } from '@/lib/utils/docket-helper';
-import { appendUtcSuffix } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
 import {
@@ -253,13 +252,9 @@ export function AssignDocketContent({
       docket.deliveryCollectionStartTime &&
       docket.deliveryCollectionEndTime
       ? {
-        deliveryCollectionDate: appendUtcSuffix(
-          docket.deliveryCollectionDate,
-        ),
-        deliveryStartWindow: appendUtcSuffix(
-          docket.deliveryCollectionStartTime,
-        ),
-        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+        deliveryCollectionDate: docket.deliveryCollectionDate,
+        deliveryStartWindow: docket.deliveryCollectionStartTime,
+        deliveryEndWindow: docket.deliveryCollectionEndTime,
       }
       : null;
 

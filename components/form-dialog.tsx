@@ -184,9 +184,9 @@ interface ChildFormProps {
   onSaved?: () => void;
 }
 
-export const FormDialogFooterContext = React.createContext<
-  React.Dispatch<React.SetStateAction<React.ReactNode>> | null
->(null);
+export const FormDialogFooterContext = React.createContext<React.Dispatch<
+  React.SetStateAction<React.ReactNode>
+> | null>(null);
 
 /**
  * Call inside any form rendered as a FormDialog child to slot content
@@ -235,7 +235,8 @@ export function FormDialog({
 }: Readonly<AddProductDrawerDialogProps>) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
-  const [slottedFooter, setSlottedFooter] = React.useState<React.ReactNode>(null);
+  const [slottedFooter, setSlottedFooter] =
+    React.useState<React.ReactNode>(null);
 
   const open = openProp ?? uncontrolledOpen;
   const setOpen = onOpenChangeProp ?? setUncontrolledOpen;
@@ -370,9 +371,9 @@ export function FormDialog({
     finalCustomId = selectedTruck.licensePlate;
     finalPrimaryBadges = selectedTruck.truckStatus
       ? [
-          normalizeTruckStatus(selectedTruck.truckStatus) ??
-            selectedTruck.truckStatus,
-        ]
+        normalizeTruckStatus(selectedTruck.truckStatus) ??
+        selectedTruck.truckStatus,
+      ]
       : [];
     finalSecondaryBadges = selectedTruck.truckBusinessType
       ? [selectedTruck.truckBusinessType]
@@ -413,10 +414,16 @@ export function FormDialog({
   let triggerNode: React.ReactNode;
   if (trigger) {
     if (React.isValidElement(trigger)) {
-      triggerNode = React.cloneElement(trigger, { onClick: () => handleOpen(false) });
+      triggerNode = React.cloneElement(trigger, {
+        onClick: () => handleOpen(false),
+      });
     } else {
       triggerNode = (
-        <button type="button" className="contents" onClick={() => handleOpen(false)}>
+        <button
+          type="button"
+          className="contents"
+          onClick={() => handleOpen(false)}
+        >
           {trigger}
         </button>
       );
@@ -459,10 +466,13 @@ export function FormDialog({
     forceClose();
   }, [forceClose, onUnsavedChangesChange]);
 
-  const handleChildDirtyChange = React.useCallback((dirty: boolean) => {
-    setHasUnsavedChanges(dirty);
-    onUnsavedChangesChange?.(dirty);
-  }, [onUnsavedChangesChange]);
+  const handleChildDirtyChange = React.useCallback(
+    (dirty: boolean) => {
+      setHasUnsavedChanges(dirty);
+      onUnsavedChangesChange?.(dirty);
+    },
+    [onUnsavedChangesChange],
+  );
 
   const handleChildSaved = React.useCallback(() => {
     setHasUnsavedChanges(false);
@@ -473,14 +483,21 @@ export function FormDialog({
     () =>
       React.isValidElement(children)
         ? React.cloneElement(children as React.ReactElement<ChildFormProps>, {
-            id: effectiveId,
-            onCancel: close,
-            onSuccess: handleChildSuccess,
-            onDirtyChange: handleChildDirtyChange,
-            onSaved: handleChildSaved,
-          })
+          id: effectiveId,
+          onCancel: close,
+          onSuccess: handleChildSuccess,
+          onDirtyChange: handleChildDirtyChange,
+          onSaved: handleChildSaved,
+        })
         : children,
-    [children, effectiveId, close, handleChildSuccess, handleChildDirtyChange, handleChildSaved],
+    [
+      children,
+      effectiveId,
+      close,
+      handleChildSuccess,
+      handleChildDirtyChange,
+      handleChildSaved,
+    ],
   );
 
   const contentNode = (
@@ -557,6 +574,67 @@ export function FormDialog({
     );
   };
 
+  const renderConnectedEntities = () => {
+    const links: { label: string; href: string }[] = [];
+
+    // Only show when the quote has actually been converted and we have a jobNumber to display
+    if (
+      headerInfo?.useSelectedQuotation &&
+      selectedQuotation?.quoteStatus === 'CONVERTED_TO_JOB' &&
+      selectedQuotation.jobId > 0 &&
+      selectedQuotation.jobNumber
+    ) {
+      links.push({
+        label: selectedQuotation.jobNumber,
+        href: `/customer-operations/jobs/?ids=${selectedQuotation.jobId}`,
+      });
+    }
+
+    // Only show when the job originated from a quote and we have a quoteNumber to display
+    if (
+      headerInfo?.useSelectedJob &&
+      selectedJob?.quoteId &&
+      selectedJob.quoteId > 0 &&
+      selectedJob.quoteNumber
+    ) {
+      links.push({
+        label: selectedJob.quoteNumber,
+        href: `/customer-operations/quotation/?openQuoteId=${selectedJob.quoteId}`,
+      });
+    }
+
+    // Every docket belongs to a job — always show
+    if (
+      headerInfo?.useSelectedDocket &&
+      selectedDocket?.jobId &&
+      selectedDocket.jobId > 0
+    ) {
+      links.push({
+        label: selectedDocket.job?.jobNumber ?? `#${selectedDocket.jobId}`,
+        href: `/customer-operations/jobs/?ids=${selectedDocket.jobId}`,
+      });
+    }
+
+    if (links.length === 0) return null;
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-1">
+        {links.map((link) => (
+          <a
+            key={link.href}
+            href={link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm underline text-[#8E51FF]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {link.label}
+          </a>
+        ))}
+      </div>
+    );
+  };
+
   const dialogInner = (
     <>
       <DialogHeader
@@ -579,6 +657,7 @@ export function FormDialog({
               {dialogDescription}
             </DialogDescription>
           )}
+          {renderConnectedEntities()}
           {renderBadges()}
         </div>
         {headerButtons && (
@@ -597,12 +676,7 @@ export function FormDialog({
         {contentNode}
       </div>
       {activeFooter && (
-        <DialogFooter
-          className={clsx(
-            'px-5 py-4',
-            footerClassName,
-          )}
-        >
+        <DialogFooter className={clsx('px-5 py-4', footerClassName)}>
           {activeFooter}
         </DialogFooter>
       )}
@@ -697,6 +771,7 @@ export function FormDialog({
                 {dialogDescription}
               </DrawerDescription>
             )}
+            {renderConnectedEntities()}
             {renderBadges()}
           </div>
           {headerButtons && (
@@ -709,12 +784,7 @@ export function FormDialog({
           {contentNode}
         </div>
         {activeFooter && (
-          <div
-            className={clsx(
-              'flex-shrink-0 px-4 py-4',
-              footerClassName,
-            )}
-          >
+          <div className={clsx('flex-shrink-0 px-4 py-4', footerClassName)}>
             {activeFooter}
           </div>
         )}

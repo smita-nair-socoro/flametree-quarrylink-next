@@ -1,7 +1,18 @@
 'use client';
 
 import * as React from 'react';
-import { Control, FieldValues, Path } from 'react-hook-form';
+import {
+  Control,
+  FieldValues,
+  Path,
+  PathValue,
+  useFormContext,
+  useWatch,
+} from 'react-hook-form';
+import {
+  isEmptySingleSelectValue,
+  useAutoSelectSingle,
+} from '@/hooks/use-auto-select-single';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -60,6 +71,11 @@ interface SelectCreateEditProps<TFieldValues extends FieldValues> {
   selectPlaceholder?: string;
   items: SelectCreateEditItem[];
   disabled?: boolean;
+  /**
+   * Auto-select the only item while the field is empty. Pass gates the
+   * component can't know (e.g. `!isEditing && !hasMoreHauliers`).
+   */
+  autoSelectForOnlyOneOption?: boolean;
   renderForm: (
     editingItem: SelectCreateEditItem | null,
     isEditing: boolean,
@@ -77,11 +93,30 @@ export function SelectCreateEdit<TFieldValues extends FieldValues>({
   selectPlaceholder,
   items: initialItems,
   disabled = false,
+  autoSelectForOnlyOneOption = false,
   renderForm,
 }: SelectCreateEditProps<TFieldValues>) {
   const [open, setOpen] = React.useState(false);
   const [items, setItems] =
     React.useState<SelectCreateEditItem[]>(initialItems);
+
+  // Uses the `items` prop (the local copy above misses async-loaded data);
+  // formContext is null without <Form {...form}>, auto-select no-ops then.
+  const formContext = useFormContext<TFieldValues>();
+  const watchedValue = useWatch({ control, name });
+
+  useAutoSelectSingle({
+    items: initialItems,
+    enabled: autoSelectForOnlyOneOption && !disabled && formContext != null,
+    isEmpty: () => isEmptySingleSelectValue(formContext.getValues(name)),
+    onSelect: (item) =>
+      formContext.setValue(
+        name,
+        item.id as PathValue<TFieldValues, Path<TFieldValues>>,
+        { shouldValidate: true, shouldDirty: false, shouldTouch: false },
+      ),
+    revalidateKey: watchedValue,
+  });
   const [dialogOpen, setDialogOpen] = React.useState(false);
   const [editingItem, setEditingItem] =
     React.useState<SelectCreateEditItem | null>(null);

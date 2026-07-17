@@ -74,7 +74,9 @@ export default function DriverForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
+  const { hauliers, hasMoreHauliers } = useHauliersForForm({
+    enabled: !isEditing,
+  });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
@@ -402,6 +404,7 @@ export default function DriverForm({
                 entityName="Haulier"
                 disabled={isEditing}
                 items={haulierItems}
+                autoSelectForOnlyOneOption={!isEditing && !hasMoreHauliers}
                 renderForm={(
                   editingItem,
                   isEditingItem,
