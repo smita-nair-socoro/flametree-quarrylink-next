@@ -62,7 +62,7 @@ export const docketPdfStyles = StyleSheet.create({
 
   // Sections
   section: {
-    marginBottom: 16,
+    marginBottom: 18,
   },
   sectionHeading: {
     fontSize: 8,
@@ -70,10 +70,10 @@ export const docketPdfStyles = StyleSheet.create({
     letterSpacing: 1,
     color: colors.gray600,
     textTransform: 'uppercase',
-    paddingBottom: 6,
+    paddingBottom: 7,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray300,
-    marginBottom: 16,
+    marginBottom: 18,
   },
 
   // Job reference box
@@ -106,30 +106,30 @@ export const docketPdfStyles = StyleSheet.create({
 
   // Label / value pairs
   fieldGroup: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   label: {
     fontSize: 8,
     color: colors.gray600,
-    marginBottom: 3,
+    marginBottom: 4,
   },
   value: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: 'bold',
   },
   valueRegular: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.gray900,
     lineHeight: 1.4,
   },
   valueMuted: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.gray600,
     lineHeight: 1.4,
   },
   // Geist has no italic variant, so fall back to the built-in oblique font
   valueItalic: {
-    fontSize: 9,
+    fontSize: 10,
     color: colors.gray600,
     lineHeight: 1.4,
     fontFamily: 'Helvetica-Oblique',
@@ -205,14 +205,14 @@ export const docketPdfStyles = StyleSheet.create({
     flex: 1,
   },
   photoBox: {
-    height: 100,
+    height: 101,
     backgroundColor: colors.gray200,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   photoImage: {
-    height: 100,
+    height: 99,
     borderRadius: 4,
     objectFit: 'contain',
     borderWidth: 1,

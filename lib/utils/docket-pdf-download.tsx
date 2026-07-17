@@ -38,6 +38,14 @@ function formatLatLong(address?: {
   return `Lat ${address.latitude} / Long ${address.longitude}`;
 }
 
+function formatTruckType(value?: string): string | undefined {
+  if (!value) return undefined;
+  return value
+    .split('_')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 function formatLoadSize(docket: DocketDTO): string {
   const loadSize =
     docket.actualLoadSize ?? docket.plannedLoadSize ?? docket.loadSize ?? 0;
@@ -77,7 +85,7 @@ async function buildDocketPdfData(
     },
     product: {
       name: docket.jobItem?.product?.productName,
-      truckType: docket.truckType,
+      truckType: formatTruckType(docket.truckType),
       rego: docket.truck?.licensePlate,
     },
     loadSizeLabel: formatLoadSize(docket),
