@@ -18,11 +18,13 @@ import {
 } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import z from 'zod';
 import React from 'react';
 import { FormSelect } from '@/components/ui/form-select';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
+import {
+  getQuotationFormSchema,
+  QuotationFormValues,
+} from './schemas/quotation-form-schema';
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
@@ -97,8 +99,8 @@ export default function QuotationForm({
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
 
-  const quotationForm = useForm<z.infer<typeof NewQuotationFormSchema>>({
-    resolver: zodResolver(NewQuotationFormSchema),
+  const quotationForm = useForm<QuotationFormValues>({
+    resolver: zodResolver(getQuotationFormSchema(isEditing)),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
       isEditing,
@@ -192,7 +194,7 @@ export default function QuotationForm({
           quotationForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-              '',
+            '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -207,16 +209,17 @@ export default function QuotationForm({
     return () => subscription.unsubscribe();
   }, [customers, quotationForm, isEditing]);
 
-  async function onSubmit(values: z.infer<typeof NewQuotationFormSchema>) {
+  async function onSubmit(values: QuotationFormValues) {
+    console.log('[QuotationForm] Validation passed, submitting:', values);
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.contactPersonEmail || '';
     const receiptEmails = [
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : []),
     ].filter(Boolean);
     const submitCustomer = customers.find((c) => c.id === values.customerId);
@@ -418,24 +421,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-        <div
-          className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-            isDesktop ? '' : 'pt-10',
-          )}
-        >
-          <div className="flex flex-col items-center space-y-4 p-8">
-            <Spinner size="medium" />
-            <p className="text-lg text-muted-foreground font-bold">
-              {isDuplicate
-                ? 'Creating Duplicate Quote...'
-                : createQuotation.isPending
-                  ? 'Adding Quote...'
-                  : 'Updating Quote...'}
-            </p>
+          <div
+            className={cn(
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              isDesktop ? '' : 'pt-10',
+            )}
+          >
+            <div className="flex flex-col items-center space-y-4 p-8">
+              <Spinner size="medium" />
+              <p className="text-lg text-muted-foreground font-bold">
+                {isDuplicate
+                  ? 'Creating Duplicate Quote...'
+                  : createQuotation.isPending
+                    ? 'Adding Quote...'
+                    : 'Updating Quote...'}
+              </p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       <Form {...quotationForm}>
         <form
@@ -446,7 +449,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-              'pointer-events-none',
+            'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
@@ -526,7 +529,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-                'pointer-events-none',
+              'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
