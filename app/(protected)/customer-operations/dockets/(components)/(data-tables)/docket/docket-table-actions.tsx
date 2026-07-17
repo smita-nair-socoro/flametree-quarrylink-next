@@ -306,6 +306,7 @@ export function DocketTableActions({
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handleAction('print')}>
             <Printer className="h-4 w-4 mr-2" />
             Print Docket
