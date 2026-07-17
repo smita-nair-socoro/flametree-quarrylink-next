@@ -277,12 +277,6 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
           </View>
         ) : null}
 
-        {/* Footer */}
-        <View style={styles.footer} wrap={false}>
-          <Text style={styles.footerNote}>
-            Received the above goods in good order and condition.
-          </Text>
-        </View>
       </Page>
     </Document>
   );

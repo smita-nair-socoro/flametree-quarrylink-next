@@ -205,14 +205,14 @@ export const docketPdfStyles = StyleSheet.create({
     flex: 1,
   },
   photoBox: {
-    height: 80,
+    height: 100,
     backgroundColor: colors.gray200,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   photoImage: {
-    height: 80,
+    height: 100,
     borderRadius: 4,
     objectFit: 'contain',
     borderWidth: 1,
@@ -221,17 +221,5 @@ export const docketPdfStyles = StyleSheet.create({
   photoPlaceholderText: {
     fontSize: 7,
     color: colors.gray500,
-  },
-
-  // Footer
-  footer: {
-    marginTop: 'auto',
-    borderTopWidth: 1,
-    borderTopColor: colors.gray300,
-    paddingTop: 10,
-  },
-  footerNote: {
-    fontSize: 8,
-    color: colors.gray600,
   },
 });
