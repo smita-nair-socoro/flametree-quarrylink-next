@@ -2,12 +2,13 @@
 
 import { ClipboardList } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 
 export function StartPreparingDescription({
   docket,
-}: {
+}: Readonly<{
   docket?: DocketDTO | null;
-}) {
+}>) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FFF7ED]">
@@ -22,15 +23,7 @@ export function StartPreparingDescription({
           <span className="font-bold">•</span>
           <span>
             {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
@@ -40,9 +33,9 @@ export function StartPreparingDescription({
 
 export function StartPreparingContent({
   docket,
-}: {
+}: Readonly<{
   docket?: DocketDTO | null;
-}) {
+}>) {
   return (
     <div className="flex flex-col gap-6">
       <div className="rounded-md bg-[#F9FAFB] px-4 py-3">
