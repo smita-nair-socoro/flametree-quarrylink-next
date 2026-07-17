@@ -105,19 +105,7 @@ function DocketActionButtonLabel({
   );
 }
 
-function getMaxActualLoadSize(docket: DocketDTO | null | undefined): number | undefined {
-  if (!docket?.jobItem) return undefined;
-  return (
-    (docket.jobItem.remainingQuantity ?? 0) +
-    (docket.actualLoadSize ?? docket.plannedLoadSize ?? 0)
-  );
-}
-
 const LOAD_SIZE_MAX_DECIMALS = 2;
-
-function formatLoadSizeNumber(value: number): string {
-  return String(Math.round(value * 100) / 100);
-}
 
 function isWithinDecimalLimit(
   value: string,
@@ -128,28 +116,23 @@ function isWithinDecimalLimit(
   return decimals.length <= maxDecimals;
 }
 
-function clampLoadSizeInputValue(value: string, max?: number): string {
+function clampLoadSizeInputValue(value: string): string {
   if (value === '' || value === '.') return value;
   if (!isWithinDecimalLimit(value)) {
     const [whole, decimals = ''] = value.split('.');
-    value = `${whole}.${decimals.slice(0, LOAD_SIZE_MAX_DECIMALS)}`;
+    return `${whole}.${decimals.slice(0, LOAD_SIZE_MAX_DECIMALS)}`;
   }
-  if (max === undefined) return value;
-  const endsWithDot = value.endsWith('.');
-  const num = parseFloat(endsWithDot ? value.slice(0, -1) : value);
-  if (Number.isNaN(num)) return value;
-  if (num > max) return formatLoadSizeNumber(max);
   return value;
 }
 
-function appendLoadSizeInput(prev: string, key: string, max?: number): string {
+function appendLoadSizeInput(prev: string, key: string): string {
   if (key === '.') {
     const next = prev.includes('.') ? prev : prev === '' ? '0.' : `${prev}.`;
-    return clampLoadSizeInputValue(next, max);
+    return clampLoadSizeInputValue(next);
   }
   const next = prev + key;
   if (!isWithinDecimalLimit(next)) return prev;
-  return clampLoadSizeInputValue(next, max);
+  return clampLoadSizeInputValue(next);
 }
 
 function resolveDeliveryDistanceQuantity(
@@ -194,11 +177,6 @@ export default function DocketsTab({
     enabled: selectedDocketData != null,
   });
   const selectedDocket = docketDetail ?? selectedDocketData;
-
-  const maxLoadSize = React.useMemo(
-    () => getMaxActualLoadSize(selectedDocket),
-    [selectedDocket],
-  );
 
   const { actions, confirmDialogs, isDialogOpen, isStatusUpdatePending, pendingAction } =
     useDriverAppDocketActions(selectedDocket);
@@ -563,10 +541,7 @@ export default function DocketsTab({
                                 (docketSizes[selectedDocket.id] ??
                                   selectedDocket.actualLoadSize)?.toString() ?? '';
                               setUpdateValue(
-                                clampLoadSizeInputValue(
-                                  currentValue,
-                                  getMaxActualLoadSize(selectedDocket),
-                                ),
+                                clampLoadSizeInputValue(currentValue),
                               );
                               setIsUpdateDrawerOpen(true);
                             }}
@@ -828,23 +803,6 @@ export default function DocketsTab({
                         : selectedDocket?.jobItem?.productSellUom}
               </span>
             </span>
-            {maxLoadSize != null && (
-              <span className="text-[13px] text-[#64748B] font-medium mt-1">
-                Max:{' '}
-                <span className="font-bold">
-                  {maxLoadSize}
-                  {selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
-                    ? 'm³'
-                    : selectedDocket?.jobItem?.productSellUom === 'KG_20'
-                      ? ' x 20kg'
-                      : selectedDocket?.jobItem?.productSellUom === 'BULKA'
-                        ? ' Bulka'
-                        : selectedDocket?.jobItem?.productSellUom === 'TN'
-                          ? ' TN'
-                          : ''}
-                </span>
-              </span>
-            )}
           </div>
 
           <div className="grid grid-cols-3 bg-[#CBD5E1] gap-[1px] border-y border-[#CBD5E1]">
@@ -853,7 +811,7 @@ export default function DocketsTab({
                 key={key}
                 className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
                 onClick={() =>
-                  setUpdateValue((prev) => appendLoadSizeInput(prev, key, maxLoadSize))
+                  setUpdateValue((prev) => appendLoadSizeInput(prev, key))
                 }
               >
                 {key}
@@ -862,7 +820,7 @@ export default function DocketsTab({
             <button
               className="h-[68px] bg-[#94A3B8]/30 text-[28px] text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center font-normal"
               onClick={() =>
-                setUpdateValue((prev) => appendLoadSizeInput(prev, '.', maxLoadSize))
+                setUpdateValue((prev) => appendLoadSizeInput(prev, '.'))
               }
             >
               .
@@ -870,7 +828,7 @@ export default function DocketsTab({
             <button
               className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
               onClick={() =>
-                setUpdateValue((prev) => appendLoadSizeInput(prev, '0', maxLoadSize))
+                setUpdateValue((prev) => appendLoadSizeInput(prev, '0'))
               }
             >
               0
@@ -899,9 +857,6 @@ export default function DocketsTab({
                 let numericValue = parseFloat(updateValue);
                 if (isNaN(numericValue)) return;
                 numericValue = Math.round(numericValue * 100) / 100;
-                if (maxLoadSize != null && numericValue > maxLoadSize) {
-                  numericValue = Math.round(maxLoadSize * 100) / 100;
-                }
 
                 const deliveryDistanceQuantity = resolveDeliveryDistanceQuantity(
                   selectedDocket,
