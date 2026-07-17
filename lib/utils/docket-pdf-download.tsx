@@ -50,8 +50,7 @@ function formatLoadSize(docket: DocketDTO): string {
   const loadSize =
     docket.actualLoadSize ?? docket.plannedLoadSize ?? docket.loadSize ?? 0;
   const uom = docket.jobItem?.productSellUom ?? 'TN';
-  const uomLabel = uom.toUpperCase() === 'TN' ? 't' : formatUomLabel(uom);
-  return `${loadSize.toFixed(2)} ${uomLabel}`;
+  return `${loadSize.toFixed(2)} ${formatUomLabel(uom)}`;
 }
 
 async function buildDocketPdfData(

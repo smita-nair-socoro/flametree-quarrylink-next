@@ -109,7 +109,7 @@ export const docketPdfStyles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: 8,
+    fontSize: 7,
     color: colors.gray600,
     marginBottom: 4,
   },
