@@ -24,8 +24,8 @@ export const colors = {
 export const docketPdfStyles = StyleSheet.create({
   page: {
     fontSize: 9,
-    paddingTop: 40,
-    paddingBottom: 40,
+    paddingTop: 32,
+    paddingBottom: 32,
     paddingHorizontal: 40,
     fontFamily: 'Geist',
     backgroundColor: colors.white,
@@ -37,7 +37,7 @@ export const docketPdfStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   tenantName: {
     fontSize: 18,
@@ -62,7 +62,7 @@ export const docketPdfStyles = StyleSheet.create({
 
   // Sections
   section: {
-    marginBottom: 18,
+    marginBottom: 16,
   },
   sectionHeading: {
     fontSize: 8,
@@ -73,14 +73,14 @@ export const docketPdfStyles = StyleSheet.create({
     paddingBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: colors.gray300,
-    marginBottom: 12,
+    marginBottom: 16,
   },
 
   // Job reference box
   jobBox: {
     backgroundColor: colors.gray100,
     borderRadius: 6,
-    padding: 12,
+    padding: 10,
   },
   jobNumber: {
     fontSize: 11,
@@ -106,7 +106,7 @@ export const docketPdfStyles = StyleSheet.create({
 
   // Label / value pairs
   fieldGroup: {
-    marginBottom: 12,
+    marginBottom: 10,
   },
   label: {
     fontSize: 8,
@@ -126,6 +126,13 @@ export const docketPdfStyles = StyleSheet.create({
     fontSize: 9,
     color: colors.gray600,
     lineHeight: 1.4,
+  },
+  // Geist has no italic variant, so fall back to the built-in oblique font
+  valueItalic: {
+    fontSize: 9,
+    color: colors.gray600,
+    lineHeight: 1.4,
+    fontFamily: 'Helvetica-Oblique',
   },
 
   fieldRow: {
@@ -149,12 +156,13 @@ export const docketPdfStyles = StyleSheet.create({
     alignItems: 'center',
   },
   weightLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
+    fontSize: 11,
+    fontFamily: 'Helvetica-Bold',
   },
+  // Geist ships a single weight, so use the built-in bold for real heaviness
   weightValue: {
-    fontSize: 13,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontFamily: 'Helvetica-Bold',
   },
 
   // Cards (Assignment / Sign Off)
@@ -162,8 +170,8 @@ export const docketPdfStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.gray300,
     borderRadius: 6,
-    padding: 14,
-    marginBottom: 16,
+    padding: 12,
+    marginBottom: 12,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -197,14 +205,14 @@ export const docketPdfStyles = StyleSheet.create({
     flex: 1,
   },
   photoBox: {
-    height: 60,
+    height: 80,
     backgroundColor: colors.gray200,
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
   },
   photoImage: {
-    height: 60,
+    height: 80,
     borderRadius: 4,
     objectFit: 'contain',
     borderWidth: 1,
@@ -220,12 +228,12 @@ export const docketPdfStyles = StyleSheet.create({
     marginTop: 'auto',
     borderTopWidth: 1,
     borderTopColor: colors.gray300,
-    paddingTop: 14,
+    paddingTop: 10,
   },
   footerNote: {
     fontSize: 8,
     color: colors.gray600,
-    marginBottom: 16,
+    marginBottom: 10,
   },
   footerRow: {
     flexDirection: 'row',
@@ -236,7 +244,7 @@ export const docketPdfStyles = StyleSheet.create({
     width: 160,
   },
   signatureImage: {
-    height: 40,
+    height: 32,
     width: 120,
     objectFit: 'contain',
     marginBottom: 2,

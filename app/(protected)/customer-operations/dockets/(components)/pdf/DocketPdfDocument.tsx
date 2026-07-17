@@ -1,15 +1,10 @@
 import React from 'react';
-import {
-  Document,
-  Page,
-  View,
-  Text,
-  Image,
-  Svg,
-  Circle,
-  Path,
-} from '@react-pdf/renderer';
+import { Document, Page, View, Text, Image } from '@react-pdf/renderer';
+import { __iconNode as imageOffIconNode } from 'lucide-react/dist/esm/icons/image-off';
+import { __iconNode as fileXIconNode } from 'lucide-react/dist/esm/icons/file-x';
+import { __iconNode as circleCheckIconNode } from 'lucide-react/dist/esm/icons/circle-check';
 import { docketPdfStyles as styles, colors } from './styles';
+import { LucidePdfIcon } from './LucidePdfIcon';
 
 // Pre-resolved, display-ready data (images as base64 data URLs)
 export interface DocketPdfData {
@@ -52,26 +47,41 @@ export interface DocketPdfData {
 }
 
 const SignOffCheckIcon = () => (
-  <Svg width={12} height={12} viewBox="0 0 24 24" style={{ marginRight: 5 }}>
-    <Circle cx={12} cy={12} r={10} stroke={colors.green} strokeWidth={2} />
-    <Path
-      d="M8 12.5l2.5 2.5L16 9.5"
-      stroke={colors.green}
-      strokeWidth={2}
-      fill="none"
-    />
-  </Svg>
+  <LucidePdfIcon
+    icon={circleCheckIconNode}
+    size={12}
+    color={colors.green}
+    style={{ marginRight: 5 }}
+  />
+);
+
+const ImageOffIcon = () => (
+  <LucidePdfIcon
+    icon={imageOffIconNode}
+    color={colors.gray500}
+    style={{ marginBottom: 4 }}
+  />
+);
+
+const FileXIcon = () => (
+  <LucidePdfIcon
+    icon={fileXIconNode}
+    color={colors.gray500}
+    style={{ marginBottom: 4 }}
+  />
 );
 
 const PhotoCell = ({
   label,
   src,
   placeholder,
+  icon,
   last,
 }: {
   label: string;
   src?: string;
   placeholder: string;
+  icon: React.ReactNode;
   last?: boolean;
 }) => (
   <View style={last ? styles.photoCellLast : styles.photoCell}>
@@ -81,6 +91,7 @@ const PhotoCell = ({
       <Image style={styles.photoImage} src={src} />
     ) : (
       <View style={styles.photoBox}>
+        {icon}
         <Text style={styles.photoPlaceholderText}>{placeholder}</Text>
       </View>
     )}
@@ -185,7 +196,7 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
               {delivery.notes ? (
                 <View style={styles.fieldGroup}>
                   <Text style={styles.label}>Notes</Text>
-                  <Text style={styles.valueMuted}>{delivery.notes}</Text>
+                  <Text style={styles.valueItalic}>{delivery.notes}</Text>
                 </View>
               ) : null}
             </View>
@@ -248,16 +259,19 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
                 label="Unloaded Photo"
                 src={signOff.unloadedPhoto}
                 placeholder="No photo provided"
+                icon={<ImageOffIcon />}
               />
               <PhotoCell
                 label="Receipt Photo"
                 src={signOff.receiptPhoto}
                 placeholder="No photo provided"
+                icon={<ImageOffIcon />}
               />
               <PhotoCell
                 label="Receiver Signature"
                 src={signOff.signature}
                 placeholder="No signature provided"
+                icon={<FileXIcon />}
                 last
               />
             </View>
@@ -265,7 +279,7 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
         ) : null}
 
         {/* Footer */}
-        <View style={styles.footer}>
+        <View style={styles.footer} wrap={false}>
           <Text style={styles.footerNote}>
             Received the above goods in good order and condition.
           </Text>
@@ -280,6 +294,7 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
               </View>
             </View>
             {data.qrCode ? (
+              // eslint-disable-next-line jsx-a11y/alt-text
               <Image style={styles.qrImage} src={data.qrCode} />
             ) : null}
           </View>
