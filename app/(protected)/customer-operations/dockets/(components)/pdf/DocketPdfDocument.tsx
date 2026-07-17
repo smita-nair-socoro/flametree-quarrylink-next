@@ -136,16 +136,18 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
               <Text style={styles.label}>Product</Text>
               <Text style={styles.value}>{product.name || '—'}</Text>
             </View>
-            <View style={styles.fieldRow}>
-              <View style={styles.fieldRowItem}>
-                <Text style={styles.label}>Truck Type</Text>
-                <Text style={styles.value}>{product.truckType || '—'}</Text>
+            {data.docketType !== 'collection' ? (
+              <View style={styles.fieldRow}>
+                <View style={styles.fieldRowItem}>
+                  <Text style={styles.label}>Truck Type</Text>
+                  <Text style={styles.value}>{product.truckType || '—'}</Text>
+                </View>
+                <View style={styles.fieldRowItem}>
+                  <Text style={styles.label}>Rego</Text>
+                  <Text style={styles.value}>{product.rego || '—'}</Text>
+                </View>
               </View>
-              <View style={styles.fieldRowItem}>
-                <Text style={styles.label}>Rego</Text>
-                <Text style={styles.value}>{product.rego || '—'}</Text>
-              </View>
-            </View>
+            ) : null}
           </View>
           <View style={styles.columnLast}>
             <Text style={styles.sectionHeading}>Weights</Text>
