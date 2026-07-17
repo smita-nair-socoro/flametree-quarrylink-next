@@ -15,7 +15,7 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
-import { parseAsUTC } from '@/lib/utils/date';
+import { parseBackendDateTime } from '@/lib/utils/date';
 import { acceptImageFile } from '@/lib/utils/image-file-size';
 import { getTenantNow } from '@/lib/utils/tenant-config-helper';
 
@@ -131,7 +131,7 @@ export function MarkDeliveredContent({
   const waitingTime = React.useMemo(() => {
     if (!docket?.arrivedAt) return '—';
     return formatWaitingDuration(
-      tenantNow.getTime() - parseAsUTC(docket.arrivedAt).getTime(),
+      tenantNow.getTime() - parseBackendDateTime(docket.arrivedAt).getTime(),
     );
   }, [docket?.arrivedAt, tenantNow]);
 

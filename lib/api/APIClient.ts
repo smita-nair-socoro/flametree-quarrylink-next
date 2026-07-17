@@ -183,8 +183,8 @@ export interface HttpConfig {
   fetch?: typeof fetch;
 
   /**
-   * If true, appends 'Z' to known date field strings that lack timezone info.
-   * This treats backend datetimes as UTC. Default: true.
+   * @deprecated Unused. Backend datetimes are tenant-local wall-clock strings;
+   * the frontend does not normalize them to UTC.
    */
   normalizeUtc?: boolean;
 
@@ -1706,10 +1706,10 @@ export const APIClient = {
       ),
     getAssignedDocketById: (docketId: number) =>
       appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
-    operationalUpdate: (id: number, actualLoadSize: number) =>
+    operationalUpdate: (id: number, data: DocketOperationalUpdateRequest) =>
       appClient.Put<DocketOperationalUpdateResponse>(
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
-        { body: { actualLoadSize } },
+        { body: data },
       ),
     updateDocketStatus: (id: number, formData: FormData) =>
       appClient.Put<DocketDTO>(

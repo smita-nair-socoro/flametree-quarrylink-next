@@ -5,6 +5,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { TruckDTO } from '@/lib/types/truck';
 import { TRUCK_TYPE, normalizeTruckStatus } from '@/lib/types/truck-enums';
 import { TruckTableActions } from './truck-table-actions';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const truckColumns: ColumnDef<TruckDTO>[] = [
   {
@@ -101,7 +102,7 @@ export const truckColumns: ColumnDef<TruckDTO>[] = [
         return <div className="py-2">--</div>;
       const value = row.original.combinationGvm;
       if (value == null) return <div className="py-2">-</div>;
-      return <div className="py-2">{value} TN</div>;
+      return <div className="py-2">{formatNumberThousandSeparator(value)} TN</div>;
     },
     meta: 'GVM',
   },
