@@ -24,6 +24,7 @@ import {
   UserRoundPlus,
   Copy,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
@@ -57,7 +58,8 @@ type ActionType =
   | 'assign'
   | 'backToPending'
   | 'backToPreparing'
-  | 'retrySync';
+  | 'retrySync'
+  | 'print';
 
 interface ActionItem {
   label: string;
@@ -235,7 +237,10 @@ export function DocketActionButtons({
   }
 
   const primaryAction = currentActions[0];
-  const secondaryActions = currentActions.slice(1);
+  const secondaryActions: ActionItem[] = [
+    ...currentActions.slice(1),
+    { label: 'Print Docket', icon: Printer, action: 'print', separator: true },
+  ];
 
   return (
     <div>

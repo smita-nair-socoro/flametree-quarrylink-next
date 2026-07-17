@@ -96,7 +96,8 @@ export type DocketActionKey =
   | 'backToPreparing'
   | 'cashSale'
   | 'cashReceipts'
-  | 'duplicate';
+  | 'duplicate'
+  | 'print';
 
 interface DialogConfig {
   title: string;
@@ -818,6 +819,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
+    print: () => {
+      console.log('Print docket:', effectiveDocket?.id);
+      // TODO: implement print logic
+    },
     cancel: () => {
       setCancelReason('');
       setCancelNotes('');

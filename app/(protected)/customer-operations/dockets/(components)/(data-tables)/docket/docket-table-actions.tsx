@@ -17,6 +17,7 @@ import {
   UserRoundPlus,
   Copy,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,7 +57,8 @@ type ActionType =
   | 'assign'
   | 'backToPending'
   | 'backToPreparing'
-  | 'retrySync';
+  | 'retrySync'
+  | 'print';
 
 interface ActionItem {
   label: string;
@@ -299,6 +301,10 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
           <DropdownMenuItem onClick={() => handleAction('duplicate')}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => handleAction('print')}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print Docket
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
