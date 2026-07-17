@@ -91,7 +91,9 @@ export default function TruckForm({
   const createTruck = useCreateTruck();
   const updateTruck = useUpdateTruck();
 
-  const { hauliers } = useHauliersForForm({ enabled: !isEditing });
+  const { hauliers, hasMoreHauliers } = useHauliersForForm({
+    enabled: !isEditing,
+  });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
@@ -446,6 +448,7 @@ export default function TruckForm({
                     label="Haulier*"
                     entityName="Haulier"
                     items={haulierItems}
+                    autoSelectForOnlyOneOption={!hasMoreHauliers}
                     renderForm={(
                       editingItem,
                       isEditingItem,

@@ -15,8 +15,25 @@ export interface TrackingCategoryDefinition {
   trackingGroupName: string;
 }
 
+export interface FieldMapping {
+  id: number;
+  name: string;
+  category: string;
+  field: string;
+  definitionId: number;
+  optionNames: string[];
+}
+
 export interface createUpdateTrackingCategory {
   trackingCategoryName: string;
   accountingTrackingCategoryDefinitionId: number;
   trackingOptionNames: string[];
+}
+
+export interface AccountCode {
+  id?: number;
+  code: string;
+  name: string;
+  type?: string;
+  status?: string;
 }

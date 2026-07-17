@@ -213,6 +213,7 @@ export default function JobForm({
               hasMoreOptions={hasMoreCustomerOptions}
               isLoadingMoreOptions={isLoadingMoreCustomerOptions}
               disabled={isEditing}
+              autoSelectForOnlyOneOption={!isEditing}
             />
 
             <FormField

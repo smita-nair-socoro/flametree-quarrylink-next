@@ -8,6 +8,7 @@ import {
   FormTableHeader,
   CellConfig,
   FormTableRow,
+  buildFormTableFieldName,
 } from '@/components/ui/form-table';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
@@ -23,30 +24,28 @@ export function PricingConfigurationTable({
 }: PricingConfigurationTableProps) {
   const { exTaxLabel } = useTenantCurrencyTax();
 
-  // Calculate margin percentage: (Sell Price - Cost Price) / Sell Price × 100
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
     if (!sellPrice || sellPrice <= 0) return 0;
     return ((sellPrice - costPrice) / sellPrice) * 100;
   };
 
-  // Headers configuration
   const headers: FormTableHeader[] = [
     { key: 'unit', label: 'Unit', className: 'w-15' },
     {
-      key: 'cost_price',
+      key: 'costPrice',
       label: 'Cost Price*',
       className: 'md:w-20',
       tooltip: exTaxLabel,
     },
     {
-      key: 'sell_price',
+      key: 'sellPrice',
       label: 'Sell Price*',
       className: 'md:w-20',
       tooltip: exTaxLabel,
     },
     { key: 'Margin', label: 'Profit Margin %', className: 'w-25' },
     {
-      key: 'available_for_sale',
+      key: 'availableForSale',
       label: 'Available for Sale',
       mobileLabel: 'For Sale',
       className: 'md:w-20',
@@ -54,7 +53,6 @@ export function PricingConfigurationTable({
     },
   ];
 
-  // Rows configuration
   const rows: FormTableRow[] = [
     { id: 'tn', label: 'TN*' },
     { id: 'm3', label: 'm³' },
@@ -62,7 +60,6 @@ export function PricingConfigurationTable({
     { id: 'bulka', label: 'Bulka' },
   ];
 
-  // Cells configuration
   const cells: CellConfig<z.infer<typeof NewSupplierFormSchema>>[] = [
     {
       key: 'unit',
@@ -71,7 +68,7 @@ export function PricingConfigurationTable({
       className: 'w-15',
     },
     {
-      key: 'cost_price',
+      key: 'costPrice',
       type: 'currency',
       placeholder: '0.00',
       decimalPlaces: 2,
@@ -79,7 +76,7 @@ export function PricingConfigurationTable({
       className: 'md:w-25',
     },
     {
-      key: 'sell_price',
+      key: 'sellPrice',
       type: 'currency',
       placeholder: '0.00',
       decimalPlaces: 2,
@@ -90,21 +87,22 @@ export function PricingConfigurationTable({
       key: 'margin',
       type: 'calculated',
       className: 'w-20',
-      calculate: (row, watch) => {
+      calculate: (row, watchFn) => {
         const costPrice =
-          (watch(
-            `cost_price_${row.id}` as keyof z.infer<
-              typeof NewSupplierFormSchema
-            >
+          (watchFn(
+            buildFormTableFieldName(
+              'costPrice',
+              row.id,
+            ) as keyof z.infer<typeof NewSupplierFormSchema>,
           ) as number) || 0;
         const sellPrice =
-          (watch(
-            `sell_price_${row.id}` as keyof z.infer<
-              typeof NewSupplierFormSchema
-            >
+          (watchFn(
+            buildFormTableFieldName(
+              'sellPrice',
+              row.id,
+            ) as keyof z.infer<typeof NewSupplierFormSchema>,
           ) as number) || 0;
 
-        // Always calculate and display margin regardless of availability switch
         const marginValue = calculateMargin(costPrice, sellPrice);
 
         const marginIcon =
@@ -117,9 +115,12 @@ export function PricingConfigurationTable({
           );
 
         const displayValue = `${marginValue.toFixed(2)}%`;
-
-        // Determine text color based on margin value
-        const textColor = marginValue > 0 ? 'text-green-600' : marginValue < 0 ? 'text-red-600' : 'text-gray-600';
+        const textColor =
+          marginValue > 0
+            ? 'text-green-600'
+            : marginValue < 0
+              ? 'text-red-600'
+              : 'text-gray-600';
 
         return (
           <div className="flex justify-start gap-2">
@@ -130,10 +131,10 @@ export function PricingConfigurationTable({
       },
     },
     {
-      key: 'available_for_sale',
+      key: 'availableForSale',
       type: 'switch',
       className: 'md:w-36',
-      disabled: (row) => row.id === 'tn', // TN is always available for sale
+      disabled: (row) => row.id === 'tn',
     },
   ];
 
@@ -150,11 +151,17 @@ export function PricingConfigurationTable({
       mobileStackedLabelRender={(row) => {
         const costPrice =
           (watch(
-            `cost_price_${row.id}` as keyof z.infer<typeof NewSupplierFormSchema>
+            buildFormTableFieldName(
+              'costPrice',
+              row.id,
+            ) as keyof z.infer<typeof NewSupplierFormSchema>,
           ) as number) || 0;
         const sellPrice =
           (watch(
-            `sell_price_${row.id}` as keyof z.infer<typeof NewSupplierFormSchema>
+            buildFormTableFieldName(
+              'sellPrice',
+              row.id,
+            ) as keyof z.infer<typeof NewSupplierFormSchema>,
           ) as number) || 0;
         const marginValue = calculateMargin(costPrice, sellPrice);
         const textColor =
@@ -166,7 +173,9 @@ export function PricingConfigurationTable({
         return (
           <div className="flex items-center justify-between">
             <span className="font-medium text-sm">{row.label}</span>
-            <div className={`bg-gray-100 rounded px-2 py-0.5 text-xs font-medium ${textColor}`}>
+            <div
+              className={`bg-gray-100 rounded px-2 py-0.5 text-xs font-medium ${textColor}`}
+            >
               {marginValue.toFixed(2)}%
             </div>
           </div>

@@ -198,6 +198,7 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
         description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
+            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
