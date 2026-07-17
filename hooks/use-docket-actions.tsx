@@ -62,6 +62,8 @@ import {
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocketStore } from '@/app/stores/docket-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { downloadDocketPdf } from '@/lib/utils/docket-pdf-download';
 import {
   useUpdateDocketStatus,
   useAssignDocket,
@@ -143,6 +145,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+  const businessName = useTenantStore((state) => state.businessName);
   const selectedDocket = useDocketStore((s) => {
     if (docketData) {
       return s.selectedDocket?.id === docketData.id ? s.selectedDocket : null;
@@ -819,9 +822,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
-    print: () => {
-      console.log('Print docket:', effectiveDocket?.id);
-      // TODO: implement print logic
+    print: async () => {
+      if (!effectiveDocket) return;
+      try {
+        await downloadDocketPdf(effectiveDocket, businessName ?? undefined);
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      }
     },
     cancel: () => {
       setCancelReason('');
