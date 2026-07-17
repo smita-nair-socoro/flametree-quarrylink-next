@@ -1,0 +1,21 @@
+Hi {FullName},
+
+Welcome to QuarryLink!
+
+An account has been created for you by {InvitedByName} at {TenantName}.
+
+Use the details below to sign in for the first time. You’ll be prompted to set a new password immediately.
+
+Username : {Username}
+
+Temporary password : {TemporaryPassword}
+
+{ValidityText}
+
+Activate Account & Set Password: {LoginUrl}
+
+If you have any questions or need help getting started, please reach out to your account administrator or contact our support team.
+
+We're excited to have you on board!
+
+You're receiving this email because an account was created for you on QuarryLink.

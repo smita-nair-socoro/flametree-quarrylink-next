@@ -21,11 +21,22 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { AuditInformation } from '@/components/audit-information';
+import { DataTableClient } from '@/components/ui/data-table-client';
+import { Separator } from '@/components/ui/separator';
+import { FormDialog } from '@/components/form-dialog';
 import { cn } from '@/lib/utils';
 import { AddressType } from '@/lib/types/address';
-import { CustomerDTO } from '@/lib/types/customer';
+import {
+  AdditionalContactDTO,
+  CustomerAttachmentDTO,
+  CustomerDTO,
+} from '@/lib/types/customer';
 import { PAYMENT_TERM_TYPE } from '@/lib/types/customer-enums';
 import { NewCustomerFormSchema } from '../../schemas/customer-form-schema';
+import AdditionalContactForm from '../../additional-contact-form';
+import { AddCustomerAttachmentDialog } from '../../add-customer-attachment-dialog';
+import { getAdditionalContactColumns } from '../../../(data-tables)/additional-contact/columns';
+import { getCustomerAttachmentColumns } from '../../../(data-tables)/attachment/columns';
 
 type CustomerFormValues = z.infer<typeof NewCustomerFormSchema>;
 
@@ -74,6 +85,17 @@ interface DetailsTabProps {
   onAddressChange: (address: AddressType) => void;
   searchInput: string;
   setSearchInput: React.Dispatch<React.SetStateAction<string>>;
+  customerId: number;
+  additionalContactTableData: AdditionalContactDTO[];
+  additionalContactsPage?: { totalElements: number; totalPages: number };
+  isAdditionalContactsFetching: boolean;
+  additionalContactsPageIndex: number;
+  additionalContactsPageSize: number;
+  handleAdditionalContactsPaginationChange: (page: number, pageSize: number) => void;
+  attachmentTableData: CustomerAttachmentDTO[];
+  isAttachmentsLoading: boolean;
+  addAttachmentOpen: boolean;
+  setAddAttachmentOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export default function DetailsTab({
@@ -95,6 +117,17 @@ export default function DetailsTab({
   onAddressChange,
   searchInput,
   setSearchInput,
+  customerId,
+  additionalContactTableData,
+  additionalContactsPage,
+  isAdditionalContactsFetching,
+  additionalContactsPageIndex,
+  additionalContactsPageSize,
+  handleAdditionalContactsPaginationChange,
+  attachmentTableData,
+  isAttachmentsLoading,
+  addAttachmentOpen,
+  setAddAttachmentOpen,
 }: Readonly<DetailsTabProps>) {
   const router = useRouter();
 
@@ -698,6 +731,7 @@ export default function DetailsTab({
         name="account_manager"
         label="Account Manager*"
         options={accountManagerOptions}
+        autoSelectForOnlyOneOption={!isEditing}
         placeholder="Select Account Manager"
         formItemClassName={getPairedFieldColumnClass(
           isEditing,
@@ -737,14 +771,105 @@ export default function DetailsTab({
         )}
       />
 
+      {/* Additional Contacts */}
+      {isEditing && (
+        <div className="col-span-2 col-start-1 mb-6">
+          <Separator className="my-4" />
+          <div className="flex flex-col gap-4 mt-6">
+            <div
+              className={cn(
+                isDesktop
+                  ? 'flex justify-between items-center'
+                  : 'flex flex-col gap-4',
+              )}
+            >
+              <span className="text-lg font-semibold">Additional Contacts</span>
+              <FormDialog
+                dialogTitle="Add New Contact"
+                dialogDescription="Fill in the contact details below."
+                buttonTitle="Add New Contact"
+                dialogWidth="600px"
+                contentClass="-mt-5"
+                preventAutoFocus
+              >
+                <AdditionalContactForm customerId={customerId} />
+              </FormDialog>
+            </div>
+
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                tableId={`customer-additional-contacts-${customerId}`}
+                columns={getAdditionalContactColumns(customerId)}
+                data={additionalContactTableData}
+                simpleTable={true}
+                isLoading={isAdditionalContactsFetching}
+                totalElements={additionalContactsPage?.totalElements ?? 0}
+                totalPages={Math.max(additionalContactsPage?.totalPages ?? 0, 1)}
+                externalPageIndex={additionalContactsPageIndex}
+                externalPageSize={additionalContactsPageSize}
+                onPaginationChange={handleAdditionalContactsPaginationChange}
+                defaultSorting={[{ id: 'name', desc: false }]}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Attachments */}
+      {isEditing && (
+        <div className="col-span-2 col-start-1 mb-6">
+          <Separator className="my-4" />
+          <div className="flex flex-col gap-4 mt-6">
+            <div
+              className={cn(
+                isDesktop
+                  ? 'flex justify-between items-center'
+                  : 'flex flex-col gap-4',
+              )}
+            >
+              <span className="text-lg font-semibold">Attachments</span>
+              <Button
+                type="button"
+                className="cursor-pointer"
+                onClick={() => setAddAttachmentOpen(true)}
+              >
+                Add Attachment
+              </Button>
+            </div>
+
+            <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
+              <DataTableClient
+                tableId={`customer-attachments-${customerId}`}
+                columns={getCustomerAttachmentColumns(customerId)}
+                data={attachmentTableData}
+                simpleTable={true}
+                isLoading={isAttachmentsLoading}
+                defaultSorting={[{ id: 'fileName', desc: false }]}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditing && (
+        <AddCustomerAttachmentDialog
+          open={addAttachmentOpen}
+          onOpenChange={setAddAttachmentOpen}
+          customerId={customerId}
+        />
+      )}
+
       {/* Audit Information */}
       {isEditing && (
-        <AuditInformation
-          createdBy={selectedCustomer?.createdBy}
-          lastModifiedBy={selectedCustomer?.lastModifiedBy}
-          createdAt={selectedCustomer?.createdAt}
-          updatedAt={selectedCustomer?.updatedAt}
-        />
+        <>
+          <Separator className="col-span-full my-4 mb-5" />
+          <AuditInformation
+            createdBy={selectedCustomer?.createdBy}
+            lastModifiedBy={selectedCustomer?.lastModifiedBy}
+            createdAt={selectedCustomer?.createdAt}
+            updatedAt={selectedCustomer?.updatedAt}
+          />
+        </>
       )}
     </div>
   );
