@@ -74,8 +74,8 @@ async function buildDocketPdfData(
     docketType: isCollection ? 'collection' : 'delivery',
     tenantName: tenantName || '—',
     docTitle: isCollection
-      ? 'Collection Docket & Tax Invoice'
-      : 'Delivery Docket & Tax Invoice',
+      ? 'Collection Docket'
+      : 'Delivery Docket',
     docketNumber: docket.docketNumber,
     dateLabel: formatCalendarDate(docket.deliveryCollectionDate, 'dd/MM/yyyy'),
     job: {
@@ -99,21 +99,21 @@ async function buildDocketPdfData(
     assignment:
       docket.driver || docket.truck
         ? {
-            driverName: docket.driver?.driverName,
-            truckRego: docket.truck?.licensePlate,
-          }
+          driverName: docket.driver?.driverName,
+          truckRego: docket.truck?.licensePlate,
+        }
         : undefined,
     signOff: hasSignOff
       ? {
-          deliveredAtLabel: docket.deliveredAt
-            ? `Delivered at ${formatLocalDate(docket.deliveredAt, 'hh:mm a')}`
-            : undefined,
-          receiverName: docket.receiverName,
-          receiverOnSite: docket.receiverOnSite,
-          unloadedPhoto,
-          receiptPhoto,
-          signature,
-        }
+        deliveredAtLabel: docket.deliveredAt
+          ? `Delivered at ${formatLocalDate(docket.deliveredAt, 'hh:mm a')}`
+          : undefined,
+        receiverName: docket.receiverName,
+        receiverOnSite: docket.receiverOnSite,
+        unloadedPhoto,
+        receiptPhoto,
+        signature,
+      }
       : undefined,
   };
 }
