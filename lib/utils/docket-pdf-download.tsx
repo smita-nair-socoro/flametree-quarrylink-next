@@ -1,6 +1,5 @@
 import React from 'react';
 import { pdf } from '@react-pdf/renderer';
-import QRCode from 'qrcode';
 import { DocketDTO } from '@/lib/types/docket';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import {
@@ -54,11 +53,10 @@ async function buildDocketPdfData(
   const isCollection =
     docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION;
 
-  const [unloadedPhoto, receiptPhoto, signature, qrCode] = await Promise.all([
+  const [unloadedPhoto, receiptPhoto, signature] = await Promise.all([
     fetchImageAsBase64(docket.unloadedPhotos?.[0]),
     fetchImageAsBase64(docket.receivedPhotos?.[0]),
     fetchImageAsBase64(docket.signatureImage),
-    QRCode.toDataURL(docket.docketNumber, { margin: 0, width: 112 }),
   ]);
 
   const hasSignOff = Boolean(
@@ -66,6 +64,7 @@ async function buildDocketPdfData(
   );
 
   return {
+    docketType: isCollection ? 'collection' : 'delivery',
     tenantName: tenantName || '—',
     docTitle: isCollection
       ? 'Collection Docket & Tax Invoice'
@@ -89,7 +88,6 @@ async function buildDocketPdfData(
       deliveryLatLong: formatLatLong(docket.deliveryAddress),
       contactName: docket.customerContactName,
       contactPhone: docket.customerContactPhone,
-      notes: docket.notes,
     },
     assignment:
       docket.driver || docket.truck
@@ -110,7 +108,6 @@ async function buildDocketPdfData(
           signature,
         }
       : undefined,
-    qrCode,
   };
 }
 
@@ -132,7 +129,7 @@ export async function downloadDocketPdf(
     link.download = `${docket.docketNumber}.pdf`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Failed to generate or download docket PDF:', error);

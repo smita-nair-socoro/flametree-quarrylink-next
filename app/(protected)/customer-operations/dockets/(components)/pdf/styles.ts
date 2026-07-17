@@ -233,34 +233,5 @@ export const docketPdfStyles = StyleSheet.create({
   footerNote: {
     fontSize: 8,
     color: colors.gray600,
-    marginBottom: 10,
-  },
-  footerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
-  },
-  signatureBlock: {
-    width: 160,
-  },
-  signatureImage: {
-    height: 32,
-    width: 120,
-    objectFit: 'contain',
-    marginBottom: 2,
-  },
-  signatureLine: {
-    borderTopWidth: 1,
-    borderTopColor: colors.gray700,
-    paddingTop: 4,
-  },
-  signatureLabel: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  qrImage: {
-    width: 56,
-    height: 56,
   },
 });

@@ -21,6 +21,7 @@ export interface DocketPdfData {
     truckType?: string;
     rego?: string;
   };
+  docketType: 'delivery' | 'collection';
   loadSizeLabel: string;
   delivery: {
     pickupAddress?: string;
@@ -29,7 +30,6 @@ export interface DocketPdfData {
     deliveryLatLong?: string;
     contactName?: string;
     contactPhone?: string;
-    notes?: string;
   };
   assignment?: {
     driverName?: string;
@@ -43,7 +43,6 @@ export interface DocketPdfData {
     receiptPhoto?: string;
     signature?: string;
   };
-  qrCode?: string;
 }
 
 const SignOffCheckIcon = () => (
@@ -157,9 +156,13 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
           </View>
         </View>
 
-        {/* Delivery Details */}
+        {/* Delivery / Collection Details */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeading}>Delivery Details</Text>
+          <Text style={styles.sectionHeading}>
+            {data.docketType === 'collection'
+              ? 'Collection Details'
+              : 'Delivery Details'}
+          </Text>
           <View style={styles.twoColumn}>
             <View style={styles.column}>
               <View style={styles.fieldGroup}>
@@ -182,21 +185,17 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
               </View>
             </View>
             <View style={styles.columnLast}>
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>Delivery Address</Text>
-                <Text style={styles.valueRegular}>
-                  {delivery.deliveryAddress || '—'}
-                </Text>
-                {delivery.deliveryLatLong ? (
-                  <Text style={styles.valueRegular}>
-                    {delivery.deliveryLatLong}
-                  </Text>
-                ) : null}
-              </View>
-              {delivery.notes ? (
+              {data.docketType !== 'collection' ? (
                 <View style={styles.fieldGroup}>
-                  <Text style={styles.label}>Notes</Text>
-                  <Text style={styles.valueItalic}>{delivery.notes}</Text>
+                  <Text style={styles.label}>Delivery Address</Text>
+                  <Text style={styles.valueRegular}>
+                    {delivery.deliveryAddress || '—'}
+                  </Text>
+                  {delivery.deliveryLatLong ? (
+                    <Text style={styles.valueRegular}>
+                      {delivery.deliveryLatLong}
+                    </Text>
+                  ) : null}
                 </View>
               ) : null}
             </View>
@@ -283,21 +282,6 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
           <Text style={styles.footerNote}>
             Received the above goods in good order and condition.
           </Text>
-          <View style={styles.footerRow}>
-            <View style={styles.signatureBlock}>
-              {signOff?.signature ? (
-                // eslint-disable-next-line jsx-a11y/alt-text
-                <Image style={styles.signatureImage} src={signOff.signature} />
-              ) : null}
-              <View style={styles.signatureLine}>
-                <Text style={styles.signatureLabel}>Receiver Signature</Text>
-              </View>
-            </View>
-            {data.qrCode ? (
-              // eslint-disable-next-line jsx-a11y/alt-text
-              <Image style={styles.qrImage} src={data.qrCode} />
-            ) : null}
-          </View>
         </View>
       </Page>
     </Document>
