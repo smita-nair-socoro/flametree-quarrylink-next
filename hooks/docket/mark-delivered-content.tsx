@@ -15,7 +15,8 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
-import { parseAsUTC } from '@/lib/utils/date';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { parseBackendDateTime } from '@/lib/utils/date';
 import { acceptImageFile } from '@/lib/utils/image-file-size';
 import { getTenantNow } from '@/lib/utils/tenant-config-helper';
 
@@ -38,15 +39,7 @@ export function MarkDeliveredDescription({
           <span className="font-bold">•</span>
           <span>
             {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
@@ -131,7 +124,7 @@ export function MarkDeliveredContent({
   const waitingTime = React.useMemo(() => {
     if (!docket?.arrivedAt) return '—';
     return formatWaitingDuration(
-      tenantNow.getTime() - parseAsUTC(docket.arrivedAt).getTime(),
+      tenantNow.getTime() - parseBackendDateTime(docket.arrivedAt).getTime(),
     );
   }, [docket?.arrivedAt, tenantNow]);
 

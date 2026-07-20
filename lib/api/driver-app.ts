@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverAppKeys } from './keys';
-import { DocketDTO, DriverAppStatusUpdateRequest } from '../types/docket';
+import {
+  DocketDTO,
+  DriverAppStatusUpdateRequest,
+  DocketOperationalUpdateRequest,
+} from '../types/docket';
 
 export const DriverAppAssignedDocketsQueryOptions = () => ({
   queryKey: DriverAppKeys.assignedDockets(),
@@ -19,11 +23,9 @@ export const useDriverAppOperationalUpdate = () =>
   useMutation({
     mutationFn: ({
       id,
-      actualLoadSize,
-    }: {
-      id: number;
-      actualLoadSize: number;
-    }) => APIClient.driverApp.operationalUpdate(id, actualLoadSize),
+      ...data
+    }: { id: number } & DocketOperationalUpdateRequest) =>
+      APIClient.driverApp.operationalUpdate(id, data),
   });
 
 export const useDriverAppUpdateDocketStatus = () => {

@@ -4,6 +4,7 @@ import { XCircle, AlertTriangle } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export const CANCEL_REASON_LABELS: Record<string, string> = {
@@ -23,9 +24,9 @@ const CANCEL_REASONS = Object.entries(CANCEL_REASON_LABELS).map(
 
 export function CancelDocketDescription({
   docket,
-}: {
+}: Readonly<{
   docket?: DocketDTO | null;
-}) {
+}>) {
   return (
     <div className="flex items-center gap-3">
       <div className="flex h-[46px] w-[46px] flex-shrink-0 items-center justify-center rounded-full bg-[#FEE2E2]">
@@ -36,19 +37,15 @@ export function CancelDocketDescription({
           {docket?.docketNumber ?? '—'}
         </span>
         <div className="flex items-center gap-2 text-sm text-[#6A7282]">
-          <span className="text-sm text-[#6A7282]">{docket?.jobItem?.product?.productName ?? '—'}</span>
+          <span className="text-sm text-[#6A7282]">
+            {docket?.jobItem?.product?.productName ?? '—'}
+          </span>
           <span className="text-sm text-[#6A7282] font-bold">•</span>
           <span className="text-sm text-[#6A7282]">
-            {formatNumberThousandSeparator(docket?.actualLoadSize || docket?.plannedLoadSize)}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatNumberThousandSeparator(
+              docket?.actualLoadSize || docket?.plannedLoadSize,
+            )}{' '}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
@@ -61,12 +58,12 @@ export function CancelDocketContent({
   onCancelReasonChange,
   cancelNotes,
   onCancelNotesChange,
-}: {
+}: Readonly<{
   cancelReason: string;
   onCancelReasonChange: (value: string) => void;
   cancelNotes: string;
   onCancelNotesChange: (value: string) => void;
-}) {
+}>) {
   const notesRequired = cancelReason === 'other';
 
   return (
@@ -100,7 +97,13 @@ export function CancelDocketContent({
 
       <div className="flex flex-col gap-2">
         <label className="text-sm font-medium text-[#364153]">
-          Additional notes{notesRequired && <>{' '}<span className="text-[#111827]">*</span></>}
+          Additional notes
+          {notesRequired && (
+            <>
+              {' '}
+              <span className="text-[#111827]">*</span>
+            </>
+          )}
         </label>
         <Textarea
           value={cancelNotes}

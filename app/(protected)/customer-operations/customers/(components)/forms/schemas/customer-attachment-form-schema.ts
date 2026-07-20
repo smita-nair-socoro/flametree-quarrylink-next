@@ -83,9 +83,10 @@ function hasAcceptedExtension(fileName: string) {
 }
 
 export const customerAttachmentFormSchema = z.object({
-  category: z.nativeEnum(CUSTOMER_ATTACHMENT_CATEGORY, {
-    required_error: 'Category is required',
-  }),
+  category: z
+    .string()
+    .min(1, 'Category is required')
+    .pipe(z.nativeEnum(CUSTOMER_ATTACHMENT_CATEGORY)),
   fileName: z
     .string()
     .trim()

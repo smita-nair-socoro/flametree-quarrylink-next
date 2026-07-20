@@ -62,6 +62,8 @@ import {
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDocketStore } from '@/app/stores/docket-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
+import { downloadDocketPdf } from '@/lib/utils/docket-pdf-download';
 import {
   useUpdateDocketStatus,
   useAssignDocket,
@@ -72,6 +74,7 @@ import {
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import { getCalendarDateString } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
 import { useRetrySync } from '@/lib/api/invoices';
@@ -96,7 +99,8 @@ export type DocketActionKey =
   | 'backToPreparing'
   | 'cashSale'
   | 'cashReceipts'
-  | 'duplicate';
+  | 'duplicate'
+  | 'print';
 
 interface DialogConfig {
   title: string;
@@ -142,6 +146,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+  const businessName = useTenantStore((state) => state.businessName);
   const selectedDocket = useDocketStore((s) => {
     if (docketData) {
       return s.selectedDocket?.id === docketData.id ? s.selectedDocket : null;
@@ -519,7 +524,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           numberOfCopies: duplicateCopies,
           retainPurchaseOrder: duplicateRetainPo,
           purchaseOrder: duplicateRetainPo ? undefined : duplicatePurchaseOrder,
-          deliveryCollectionDate: duplicateDeliveryDate.toISOString(),
+          deliveryCollectionDate: `${getCalendarDateString(duplicateDeliveryDate)}T00:00:00.000`,
         },
       });
       result.dockets.forEach((d) =>
@@ -818,6 +823,14 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     void: createDialogAction('void'),
     remove: createDialogAction('remove'),
     duplicate: createDialogAction('duplicate'),
+    print: async () => {
+      if (!effectiveDocket) return;
+      try {
+        await downloadDocketPdf(effectiveDocket, businessName ?? undefined);
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      }
+    },
     cancel: () => {
       setCancelReason('');
       setCancelNotes('');

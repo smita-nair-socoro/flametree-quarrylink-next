@@ -145,7 +145,7 @@ function formValuesFromCustomer(customer: CustomerDTO) {
     payment_terms_day: customer.invoiceDueDateDayCount ?? 0,
     payment_terms:
       customer.paymentTermType &&
-      customer.paymentTermType !== PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE
+        customer.paymentTermType !== PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE
         ? customer.paymentTermType
         : PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
     account_manager: customer.accountManagerSub ?? '',
@@ -357,16 +357,16 @@ export function useCustomerFormState({
         ...rawValues,
         ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
           ? {
-              business_name: '',
-              business_email: '',
-              business_phone: '',
-              abn: '',
-              contact_person_first_name: '',
-              contact_person_last_name: '',
-            }
+            business_name: '',
+            business_email: '',
+            business_phone: '',
+            abn: '',
+            contact_person_first_name: '',
+            contact_person_last_name: '',
+          }
           : {
-              contact_person_name: '',
-            }),
+            contact_person_name: '',
+          }),
         ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
           ? { credit_limit: 0, payment_terms_day: 0 }
           : {}),
@@ -424,8 +424,8 @@ export function useCustomerFormState({
           customerData.businessPhone = values.business_phone || '';
           customerData.individualContactName =
             values.contact_person_first_name +
-              ' ' +
-              values.contact_person_last_name || '';
+            ' ' +
+            values.contact_person_last_name || '';
           customerData.contactPersonFirstName =
             values.contact_person_first_name || '';
           customerData.contactPersonLastName =
@@ -438,7 +438,6 @@ export function useCustomerFormState({
         if (values.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
           customerData.individualContactName = values.contact_person_name || '';
           customerData.abn = 'N/A';
-          customerData.dateOfBirth = new Date().toISOString();
           customerData.govId = '123';
         }
 
