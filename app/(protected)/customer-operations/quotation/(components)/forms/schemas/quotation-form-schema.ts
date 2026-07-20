@@ -4,7 +4,15 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
 
-export const NewQuotationFormSchema = z.object({
+const requiredPhoneSchema = z
+  .string()
+  .trim()
+  .nonempty({ message: 'Required' })
+  .refine((v) => !v || isValidPhoneNumber(v), {
+    message: 'Invalid phone number',
+  });
+
+export const QuotationFormSchema = z.object({
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),
@@ -22,13 +30,8 @@ export const NewQuotationFormSchema = z.object({
       message: 'Invalid time of day with timezone',
     }),
   expiryDate: z.date({ message: 'Required' }),
-  phone: z
-    .string()
-    .trim()
-    .nonempty({ message: 'Required' })
-    .refine((v) => !v || isValidPhoneNumber(v), {
-      message: 'Invalid phone number',
-    }),
+  // Create flow: phone is auto-filled from customer but not shown — skip format checks.
+  phone: z.string().optional(),
   receiptEmail: z.string().optional(),
   customerNotes: z
     .string()
@@ -36,3 +39,14 @@ export const NewQuotationFormSchema = z.object({
     .optional(),
   attachedItemIds: z.array(z.string()).optional(),
 });
+
+export type QuotationFormValues = z.infer<typeof QuotationFormSchema>;
+
+export const getQuotationFormSchema = (isEditing: boolean) => {
+  if (isEditing) {
+    return QuotationFormSchema.extend({
+      phone: requiredPhoneSchema,
+    });
+  }
+  return QuotationFormSchema;
+};

@@ -167,11 +167,11 @@ export default function ProductForm({
   const buildProductPayload = React.useCallback(
     (values: ProductFormValues, needDensityOverride?: boolean): Partial<Product> => {
       const payload: Partial<Product> = {
-        productName: values.product_name,
-        productCode: values.product_code,
-        materialId: values.material_id,
-        densityTonnagePerM3: values.density_tonnage_per_m3,
-        productDescription: values.product_description,
+        productName: values.productName,
+        productCode: values.productCode,
+        materialId: values.materialId,
+        densityTonnagePerM3: values.densityTonnagePerM3,
+        productDescription: values.productDescription,
         isActive: true,
         version: selectedProduct?.version || 0,
       };
@@ -223,7 +223,7 @@ export default function ProductForm({
 
     if (isEditing && id) {
       const densityChanged =
-        selectedProduct?.densityTonnagePerM3 !== values.density_tonnage_per_m3;
+        selectedProduct?.densityTonnagePerM3 !== values.densityTonnagePerM3;
 
       if (densityChanged) {
         pendingSubmitValuesRef.current = values;
@@ -549,7 +549,7 @@ export default function ProductForm({
               >
                 <FormField
                   control={productForm.control}
-                  name="product_name"
+                  name="productName"
                   render={({ field }) => (
                     <FormItem className="col-span-1">
                       <FormLabel>Product Name*</FormLabel>
@@ -569,7 +569,7 @@ export default function ProductForm({
                 {/* Product Code */}
                 <FormField
                   control={productForm.control}
-                  name="product_code"
+                  name="productCode"
                   render={({ field }) => (
                     <FormItem className="col-span-1">
                       <FormLabel>Product Code*</FormLabel>
@@ -589,19 +589,20 @@ export default function ProductForm({
                 {/* Material Type */}
                 <FormSelect
                   control={productForm.control}
-                  name="material_id"
+                  name="materialId"
                   label="Material Type*"
                   options={materialTypeOptions}
                   placeholder="Select Material Type"
                   showSearch={true}
                   className="col-span-1"
                   disabled={productJustCreated}
+                  autoSelectForOnlyOneOption={!isEditing}
                 />
 
                 {/* Density (TN/m³) */}
                 <FormField
                   control={productForm.control}
-                  name="density_tonnage_per_m3"
+                  name="densityTonnagePerM3"
                   render={({ field }) => (
                     <FormItem className="col-span-1">
                       <FormLabel>Density (TN/m³)*</FormLabel>
@@ -626,7 +627,7 @@ export default function ProductForm({
                 {/* Product Description */}
                 <FormField
                   control={productForm.control}
-                  name="product_description"
+                  name="productDescription"
                   render={({ field }) => (
                     <FormItem
                       className={isDesktop ? 'col-span-2' : 'col-span-1'}

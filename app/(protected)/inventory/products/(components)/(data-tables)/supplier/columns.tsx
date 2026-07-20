@@ -24,9 +24,7 @@ export const supplierColumns = (
   productId?: number,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
-): ColumnDef<
-  QuarrySupplierProduct & { quarry_supplier?: { id: number } }
->[] => [
+): ColumnDef<QuarrySupplierProduct>[] => [
   {
     id: 'name',
     accessorFn: (row) => row.quarrySupplier?.name || 'N/A',
@@ -51,7 +49,7 @@ export const supplierColumns = (
     meta: 'Name',
   },
   {
-    id: 'supplier_product_name',
+    id: 'supplierProductName',
     accessorFn: (row) => row.supplierProductName,
     header: ({}) => {
       return <div>Supplier Product Name</div>;
@@ -74,7 +72,7 @@ export const supplierColumns = (
     meta: 'Supplier Product Name',
   },
   {
-    id: 'per_tn_cost_price',
+    id: 'perTnCostPrice',
     accessorFn: (row) => row.perTnCostPrice,
     header: ({}) => {
       return (
@@ -103,7 +101,7 @@ export const supplierColumns = (
     meta: 'Cost Price per TN',
   },
   {
-    id: 'per_tn_sell_price',
+    id: 'perTnSellPrice',
     accessorFn: (row) => row.perTnSellPrice,
     header: ({}) => {
       return (

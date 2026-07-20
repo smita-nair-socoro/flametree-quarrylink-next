@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverAppKeys } from './keys';
-import { DriverAppStatusUpdateRequest } from '../types/docket';
+import {
+  DocketDTO,
+  DriverAppStatusUpdateRequest,
+  DocketOperationalUpdateRequest,
+} from '../types/docket';
 
 export const DriverAppAssignedDocketsQueryOptions = () => ({
   queryKey: DriverAppKeys.assignedDockets(),
@@ -19,11 +23,9 @@ export const useDriverAppOperationalUpdate = () =>
   useMutation({
     mutationFn: ({
       id,
-      actualLoadSize,
-    }: {
-      id: number;
-      actualLoadSize: number;
-    }) => APIClient.driverApp.operationalUpdate(id, actualLoadSize),
+      ...data
+    }: { id: number } & DocketOperationalUpdateRequest) =>
+      APIClient.driverApp.operationalUpdate(id, data),
   });
 
 export const useDriverAppUpdateDocketStatus = () => {
@@ -62,7 +64,21 @@ export const useDriverAppUpdateDocketStatus = () => {
       );
       return APIClient.driverApp.updateDocketStatus(id, formData);
     },
-    onSuccess: (_data, variables) => {
+    onSuccess: (data, variables) => {
+      // Seed the detail cache from the response so fields set by the status
+      // change (e.g. arrivedAt, used by the waiting-time counter) are
+      // available immediately, before the invalidation refetch lands.
+      queryClient.setQueryData<DocketDTO>(
+        DriverAppKeys.assignedDocketDetail(variables.id),
+        (old) =>
+          old
+            ? {
+                ...old,
+                docketStatus: data?.docketStatus ?? variables.docketStatus,
+                arrivedAt: data?.arrivedAt ?? old.arrivedAt,
+              }
+            : old,
+      );
       if (variables.docketStatus === 'DELIVERED') {
         queryClient.refetchQueries({
           queryKey: DriverAppKeys.assignedDockets(),

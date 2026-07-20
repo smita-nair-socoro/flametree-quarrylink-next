@@ -8,7 +8,7 @@ import { ProductTableActions } from './product-table-actions';
 
 export const productColumns: ColumnDef<ProductDetails>[] = [
   {
-    id: 'product_code',
+    id: 'productCode',
     accessorFn: (row) => row.productCode,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Code" />;
@@ -17,7 +17,7 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
     meta: 'Product Code',
   },
   {
-    id: 'product_name',
+    id: 'productName',
     accessorFn: (row) => row.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product Name" />;
@@ -27,7 +27,7 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
   },
 
   {
-    id: 'material_type',
+    id: 'materialType',
     accessorFn: (row) => row.material?.name?.toUpperCase() || '',
     header: ({ column }) => {
       return (
@@ -35,10 +35,10 @@ export const productColumns: ColumnDef<ProductDetails>[] = [
       );
     },
     cell: ({ row }) => {
-      const material_type = row.original.material?.name?.toUpperCase() || '';
+      const materialType = row.original.material?.name?.toUpperCase() || '';
       return (
         <div className="py-2">
-          <TableBadges names={material_type} visibleCount={1} />
+          <TableBadges names={materialType} visibleCount={1} />
         </div>
       );
     },

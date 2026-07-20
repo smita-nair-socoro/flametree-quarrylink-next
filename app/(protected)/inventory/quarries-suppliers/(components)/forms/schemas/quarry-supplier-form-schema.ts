@@ -36,7 +36,7 @@ const EmailOptional = z
 
 // Base schema with common fields
 const Base = z.object({
-  quarry_supplier_type: z.enum(['QUARRY', 'SUPPLIER'], {
+  quarrySupplierType: z.enum(['QUARRY', 'SUPPLIER'], {
     required_error: 'Type is required',
   }),
 
@@ -72,19 +72,20 @@ const Base = z.object({
   address: z.string().trim().min(1, 'Address is required'),
 
   // Contact Person
-  contact_person_name: z.string().trim().optional(),
-  contact_person_phone: PhoneOptional,
-  contact_person_email: EmailOptional,
+  contactPersonName: z.string().trim().optional(),
+  contactPersonPhone: PhoneOptional,
+  contactPersonEmail: EmailOptional,
 
   // Operational Information
-  opening_closing_info: z.string().trim().optional(),
-  weighbridge_info: z.string().trim().optional(),
+  openingClosingInfo: z.string().trim().optional(),
+  weighbridgeInfo: z.string().trim().optional(),
   notes: z.string().trim().optional(),
+  accountCodeId: z.number().optional(),
 
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
-  created_by: z.string().optional(),
-  last_modified_by: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  createdBy: z.string().optional(),
+  lastModifiedBy: z.string().optional(),
 });
 
 // Export the schema with conditional validation using superRefine
@@ -95,7 +96,7 @@ export const QuarrySupplierFormSchema = Base.superRefine((data, ctx) => {
       path: ['name'],
       code: z.ZodIssueCode.custom,
       message:
-        data.quarry_supplier_type === 'QUARRY'
+        data.quarrySupplierType === 'QUARRY'
           ? 'Quarry name is required'
           : 'Supplier name is required',
     });

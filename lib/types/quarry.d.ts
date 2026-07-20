@@ -1,5 +1,7 @@
 import { QuarryStatus, QuarryType } from './quarry-enums';
 import { Address } from './address';
+import type { AccountCode } from './accounting';
+import type { Department } from './department';
 
 export interface Quarry {
   id: number;
@@ -22,6 +24,7 @@ export interface Quarry {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
+  accountingSoftwareAccountingCode?: AccountCode | null;
   // Computed property for table display (extracted from address.suburb)
   suburb?: string;
 }
@@ -37,6 +40,7 @@ export interface QuarrySupplierProduct {
   supplierProductName: string;
   supplierProductCode: string;
   densityTonnagePerM3?: number;
+  department?: Department | null;
   quarryName?: string;
 
   createdBy: string;
@@ -76,7 +80,6 @@ export interface QuarrySupplierProduct {
   availableUnits: string[];
   version: number;
 }
-
 
 export type QuarriesWithProduct = QuarrySupplierProduct;
 

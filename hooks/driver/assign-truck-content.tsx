@@ -12,6 +12,7 @@ import {
 import { DriverDTO } from '@/lib/types/driver';
 import { TruckDTO } from '@/lib/types/truck';
 import { cn } from '@/lib/utils';
+import { useAutoSelectSingle } from '@/hooks/use-auto-select-single';
 
 export function AssignTruckDescription({
   driver,
@@ -30,13 +31,13 @@ export function AssignTruckContent({
   assignedTruckIds = [],
   haulierName,
   onSelectionChange,
-}: {
+}: Readonly<{
   trucks: TruckDTO[];
   assignedTruckIds?: number[];
   /** Haulier name sourced from the driver's haulier — used as the section header. */
   haulierName?: string;
   onSelectionChange?: (ids: number[]) => void;
-}) {
+}>) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState('');
   const [selectedIds, setSelectedIds] = React.useState<number[]>([]);
@@ -45,6 +46,26 @@ export function AssignTruckContent({
     () => trucks.filter((t) => !assignedTruckIds.includes(t.id ?? 0)),
     [trucks, assignedTruckIds],
   );
+
+  const selectableTrucks = React.useMemo(
+    () =>
+      availableTrucks.filter(
+        (t): t is TruckDTO & { id: number } => t.id != null,
+      ),
+    [availableTrucks],
+  );
+
+  // once: deselecting the only truck must not re-check it.
+  useAutoSelectSingle({
+    items: selectableTrucks,
+    once: true,
+    isEmpty: () => selectedIds.length === 0,
+    onSelect: (truck) => {
+      const ids = [truck.id];
+      setSelectedIds(ids);
+      onSelectionChange?.(ids);
+    },
+  });
 
   const filteredTrucks = React.useMemo(
     () =>
@@ -72,7 +93,9 @@ export function AssignTruckContent({
   if (selectedIds.length === 0) {
     triggerLabel = 'Select trucks...';
   } else if (selectedIds.length === 1) {
-    triggerLabel = availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ?? '1 selected';
+    triggerLabel =
+      availableTrucks.find((t) => t.id === selectedIds[0])?.licensePlate ??
+      '1 selected';
   } else {
     triggerLabel = `${selectedIds.length} trucks selected`;
   }

@@ -24,6 +24,7 @@ import {
   UserRoundPlus,
   Copy,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
@@ -57,7 +58,8 @@ type ActionType =
   | 'assign'
   | 'backToPending'
   | 'backToPreparing'
-  | 'retrySync';
+  | 'retrySync'
+  | 'print';
 
 interface ActionItem {
   label: string;
@@ -69,7 +71,12 @@ interface ActionItem {
 
 const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.PENDING]: [
-    { label: 'Start Preparing', icon: CirclePlay, action: 'startPreparing', separator: true },
+    {
+      label: 'Start Preparing',
+      icon: CirclePlay,
+      action: 'startPreparing',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -92,10 +99,14 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       separator: true,
     },
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
-
   ],
   [DOCKET_STATUS.READY]: [
-    { label: 'Mark Collected', icon: CircleCheckBig, action: 'markCollected', separator: true },
+    {
+      label: 'Mark Collected',
+      icon: CircleCheckBig,
+      action: 'markCollected',
+      separator: true,
+    },
     { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -109,7 +120,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.COLLECTED]: [
     // { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
-    { label: 'Invoice', icon: Receipt, action: 'invoice', },
+    { label: 'Invoice', icon: Receipt, action: 'invoice' },
     { label: 'Duplicate', icon: Copy, action: 'duplicate' },
 
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
@@ -122,11 +133,21 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
-    { label: 'Cash Receipts', icon: ReceiptText, action: 'cashReceipts', separator: true },
+    {
+      label: 'Cash Receipts',
+      icon: ReceiptText,
+      action: 'cashReceipts',
+      separator: true,
+    },
     { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.INVOICED]: [
-    { label: 'View Invoice', icon: Receipt, action: 'viewInvoice', separator: true },
+    {
+      label: 'View Invoice',
+      icon: Receipt,
+      action: 'viewInvoice',
+      separator: true,
+    },
     { label: 'Duplicate', icon: Copy, action: 'duplicate' },
   ],
   [DOCKET_STATUS.UNASSIGNED]: [
@@ -142,7 +163,12 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.ASSIGNED]: [
-    { label: 'Start Transit', icon: CirclePlay, action: 'startTransit', separator: true },
+    {
+      label: 'Start Transit',
+      icon: CirclePlay,
+      action: 'startTransit',
+      separator: true,
+    },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -155,12 +181,22 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.IN_TRANSIT]: [
-    { label: 'Mark Arrived', icon: CircleCheckBig, action: 'markArrived', separator: true },
+    {
+      label: 'Mark Arrived',
+      icon: CircleCheckBig,
+      action: 'markArrived',
+      separator: true,
+    },
     { label: 'Stop', icon: Square, action: 'stop', className: 'text-red-600' },
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.STOPPED]: [
-    { label: 'Resume Transit', icon: ReceiptText, action: 'resumeTransit', separator: true },
+    {
+      label: 'Resume Transit',
+      icon: ReceiptText,
+      action: 'resumeTransit',
+      separator: true,
+    },
     { label: 'Unassign', icon: Undo2, action: 'unassign' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
@@ -173,7 +209,12 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.ARRIVED]: [
-    { label: 'Mark Delivered', icon: CircleCheckBig, action: 'markDelivered', separator: true },
+    {
+      label: 'Mark Delivered',
+      icon: CircleCheckBig,
+      action: 'markDelivered',
+      separator: true,
+    },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -201,7 +242,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
 export function DocketActionButtons({
   docket,
   hasUnsavedChanges = false,
-}: DocketActionButtonsProps) {
+}: Readonly<DocketActionButtonsProps>) {
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
   const handleAction = (action: ActionType) => {
@@ -212,15 +253,23 @@ export function DocketActionButtons({
     actions[action]?.();
   };
 
-  if (!docket || !docket.id) {
+  if (!docket?.id) {
     return null;
   }
 
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
 
-  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
+  if (
+    docket.docketStatus === DOCKET_STATUS.INVOICED &&
+    docket.invoiceStatus === 'FAILED'
+  ) {
     currentActions = [
-      { label: 'Retry Sync', icon: RefreshCw, action: 'retrySync', separator: true },
+      {
+        label: 'Retry Sync',
+        icon: RefreshCw,
+        action: 'retrySync',
+        separator: true,
+      },
       { label: 'Duplicate', icon: Copy, action: 'duplicate' },
     ];
   }
@@ -235,7 +284,10 @@ export function DocketActionButtons({
   }
 
   const primaryAction = currentActions[0];
-  const secondaryActions = currentActions.slice(1);
+  const secondaryActions: ActionItem[] = [
+    ...currentActions.slice(1),
+    { label: 'Print Docket', icon: Printer, action: 'print', separator: true },
+  ];
 
   return (
     <div>
@@ -254,10 +306,7 @@ export function DocketActionButtons({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-            >
+            <Button variant="ghost" size="sm">
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

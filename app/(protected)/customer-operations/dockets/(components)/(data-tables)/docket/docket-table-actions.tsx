@@ -17,6 +17,7 @@ import {
   UserRoundPlus,
   Copy,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,7 +57,8 @@ type ActionType =
   | 'assign'
   | 'backToPending'
   | 'backToPreparing'
-  | 'retrySync';
+  | 'retrySync'
+  | 'print';
 
 interface ActionItem {
   label: string;
@@ -238,7 +240,9 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
 };
 
-export function DocketTableActions({ docket }: DocketTableActionsProps) {
+export function DocketTableActions({
+  docket,
+}: Readonly<DocketTableActionsProps>) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
@@ -254,23 +258,25 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
 
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
 
-  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
-    currentActions = [{
-      label: 'Retry Sync',
-      icon: RefreshCw,
-      action: 'retrySync',
-      separator: true,
-    }];
+  if (
+    docket.docketStatus === DOCKET_STATUS.INVOICED &&
+    docket.invoiceStatus === 'FAILED'
+  ) {
+    currentActions = [
+      {
+        label: 'Retry Sync',
+        icon: RefreshCw,
+        action: 'retrySync',
+        separator: true,
+      },
+    ];
   }
 
   return (
     <div>
       {confirmDialogs}
       {viewDialog}
-      <DropdownMenu
-        open={dropdownOpen}
-        onOpenChange={setDropdownOpen}
-      >
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
@@ -299,6 +305,11 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
           <DropdownMenuItem onClick={() => handleAction('duplicate')}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleAction('print')}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print Docket
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

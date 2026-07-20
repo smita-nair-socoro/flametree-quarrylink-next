@@ -5,6 +5,7 @@ import { DocketDTO } from '@/lib/types/docket';
 import { CUSTOMER_TYPE } from '@/lib/types/customer-enums';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 
 export function UnassignDocketDescription({
   docket,
@@ -29,17 +30,7 @@ export function UnassignDocketDescription({
 }
 
 export function UnassignDocketContent({ docket }: { docket?: DocketDTO | null }) {
-  const productSellUom = docket?.jobItem?.productSellUom;
-  const uom =
-    productSellUom === 'M3'
-      ? 'm³'
-      : productSellUom === 'KG_20'
-        ? 'x 20kg'
-        : productSellUom === 'TN'
-          ? 'TN'
-          : productSellUom === 'BULKA'
-            ? 'Bulka'
-            : productSellUom ?? '';
+  const uom = formatUomLabel(docket?.jobItem?.productSellUom ?? '');
 
   return (
     <div className="flex flex-col gap-6">
@@ -153,7 +144,11 @@ export function UnassignDocketContent({ docket }: { docket?: DocketDTO | null })
                   Time window
                 </p>
                 <p className="font-semibold text-[#0F172A]">
-                  {formatTimeRange(docket?.deliveryCollectionStartTime, docket?.deliveryCollectionEndTime) || '—'}
+                  {formatTimeRange(
+                    docket?.deliveryCollectionStartTime,
+                    docket?.deliveryCollectionEndTime,
+                    { hour12: true },
+                  ) || '—'}
                 </p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
-import { compareAsc, parseISO } from 'date-fns';
+import { compareAsc } from 'date-fns';
+import { parseBackendDateTime } from './date';
 import { twMerge } from 'tailwind-merge';
 import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
@@ -206,8 +207,13 @@ export function dateSortingFn(
   b: { getValue: (colId: string) => string },
   columnId: string,
 ) {
-  const da = parseISO(a.getValue(columnId));
-  const db = parseISO(b.getValue(columnId));
+  const da = parseBackendDateTime(a.getValue(columnId));
+  const db = parseBackendDateTime(b.getValue(columnId));
+  const aValid = !Number.isNaN(da.getTime());
+  const bValid = !Number.isNaN(db.getTime());
+  if (!aValid && !bValid) return 0;
+  if (!aValid) return 1;
+  if (!bValid) return -1;
   return compareAsc(da, db);
 }
 

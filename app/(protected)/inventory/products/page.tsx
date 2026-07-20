@@ -70,7 +70,7 @@ export default function ProductsPage() {
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'product_name', desc: false },
+    { id: 'productName', desc: false },
   ]);
 
   const apiSortParams = React.useMemo(
@@ -253,7 +253,7 @@ export default function ProductsPage() {
     setSorting(
       newSorting.length > 0
         ? newSorting
-        : [{ id: 'product_name', desc: false }],
+        : [{ id: 'productName', desc: false }],
     );
     setPageIndex(0);
   }, []);
@@ -269,7 +269,7 @@ export default function ProductsPage() {
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [
       {
-        column: 'material_type',
+        column: 'materialType',
         title: 'Material Type',
         options: facetOptions.materials,
       },
@@ -348,7 +348,7 @@ export default function ProductsPage() {
               facetDefinition={facetDefs}
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
-              defaultSorting={[{ id: 'product_name', desc: false }]}
+              defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
               totalElements={totalElements}
               totalPages={totalPages}
