@@ -3,19 +3,16 @@
 import * as React from 'react';
 import { format } from 'date-fns';
 import { Clock, Pencil, Trash2, Send, X, Check } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { useAuth } from '@/hooks/use-auth';
-import { UserDetailQueryOptions } from '@/lib/api/user';
+import { useUserStore } from '@/app/stores/user-store';
 import { getAvatarColor, getInitials } from '@/lib/utils/user-helper';
 
 interface CustomerNote {
   id: string;
-  authorSub: string;
   authorName: string;
   note: string;
   createdAt: string;
@@ -31,19 +28,16 @@ interface NotesTabProps {
 // Replace with a real query/mutation once the API is available.
 const MOCK_NOTES: Omit<CustomerNote, 'id'>[] = [
   {
-    authorSub: 'bec-smith',
     authorName: 'Bec Smith',
     note: 'Called the customer to confirm pricing for the June delivery window. They are happy with the quoted rate and asked us to lock it in.',
     createdAt: '2026-07-07T23:00:00',
   },
   {
-    authorSub: 'dan-carter',
     authorName: 'Dan Carter',
     note: 'Left a voicemail about the outstanding invoice #4821. Customer mentioned they are waiting on a PO from their finance team.',
     createdAt: '2026-07-06T21:00:00',
   },
   {
-    authorSub: 'bec-smith',
     authorName: 'Bec Smith',
     note: 'Updated billing contact to finance@actinfra.gov.au per customer request.',
     createdAt: '2026-07-05T14:30:00',
@@ -71,17 +65,7 @@ export default function NotesTab({
   customerId,
   onCountChange,
 }: Readonly<NotesTabProps>) {
-  const { user: amplifyUser, attributes } = useAuth();
-  const { data: currentUserDetail } = useQuery(
-    UserDetailQueryOptions(amplifyUser?.userId || ''),
-  );
-
-  const currentUserName =
-    currentUserDetail?.name ||
-    attributes?.name ||
-    amplifyUser?.signInDetails?.loginId ||
-    'You';
-  const currentUserSub = amplifyUser?.userId || 'current-user';
+  const currentUserName = useUserStore((state) => state.userName) || 'You';
 
   const [notes, setNotes] = React.useState<CustomerNote[]>(() =>
     MOCK_NOTES.map((n, i) => ({ ...n, id: `mock-${customerId ?? 0}-${i}` })),
@@ -103,7 +87,6 @@ export default function NotesTab({
     if (!trimmed) return;
     const newNote: CustomerNote = {
       id: `local-${Date.now()}`,
-      authorSub: currentUserSub,
       authorName: currentUserName,
       note: trimmed,
       createdAt: new Date().toISOString(),
@@ -202,8 +185,7 @@ export default function NotesTab({
         {notes.map((note) => {
           // Placeholder notes use synthetic author IDs. Keep them manageable
           // until the notes API supplies real ownership data.
-          const canManageNote =
-            note.id.startsWith('mock-') || note.authorSub === currentUserSub;
+          const canManageNote = note.id.startsWith('mock-');
           const isEditingNote = editingId === note.id;
           return (
             <div
