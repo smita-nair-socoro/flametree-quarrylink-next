@@ -1,6 +1,7 @@
 'use client';
 import { MapPin, Shield, User, Clock } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { formatTimeOnly, formatWeekdayDate } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { getTenantNow } from '@/lib/utils/tenant-config-helper';
@@ -28,15 +29,7 @@ export function MarkArrivedDescription({
             {formatNumberThousandSeparator(
               docket?.actualLoadSize || docket?.plannedLoadSize,
             )}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
