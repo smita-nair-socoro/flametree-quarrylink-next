@@ -40,6 +40,7 @@ import {
   buildSchedulerFilterTruckOptions,
   docketMatchesScheduleJobFilters,
   driverRowMatchesFilters,
+  formatLocalDate,
   inferDriverBusinessType,
   inferTruckBusinessType,
   isDispatchDriverResource,
@@ -48,6 +49,7 @@ import {
   sortDispatchDriverList,
   truckMatchesFleetFilters,
 } from '@/lib/utils/dispatch-helper';
+import { getCalendarDateString } from '@/lib/utils/date';
 import { Button } from '@/components/ui/button';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { TableBadges } from '@/components/table-badges';
@@ -223,8 +225,8 @@ export function ScheduleWeekView({
   const startDate = startOfWeek(date, { weekStartsOn: 1 });
   const endDate = endOfWeek(date, { weekStartsOn: 1 });
 
-  const startIso = startDate.toISOString();
-  const endIso = endDate.toISOString();
+  const startIso = formatLocalDate(startDate);
+  const endIso = formatLocalDate(endDate);
 
   const { data: trucksData, isLoading: isLoadingTrucks } = useQuery({
     ...SchedulerTrucksQueryOptions(startIso, endIso),
@@ -411,7 +413,7 @@ export function ScheduleWeekView({
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden">
       <DispatchDriversTrucksFilter
         viewType={viewType}
         driverOptions={filterDriverOptions}
@@ -471,7 +473,7 @@ export function ScheduleWeekView({
                 const isSelectedDate = isSameDay(day, date);
                 return (
                   <div
-                    key={day.toISOString()}
+                    key={getCalendarDateString(day)}
                     className={`px-2 py-3 text-center border-r border-[#E2E8F0] last:border-r-0 flex flex-col items-center justify-center gap-0.5 ${isSelectedDate ? 'bg-violet-50/70' : 'bg-white'
                       }`}
                   >
@@ -541,7 +543,7 @@ export function ScheduleWeekView({
 
                     return (
                       <div
-                        key={`${resource.id}-${day.toISOString()}`}
+                        key={`${resource.id}-${getCalendarDateString(day)}`}
                         className={`p-2 border-r border-[#E2E8F0] last:border-r-0 flex flex-col gap-2 min-h-[112px] min-w-0 ${isSelectedDate ? 'bg-violet-50/25' : 'bg-white'
                           }`}
                       >

@@ -2,6 +2,7 @@
 
 import { Play, Truck } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 
 export function ResumeTransitDescription({
   docket,
@@ -22,15 +23,7 @@ export function ResumeTransitDescription({
           <span className="font-bold">•</span>
           <span>
             {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
@@ -51,11 +44,13 @@ export function ResumeTransitContent({
         <div className="space-y-2 text-sm text-[#6A7282]">
           <div>
             <span className="font-medium text-[#364153]">Driver:</span>{' '}
-            {docket?.customerContactName ?? '—'}
+            {docket?.driver?.driverName ?? '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Truck:</span>{' '}
-            {docket?.jobItem.truckType ?? '—'}
+            {docket?.truck?.licensePlate && docket?.truck?.model
+              ? `${docket.truck.licensePlate} (${docket.truck.model})`
+              : '—'}
           </div>
           <div>
             <span className="font-medium text-[#364153]">Stop Reason:</span>{' '}

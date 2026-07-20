@@ -5,15 +5,15 @@ import { UseFormReturn } from 'react-hook-form';
 import { ProductDetails } from '@/lib/types/product';
 
 export const EMPTY_PRODUCT_FORM_VALUES = {
-  product_name: '',
-  product_code: '',
-  material_id: undefined as number | undefined,
-  product_description: '',
-  density_tonnage_per_m3: 0,
-  created_at: undefined as Date | undefined,
-  updated_at: undefined as Date | undefined,
-  created_by: '',
-  last_modified_by: '',
+  productName: '',
+  productCode: '',
+  materialId: undefined as number | undefined,
+  productDescription: '',
+  densityTonnagePerM3: 0,
+  createdAt: undefined as Date | undefined,
+  updatedAt: undefined as Date | undefined,
+  createdBy: '',
+  lastModifiedBy: '',
 };
 
 interface AuditData {
@@ -36,7 +36,6 @@ function getLatestAuditData(product: ProductDetails | null): AuditData | null {
       updatedAt: product.updatedAt,
     },
     ...(product.quarrySupplierProducts ?? []).map((qsp) => {
-      // Some API responses include audit fields on this object
       const audit = qsp as unknown as {
         lastModifiedBy?: string | null;
         updatedAt?: string | null;
@@ -61,15 +60,15 @@ function formValuesFromProduct(
   auditData?: AuditData | null
 ) {
   return {
-    product_name: product.productName || '',
-    product_code: product.productCode || '',
-    material_id: product.materialId,
-    product_description: product.productDescription || '',
-    density_tonnage_per_m3: product.densityTonnagePerM3 || 0,
-    created_at: product.createdAt ? new Date(product.createdAt) : undefined,
-    updated_at: auditData?.updatedAt ? new Date(auditData.updatedAt) : undefined,
-    created_by: product.createdBy || '',
-    last_modified_by: auditData?.lastModifiedBy || '',
+    productName: product.productName || '',
+    productCode: product.productCode || '',
+    materialId: product.materialId,
+    productDescription: product.productDescription || '',
+    densityTonnagePerM3: product.densityTonnagePerM3 || 0,
+    createdAt: product.createdAt ? new Date(product.createdAt) : undefined,
+    updatedAt: auditData?.updatedAt ? new Date(auditData.updatedAt) : undefined,
+    createdBy: product.createdBy || '',
+    lastModifiedBy: auditData?.lastModifiedBy || '',
   };
 }
 
@@ -85,17 +84,14 @@ export function useProductFormState(
 ) {
   const [totalSupplier, setTotalSupplier] = React.useState(0);
 
-  // Compare quarry-supplier-product audit data and product audit data
   const latestAuditData = React.useMemo(() => {
     return getLatestAuditData(selectedProduct);
   }, [selectedProduct]);
 
-  // Update total supplier count when product data is loaded
   React.useEffect(() => {
     setTotalSupplier(selectedProduct?.quarrySupplierProducts?.length || 0);
   }, [selectedProduct?.quarrySupplierProducts]);
 
-  // Update form values when product data is loaded (for editing mode)
   React.useEffect(() => {
     if (!isEditing && !productJustCreated) {
       productForm.reset(EMPTY_PRODUCT_FORM_VALUES);

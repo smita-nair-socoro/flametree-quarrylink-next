@@ -1,20 +1,20 @@
 import z from 'zod';
 
 export const NewProductFormSchema = z.object({
-  product_name: z
+  productName: z
     .string()
     .min(2, { message: 'Product Name must be at least 2 characters.' })
     .max(100, { message: "Product Name can't be more than 100 characters" }),
-  product_code: z.string().nonempty({ message: 'Required' }),
-  material_id: z.coerce
+  productCode: z.string().nonempty({ message: 'Required' }),
+  materialId: z.coerce
     .number({ required_error: 'Material Type is required' })
     .min(1, { message: 'Material Type is required' }),
-  product_description: z.string().optional(),
-  density_tonnage_per_m3: z.coerce
+  productDescription: z.string().optional(),
+  densityTonnagePerM3: z.coerce
     .number()
     .positive({ message: 'Density must be greater than 0' }),
-  created_at: z.date().optional(),
-  updated_at: z.date().optional(),
-  created_by: z.string().optional(),
-  last_modified_by: z.string().optional(),
+  createdAt: z.date().optional(),
+  updatedAt: z.date().optional(),
+  createdBy: z.string().optional(),
+  lastModifiedBy: z.string().optional(),
 });

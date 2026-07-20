@@ -16,6 +16,10 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useUserStore } from '@/app/stores/user-store';
 import { useAuth } from '@/hooks/use-auth';
+import {
+  getCalendarDatePart,
+  getCalendarDateString,
+} from '@/lib/utils/date';
 
 export default function DriversAppPage() {
   const [isChecklistPromptOpen, setIsChecklistPromptOpen] = useState(false);
@@ -77,8 +81,9 @@ export default function DriversAppPage() {
     if (driverData === undefined) return undefined;
     const checklist = driverData.latestDriverChecklist;
     if (!checklist) return true;
-    const todayUTC = new Date().toISOString().split('T')[0];
-    return todayUTC !== checklist.checklistDate.split('T')[0];
+    return (
+      getCalendarDateString() !== getCalendarDatePart(checklist.checklistDate)
+    );
   }, [driverData]);
 
   React.useEffect(() => {
@@ -97,7 +102,7 @@ export default function DriversAppPage() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-full">
       <div className="w-full shadow-xl bg-white h-full flex flex-col relative">
         <div className="flex-1 overflow-y-auto scrollbar-hide [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           {activeTab !== 'calendar' && (

@@ -1,0 +1,159 @@
+name: Deploy to Preprod
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GHCR tag to deploy, e.g. release-v1.2.3 or latest-preprod"
+        required: true
+        default: "latest-preprod"
+      suffix:
+        description: "Image name suffix"
+        required: true
+        default: "oras-web"
+      invalidate_all:
+        description: "Invalidate /*"
+        required: true
+        type: choice
+        options:
+          - "true"
+          - "false"
+        default: "true"
+
+permissions:
+  contents: read
+  packages: read
+  id-token: write
+
+env:
+  AWS_REGION: ap-southeast-2
+
+concurrency:
+  group: deploy-preprod-web
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy preprod static site
+    runs-on: ubuntu-latest
+    environment: preprod
+
+    env:
+      TAG: ${{ inputs.tag }}
+      SUFFIX: ${{ inputs.suffix }}
+      INVALIDATE_ALL: ${{ inputs.invalidate_all }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup ORAS
+        uses: oras-project/setup-oras@v1
+
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | oras login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Compute image ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          OWNER_LC="$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          REPO_LC="$(echo '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          SUFFIX_LC="$(echo '${{ env.SUFFIX }}' | tr '[:upper:]' '[:lower:]' | tr -cd 'a-z0-9._-')"
+          echo "IMAGE_REF=ghcr.io/${OWNER_LC}/${REPO_LC}-${SUFFIX_LC}" >> "$GITHUB_ENV"
+
+      - name: Pull static artifact from GHCR
+        run: |
+          set -euo pipefail
+          mkdir -p _pkg
+          oras pull "${IMAGE_REF}:${TAG}" -o _pkg
+          test -f _pkg/site.tar.gz || (echo "::error ::site.tar.gz not found in artifact" && exit 1)
+          ls -lah _pkg
+
+      - name: Extract site build
+        run: |
+          set -euo pipefail
+          rm -rf site
+          mkdir -p site
+          tar -xzf _pkg/site.tar.gz -C site
+
+      - name: Generate preprod config.json
+        env:
+          COGNITO_DOMAIN: ${{ vars.COGNITO_DOMAIN }}
+          COGNITO_CLIENT_ID: ${{ vars.COGNITO_CLIENT_ID }}
+          COGNITO_REDIRECT_URI: ${{ vars.COGNITO_REDIRECT_URI }}
+          COGNITO_HOSTED_UI_DOMAIN: ${{ vars.COGNITO_HOSTED_UI_DOMAIN }}
+          AMPLIFY_AUTH_REGION: ${{ vars.AMPLIFY_AUTH_REGION }}
+          AMPLIFY_AUTH_USER_POOL_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_ID }}
+          AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: ${{ vars.AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID }}
+          GOOGLE_MAPS_API_KEY: ${{ vars.GOOGLE_MAPS_API_KEY }}
+          API_URL: ${{ vars.API_URL }}
+          SENTRY_DSN: ${{ vars.SENTRY_DSN }}
+          CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          jq -n \
+            --arg cognitoDomain "$COGNITO_DOMAIN" \
+            --arg cognitoClientId "$COGNITO_CLIENT_ID" \
+            --arg cognitoRedirectUri "$COGNITO_REDIRECT_URI" \
+            --arg cognitoHostedUiDomain "$COGNITO_HOSTED_UI_DOMAIN" \
+            --arg amplifyAuthRegion "$AMPLIFY_AUTH_REGION" \
+            --arg amplifyAuthUserPoolId "$AMPLIFY_AUTH_USER_POOL_ID" \
+            --arg amplifyAuthUserPoolWebClientId "$AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID" \
+            --arg googleMapsApiKey "$GOOGLE_MAPS_API_KEY" \
+            --arg apiUrl "$API_URL" \
+            --arg sentryDsn "$SENTRY_DSN" \
+            --arg clarityProjectId "$CLARITY_PROJECT_ID" \
+            '{
+              COGNITO_DOMAIN: $cognitoDomain,
+              COGNITO_CLIENT_ID: $cognitoClientId,
+              COGNITO_REDIRECT_URI: $cognitoRedirectUri,
+              COGNITO_HOSTED_UI_DOMAIN: $cognitoHostedUiDomain,
+              AMPLIFY_AUTH_REGION: $amplifyAuthRegion,
+              AMPLIFY_AUTH_USER_POOL_ID: $amplifyAuthUserPoolId,
+              AMPLIFY_AUTH_USER_POOL_WEB_CLIENT_ID: $amplifyAuthUserPoolWebClientId,
+              GOOGLE_MAPS_API_KEY: $googleMapsApiKey,
+              API_URL: $apiUrl,
+              SENTRY_DSN: $sentryDsn,
+              CLARITY_PROJECT_ID: $clarityProjectId
+            }' > site/config.json
+
+          jq 'keys' site/config.json
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+          role-session-name: gh-actions-preprod-web-${{ github.run_id }}
+          mask-aws-account-id: true
+
+      - name: Upload static site files to S3
+        run: |
+          set -euo pipefail
+
+          BUCKET="s3://${{ secrets.S3_BUCKET_NAME }}"
+
+          aws s3 sync site/ "$BUCKET/" \
+            --delete \
+            --exclude "_next/static/*"
+
+          if [ -d "site/_next/static" ]; then
+            aws s3 sync site/_next/static/ "$BUCKET/_next/static/"
+          fi
+
+      - name: Create CloudFront invalidation
+        run: |
+          set -euo pipefail
+
+          if [ "${INVALIDATE_ALL}" = "true" ]; then
+            aws cloudfront create-invalidation \
+              --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+              --paths "/*"
+          else
+            aws cloudfront create-invalidation \
+              --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+              --paths "/config.json" "/index.html"
+          fi

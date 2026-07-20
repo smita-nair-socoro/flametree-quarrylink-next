@@ -15,6 +15,7 @@ import { CHECKLIST_TYPE } from '@/lib/types/checklist-template-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { useChecklistTemplateStore } from '@/app/stores/checklist-template-store';
 import { useQuery } from '@tanstack/react-query';
+import { toLocalDateTime } from '@/lib/utils/date';
 
 import DriverPreStartChecklist from './driver-pre-start-checklist';
 import TruckInspectionChecklist from './truck-inspection-checklist';
@@ -75,7 +76,7 @@ export function ChecklistPromptDrawer({
           checklistType: CHECKLIST_TYPE.DRIVER,
           driverId: driverId ?? 0,
           confirmed: true,
-          submittedAt: new Date().toISOString(),
+          submittedAt: toLocalDateTime(new Date()),
           answers: [],
         },
       });
@@ -88,7 +89,7 @@ export function ChecklistPromptDrawer({
           driverId,
           docketId,
           confirmed: true,
-          submittedAt: new Date().toISOString(),
+          submittedAt: toLocalDateTime(new Date()),
           answers: [],
         },
       });

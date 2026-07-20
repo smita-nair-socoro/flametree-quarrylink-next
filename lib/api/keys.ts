@@ -37,6 +37,13 @@ export const CustomerKeys = {
   detail: (id: number) => [...CustomerKeys.all, 'detail', id] as const,
   deliveryAddresses: (customerId: number, limit?: number) =>
     [...CustomerKeys.all, 'delivery-addresses', customerId, limit] as const,
+  attachments: (customerId: number) =>
+    [...CustomerKeys.all, 'attachments', customerId] as const,
+  additionalContacts: (
+    customerId: number,
+    params?: { page?: number; pageSize?: number },
+  ) =>
+    [...CustomerKeys.all, 'additional-contacts', customerId, params] as const,
 };
 
 export const QuotationKeys = {
@@ -82,6 +89,7 @@ export const UserKeys = {
   all: ['users'] as const,
   list: () => [...UserKeys.all, 'list'] as const,
   accountManagers: () => [...UserKeys.all, 'account-managers'] as const,
+  operations: () => [...UserKeys.all, 'operations'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
@@ -105,6 +113,10 @@ export const DocketKeys = {
   preStartChecklist: (docketId: number) =>
     [...DocketKeys.all, 'pre-start-checklist', docketId] as const,
   statistics: () => [...DocketKeys.all, 'statistics'] as const,
+  docketsByTruckId: (truckId: number) =>
+    [...DocketKeys.all, 'by-truck-id', truckId] as const,
+  docketsByDriverId: (driverId: number) =>
+    [...DocketKeys.all, 'by-driver-id', driverId] as const,
 };
 
 export const ChecklistKeys = {
@@ -169,4 +181,17 @@ export const DriverAppKeys = {
   assignedDockets: () => [...DriverAppKeys.all, 'assigned'] as const,
   assignedDocketDetail: (docketId: number) =>
     [...DriverAppKeys.all, 'assigned', docketId] as const,
+};
+
+export const AccountingKeys = {
+  trackingCategories: ['tracking-categories'] as const,
+  trackingCategoryDefinitions: ['tracking-categories-definitions'] as const,
+  accountCodes: ['account-codes'] as const,
+  accountCodeById: (id: number) =>
+    [...AccountingKeys.accountCodes, id] as const,
+};
+
+export const DepartmentKeys = {
+  all: ['departments'] as const,
+  list: () => [...DepartmentKeys.all, 'list'] as const,
 };

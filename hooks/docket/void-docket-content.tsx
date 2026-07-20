@@ -4,6 +4,7 @@ import { Ban } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 
 export const VOID_REASON_LABELS: Record<string, string> = {
   entered_in_error: 'Entered in error',
@@ -39,15 +40,7 @@ export function VoidDocketDescription({
           <span className="font-bold">•</span>
           <span>
             {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>

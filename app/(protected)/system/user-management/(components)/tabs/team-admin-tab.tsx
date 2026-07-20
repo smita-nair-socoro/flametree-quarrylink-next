@@ -12,7 +12,11 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { Button } from '@/components/ui/button';
-import { getRelativeTimeFuture } from '@/lib/utils/date';
+import {
+  getRelativeTimeFuture,
+  parseBackendDateTime,
+  toLocalDateTime,
+} from '@/lib/utils/date';
 import { useTeamMemberStore } from '@/app/stores/team-member-store';
 import { useUserStore } from '@/app/stores/user-store';
 import { useTeamMemberActions } from '@/hooks/use-team-member-actions';
@@ -86,10 +90,15 @@ export default function TeamAdminTab() {
         role: getHighestRole(user.groups),
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
-          ? new Date(
-              new Date(user.createdAt).getTime() + 7 * 24 * 60 * 60 * 1000,
-            ).toISOString() // 7 days from creation
-          : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          ? toLocalDateTime(
+              new Date(
+                parseBackendDateTime(user.createdAt).getTime() +
+                  7 * 24 * 60 * 60 * 1000,
+              ),
+            )
+          : toLocalDateTime(
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            ),
       }));
 
     return pending;

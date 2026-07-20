@@ -20,7 +20,6 @@ import {
   extractErrorData,
 } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { useRouter } from 'next/navigation';
 import { useQuarrySupplierStore } from '@/app/stores/quarry-supplier-store';
 
 interface DialogConfig {
@@ -239,7 +238,6 @@ const getDialogConfigs = (
 };
 
 export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
-  const router = useRouter();
   const queryClient = useQueryClient();
   const selectedQuarrySupplier = useQuarrySupplierStore(
     (s) => s.selectedQuarrySupplier
@@ -327,11 +325,10 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
           )}`
           : '';
 
-        router.push(
-          `/inventory/products?linkedProductIds=${encodeURIComponent(
-            productIds.join(',')
-          )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`
-        );
+        const linkedProductsUrl = `/inventory/products?linkedProductIds=${encodeURIComponent(
+          productIds.join(',')
+        )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`;
+        window.open(linkedProductsUrl, '_blank', 'noopener,noreferrer');
       } catch (e: unknown) {
         console.error('[useQuarrySupplierActions] linkedProducts failed:', e);
         notifyError('Failed to load linked products.');

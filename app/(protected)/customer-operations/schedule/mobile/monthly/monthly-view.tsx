@@ -20,11 +20,13 @@ import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-pan
 import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
+import { getCalendarDateString } from '@/lib/utils/date';
 import type { DispatchTruckResource } from '@/lib/types/docket';
 import { type DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import {
   docketMatchesScheduleJobFilters,
   docketPassesScheduleFleetFilters,
+  formatLocalDate,
   isDispatchTruckResource,
   isSchedulerQueryLoading,
   parseCollectionStartMs,
@@ -72,8 +74,8 @@ export function ScheduleMobileMonthlyView({
     isPlaceholderData,
   } = useQuery(
     SchedulerTrucksQueryOptions(
-      calendarStart.toISOString(),
-      calendarEnd.toISOString(),
+      formatLocalDate(calendarStart),
+      formatLocalDate(calendarEnd),
     ),
   );
 
@@ -121,7 +123,7 @@ export function ScheduleMobileMonthlyView({
     const counts = new Map<string, number>();
     for (const day of calendarDays) {
       counts.set(
-        day.toISOString(),
+        getCalendarDateString(day),
         filteredMonthDockets.filter((d) => docketOnLocalDay(d, day)).length,
       );
     }
@@ -180,11 +182,11 @@ export function ScheduleMobileMonthlyView({
             {calendarDays.map((day) => {
               const selected = isSameDay(day, date);
               const inMonth = isSameMonth(day, monthStart);
-              const count = docketCountByDay.get(day.toISOString()) ?? 0;
+              const count = docketCountByDay.get(getCalendarDateString(day)) ?? 0;
 
               return (
                 <button
-                  key={day.toISOString()}
+                  key={getCalendarDateString(day)}
                   type="button"
                   onClick={() => onDateChange(day)}
                   className={cn(

@@ -23,7 +23,7 @@ export const quarriesSuppliersColumns: ColumnDef<Quarry>[] = [
     meta: 'Supplier / Quarry Name',
   },
   {
-    id: 'quarry_supplier_type',
+    id: 'quarrySupplierType',
     accessorFn: (row) => row.quarrySupplierType,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Type" />;

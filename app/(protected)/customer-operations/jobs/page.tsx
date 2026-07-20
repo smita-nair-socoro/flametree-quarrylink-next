@@ -52,6 +52,16 @@ export default function CustomersPage() {
     [facetFilters],
   );
 
+  const idsParam = searchParams.get('ids');
+  const idsFilter = React.useMemo(() => {
+    if (!idsParam) return undefined;
+    const ids = idsParam
+      .split(',')
+      .map((v) => Number(v.trim()))
+      .filter((n) => Number.isFinite(n) && n > 0);
+    return ids.length ? ids : undefined;
+  }, [idsParam]);
+
   const {
     data: jobsList,
     isLoading,
@@ -61,6 +71,7 @@ export default function CustomersPage() {
       page: pageIndex,
       pageSize,
       search: search.trim() || undefined,
+      ids: idsFilter,
       ...apiSortParams,
       ...apiFilterParams,
     }),
@@ -156,35 +167,24 @@ export default function CustomersPage() {
     [],
   );
 
-  // URL-driven filtering for linked jobs
-  const jobIdsParam =
-    searchParams.get('jobId') ?? searchParams.get('jobIds');
-  const jobIdsSet = React.useMemo(() => {
-    if (!jobIdsParam) return null;
-    const ids = jobIdsParam
-      .split(',')
-      .map((v) => Number(v.trim()))
-      .filter((n) => Number.isFinite(n) && n > 0);
-    return new Set(ids);
-  }, [jobIdsParam]);
-
-  const filteredItems = React.useMemo(() => {
-    if (!jobIdsSet) return items;
-    return items.filter((j) => jobIdsSet.has(j.id));
-  }, [items, jobIdsSet]);
-
-  // Auto-open job view when navigated from quote convert-to-job
+  // Keep `ids` in the URL after auto-opening so an accidental dialog close
+  // still shows just that job instead of the full list.
+  const autoOpenedIdRef = React.useRef<number | null>(null);
   React.useEffect(() => {
-    const openJobId = searchParams.get('openJobId');
-    if (!openJobId || items.length === 0) return;
+    const singleId = idsFilter?.length === 1 ? idsFilter[0] : null;
+    if (!singleId) {
+      autoOpenedIdRef.current = null;
+      return;
+    }
+    if (autoOpenedIdRef.current === singleId) return;
 
-    const job = items.find((j) => j.id === Number(openJobId));
+    const job = items.find((j) => j.id === singleId);
     if (job) {
+      autoOpenedIdRef.current = singleId;
       actions.view(job);
-      router.replace('/customer-operations/jobs');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams, items]);
+  }, [idsFilter, items]);
 
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [
@@ -247,7 +247,7 @@ export default function CustomersPage() {
           </div>
         ) : (
           <>
-            {jobIdsSet && (
+            {idsFilter && (
               <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
                 <div className="mt-1 text-sm text-muted-foreground">
                   <span>Showing filtered jobs</span>
@@ -263,7 +263,7 @@ export default function CustomersPage() {
             )}
             <DataTableClient
               tableId="job_main_data_table"
-              data={filteredItems ?? []}
+              data={items ?? []}
               columns={getJobColumns(currencyCode, taxLabel)}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search jobs..."

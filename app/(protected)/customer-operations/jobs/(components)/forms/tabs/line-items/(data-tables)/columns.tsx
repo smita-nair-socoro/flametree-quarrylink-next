@@ -11,6 +11,7 @@ import {
 	getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { JobLineItemTableActions } from './job-line-items-table-actions';
 import {
 	Tooltip,
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/tooltip';
 import { HelpCircle } from 'lucide-react';
 import { TableBadges } from '@/components/table-badges';
+import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 
 export const getJobLineItemsColumns = (
 	currencyCode: string = DEFAULT_CURRENCY_CODE,
@@ -28,9 +30,9 @@ export const getJobLineItemsColumns = (
 	{
 		id: 'productName',
 		accessorFn: (row) => row.product?.productName,
-		header: () => {
-			return <div>Product</div>;
-		},
+		header: ({ column }) => (
+			<TableClientSortableHeader column={column} title="Product" />
+		),
 		cell: ({ row }) => {
 			const productName = row.original.product?.productName || 'N/A';
 			const deliveryAddress =
@@ -164,12 +166,7 @@ export const getJobLineItemsColumns = (
 		},
 		cell: ({ row }) => {
 			const productSellQty = row.original.productSellQty;
-			const productSellUom =
-				row.original.productSellUom === 'KG_20'
-					? 'x 20kg'
-					: row.original.productSellUom === 'M3'
-						? 'm³'
-						: row.original.productSellUom;
+			const productSellUom = formatUomLabel(row.original.productSellUom || '');
 
 			const displayText = `${formatNumberThousandSeparator(productSellQty)} ${productSellUom}`;
 			return (
@@ -190,17 +187,12 @@ export const getJobLineItemsColumns = (
 	{
 		id: 'remainingQuantity',
 		accessorFn: (row) => row.remainingQuantity,
-		header: () => {
-			return <div>Remaining QTY</div>;
-		},
+		header: ({ column }) => (
+			<TableClientSortableHeader column={column} title="Remaining QTY" />
+		),
 		cell: ({ row }) => {
 			const remainingQuantity = row.original.remainingQuantity;
-			const productSellUom =
-				row.original.productSellUom === 'KG_20'
-					? 'x 20kg'
-					: row.original.productSellUom === 'M3'
-						? 'm³'
-						: row.original.productSellUom;
+			const productSellUom = formatUomLabel(row.original.productSellUom || '');
 			const displayText = `${formatNumberThousandSeparator(remainingQuantity)} ${productSellUom}`;
 			return (
 				<Tooltip delayDuration={300}>

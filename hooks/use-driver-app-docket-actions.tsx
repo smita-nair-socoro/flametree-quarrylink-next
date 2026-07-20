@@ -29,6 +29,13 @@ import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 
+export type DriverAppDocketAction =
+  | 'markArrived'
+  | 'markDelivered'
+  | 'stop'
+  | 'startTransit'
+  | 'resumeTransit';
+
 export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
 
@@ -173,6 +180,25 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
     return Boolean(receiverName.trim() && receiverSignature.trim());
   }, [deliveredProductsConfirmed, unloadedPhoto, receiverName, receiverOnSite, receiverSignature]);
 
+  const pendingAction = React.useMemo((): DriverAppDocketAction | null => {
+    if (!updateStatus.isPending || !updateStatus.variables) return null;
+    const { docketStatus } = updateStatus.variables;
+    switch (docketStatus) {
+      case DOCKET_STATUS.ARRIVED:
+        return 'markArrived';
+      case DOCKET_STATUS.DELIVERED:
+        return 'markDelivered';
+      case DOCKET_STATUS.STOPPED:
+        return 'stop';
+      case DOCKET_STATUS.IN_TRANSIT:
+        return docketData?.docketStatus === DOCKET_STATUS.STOPPED
+          ? 'resumeTransit'
+          : 'startTransit';
+      default:
+        return null;
+    }
+  }, [updateStatus.isPending, updateStatus.variables, docketData?.docketStatus]);
+
   const dialogConfigs = React.useMemo(
     () => ({
       markArrived: {
@@ -198,6 +224,7 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
         description: <MarkDeliveredDescription docket={docketData} />,
         content: (
           <MarkDeliveredContent
+            docket={docketData}
             deliveredProductsConfirmed={deliveredProductsConfirmed}
             onDeliveredProductsConfirmedChange={setDeliveredProductsConfirmed}
             unloadedPhoto={unloadedPhoto}
@@ -304,5 +331,7 @@ export function useDriverAppDocketActions(docketData?: DocketDTO | null) {
     actions,
     confirmDialogs,
     isDialogOpen: activeDialog !== null,
+    isStatusUpdatePending: updateStatus.isPending,
+    pendingAction,
   };
 }

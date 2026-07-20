@@ -15,8 +15,8 @@ import {
   isSameDay,
   startOfWeek,
   endOfWeek,
-  parseISO,
 } from 'date-fns';
+import { parseBackendDateTime } from '@/lib/utils/date';
 import {
   ChevronLeft,
   ChevronRight,
@@ -77,7 +77,9 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
   const getDocketsForDate = (date: Date) => {
     return filteredItems.filter((docket) => {
       if (!docket.deliveryCollectionDate) return false;
-      const docketDate = parseISO(docket.deliveryCollectionDate.toString());
+      const docketDate = parseBackendDateTime(
+        docket.deliveryCollectionDate.toString(),
+      );
       return isSameDay(docketDate, date);
     });
   };
@@ -86,8 +88,8 @@ export default function CalendarTab({ dockets }: CalendarTabProps) {
 
   const formatTimeWindow = (start: string, end: string) => {
     try {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
+      const startDate = parseBackendDateTime(start);
+      const endDate = parseBackendDateTime(end);
       return `${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`;
     } catch {
       return 'Invalid Date';

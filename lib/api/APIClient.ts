@@ -16,6 +16,9 @@ import {
   CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
+  CustomerAttachmentDTO,
+  AdditionalContactApiDTO,
+  AdditionalContactsPage,
 } from '../types/customer';
 import {
   Quarry,
@@ -77,7 +80,7 @@ import {
   JobDTO,
   JobDetails,
   JobItem,
-  Invoice,
+  InvoicesPage,
   CompleteJobResponse,
   SettleJobResponse,
   InvoiceDetails,
@@ -87,7 +90,13 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
 } from '../types/job';
-import { HaulierCreateDTO, HaulierDTO, HaulierDeleteResponse, HaulierStatistics, HauliersPage } from '../types/haulier';
+import {
+  HaulierCreateDTO,
+  HaulierDTO,
+  HaulierDeleteResponse,
+  HaulierStatistics,
+  HauliersPage,
+} from '../types/haulier';
 import { TruckDTO, TruckStatistics } from '../types/truck';
 import { ChecklistItemsPage } from '../types/checklist';
 import {
@@ -99,6 +108,13 @@ import {
   PatchDriverHaulierDTO,
   PutDriverDTO,
 } from '../types/driver';
+import {
+  TrackingCategory,
+  TrackingCategoryDefinition,
+  AccountCode,
+  createUpdateTrackingCategory,
+} from '../types/accounting';
+import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
 
@@ -167,8 +183,8 @@ export interface HttpConfig {
   fetch?: typeof fetch;
 
   /**
-   * If true, appends 'Z' to known date field strings that lack timezone info.
-   * This treats backend datetimes as UTC. Default: true.
+   * @deprecated Unused. Backend datetimes are tenant-local wall-clock strings;
+   * the frontend does not normalize them to UTC.
    */
   normalizeUtc?: boolean;
 
@@ -507,8 +523,9 @@ export const APIClient = {
         `/socoro/quarrylink/api/product/reporting`,
       ),
     getAll: async (params?: {
-      materialId?: number;
-      isActive?: boolean;
+      materialIds?: number[];
+      isActive?: boolean[];
+      ids?: number[];
       page?: number;
       pageSize?: number;
       search?: string;
@@ -522,11 +539,9 @@ export const APIClient = {
         ProductListItem[] | ProductsListResponse | ProductsPage
       >(`/socoro/quarrylink/api/product/material`, {
         queryString: {
-          materialId: params?.materialId?.toString(),
-          isActive:
-            params?.isActive !== undefined
-              ? String(params.isActive)
-              : undefined,
+          materialIds: params?.materialIds?.map(String),
+          isActive: params?.isActive?.map(String),
+          ids: params?.ids?.map(String),
           page: params?.page?.toString(),
           pageSize: isPaginated
             ? (params?.pageSize?.toString() ?? '10')
@@ -654,9 +669,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      accountManagerSub?: string;
+      statuses?: string[];
+      types?: string[];
+      accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -674,9 +690,10 @@ export const APIClient = {
           search: params?.search?.trim() || undefined,
           sortBy: params?.sortBy,
           sortOrder: params?.sortOrder,
-          status: params?.status,
-          type: params?.type,
-          accountManagerSub: params?.accountManagerSub,
+          statuses: params?.statuses,
+          types: params?.types,
+          accountManagerSubs: params?.accountManagerSubs,
+          ids: params?.ids?.map(String),
         },
       });
       return response;
@@ -722,6 +739,75 @@ export const APIClient = {
     unarchive: (id: number) =>
       appClient.Put<UnarchiveCustomerResponseDTO>(
         `/socoro/quarrylink/api/customer/${id}/unarchive`,
+      ),
+    getAttachments: (customerId: number) =>
+      appClient.Get<CustomerAttachmentDTO[]>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments`,
+      ),
+    uploadAttachment: (
+      customerId: number,
+      params: { category: string; fileName: string; file: File },
+    ) => {
+      const formData = new FormData();
+      formData.append('file', params.file);
+      return appClient.Post<CustomerAttachmentDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments`,
+        {
+          body: formData,
+          queryString: {
+            category: params.category,
+            fileName: params.fileName,
+          },
+        },
+      );
+    },
+    getAttachment: async (customerId: number, attachmentId: number) => {
+      const response = await appClient.Get<Response>(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments/${attachmentId}`,
+      );
+      return response.blob();
+    },
+    deleteAttachment: (customerId: number, attachmentId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/attachments/${attachmentId}`,
+      ),
+    getAdditionalContacts: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<AdditionalContactsPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    getAdditionalContact: (customerId: number, contactId: number) =>
+      appClient.Get<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
+      ),
+    createAdditionalContact: (
+      customerId: number,
+      data: Omit<AdditionalContactApiDTO, 'id'>,
+    ) =>
+      appClient.Post<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts`,
+        { body: data },
+      ),
+    updateAdditionalContact: (
+      customerId: number,
+      contactId: number,
+      data: Omit<AdditionalContactApiDTO, 'id'>,
+    ) =>
+      appClient.Put<AdditionalContactApiDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
+        { body: data },
+      ),
+    deleteAdditionalContact: (customerId: number, contactId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
       ),
   },
 
@@ -909,10 +995,11 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string;
-      type?: string;
-      customerId?: number;
-      productId?: number;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
+      ids?: number[];
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -930,10 +1017,11 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            type: params?.type,
-            customerId: params?.customerId?.toString(),
-            productId: params?.productId?.toString(),
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
           },
         },
       );
@@ -1018,6 +1106,88 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/${id}/duplicate`,
         { body: data },
       ),
+    getDocketsByTruckId: async (
+      truckId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+        statuses?: string[];
+        types?: string[];
+        customerIds?: number[];
+        productIds?: number[];
+        ids?: number[];
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<DocketDTO[] | DocketsListResponse | DocketsPage>(
+        `/socoro/quarrylink/api/dockets/truck/${truckId}`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
+          },
+        },
+      );
+    },
+    getDocketsByDriverId: async (
+      driverId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        size?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+        statuses?: string[];
+        types?: string[];
+        customerIds?: number[];
+        productIds?: number[];
+        ids?: number[];
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<DocketDTO[] | DocketsListResponse | DocketsPage>(
+        `/socoro/quarrylink/api/dockets/driver/${driverId}`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
+          },
+        },
+      );
+    },
   },
 
   checklists: {
@@ -1049,6 +1219,18 @@ export const APIClient = {
     getAccountManagers: () =>
       appClient.Get<AccountManager[]>(
         `/socoro/quarrylink/api/users/account-managers`,
+      ),
+    getOperations: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/operations`,
+      ),
+    addToOperations: (id: string) =>
+      appClient.Post(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
+      ),
+    removeFromOperations: (id: string) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
       ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
@@ -1096,9 +1278,10 @@ export const APIClient = {
       search?: string;
       sortBy?: string;
       sortOrder?: string;
-      status?: string[];
-      customerId?: number[];
-      accountManagerSub?: string[];
+      statuses?: string[];
+      customerIds?: number[];
+      accountManagerSubs?: string[];
+      ids?: number[];
     }) => {
       const response = await appClient.Get<JobsListResponse>(
         `/socoro/quarrylink/api/job`,
@@ -1109,17 +1292,34 @@ export const APIClient = {
             search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
-            status: params?.status,
-            customerId: params?.customerId?.map(String),
-            accountManagerSub: params?.accountManagerSub,
+            statuses: params?.statuses,
+            customerIds: params?.customerIds?.map(String),
+            accountManagerSubs: params?.accountManagerSubs,
+            ids: params?.ids?.map(String),
           },
         },
       );
       return response;
     },
-    getJobItems: async (jobId: number) => {
+    getJobItems: async (
+      jobId: number,
+      params?: {
+        page?: number;
+        pageSize?: number;
+        sortBy?: string;
+        sortOrder?: string;
+      },
+    ) => {
       const response = await appClient.Get<JobDetails>(
         `/socoro/quarrylink/api/job/${jobId}/job-items`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+          },
+        },
       );
       return response;
     },
@@ -1351,7 +1551,9 @@ export const APIClient = {
         body: data,
       }),
     getStatistics: () =>
-      appClient.Get<HaulierStatistics>('/socoro/quarrylink/api/haulier/statistics'),
+      appClient.Get<HaulierStatistics>(
+        '/socoro/quarrylink/api/haulier/statistics',
+      ),
     delete: (id: number) =>
       appClient.Delete<HaulierDeleteResponse>(
         `/socoro/quarrylink/api/haulier/${id}`,
@@ -1448,8 +1650,26 @@ export const APIClient = {
   },
 
   invoices: {
-    getAll: (jobId: number) =>
-      appClient.Get<Invoice[]>(`/socoro/quarrylink/api/invoices/jobs/${jobId}`),
+    getAll: (
+      jobId: number,
+      params?: {
+        sortBy?: string;
+        sortOrder?: string;
+        page?: number;
+        pageSize?: number;
+      },
+    ) =>
+      appClient.Get<InvoicesPage>(
+        `/socoro/quarrylink/api/invoices/jobs/${jobId}`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
     getById: (invoiceId: number) =>
       appClient.Get<InvoiceDetails>(
         `/socoro/quarrylink/api/invoices/${invoiceId}`,
@@ -1486,10 +1706,10 @@ export const APIClient = {
       ),
     getAssignedDocketById: (docketId: number) =>
       appClient.Get<DocketDTO>(`/socoro/quarrylink/api/driver-app/${docketId}`),
-    operationalUpdate: (id: number, actualLoadSize: number) =>
+    operationalUpdate: (id: number, data: DocketOperationalUpdateRequest) =>
       appClient.Put<DocketOperationalUpdateResponse>(
         `/socoro/quarrylink/api/driver-app/${id}/operational-update`,
-        { body: { actualLoadSize } },
+        { body: data },
       ),
     updateDocketStatus: (id: number, formData: FormData) =>
       appClient.Put<DocketDTO>(
@@ -1513,5 +1733,66 @@ export const APIClient = {
           queryString: { start, end },
         },
       ),
+  },
+
+  accounting: {
+    getTrackingCategories: () =>
+      appClient.Get<TrackingCategory[]>(
+        `/socoro/quarrylink/api/accounting/tracking-categories`,
+      ),
+    getTrackingCategoriesDefinitions: () =>
+      appClient.Get<TrackingCategoryDefinition[]>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/definitions`,
+      ),
+    createTrackingCategory: (data: createUpdateTrackingCategory) =>
+      appClient.Post<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories`,
+        { body: data },
+      ),
+    updateTrackingCategory: (id: number, data: createUpdateTrackingCategory) =>
+      appClient.Put<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/${id}`,
+        { body: data },
+      ),
+    deleteTrackingCategory: (id: number) =>
+      appClient.Delete<TrackingCategory>(
+        `/socoro/quarrylink/api/accounting/tracking-categories/${id}`,
+      ),
+    getAccountCodes: () =>
+      appClient.Get<AccountCode[]>(
+        `/socoro/quarrylink/api/accounting/account-codes`,
+      ),
+    getAccountCodeById: (id: number) =>
+      appClient.Get<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+      ),
+    createAccountCode: (data: AccountCode) =>
+      appClient.Post<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes`,
+        { body: data },
+      ),
+    updateAccountCode: (id: number, data: AccountCode) =>
+      appClient.Put<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+        { body: data },
+      ),
+    deleteAccountCode: (id: number) =>
+      appClient.Delete<AccountCode>(
+        `/socoro/quarrylink/api/accounting/account-codes/${id}`,
+      ),
+  },
+  departments: {
+    getDepartments: () =>
+      appClient.Get<Department[]>(`/socoro/quarrylink/api/departments`),
+    createDepartment: (data: Department) =>
+      appClient.Post<Department>(`/socoro/quarrylink/api/departments`, {
+        body: data,
+      }),
+    updateDepartment: (id: number, data: Department) =>
+      appClient.Put<Department>(`/socoro/quarrylink/api/departments/${id}`, {
+        body: data,
+      }),
+    deleteDepartment: (id: number) =>
+      appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
   },
 };

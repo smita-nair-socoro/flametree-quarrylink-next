@@ -1,5 +1,11 @@
 import { format, startOfDay } from 'date-fns';
-import { appendUtcSuffix } from '@/lib/utils/date';
+import {
+  extractTimeLabel,
+  formatDispatchDateLabel,
+  formatTimeRange,
+  getCalendarDateString,
+  toLocalDateTime,
+} from './date';
 import type { ConflictingDocket } from '@/lib/types/docket';
 import { DRIVER_TYPE } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
@@ -583,41 +589,15 @@ export function resolveUnassignAssignmentLabels(
   return { truck, driver };
 }
 
-export const formatTime = (timeStr?: string) => {
-  if (!timeStr) return '';
-  if (timeStr.includes('T')) {
-    return timeStr.split('T')[1].substring(0, 5);
-  }
-  if (timeStr.includes(' ')) {
-    return timeStr.split(' ')[1].substring(0, 5);
-  }
-  if (timeStr.includes(':')) {
-    return timeStr.split(':').slice(0, 2).join(':');
-  }
-  return timeStr;
-};
+export const formatTime = extractTimeLabel;
+export { formatTimeRange };
 
-export const formatTimeRange = (start?: string, end?: string) => {
-  const startTime = formatTime(start);
-  const endTime = formatTime(end);
-  return startTime && endTime
-    ? `${startTime} - ${endTime}`
-    : startTime || endTime || 'N/A';
-};
+export const formatDate = formatDispatchDateLabel;
 
-export const formatDate = (timeStr?: string) => {
-  if (!timeStr) return '';
-  if (timeStr.includes('T')) {
-    const localTimeStr = timeStr.replace('Z', '');
-    return format(new Date(localTimeStr), 'EEE dd MMM');
-  }
-  return timeStr;
-};
+export const formatLocalISO = (d: Date) => toLocalDateTime(d, false);
 
-export const formatLocalISO = (d: Date) => {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
-};
+/** Date-only LocalDate for scheduler/dispatch range params. */
+export const formatLocalDate = getCalendarDateString;
 
 export function buildDispatchAssignmentWindows(
   assignmentDate: Date,
@@ -666,9 +646,9 @@ export function buildDispatchAssignmentWindows(
   return {
     startWindow,
     endWindow,
-    deliveryCollectionDate: appendUtcSuffix(dateIso),
-    deliveryStartWindow: appendUtcSuffix(startIso),
-    deliveryEndWindow: appendUtcSuffix(endIso),
+    deliveryCollectionDate: dateIso,
+    deliveryStartWindow: startIso,
+    deliveryEndWindow: endIso,
   };
 }
 

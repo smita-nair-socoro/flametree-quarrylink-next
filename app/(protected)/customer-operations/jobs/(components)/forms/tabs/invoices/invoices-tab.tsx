@@ -2,7 +2,11 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { InvoicesListQueryOptions } from '@/lib/api/invoices';
+import {
+  InvoicesListQueryOptions,
+  toInvoiceApiSortParams,
+} from '@/lib/api/invoices';
+import type { SortingState } from '@tanstack/react-table';
 import { getInvoicesColumns } from './(data-tables)/columns';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -22,7 +26,44 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
 
   const retrySyncMutation = useRetrySync();
 
-  const { data: invoices } = useQuery(InvoicesListQueryOptions(jobId));
+  const [pageIndex, setPageIndex] = React.useState(0);
+  const [pageSize, setPageSize] = React.useState(10);
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: 'invoice', desc: false },
+  ]);
+
+  const apiSortParams = React.useMemo(
+    () => toInvoiceApiSortParams(sorting),
+    [sorting],
+  );
+
+  const { data: invoicesPage, isFetching } = useQuery(
+    InvoicesListQueryOptions(jobId, {
+      page: pageIndex,
+      pageSize,
+      ...apiSortParams,
+    }),
+  );
+
+  const invoices = invoicesPage?.content ?? [];
+  const totalElements = invoicesPage?.totalElements ?? 0;
+  const totalPages =
+    invoicesPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+
+  const handleSortingChange = React.useCallback((newSorting: SortingState) => {
+    setSorting(
+      newSorting.length > 0 ? newSorting : [{ id: 'invoice', desc: false }],
+    );
+    setPageIndex(0);
+  }, []);
+
+  const handlePaginationChange = React.useCallback(
+    (newPage: number, newSize: number) => {
+      setPageIndex(newPage);
+      setPageSize(newSize);
+    },
+    [],
+  );
 
   const selectedJob = useSelectedJob();
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
@@ -58,10 +99,19 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
 
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
+          tableId={`job_invoices_${jobId}`}
           columns={getInvoicesColumns(currencyCode, taxLabel)}
-          data={invoices ?? []}
+          data={invoices}
           simpleTable={true}
           defaultSorting={[{ id: 'invoice', desc: false }]}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          externalPageIndex={pageIndex}
+          externalPageSize={pageSize}
+          externalSorting={sorting}
+          onPaginationChange={handlePaginationChange}
+          onSortingChange={handleSortingChange}
+          isLoading={isFetching}
         />
       </div>
     </div>

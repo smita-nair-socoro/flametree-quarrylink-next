@@ -17,6 +17,7 @@ import {
   UserRoundPlus,
   Copy,
   RefreshCw,
+  Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -29,7 +30,6 @@ import {
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
-import { useDocketStore } from '@/app/stores/docket-store';
 
 interface DocketTableActionsProps {
   docket: DocketDTO;
@@ -57,7 +57,8 @@ type ActionType =
   | 'assign'
   | 'backToPending'
   | 'backToPreparing'
-  | 'retrySync';
+  | 'retrySync'
+  | 'print';
 
 interface ActionItem {
   label: string;
@@ -124,13 +125,15 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    // {
-    //   label: 'Cash Sale',
-    //   icon: ReceiptText,
-    //   action: 'cashSale',
-    //   separator: true,
-    // },
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
+    {
+      label: 'Void',
+      icon: Trash2,
+      action: 'void',
+      className: 'text-red-600',
+      separator: true,
+    },
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     {
@@ -237,46 +240,50 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
 };
 
-export function DocketTableActions({ docket }: DocketTableActionsProps) {
+export function DocketTableActions({
+  docket,
+}: Readonly<DocketTableActionsProps>) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
 
-  const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
+  const handleView = () => {
+    setDropdownOpen(false);
+    actions.view();
+  };
 
   const handleAction = (actionType: ActionType) => {
-    setSelectedDocket(docket);
     setDropdownOpen(false);
-    if (actions[actionType]) {
-      actions[actionType]();
-    }
+    actions[actionType]?.();
   };
 
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
 
-  if (docket.docketStatus === DOCKET_STATUS.INVOICED && docket.invoiceStatus === 'FAILED') {
-    currentActions = [{
-      label: 'Retry Sync',
-      icon: RefreshCw,
-      action: 'retrySync',
-      separator: true,
-    }];
+  if (
+    docket.docketStatus === DOCKET_STATUS.INVOICED &&
+    docket.invoiceStatus === 'FAILED'
+  ) {
+    currentActions = [
+      {
+        label: 'Retry Sync',
+        icon: RefreshCw,
+        action: 'retrySync',
+        separator: true,
+      },
+    ];
   }
 
   return (
     <div>
       {confirmDialogs}
       {viewDialog}
-      <DropdownMenu
-        open={dropdownOpen}
-        onOpenChange={setDropdownOpen}
-      >
+      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon">
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={() => handleAction('view')}>
+          <DropdownMenuItem onClick={handleView}>
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
@@ -298,6 +305,11 @@ export function DocketTableActions({ docket }: DocketTableActionsProps) {
           <DropdownMenuItem onClick={() => handleAction('duplicate')}>
             <Copy className="h-4 w-4 mr-2" />
             Duplicate
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleAction('print')}>
+            <Printer className="h-4 w-4 mr-2" />
+            Print Docket
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

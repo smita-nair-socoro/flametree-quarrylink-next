@@ -18,8 +18,10 @@ import { useHauliersForForm } from '@/hooks/haulier/use-hauliers-for-form';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
 import { DocketConflictCheckQueryOptions } from '@/lib/api/docket';
-import { calculateConvertedQty } from '@/lib/utils/docket-helper';
-import { appendUtcSuffix } from '@/lib/utils/date';
+import {
+  calculateConvertedQty,
+  formatUomLabel,
+} from '@/lib/utils/docket-helper';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { Button } from '@/components/ui/button';
 import {
@@ -164,13 +166,7 @@ export function AssignDocketDescription({
 }: Readonly<{
   docket?: DocketDTO | null;
 }>) {
-  const uom = docket?.jobItem?.productSellUom;
-  let uomLabel: string | undefined;
-  if (uom === 'M3' || uom === 'm3') uomLabel = 'm³';
-  else if (uom === 'KG_20') uomLabel = 'x 20kg';
-  else if (uom === 'TN') uomLabel = 'TN';
-  else if (uom === 'BULKA') uomLabel = 'Bulka';
-  else uomLabel = uom;
+  const uomLabel = formatUomLabel(docket?.jobItem?.productSellUom ?? '');
 
   return (
     <div className="flex items-center gap-3">
@@ -253,13 +249,9 @@ export function AssignDocketContent({
       docket.deliveryCollectionStartTime &&
       docket.deliveryCollectionEndTime
       ? {
-        deliveryCollectionDate: appendUtcSuffix(
-          docket.deliveryCollectionDate,
-        ),
-        deliveryStartWindow: appendUtcSuffix(
-          docket.deliveryCollectionStartTime,
-        ),
-        deliveryEndWindow: appendUtcSuffix(docket.deliveryCollectionEndTime),
+        deliveryCollectionDate: docket.deliveryCollectionDate,
+        deliveryStartWindow: docket.deliveryCollectionStartTime,
+        deliveryEndWindow: docket.deliveryCollectionEndTime,
       }
       : null;
 

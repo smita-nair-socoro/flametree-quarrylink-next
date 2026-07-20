@@ -2,14 +2,39 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
+import z from 'zod';
 import { CustomerDTO } from '@/lib/types/customer';
 import { AddressType } from '@/lib/types/address';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import {
+  CUSTOMER_STATUS,
   CUSTOMER_TYPE,
-  PAYMENT_TYPE,
   PAYMENT_TERM_TYPE,
+  PAYMENT_TYPE,
 } from '@/lib/types/customer-enums';
+import {
+  CustomerDetailQueryOptions,
+  useCreateCustomer,
+  useGetCustomerAttachments,
+  useGetAdditionalContacts,
+} from '@/lib/api/customer';
+import { UsersListQueryOptions } from '@/lib/api/user';
+import { NewCustomerFormSchema } from '@/app/(protected)/customer-operations/customers/(components)/forms/schemas/customer-form-schema';
+import { getCustomerFormBlockState } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form-blocker';
+import { toAddressPayload } from '@/lib/utils/address-helper';
+import {
+  addNewRecordId,
+  addSyncErrorRecordId,
+  scrollToFirstError,
+} from '@/lib/utils';
+import { notifySuccess, notifyError } from '@/lib/toast';
+import {
+  extractErrorMessage,
+  extractErrorResponse,
+} from '@/lib/utils/error-message-helper';
+
+type CustomerFormValues = z.infer<typeof NewCustomerFormSchema>;
 
 const EMPTY_CUSTOMER_ADDRESS: AddressType = {
   address1: '',
@@ -47,9 +72,33 @@ export const EMPTY_CUSTOMER_FORM_VALUES = {
   last_modified_by: 'current_user',
 };
 
-function addressFromCustomer(
-  customer: CustomerDTO | null,
-): AddressType {
+export const PAYMENT_TERMS_OPTIONS = [
+  {
+    label: 'of the following month',
+    value: PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
+  },
+  {
+    label: 'day(s) after the invoice date',
+    value: PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE,
+  },
+  {
+    label: 'day(s) after the invoice month',
+    value: PAYMENT_TERM_TYPE.DAYSAFTERBILLMONTH,
+  },
+  { label: 'of the current month', value: PAYMENT_TERM_TYPE.OFCURRENTMONTH },
+];
+
+const NOT_LINKED_SUBSTRINGS = [
+  'Customer is not linked to any accounting software',
+  'Customer creation is supported only for Xero currently',
+];
+
+const ARCHIVE_UNARCHIVE_PREFIXES = [
+  'Archive customer failed!',
+  'Unarchive customer failed!',
+];
+
+function addressFromCustomer(customer: CustomerDTO | null): AddressType {
   if (!customer?.billingAddress) return EMPTY_CUSTOMER_ADDRESS;
   const a = customer.billingAddress;
   return {
@@ -67,10 +116,11 @@ function addressFromCustomer(
 }
 
 function formValuesFromCustomer(customer: CustomerDTO) {
-  const paymentType = customer.paymentType === 'PREPAID' ? 'PREPAID' : 'CREDIT';
+  const paymentType: PAYMENT_TYPE =
+    customer.paymentType === 'PREPAID' ? PAYMENT_TYPE.PREPAID : PAYMENT_TYPE.CREDIT;
 
   return {
-    customer_type: customer.customerType ?? 'BUSINESS',
+    customer_type: customer.customerType ?? CUSTOMER_TYPE.BUSINESS,
     payment_type: paymentType,
     business_name: customer.businessName ?? '',
     business_email: customer.businessEmail ?? '',
@@ -95,7 +145,7 @@ function formValuesFromCustomer(customer: CustomerDTO) {
     payment_terms_day: customer.invoiceDueDateDayCount ?? 0,
     payment_terms:
       customer.paymentTermType &&
-      customer.paymentTermType !== PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE
+        customer.paymentTermType !== PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE
         ? customer.paymentTermType
         : PAYMENT_TERM_TYPE.OFTHEFOLLOWINGMONTH,
     account_manager: customer.accountManagerSub ?? '',
@@ -107,15 +157,108 @@ function formValuesFromCustomer(customer: CustomerDTO) {
   };
 }
 
+interface UseCustomerFormStateOptions {
+  customerId: number;
+  isEditing: boolean;
+  customerForm: UseFormReturn<CustomerFormValues>;
+  onDirtyChange?: (isDirty: boolean) => void;
+  onSuccess?: () => void;
+  onSaved?: () => void;
+}
+
 /**
- * Manages initial form state and sync: when customer detail loads (editing) or when
- * switching to create mode, resets form and local state (type, address, searchInput).
+ * Manages customer form data fetching, local state, sync banners, and submit flow.
  */
-export function useCustomerFormState(
-  selectedCustomer: CustomerDTO | null,
-  isEditing: boolean,
-  customerForm: UseFormReturn<any>,
-) {
+export function useCustomerFormState({
+  customerId,
+  isEditing,
+  customerForm,
+  onDirtyChange,
+  onSuccess,
+  onSaved,
+}: UseCustomerFormStateOptions) {
+  const createCustomer = useCreateCustomer();
+  const isRetrySyncRef = React.useRef(false);
+
+  const { data: selectedCustomer, isLoading: isCustomerLoading } = useQuery({
+    ...CustomerDetailQueryOptions(customerId),
+    enabled: isEditing && customerId > 0,
+  });
+
+  const { data: customerAttachments = [], isLoading: isAttachmentsLoading } =
+    useQuery({
+      ...useGetCustomerAttachments(customerId),
+      enabled: isEditing && customerId > 0,
+    });
+
+  const attachmentTableData = React.useMemo(
+    () => (Array.isArray(customerAttachments) ? customerAttachments : []),
+    [customerAttachments],
+  );
+
+  const [additionalContactsPageIndex, setAdditionalContactsPageIndex] =
+    React.useState(0);
+  const [additionalContactsPageSize, setAdditionalContactsPageSize] =
+    React.useState(10);
+
+  React.useEffect(() => {
+    setAdditionalContactsPageIndex(0);
+  }, [customerId]);
+
+  const {
+    data: additionalContactsPage,
+    isFetching: isAdditionalContactsFetching,
+  } = useQuery({
+    ...useGetAdditionalContacts(customerId, {
+      page: additionalContactsPageIndex,
+      pageSize: additionalContactsPageSize,
+    }),
+    enabled: isEditing && customerId > 0,
+  });
+
+  const additionalContactTableData = React.useMemo(
+    () => additionalContactsPage?.content ?? [],
+    [additionalContactsPage],
+  );
+
+  const handleAdditionalContactsPaginationChange = React.useCallback(
+    (page: number, pageSize: number) => {
+      setAdditionalContactsPageIndex(page);
+      setAdditionalContactsPageSize(pageSize);
+    },
+    [],
+  );
+
+  const { data: allUsers = [] } = useQuery(UsersListQueryOptions());
+  const users = React.useMemo(
+    () =>
+      allUsers.filter(
+        (user) =>
+          !user.groups.some((group) => group.toLowerCase().includes('driver')),
+      ),
+    [allUsers],
+  );
+  const accountManagerOptions = React.useMemo(
+    () =>
+      users
+        .map((user) => ({ label: user.name, value: user.sub }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [users],
+  );
+
+  const blockState = React.useMemo(
+    () => getCustomerFormBlockState(isEditing ? selectedCustomer : null),
+    [isEditing, selectedCustomer],
+  );
+  const isFormBlocked = blockState !== null;
+
+  const [accSoftwareSyncError, setAccSoftwareSyncError] = React.useState<
+    string | null
+  >(null);
+  const [notLinkedWarning, setNotLinkedWarning] = React.useState(false);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [addAttachmentOpen, setAddAttachmentOpen] = React.useState(false);
+
   const [selectedCustomerType, setSelectedCustomerType] =
     React.useState<string>('BUSINESS');
   const [selectedPaymentType, setSelectedPaymentType] =
@@ -125,6 +268,10 @@ export function useCustomerFormState(
   );
   const [searchInput, setSearchInput] = React.useState('');
   const didInitRef = React.useRef<number | null>(null);
+
+  React.useEffect(() => {
+    onDirtyChange?.(customerForm.formState.isDirty);
+  }, [customerForm.formState.isDirty, onDirtyChange]);
 
   React.useEffect(() => {
     if (!isEditing) {
@@ -151,7 +298,292 @@ export function useCustomerFormState(
     customerForm.reset(formValuesFromCustomer(selectedCustomer));
   }, [isEditing, selectedCustomer, customerForm]);
 
+  React.useEffect(() => {
+    if (
+      !isEditing ||
+      !selectedCustomer?.accountManagerSub ||
+      users.length === 0
+    ) {
+      return;
+    }
+
+    const currentValue = customerForm.getValues('account_manager') || '';
+    const subSet = new Set(users.map((u) => u.sub));
+    if (currentValue && subSet.has(currentValue)) return;
+
+    const matched =
+      users.find((u) => u.sub === selectedCustomer.accountManagerSub) ||
+      users.find((u) => u.name === selectedCustomer.accountManagerSub);
+
+    if (matched?.sub) {
+      customerForm.setValue('account_manager', matched.sub);
+    }
+  }, [isEditing, selectedCustomer, users, customerForm]);
+
+  const handleSyncNote = React.useCallback((note?: string): boolean => {
+    if (!note) return false;
+    if (ARCHIVE_UNARCHIVE_PREFIXES.some((prefix) => note.startsWith(prefix))) {
+      return false;
+    }
+    if (NOT_LINKED_SUBSTRINGS.some((msg) => note.includes(msg))) {
+      setNotLinkedWarning(true);
+      return true;
+    }
+    setAccSoftwareSyncError(note);
+    return true;
+  }, []);
+
+  React.useEffect(() => {
+    setAccSoftwareSyncError(null);
+    setNotLinkedWarning(false);
+    if (!isEditing || !selectedCustomer) return;
+    handleSyncNote(selectedCustomer.accSoftwareNotes);
+  }, [selectedCustomer?.id, isEditing, selectedCustomer, handleSyncNote]);
+
+  const handleFormFieldChange = React.useCallback(
+    (field: 'customer_type' | 'payment_type', value: string) => {
+      if (field === 'customer_type') {
+        setSelectedCustomerType(value);
+      } else if (field === 'payment_type') {
+        setSelectedPaymentType(value);
+      }
+    },
+    [],
+  );
+
+  const onSubmit = React.useCallback(
+    async (rawValues: CustomerFormValues) => {
+      const values: CustomerFormValues = {
+        ...rawValues,
+        ...(rawValues.customer_type === CUSTOMER_TYPE.INDIVIDUAL
+          ? {
+            business_name: '',
+            business_email: '',
+            business_phone: '',
+            abn: '',
+            contact_person_first_name: '',
+            contact_person_last_name: '',
+          }
+          : {
+            contact_person_name: '',
+          }),
+        ...(rawValues.payment_type === PAYMENT_TYPE.PREPAID
+          ? { credit_limit: 0, payment_terms_day: 0 }
+          : {}),
+      };
+
+      try {
+        setIsSubmitting(true);
+
+        const billingAddressData = toAddressPayload(
+          address,
+          isEditing && selectedCustomer ? selectedCustomer.billingAddress : null,
+        );
+
+        const billingAddressIdFromExisting =
+          (isEditing && selectedCustomer
+            ? (selectedCustomer.billingAddressId ??
+              selectedCustomer.billingAddress?.id)
+            : undefined) ?? billingAddressData?.id;
+
+        const customerData: Partial<CustomerDTO> = {
+          customerType:
+            values.customer_type === 'BUSINESS'
+              ? CUSTOMER_TYPE.BUSINESS
+              : CUSTOMER_TYPE.INDIVIDUAL,
+          contactPersonPhone: values.contact_person_phone || '',
+          contactPersonEmail: values.contact_person_email || '',
+          ...(billingAddressIdFromExisting
+            ? { billingAddressId: billingAddressIdFromExisting }
+            : {}),
+          billingAddress: billingAddressData,
+          creditLimit: Math.round(Number(values.credit_limit || 0) * 100),
+          accountManagerSub: values.account_manager,
+          invoiceDueDateDayCount: values.payment_terms_day || 0,
+          customerStatus: CUSTOMER_STATUS.ACTIVE,
+          paymentType: values.payment_type,
+          version: isEditing && selectedCustomer ? selectedCustomer.version : 0,
+        };
+
+        if (values.payment_type === 'CREDIT') {
+          customerData.paymentTermType =
+            values.payment_terms || PAYMENT_TERM_TYPE.DAYSAFTERBILLDATE;
+        }
+
+        if (isEditing && customerId) {
+          customerData.id = customerId;
+          if (selectedCustomer?.accSoftwareContactId) {
+            customerData.accSoftwareContactId =
+              selectedCustomer.accSoftwareContactId;
+          }
+        }
+
+        if (values.customer_type === CUSTOMER_TYPE.BUSINESS) {
+          customerData.businessName = values.business_name || '';
+          customerData.businessEmail = values.business_email || '';
+          customerData.businessPhone = values.business_phone || '';
+          customerData.individualContactName =
+            values.contact_person_first_name +
+            ' ' +
+            values.contact_person_last_name || '';
+          customerData.contactPersonFirstName =
+            values.contact_person_first_name || '';
+          customerData.contactPersonLastName =
+            values.contact_person_last_name || '';
+          customerData.abn = values.abn || '';
+          customerData.acn = '997744';
+          customerData.vatNumber = '123';
+        }
+
+        if (values.customer_type === CUSTOMER_TYPE.INDIVIDUAL) {
+          customerData.individualContactName = values.contact_person_name || '';
+          customerData.abn = 'N/A';
+          customerData.govId = '123';
+        }
+
+        if (values.payment_type === PAYMENT_TYPE.PREPAID) {
+          customerData.creditLimit = 0;
+          customerData.invoiceDueDateDayCount = 0;
+        }
+
+        const result = await createCustomer.mutateAsync(customerData);
+
+        if (isEditing && !isRetrySyncRef.current) {
+          notifySuccess('Customer Updated Successfully!');
+        } else {
+          notifySuccess('Customer Added Successfully!');
+
+          if (result && typeof result.id === 'number') {
+            addNewRecordId('customer_main_data_table', result.id);
+            if (!result.accSoftwareContactId) {
+              addSyncErrorRecordId('customer_main_data_table', result.id);
+            }
+          }
+
+          handleSyncNote(result.accSoftwareNotes);
+        }
+
+        onSuccess?.();
+        onSaved?.();
+      } catch (error) {
+        console.error(
+          `Error ${isEditing ? 'updating' : 'creating'} customer:`,
+          error,
+        );
+
+        const err = extractErrorResponse(error);
+        const extractedMessage = extractErrorMessage(error);
+        const codeStr = err?.code ? String(err.code) : undefined;
+        const messageFromErr = err?.message || extractedMessage;
+
+        const duplicateEmailPhrase = `Key (business_email)=(${values.business_email}) already exists`;
+        const isDuplicateEmail =
+          codeStr === '409' &&
+          typeof messageFromErr === 'string' &&
+          messageFromErr.includes(duplicateEmailPhrase);
+
+        if (isDuplicateEmail) {
+          const msg = `Duplicate business email "${values.business_email}" already exists.`;
+          notifyError(msg);
+          customerForm.setError('business_email', {
+            type: 'manual',
+            message: msg,
+          });
+          return;
+        }
+
+        const emailKeyPattern = `Key (email)=(${values.contact_person_email}) already exists`;
+        const isDuplicateContactEmail =
+          codeStr === '409' &&
+          typeof messageFromErr === 'string' &&
+          (messageFromErr.includes(emailKeyPattern) ||
+            messageFromErr.includes('customers_email_key'));
+
+        if (isDuplicateContactEmail) {
+          const msg = 'The contact person email already exists.';
+          notifyError(msg);
+          customerForm.setError('contact_person_email', {
+            type: 'manual',
+            message: msg,
+          });
+          return;
+        }
+
+        const duplicateABNPhrase = `Key (abn)=(${values.abn}) already exists`;
+        const isDuplicateABN =
+          codeStr === '409' &&
+          typeof messageFromErr === 'string' &&
+          messageFromErr.includes(duplicateABNPhrase);
+
+        if (isDuplicateABN) {
+          const msg = `Duplicate ABN "${values.abn}" already exists.`;
+          notifyError(msg);
+          customerForm.setError('abn', { type: 'manual', message: msg });
+          return;
+        }
+
+        notifyError(
+          messageFromErr || 'Failed to save customer. Please try again.',
+        );
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [
+      address,
+      createCustomer,
+      customerForm,
+      customerId,
+      handleSyncNote,
+      isEditing,
+      onSaved,
+      onSuccess,
+      selectedCustomer,
+    ],
+  );
+
+  const onError = React.useCallback(
+    (errors: unknown) => {
+      console.error('Form validation errors:', errors);
+      notifyError(
+        isEditing ? 'Failed to Update Customer' : 'Failed to Add Customer',
+        {
+          description: 'Check required fields',
+        },
+      );
+      scrollToFirstError();
+    },
+    [isEditing],
+  );
+
+  const handleRetrySync = React.useCallback(() => {
+    isRetrySyncRef.current = true;
+    void customerForm
+      .handleSubmit(onSubmit, onError)()
+      .finally(() => {
+        isRetrySyncRef.current = false;
+      });
+  }, [customerForm, onError, onSubmit]);
+
   return {
+    selectedCustomer,
+    isCustomerLoading,
+    attachmentTableData,
+    isAttachmentsLoading,
+    additionalContactTableData,
+    additionalContactsPage,
+    isAdditionalContactsFetching,
+    additionalContactsPageIndex,
+    additionalContactsPageSize,
+    handleAdditionalContactsPaginationChange,
+    accountManagerOptions,
+    blockState,
+    isFormBlocked,
+    accSoftwareSyncError,
+    notLinkedWarning,
+    isSubmitting,
+    addAttachmentOpen,
+    setAddAttachmentOpen,
     selectedCustomerType,
     setSelectedCustomerType,
     selectedPaymentType,
@@ -160,5 +592,9 @@ export function useCustomerFormState(
     setAddress,
     searchInput,
     setSearchInput,
+    handleFormFieldChange,
+    onSubmit,
+    onError,
+    handleRetrySync,
   };
 }

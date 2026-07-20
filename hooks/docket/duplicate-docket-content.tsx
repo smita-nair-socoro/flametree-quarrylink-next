@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { AlertTriangle, Info } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketDTO } from '@/lib/types/docket';
@@ -10,16 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { formatTruckType } from '@/lib/types/truck-enums';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
-
-function formatUom(uom: string): string {
-  switch (uom) {
-    case 'TN': return 'TN';
-    case 'M3': return 'm³';
-    case 'KG_20': return 'x 20kg';
-    case 'BULKA': return 'Bulka';
-    default: return uom;
-  }
-}
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { Input } from '@/components/ui/input';
 
 // ─── Description: quantity summary card only ───────────────────────────────
@@ -32,12 +23,12 @@ export interface DuplicateDocketDescriptionProps {
 export function DuplicateDocketDescription({
   docket,
   copies,
-}: DuplicateDocketDescriptionProps) {
+}: Readonly<DuplicateDocketDescriptionProps>) {
   const loadSize =
     docket?.actualLoadSize || docket?.plannedLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
-  const uom = formatUom(rawUom);
+  const uom = formatUomLabel(rawUom);
   const totalRequested = copies * loadSize;
   const exceedsBy = totalRequested - remaining;
   const isExceeding = exceedsBy > 0;
@@ -74,7 +65,8 @@ export function DuplicateDocketDescription({
             </p>
             {isExceeding && (
               <p className="text-[14px] font-medium leading-5 text-[#E7000B]">
-                ⚠️ This would exceed the remaining quantity by {formatNumberThousandSeparator(exceedsBy)} {uom}
+                ⚠️ This would exceed the remaining quantity by{' '}
+                {formatNumberThousandSeparator(exceedsBy)} {uom}
               </p>
             )}
           </div>
@@ -108,22 +100,19 @@ export function DuplicateDocketContent({
   onNewDeliveryDateChange,
   poValue,
   onPoValueChange,
-}: DuplicateDocketContentProps) {
-
+}: Readonly<DuplicateDocketContentProps>) {
   const loadSize =
     docket?.actualLoadSize || docket?.plannedLoadSize || docket?.loadSize || 0;
   const remaining = docket?.jobItem?.remainingQuantity ?? 0;
   const rawUom = docket?.jobItem?.productSellUom ?? '';
-  const uom = formatUom(rawUom);
+  const uom = formatUomLabel(rawUom);
   const maxCopies = loadSize > 0 ? Math.floor(remaining / loadSize) : 99;
 
   const originalDateString = docket?.deliveryCollectionDate;
   const originalDate = originalDateString
     ? parseCalendarDate(originalDateString)
     : null;
-  const isDateInPast = originalDate
-    ? originalDate < GetTodaysDate()
-    : false;
+  const isDateInPast = originalDate ? originalDate < GetTodaysDate() : false;
   const originalDateFormatted = originalDate
     ? format(originalDate, 'MMMM do, yyyy')
     : null;
@@ -153,10 +142,14 @@ export function DuplicateDocketContent({
       <div className="flex flex-col gap-6">
         {/* Number of copies */}
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium leading-5 text-[#101828]">
+          <label
+            htmlFor="duplicate-copies"
+            className="text-sm font-medium leading-5 text-[#101828]"
+          >
             Number of Copies *
           </label>
           <Input
+            id="duplicate-copies"
             type="number"
             min={0}
             defaultValue=""
@@ -166,7 +159,8 @@ export function DuplicateDocketContent({
           {copies > maxCopies && (
             <p className="text-[14px] font-normal leading-5 text-[#FB2C36]">
               Cannot create {copies} copies. This would exceed the remaining
-              quantity of {formatNumberThousandSeparator(remaining)} {uom}.<br />
+              quantity of {formatNumberThousandSeparator(remaining)} {uom}.
+              <br />
               Maximum copies allowed: {maxCopies}
             </p>
           )}
@@ -195,6 +189,7 @@ export function DuplicateDocketContent({
             onChange={(e) => onPoValueChange(e.target.value)}
             placeholder="PO number"
             disabled={retainPoNumber}
+            aria-label="PO number"
             className="w-[208px]"
           />
         </div>
@@ -239,7 +234,10 @@ export function DuplicateDocketContent({
               )}
             </div>
 
-            <InfoCell label="Load Size:" value={`${formatNumberThousandSeparator(loadSize)} ${uom}`} />
+            <InfoCell
+              label="Load Size:"
+              value={`${formatNumberThousandSeparator(loadSize)} ${uom}`}
+            />
 
             <div className="col-span-2">
               <InfoCell label={addressLabel} value={addressValue} />
@@ -292,7 +290,10 @@ export function DuplicateDocketContent({
   );
 }
 
-function InfoCell({ label, value }: { label: string; value: string }) {
+function InfoCell({
+  label,
+  value,
+}: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-xs text-[#6B7280]">{label}</span>

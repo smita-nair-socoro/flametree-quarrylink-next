@@ -462,7 +462,9 @@ export default function AddressDialog(
         ? draftAddress.lng
         : Number.parseFloat(String(draftAddress.lng));
     const coordFallback =
-      !Number.isNaN(lat) && !Number.isNaN(lng) ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : '';
+      !Number.isNaN(lat) && !Number.isNaN(lng)
+        ? `${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        : '';
     const finalDraft = {
       ...draftAddress,
       address1: draftAddress.address1?.trim() || coordFallback,
@@ -548,15 +550,17 @@ export default function AddressDialog(
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex items-center justify-center py-10">
             <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
           <form
             onSubmit={handleSave}
-            className="flex-1 min-h-0 flex flex-col overflow-hidden"
+            className="flex-1 min-h-0 flex flex-col"
           >
-            <div className="flex-1 min-h-0 overflow-y-auto">
+            {/* -mx-6 puts the scrollbar on the dialog border; px-6 keeps
+                the fields aligned with the header. */}
+            <div className="flex-1 min-h-0 overflow-y-auto -mx-6 px-6">
               {/* Form Fields */}
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-2">

@@ -15,7 +15,10 @@ import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { parseBackendDateTime } from '@/lib/utils/date';
 import { acceptImageFile } from '@/lib/utils/image-file-size';
+import { getTenantNow } from '@/lib/utils/tenant-config-helper';
 
 export function MarkDeliveredDescription({
   docket,
@@ -36,15 +39,7 @@ export function MarkDeliveredDescription({
           <span className="font-bold">•</span>
           <span>
             {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
-            {docket?.jobItem?.productSellUom === 'M3'
-              ? 'm³'
-              : docket?.jobItem?.productSellUom === 'KG_20'
-                ? 'x 20kg'
-                : docket?.jobItem?.productSellUom === 'TN'
-                  ? 'TN'
-                  : docket?.jobItem?.productSellUom === 'BULKA'
-                    ? 'Bulka'
-                    : docket?.jobItem?.productSellUom}
+            {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
       </div>
@@ -52,7 +47,18 @@ export function MarkDeliveredDescription({
   );
 }
 
+/** "0h 46m" (or "2d 3h 46m" past a day) duration between arrival and now. */
+function formatWaitingDuration(diffMs: number): string {
+  if (Number.isNaN(diffMs)) return '—';
+  const totalMinutes = Math.max(0, Math.floor(diffMs / 60000));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor(totalMinutes / 60) % 24;
+  const minutes = totalMinutes % 60;
+  return days > 0 ? `${days}d ${hours}h ${minutes}m` : `${hours}h ${minutes}m`;
+}
+
 interface MarkDeliveredContentProps {
+  docket?: DocketDTO | null;
   deliveredProductsConfirmed: boolean;
   onDeliveredProductsConfirmedChange: (checked: boolean) => void;
   unloadedPhoto: File | null;
@@ -69,6 +75,7 @@ interface MarkDeliveredContentProps {
 }
 
 export function MarkDeliveredContent({
+  docket,
   deliveredProductsConfirmed,
   onDeliveredProductsConfirmedChange,
   unloadedPhoto,
@@ -106,7 +113,20 @@ export function MarkDeliveredContent({
     };
   }, [receiptPhotoPreviewUrl, unloadedPhotoPreviewUrl]);
 
-  const waitingTime = '0h 46m';
+  // Live counter from the docket's arrival time (tenant-local) to the
+  // current tenant-timezone time.
+  const [tenantNow, setTenantNow] = React.useState<Date>(() => getTenantNow());
+  React.useEffect(() => {
+    const interval = setInterval(() => setTenantNow(getTenantNow()), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const waitingTime = React.useMemo(() => {
+    if (!docket?.arrivedAt) return '—';
+    return formatWaitingDuration(
+      tenantNow.getTime() - parseBackendDateTime(docket.arrivedAt).getTime(),
+    );
+  }, [docket?.arrivedAt, tenantNow]);
 
   return (
     <>

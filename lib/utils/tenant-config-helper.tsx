@@ -16,15 +16,35 @@ export const DEFAULT_TAX_PERCENTAGE = 10;
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
 
+export type AccountingSoftwareProvider = 'XERO' | 'MYOB';
+
+/** Normalizes the tenant's raw accounting software value for feature routing. */
+export function getAccountingSoftwareProvider(
+  accountingSoftware?: string,
+): AccountingSoftwareProvider | null {
+  const value = (accountingSoftware || '').toUpperCase();
+  if (value.includes('MYOB')) return 'MYOB';
+  if (value.includes('XERO')) return 'XERO';
+  return null;
+}
+
+/** Reads the normalized accounting software provider from the tenant store. */
+export function useAccountingSoftwareProvider(): AccountingSoftwareProvider | null {
+  const accountingSoftware = useTenantStore((s) => s.accountingSoftware);
+  return getAccountingSoftwareProvider(accountingSoftware);
+}
+
 /**
  * Maps the tenant's raw accounting software value (e.g. "XERO",
  * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB"). Falls back to
  * Xero for tenants without the field set.
  */
-export function getAccountingSoftwareLabel(accountingSoftware?: string): string {
-  const value = (accountingSoftware || '').toUpperCase();
-  if (value.includes('MYOB')) return 'MYOB';
-  if (value.includes('XERO')) return 'Xero';
+export function getAccountingSoftwareLabel(
+  accountingSoftware?: string,
+): string {
+  const provider = getAccountingSoftwareProvider(accountingSoftware);
+  if (provider === 'MYOB') return 'MYOB';
+  if (provider === 'XERO') return 'Xero';
   return DEFAULT_ACCOUNTING_SOFTWARE_LABEL;
 }
 
@@ -107,6 +127,47 @@ export function getCurrencyName(currencyCode: string): string {
     );
   } catch {
     return currencyCode;
+  }
+}
+
+/** Tenant's IANA timezone id from the tenant store, with default fallback. */
+export function getTenantTimeZoneId(): string {
+  return (
+    useTenantStore.getState().tenantDetails?.timeZoneId || DEFAULT_TIMEZONE
+  );
+}
+
+/**
+ * Current time in the tenant's timezone, as a Date whose local wall-clock
+ * components show the tenant's clock
+ */
+export function getTenantNow(): Date {
+  const now = new Date();
+  try {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: getTenantTimeZoneId(),
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(now);
+    const get = (type: string) =>
+      Number(parts.find((part) => part.type === type)?.value);
+    return new Date(
+      get('year'),
+      get('month') - 1,
+      get('day'),
+      // Some engines format midnight as "24" with hour12: false.
+      get('hour') % 24,
+      get('minute'),
+      get('second'),
+      now.getMilliseconds(),
+    );
+  } catch {
+    return now;
   }
 }
 

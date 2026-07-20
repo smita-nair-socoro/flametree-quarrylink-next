@@ -10,6 +10,7 @@ import {
   getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { QuotationLineItemTableActions } from './quotation-line-item-actions';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import {
@@ -152,10 +153,7 @@ export const getQuotationLineItemColumnsBase = (
     },
     cell: ({ row }) => {
       const productSellQty = row.original.productSellQty;
-      const productSellUom =
-        row.original.productSellUom === 'KG_20'
-          ? 'x 20kg'
-          : row.original.productSellUom;
+      const productSellUom = formatUomLabel(row.original.productSellUom || '');
       const displayText = `${formatNumberThousandSeparator(productSellQty)} ${productSellUom}`;
       return (
         <Tooltip delayDuration={300}>
