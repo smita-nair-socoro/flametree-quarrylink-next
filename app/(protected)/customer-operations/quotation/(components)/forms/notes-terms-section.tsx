@@ -16,7 +16,7 @@ import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 import z from 'zod';
-import { NewQuotationFormSchema } from './schemas/quotation-form-schema';
+import { QuotationFormSchema } from './schemas/quotation-form-schema';
 
 const MAX_NOTES_LENGTH = 2000;
 
@@ -40,7 +40,7 @@ function itemSubtitle(item: QuoteSettingItem): string {
 }
 
 interface NotesTermsSectionProps {
-  control: Control<z.infer<typeof NewQuotationFormSchema>>;
+  control: Control<z.infer<typeof QuotationFormSchema>>;
   disabled?: boolean;
 }
 
@@ -97,7 +97,7 @@ export function NotesTermsSection({
       <div className="border border-[#E4E4E7] rounded-lg bg-[#FAFAFA] p-4 space-y-3">
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-[#8E51FF]" />
-          <h3 className="font-semibold">Quote content</h3>
+          <h3 className="font-semibold">T&amp;Cs &amp; Policy Documents</h3>
         </div>
         <p className="text-sm text-muted-foreground -mt-2">
           Text templates, policy document, and external links from your

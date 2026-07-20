@@ -1,7 +1,20 @@
 'use client';
 
-import { MessageSquare, FileText, Link as LinkIcon, Download } from 'lucide-react';
+import {
+  MessageSquare,
+  FileText,
+  Link as LinkIcon,
+  Download,
+} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+
+export interface QuoteTermItem {
+  id: string;
+  name: string;
+  /** Sanitised HTML produced by the rich text editor. */
+  content: string;
+  isDefault: boolean;
+}
 
 export interface QuoteDocumentFile {
   id: string;
@@ -11,6 +24,7 @@ export interface QuoteDocumentFile {
   fileName: string;
   fileSizeLabel: string;
   url: string;
+  isDefault?: boolean;
 }
 
 export interface QuoteDocumentLink {
@@ -18,14 +32,27 @@ export interface QuoteDocumentLink {
   type: 'link';
   name: string;
   url: string;
+  isDefault?: boolean;
 }
 
 export type QuoteDocument = QuoteDocumentFile | QuoteDocumentLink;
 
 export interface TermsAndConditionsProps {
   notes?: string[];
-  terms?: string[];
+  terms?: QuoteTermItem[];
   documents?: QuoteDocument[];
+}
+
+/** Sort default item first, then alphabetically by name. */
+function sortByDefault<T extends { name: string; isDefault?: boolean }>(
+  items: T[],
+): T[] {
+  return [...items].sort((a, b) => {
+    const aD = a.isDefault ?? false;
+    const bD = b.isDefault ?? false;
+    if (aD !== bD) return aD ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
 }
 
 export const DUMMY_NOTES = [
@@ -33,13 +60,31 @@ export const DUMMY_NOTES = [
   'Deliveries are restricted to 2:00 PM – 4:00 PM as noted above. A signed delivery docket is required on every drop.',
 ];
 
-export const DUMMY_TERMS = [
-  'Prices quoted are valid until the expiry date shown on this quote and are exclusive of GST unless stated otherwise.',
-  'Delivery times are estimates only and may vary due to weather, site access, or operational constraints.',
-  'The customer must provide safe and reasonable site access for delivery vehicles.',
-  "Payment terms apply as per the customer's account arrangement with the supplier.",
-  'Title to goods passes to the customer upon delivery unless otherwise agreed in writing.',
-  'The supplier reserves the right to suspend supply where accounts are overdue.',
+export const DUMMY_TERMS: QuoteTermItem[] = [
+  {
+    id: 'standard-supply',
+    name: 'Standard Supply Terms',
+    content:
+      '<p>Prices quoted are valid until the expiry date shown on this quote and are exclusive of GST unless stated otherwise.</p>' +
+      '<ul>' +
+      '<li><p>Title to goods passes to the customer upon delivery unless otherwise agreed in writing.</p></li>' +
+      '<li><p>The supplier reserves the right to suspend supply where accounts are overdue.</p></li>' +
+      '<li><p>Risk of loss or damage passes to the customer upon delivery.</p></li>' +
+      '</ul>',
+    isDefault: true,
+  },
+  {
+    id: 'credit-account',
+    name: 'Credit Account Terms',
+    content:
+      "<p>Payment terms apply as per the customer's account arrangement with the supplier.</p>" +
+      '<ul>' +
+      '<li><p>Delivery times are estimates only and may vary due to weather, site access, or operational constraints.</p></li>' +
+      '<li><p>The customer must provide safe and reasonable site access for delivery vehicles.</p></li>' +
+      '<li><p>The supplier reserves the right to charge a failed delivery fee where access is not provided.</p></li>' +
+      '</ul>',
+    isDefault: false,
+  },
 ];
 
 export const DUMMY_DOCUMENTS: QuoteDocument[] = [
@@ -51,18 +96,21 @@ export const DUMMY_DOCUMENTS: QuoteDocument[] = [
     fileName: 'standard-supply-policy.pdf',
     fileSizeLabel: '242.5 KB',
     url: '#',
+    isDefault: true,
   },
   {
     id: 'credit-policy',
     type: 'link',
     name: 'Credit Policy (SharePoint)',
     url: 'https://company.sharepoint.com/sites/policies/credit-policy',
+    isDefault: false,
   },
   {
     id: 'whs-site-safety',
     type: 'link',
     name: 'WHS Site Safety Requirements',
     url: 'https://drive.google.com/file/d/example-whs-policy',
+    isDefault: false,
   },
 ];
 
@@ -70,12 +118,15 @@ export function TermsAndConditions({
   notes = DUMMY_NOTES,
   terms = DUMMY_TERMS,
   documents = DUMMY_DOCUMENTS,
-}: TermsAndConditionsProps) {
+}: Readonly<TermsAndConditionsProps>) {
   const hasNotes = notes.length > 0;
   const hasTerms = terms.length > 0;
   const hasDocuments = documents.length > 0;
 
   if (!hasNotes && !hasTerms && !hasDocuments) return null;
+
+  const sortedTerms = sortByDefault(terms);
+  const sortedDocuments = sortByDefault(documents);
 
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
@@ -103,12 +154,21 @@ export function TermsAndConditions({
           <h3 className="font-semibold text-sm text-gray-700 mb-2">
             Terms & Conditions
           </h3>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <ol className="list-decimal list-outside pl-5 space-y-1.5 text-sm text-gray-700">
-              {terms.map((term) => (
-                <li key={term}>{term}</li>
-              ))}
-            </ol>
+          <div className="space-y-3">
+            {sortedTerms.map((term) => (
+              <div
+                key={term.id}
+                className="rounded-lg border border-gray-200 bg-gray-50 p-4"
+              >
+                <p className="text-sm font-semibold text-gray-900 mb-2">
+                  {term.name}
+                </p>
+                <div
+                  className="rte-output text-sm text-gray-700"
+                  dangerouslySetInnerHTML={{ __html: term.content }}
+                />
+              </div>
+            ))}
           </div>
           <p className="text-xs text-gray-400 mt-2">
             By approving this quote, the customer acknowledges these terms and
@@ -126,7 +186,7 @@ export function TermsAndConditions({
             The following documents and links apply to this quote.
           </p>
           <div className="space-y-2">
-            {documents.map((doc) =>
+            {sortedDocuments.map((doc) =>
               doc.type === 'file' ? (
                 <a
                   key={doc.id}
@@ -166,8 +226,7 @@ export function TermsAndConditions({
             )}
           </div>
           <p className="text-xs text-gray-400 mt-2">
-            By approving this quote, the customer acknowledges these
-            documents.
+            By approving this quote, the customer acknowledges these documents.
           </p>
         </div>
       )}

@@ -12,7 +12,8 @@ import type { Quotation } from '../types/quotation';
  */
 export function quotationToFormValues(
   quotation: Quotation | null,
-  isEditing: boolean
+  isEditing: boolean,
+  defaultItemIds: string[] = [],
 ) {
   if (!quotation && !isEditing) {
     // New quotation defaults
@@ -27,7 +28,7 @@ export function quotationToFormValues(
       phone: '',
       receiptEmail: '',
       customerNotes: '',
-      attachedItemIds: [],
+      attachedItemIds: defaultItemIds,
     };
   }
 

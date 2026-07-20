@@ -13,7 +13,7 @@ import {
   QuoteCurrencyTax,
   StripeTenantDetailsSnapshot,
 } from '@/lib/types/quotation';
-import type { QuoteDocument } from '../terms-and-conditions';
+import type { QuoteDocument, QuoteTermItem } from '../terms-and-conditions';
 
 // Type matching the mockQuotationData structure
 export interface QuotationData {
@@ -66,7 +66,7 @@ export interface QuotationData {
   inclDeliveryCost?: boolean;
   currencyTax: QuoteCurrencyTax;
   notes?: string[];
-  terms?: string[];
+  terms?: QuoteTermItem[];
   documents?: QuoteDocument[];
   footer: {
     email: string;

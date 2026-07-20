@@ -797,6 +797,29 @@ export const pdfStyles = StyleSheet.create({
     flex: 1,
   },
 
+  termCardContainer: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termCardTitle: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 4,
+  },
+
+  termCardBody: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+  },
+
   disclaimerText: {
     fontSize: fontSize.xs,
     color: colors.gray500,
@@ -829,6 +852,20 @@ export const pdfStyles = StyleSheet.create({
 
   documentLink: {
     fontSize: fontSize.xs,
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
+
+  // RTE (rich-text) inline/block rendering in PDF
+  rteListItem: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  rteListMarker: {
+    width: 18,
+    flexShrink: 0,
+  },
+  rteLink: {
     color: colors.blue,
     textDecoration: 'underline',
   },

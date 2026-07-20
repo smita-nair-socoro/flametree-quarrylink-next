@@ -44,6 +44,7 @@ import {
 } from '@/lib/api/quotation';
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
 import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
+import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
@@ -100,11 +101,14 @@ export default function QuotationForm({
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
 
+  const { items: libraryItems } = useQuoteSettingsActions();
+
   const quotationForm = useForm<QuotationFormValues>({
     resolver: zodResolver(getQuotationFormSchema(isEditing)),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
       isEditing,
+      isEditing ? [] : libraryItems.filter((it) => it.isDefault).map((it) => it.id),
     ),
   });
 

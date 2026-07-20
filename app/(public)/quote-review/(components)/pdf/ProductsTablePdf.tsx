@@ -53,11 +53,11 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
     );
   const colWidths = (() => {
     if (isCollection && includeDeliveryPrices)
-      return { product: '30%', type: '10%', qty: '15%', delivery: '15%', unitPrice: '15%', price: '15%' };
+      return { product: '26%', type: '15%', qty: '12%', delivery: '13%', unitPrice: '17%', price: '17%' };
     if (isCollection)
       return { product: '35%', type: '15%', qty: '20%', delivery: undefined, unitPrice: '15%', price: '15%' };
     if (includeDeliveryPrices)
-      return { product: '30%', type: '12%', qty: '10%', delivery: '13%', unitPrice: '17%', price: '18%' };
+      return { product: '28%', type: '14%', qty: '11%', delivery: '12%', unitPrice: '17%', price: '18%' };
     return { product: '35%', type: '15%', qty: '15%', delivery: undefined, unitPrice: '17%', price: '18%' };
   })();
 
