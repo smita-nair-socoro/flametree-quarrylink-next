@@ -74,6 +74,7 @@ import {
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { addNewRecordId } from '@/lib/utils';
+import { getCalendarDateString } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
 import { useRetrySync } from '@/lib/api/invoices';
@@ -523,7 +524,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           numberOfCopies: duplicateCopies,
           retainPurchaseOrder: duplicateRetainPo,
           purchaseOrder: duplicateRetainPo ? undefined : duplicatePurchaseOrder,
-          deliveryCollectionDate: duplicateDeliveryDate.toISOString(),
+          deliveryCollectionDate: `${getCalendarDateString(duplicateDeliveryDate)}T00:00:00.000`,
         },
       });
       result.dockets.forEach((d) =>

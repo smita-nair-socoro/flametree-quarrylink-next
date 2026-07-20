@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Drawer,
   DrawerClose,
@@ -32,7 +33,7 @@ import {
 } from '@/components/ui/drawer';
 import { TableBadges } from '@/components/table-badges';
 import { Separator } from '@/components/ui/separator';
-import { useDriverAppDocketActions } from '@/hooks/use-driver-app-docket-actions';
+import { useDriverAppDocketActions, type DriverAppDocketAction } from '@/hooks/use-driver-app-docket-actions';
 import { useDriverAppOperationalUpdate, DriverAppAssignedDocketDetailQueryOptions } from '@/lib/api/driver-app';
 import { useTruckInspectionStatusStore } from '@/app/stores/truck-inspection-status-store';
 import { useDriverChecklistStore } from '@/app/stores/driver-checklist-store';
@@ -41,6 +42,10 @@ import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
+import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
+import { parseBackendDateTime } from '@/lib/utils/date';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 const getCustomerName = (
   customerDto?: CustomerDTO,
@@ -77,12 +82,81 @@ interface DocketsTabProps {
   dailyChecklistRequired?: boolean;
 }
 
-type ActionType =
-  | 'markArrived'
-  | 'markDelivered'
-  | 'stop'
-  | 'startTransit'
-  | 'resumeTransit';
+type ActionType = DriverAppDocketAction;
+
+function DocketActionButtonLabel({
+  isLoading,
+  icon,
+  label,
+}: {
+  isLoading: boolean;
+  icon?: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <span className="flex items-center justify-center gap-2">
+      {isLoading ? (
+        <Spinner size="small" className="text-current size-4" />
+      ) : (
+        icon ?? null
+      )}
+      {label}
+    </span>
+  );
+}
+
+const LOAD_SIZE_MAX_DECIMALS = 2;
+
+function isWithinDecimalLimit(
+  value: string,
+  maxDecimals = LOAD_SIZE_MAX_DECIMALS,
+): boolean {
+  if (!value.includes('.')) return true;
+  const decimals = value.split('.')[1] ?? '';
+  return decimals.length <= maxDecimals;
+}
+
+function clampLoadSizeInputValue(value: string): string {
+  if (value === '' || value === '.') return value;
+  if (!isWithinDecimalLimit(value)) {
+    const [whole, decimals = ''] = value.split('.');
+    return `${whole}.${decimals.slice(0, LOAD_SIZE_MAX_DECIMALS)}`;
+  }
+  return value;
+}
+
+function appendLoadSizeInput(prev: string, key: string): string {
+  if (key === '.') {
+    const next = prev.includes('.') ? prev : prev === '' ? '0.' : `${prev}.`;
+    return clampLoadSizeInputValue(next);
+  }
+  const next = prev + key;
+  if (!isWithinDecimalLimit(next)) return prev;
+  return clampLoadSizeInputValue(next);
+}
+
+function resolveDeliveryDistanceQuantity(
+  docket: DocketDTO,
+  loadSize: number,
+): number {
+  const isCollection = docket.jobItem?.jobItemType === 'COLLECTION';
+  const needTruckQty =
+    docket.jobItem?.truckSellUom === 'HOURLY' ||
+    docket.jobItem?.truckSellUom === 'LOAD' ||
+    docket.jobItem?.truckSellUom === 'KM';
+
+  const { quantity } = getDeliveryDistanceQuantity({
+    isCollection,
+    needTruckQty,
+    truckQty: docket.deliveryDistanceQuantity,
+    loadSize,
+    productUom: docket.jobItem?.productSellUom || 'TN',
+    truckUom: docket.jobItem?.truckSellUom,
+    density: docket.jobItem?.product?.densityTonnagePerM3 || 1,
+  });
+
+  return quantity;
+}
 
 export default function DocketsTab({
   dockets,
@@ -104,7 +178,7 @@ export default function DocketsTab({
   });
   const selectedDocket = docketDetail ?? selectedDocketData;
 
-  const { actions, confirmDialogs, isDialogOpen } =
+  const { actions, confirmDialogs, isDialogOpen, isStatusUpdatePending, pendingAction } =
     useDriverAppDocketActions(selectedDocket);
   const operationalUpdate = useDriverAppOperationalUpdate();
   const docketSizes = useDocketActualLoadSizeStore((s) => s.sizes);
@@ -164,8 +238,11 @@ export default function DocketsTab({
 
   const formatTimeWindow = (start: string, end: string) => {
     try {
-      const startDate = new Date(start);
-      const endDate = new Date(end);
+      const startDate = parseBackendDateTime(start);
+      const endDate = parseBackendDateTime(end);
+      if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+        return 'Invalid Date';
+      }
       return `${format(startDate, 'EEE, d MMM')} · ${format(startDate, 'HH:mm')} - ${format(endDate, 'HH:mm')}`;
     } catch {
       return 'Invalid Date';
@@ -460,8 +537,11 @@ export default function DocketsTab({
                             className="text-[#8E51FF] hover:bg-transparent underline text-[13px] font-medium gap-1"
                             size="xs"
                             onClick={() => {
+                              const currentValue =
+                                (docketSizes[selectedDocket.id] ??
+                                  selectedDocket.actualLoadSize)?.toString() ?? '';
                               setUpdateValue(
-                                (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize)?.toString() ?? '',
+                                clampLoadSizeInputValue(currentValue),
                               );
                               setIsUpdateDrawerOpen(true);
                             }}
@@ -594,13 +674,14 @@ export default function DocketsTab({
                   {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                     <Button
                       onClick={() => handleAction('markArrived')}
-                      disabled={!checklistsComplete}
+                      disabled={!checklistsComplete || isStatusUpdatePending}
                       className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        Mark Arrived
-                      </span>
+                      <DocketActionButtonLabel
+                        isLoading={pendingAction === 'markArrived'}
+                        icon={<CheckCircle className="h-4 w-4" />}
+                        label="Mark Arrived"
+                      />
                     </Button>
                   )}
                   {selectedDocket.docketStatus === 'ASSIGNED' && (
@@ -609,45 +690,54 @@ export default function DocketsTab({
                       onClick={() => {
                         handleAction('startTransit');
                       }}
-                      disabled={!checklistsComplete}
+                      disabled={!checklistsComplete || isStatusUpdatePending}
                     >
-                      <span className="flex items-center gap-2">
-                        <CheckCircle className="h-4 w-4" />
-                        Start Delivery
-                      </span>
+                      <DocketActionButtonLabel
+                        isLoading={pendingAction === 'startTransit'}
+                        icon={<CheckCircle className="h-4 w-4" />}
+                        label="Start Delivery"
+                      />
                     </Button>
                   )}
                   {selectedDocket.docketStatus === 'IN_TRANSIT' && (
                     <Button
                       variant="outline"
                       onClick={() => handleAction('stop')}
+                      disabled={isStatusUpdatePending}
                       className="w-full border-[#FF6900] text-[#FF6900] hover:bg-orange-50 hover:text-[#FF6900] h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
                     >
-                      <span className="flex items-center gap-2">
-                        <Pause className="h-4 w-4" />
-                        Stop
-                      </span>
+                      <DocketActionButtonLabel
+                        isLoading={pendingAction === 'stop'}
+                        icon={<Pause className="h-4 w-4" />}
+                        label="Stop"
+                      />
                     </Button>
                   )}
                   {selectedDocket.docketStatus === 'STOPPED' && (
                     <Button
                       className="w-full bg-[#008236] text-white h-12 rounded-xl text-[16px] font-semibold cursor-pointer"
                       onClick={() => handleAction('resumeTransit')}
+                      disabled={isStatusUpdatePending}
                     >
-                      Resume Transit
+                      <DocketActionButtonLabel
+                        isLoading={pendingAction === 'resumeTransit'}
+                        icon={null}
+                        label="Resume Transit"
+                      />
                     </Button>
                   )}
                   {selectedDocket.docketStatus === 'ARRIVED' && (
                     <>
                       <Button
-                        disabled={!checklistsComplete}
+                        disabled={!checklistsComplete || isStatusUpdatePending}
                         className="w-full bg-[#8E51FF] hover:bg-[#7c46e0] text-white h-12 rounded-xl text-[16px] shadow-lg shadow-purple-200 cursor-pointer"
                         onClick={() => handleAction('markDelivered')}
                       >
-                        <span className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4" />
-                          Mark Delivered
-                        </span>
+                        <DocketActionButtonLabel
+                          isLoading={pendingAction === 'markDelivered'}
+                          icon={<CheckCircle className="h-4 w-4" />}
+                          label="Mark Delivered"
+                        />
                       </Button>
                       {/* Back to In Transit — hidden for now
                       <Button
@@ -720,7 +810,9 @@ export default function DocketsTab({
               <button
                 key={key}
                 className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
-                onClick={() => setUpdateValue((prev) => prev + key)}
+                onClick={() =>
+                  setUpdateValue((prev) => appendLoadSizeInput(prev, key))
+                }
               >
                 {key}
               </button>
@@ -728,16 +820,16 @@ export default function DocketsTab({
             <button
               className="h-[68px] bg-[#94A3B8]/30 text-[28px] text-[#0F172A] active:bg-[#94A3B8]/50 flex items-center justify-center font-normal"
               onClick={() =>
-                setUpdateValue((prev) =>
-                  prev.includes('.') ? prev : prev + '.',
-                )
+                setUpdateValue((prev) => appendLoadSizeInput(prev, '.'))
               }
             >
               .
             </button>
             <button
               className="h-[68px] bg-white text-[28px] text-[#0F172A] active:bg-gray-50 flex items-center justify-center font-normal"
-              onClick={() => setUpdateValue((prev) => prev + '0')}
+              onClick={() =>
+                setUpdateValue((prev) => appendLoadSizeInput(prev, '0'))
+              }
             >
               0
             </button>
@@ -762,14 +854,27 @@ export default function DocketsTab({
               disabled={operationalUpdate.isPending}
               onClick={async () => {
                 if (!selectedDocket?.id || !updateValue) return;
-                const numericValue = parseFloat(updateValue);
+                let numericValue = parseFloat(updateValue);
                 if (isNaN(numericValue)) return;
-                await operationalUpdate.mutateAsync({
-                  id: selectedDocket.id,
-                  actualLoadSize: numericValue,
-                });
-                setActualLoadSize(selectedDocket.id, numericValue);
-                setIsUpdateDrawerOpen(false);
+                numericValue = Math.round(numericValue * 100) / 100;
+
+                const deliveryDistanceQuantity = resolveDeliveryDistanceQuantity(
+                  selectedDocket,
+                  numericValue,
+                );
+
+                try {
+                  await operationalUpdate.mutateAsync({
+                    id: selectedDocket.id,
+                    actualLoadSize: numericValue,
+                    deliveryDistanceQuantity,
+                  });
+                  setActualLoadSize(selectedDocket.id, numericValue);
+                  setIsUpdateDrawerOpen(false);
+                  notifySuccess('Load size updated successfully');
+                } catch (error) {
+                  notifyError(extractErrorMessage(error));
+                }
               }}
             >
               Confirm

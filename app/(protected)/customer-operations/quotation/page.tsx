@@ -35,7 +35,7 @@ import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quo
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { QuotationTableActions } from './(components)/(data-tables)/quotation/quotation-table-actions';
-import { parseISO, format } from 'date-fns';
+import { formatLocalDate } from '@/lib/utils/date';
 // import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 
 export default function QuotationsPage() {
@@ -210,9 +210,8 @@ export default function QuotationsPage() {
         ? `${currencySymbol}${centsToDollars(quotation.totalSellPrice)}`
         : `${currencySymbol}0.00`;
       const expiryDate = quotation.expiryDate || '-';
-
-      const date = parseISO(expiryDate);
-      const formattedExpiryDate = format(date, 'dd MMM yyyy');
+      const formattedExpiryDate =
+        expiryDate === '-' ? '-' : formatLocalDate(expiryDate);
 
       return (
         <MobileCard

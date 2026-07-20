@@ -144,7 +144,11 @@ export function UnassignDocketContent({ docket }: { docket?: DocketDTO | null })
                   Time window
                 </p>
                 <p className="font-semibold text-[#0F172A]">
-                  {formatTimeRange(docket?.deliveryCollectionStartTime, docket?.deliveryCollectionEndTime) || '—'}
+                  {formatTimeRange(
+                    docket?.deliveryCollectionStartTime,
+                    docket?.deliveryCollectionEndTime,
+                    { hour12: true },
+                  ) || '—'}
                 </p>
               </div>
             </div>

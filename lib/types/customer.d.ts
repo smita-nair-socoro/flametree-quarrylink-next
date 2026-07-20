@@ -39,7 +39,6 @@ export interface CustomerDTO {
   acn?: string;
   vatNumber?: string;
 
-  dateOfBirth?: string;
   govId?: string;
 
   version: number;
@@ -98,7 +97,6 @@ export interface CustomerWithAddressResponseDTO {
   // INDIVIDUAL type specific fields
   firstName?: string;
   lastName?: string;
-  dateOfBirth?: string;
   govId?: string;
 }
 
