@@ -21,7 +21,7 @@ import {
 } from '@/lib/api/customer';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { NewCustomerFormSchema } from '@/app/(protected)/customer-operations/customers/(components)/forms/schemas/customer-form-schema';
-import { getCustomerFormBlockState } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form-blocker';
+import { getCustomerFormBlockState } from '@/app/(protected)/customer-operations/customers/(components)/forms/tabs/details/customer-form-blocker';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 import {
   addNewRecordId,

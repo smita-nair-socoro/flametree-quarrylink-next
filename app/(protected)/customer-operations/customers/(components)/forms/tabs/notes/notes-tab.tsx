@@ -86,7 +86,6 @@ export default function NotesTab({
   const [notes, setNotes] = React.useState<CustomerNote[]>(() =>
     MOCK_NOTES.map((n, i) => ({ ...n, id: `mock-${customerId ?? 0}-${i}` })),
   );
-  const [sortNewestFirst, setSortNewestFirst] = React.useState(true);
   const [draft, setDraft] = React.useState('');
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editDraft, setEditDraft] = React.useState('');
@@ -98,14 +97,6 @@ export default function NotesTab({
     onCountChange?.(notes.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [notes.length]);
-
-  const sortedNotes = React.useMemo(() => {
-    const sorted = [...notes].sort(
-      (a, b) =>
-        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-    );
-    return sortNewestFirst ? sorted.reverse() : sorted;
-  }, [notes, sortNewestFirst]);
 
   const handleAddNote = () => {
     const trimmed = draft.trim();
@@ -154,7 +145,7 @@ export default function NotesTab({
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300 rounded-md border">
+    <div className="animate-in fade-in slide-in-from-right-4 duration-300 rounded-md border mb-10">
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold">Notes</span>
@@ -162,14 +153,12 @@ export default function NotesTab({
             {notes.length}
           </Badge>
         </div>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
-          onClick={() => setSortNewestFirst((prev) => !prev)}
+        <div
+          className="flex items-center gap-1.5 text-sm text-muted-foreground"
         >
           <Clock className="h-3.5 w-3.5" />
-          {sortNewestFirst ? 'Newest first' : 'Oldest first'}
-        </button>
+          Newest first
+        </div>
       </div>
 
       {/* Composer */}
@@ -205,12 +194,12 @@ export default function NotesTab({
 
       {/* Notes list */}
       <div>
-        {sortedNotes.length === 0 && (
+        {notes.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             No notes yet.
           </div>
         )}
-        {sortedNotes.map((note) => {
+        {notes.map((note) => {
           // Placeholder notes use synthetic author IDs. Keep them manageable
           // until the notes API supplies real ownership data.
           const canManageNote =
@@ -248,7 +237,7 @@ export default function NotesTab({
                       </button>
                       <button
                         type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-[#FC0000] focus-visible:bg-muted focus-visible:text-[#FC0000] active:bg-muted active:text-[#FC0000]"
+                        className="flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-muted text-[#FC0000] focus-visible:bg-muted focus-visible:text-[#FC0000] active:bg-muted active:text-[#FC0000]"
                         onClick={() => setDeleteTarget(note)}
                         aria-label="Delete note"
                       >

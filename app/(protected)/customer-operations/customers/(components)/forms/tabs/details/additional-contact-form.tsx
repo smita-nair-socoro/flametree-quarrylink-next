@@ -20,7 +20,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { additionalContactFormSchema } from './schemas/additional-contact-form-schema';
+import { additionalContactFormSchema } from '../../schemas/additional-contact-form-schema';
 import { AdditionalContactDTO } from '@/lib/types/customer';
 import {
   useCreateAdditionalContact,
