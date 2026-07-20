@@ -30,22 +30,32 @@ const CUSTOM_OVERRIDE_COUNT = MOCK_CUSTOMER_OVERRIDES.filter(
 export default function FeeRecoveryTab() {
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
   const [chargeMode, setChargeMode] = React.useState<ChargeMode>('charge');
-  const [savedChargeMode, setSavedChargeMode] =
-    React.useState<ChargeMode>('charge');
+  const [savedChargeMode, setSavedChargeMode] = React.useState<ChargeMode>('charge');
   const [invoiceAmount, setInvoiceAmount] = React.useState('2.40');
+  const [savedAmount, setSavedAmount] = React.useState('2.40');
   const [feeLabel, setFeeLabel] = React.useState('Digital Platform Fee');
+  const [savedLabel, setSavedLabel] = React.useState('Digital Platform Fee');
   const [saveDialogOpen, setSaveDialogOpen] = React.useState(false);
 
+  const isDraft =
+    chargeMode !== savedChargeMode ||
+    invoiceAmount !== savedAmount ||
+    feeLabel !== savedLabel;
+
   const handleSaveDefaultsClick = () => {
-    if (chargeMode !== savedChargeMode) {
-      setSaveDialogOpen(true);
-      return;
-    }
-    setSavedChargeMode(chargeMode);
+    setSaveDialogOpen(true);
   };
 
   const handleConfirmSaveDefaults = () => {
     setSavedChargeMode(chargeMode);
+    setSavedAmount(invoiceAmount);
+    setSavedLabel(feeLabel);
+  };
+
+  const handleDiscard = () => {
+    setChargeMode(savedChargeMode);
+    setInvoiceAmount(savedAmount);
+    setFeeLabel(savedLabel);
   };
 
   const feeStats = [
@@ -105,7 +115,7 @@ export default function FeeRecoveryTab() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-semibold">Global defaults</h3>
-                {chargeMode !== savedChargeMode && (
+                {isDraft && (
                   <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">
                     Unsaved
                   </span>
@@ -205,10 +215,16 @@ export default function FeeRecoveryTab() {
               {summaryText}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex items-center justify-end gap-2">
+              {isDraft && (
+                <Button variant="outline" onClick={handleDiscard}>
+                  Discard changes
+                </Button>
+              )}
               <Button
                 className="bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
                 onClick={handleSaveDefaultsClick}
+                disabled={!isDraft}
               >
                 Save defaults
               </Button>
@@ -246,9 +262,20 @@ export default function FeeRecoveryTab() {
           ))}
         </div>
 
+        {/* Live preview banner */}
+        {isDraft && (
+          <div className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Preview — the table and filters below reflect your unsaved draft.{' '}
+              <strong>Save defaults</strong> to apply.
+            </p>
+          </div>
+        )}
+
         {/* Customer overrides table */}
         <CustomerOverridesTable
-          globalMode={savedChargeMode}
+          globalMode={chargeMode}
           globalAmount={invoiceAmount}
         />
       </div>
