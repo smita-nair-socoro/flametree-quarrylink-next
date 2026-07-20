@@ -1,9 +1,14 @@
 import { StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register Geist font
+// Register all four Geist variants needed for bold + italic RTE rendering
 Font.register({
   family: 'Geist',
-  src: '/fonts/Geist.ttf',
+  fonts: [
+    { src: '/fonts/GeistRegular.ttf' },
+    { src: '/fonts/GeistBold.ttf', fontWeight: 700 },
+    { src: '/fonts/GeistItalic.ttf', fontStyle: 'italic' },
+    { src: '/fonts/GeistBoldItalic.ttf', fontWeight: 700, fontStyle: 'italic' },
+  ],
 });
 
 // Disable word hyphenation - keeps words intact when wrapping

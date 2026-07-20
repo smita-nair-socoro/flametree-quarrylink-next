@@ -62,27 +62,43 @@ export const DUMMY_NOTES = [
 
 export const DUMMY_TERMS: QuoteTermItem[] = [
   {
+    // Default item — tests bold, italic, bullet list
     id: 'standard-supply',
     name: 'Standard Supply Terms',
     content:
-      '<p>Prices quoted are valid until the expiry date shown on this quote and are exclusive of GST unless stated otherwise.</p>' +
+      '<p><strong>Prices quoted</strong> are valid until the expiry date shown on this quote and are <em>exclusive of GST</em> unless stated otherwise.</p>' +
       '<ul>' +
-      '<li><p>Title to goods passes to the customer upon delivery unless otherwise agreed in writing.</p></li>' +
-      '<li><p>The supplier reserves the right to suspend supply where accounts are overdue.</p></li>' +
+      '<li><p>Title to goods passes to the customer upon <strong>delivery</strong> unless otherwise agreed in writing.</p></li>' +
+      '<li><p>The supplier reserves the right to <strong>suspend supply</strong> where accounts are overdue.</p></li>' +
       '<li><p>Risk of loss or damage passes to the customer upon delivery.</p></li>' +
       '</ul>',
     isDefault: true,
   },
   {
-    id: 'credit-account',
-    name: 'Credit Account Terms',
+    // Tests numbered list, bold percentages, italic, underline
+    id: 'payment-schedule',
+    name: 'Payment Schedule',
     content:
-      "<p>Payment terms apply as per the customer's account arrangement with the supplier.</p>" +
-      '<ul>' +
-      '<li><p>Delivery times are estimates only and may vary due to weather, site access, or operational constraints.</p></li>' +
-      '<li><p>The customer must provide safe and reasonable site access for delivery vehicles.</p></li>' +
-      '<li><p>The supplier reserves the right to charge a failed delivery fee where access is not provided.</p></li>' +
-      '</ul>',
+      '<p>The following payment milestones apply to this order:</p>' +
+      '<ol>' +
+      '<li><p><strong>30%</strong> deposit due upon acceptance of this quote.</p></li>' +
+      '<li><p><strong>40%</strong> progress payment due prior to dispatch.</p></li>' +
+      '<li><p><strong>30%</strong> balance due within <em>14 days</em> of delivery.</p></li>' +
+      '</ol>' +
+      '<p>Late payments will incur an interest charge of <u>2% per month</u> on the outstanding balance.</p>',
+    isDefault: false,
+  },
+  {
+    // Tests center/right align, underline, strikethrough, links, combined bold+italic
+    id: 'formatting-showcase',
+    name: 'Text Formatting Reference',
+    content:
+      '<p style="text-align: center"><strong>Important Notice — Please Read Carefully</strong></p>' +
+      '<p>This card demonstrates all supported rich text formats:</p>' +
+      '<p><strong>Bold</strong>, <em>italic</em>, <u>underline</u>, <s>strikethrough</s>.</p>' +
+      '<p>Combined styles: <strong><em>bold italic</em></strong>, <strong><u>bold underline</u></strong>.</p>' +
+      '<p>Links are supported: visit our <a href="https://example.com/policy">policy page</a> for full details.</p>' +
+      '<p style="text-align: right"><em>— The Supplier</em></p>',
     isDefault: false,
   },
 ];
