@@ -12,6 +12,7 @@ import { FormSelectOption } from '@/components/ui/form-select';
 import { QuotationLineItem } from '@/lib/types/quotation';
 import { JobItem } from '@/lib/types/job';
 import { useDebounce } from '@/hooks/use-debounce';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 function toProductSelectOption(
   product: ProductListItem,
@@ -29,10 +30,12 @@ function toProductSelectOption(
 export function buildProductSelectOptions(
   products: ProductListItem[],
 ): FormSelectOption[] {
-  return products
-    .map(toProductSelectOption)
-    .filter((option): option is FormSelectOption => option != null)
-    .sort((a, b) => a.label.localeCompare(b.label));
+  return sortByLabel(
+    products
+      .map(toProductSelectOption)
+      .filter((option): option is FormSelectOption => option != null),
+    (option) => option.label,
+  );
 }
 
 /** Map quotation line item fields into a ProductListItem for the form select. */

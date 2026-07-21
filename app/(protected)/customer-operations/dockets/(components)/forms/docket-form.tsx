@@ -23,6 +23,7 @@ import {
   splitReasonNote,
   scrollToFirstError,
 } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
@@ -82,19 +83,22 @@ import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
-const truckTypeOptions: FormSelectOption[] = [
-  { label: 'Truck', value: TRUCK_TYPE.TRUCK },
-  { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
-  { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
-  { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
-  { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
-  { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
-  { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
-  { label: 'Quad', value: TRUCK_TYPE.QUAD },
-  { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
-  { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
-  { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
-];
+const truckTypeOptions: FormSelectOption[] = sortByLabel(
+  [
+    { label: 'Truck', value: TRUCK_TYPE.TRUCK },
+    { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
+    { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
+    { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
+    { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
+    { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
+    { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
+    { label: 'Quad', value: TRUCK_TYPE.QUAD },
+    { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
+    { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
+    { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
+  ],
+  (option) => option.label,
+);
 
 interface FormProps {
   id?: number;

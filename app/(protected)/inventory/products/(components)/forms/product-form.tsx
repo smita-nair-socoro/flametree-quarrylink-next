@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -138,10 +139,13 @@ export default function ProductForm({
   // Map materials to options
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
-    return materialsData.map((material) => ({
-      label: material.name,
-      value: material.id,
-    }));
+    return sortByLabel(
+      materialsData.map((material) => ({
+        label: material.name,
+        value: material.id,
+      })),
+      (option) => option.label,
+    );
   }, [materialsData]);
 
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
@@ -591,6 +595,7 @@ export default function ProductForm({
                   control={productForm.control}
                   name="materialId"
                   label="Material Type*"
+                  searchLabel="material types"
                   options={materialTypeOptions}
                   placeholder="Select Material Type"
                   showSearch={true}

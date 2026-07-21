@@ -4,6 +4,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { AddressType } from '@/lib/types/address';
 import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
@@ -292,12 +293,15 @@ export function useDocketFormState({
         : [];
     }
 
-    return jobLineItems
-      .filter((lineItem) => lineItem.id !== undefined)
-      .map((lineItem) => ({
-        label: lineItem.product?.productName ?? 'Unknown Product',
-        value: lineItem.id as number,
-      }));
+    return sortByLabel(
+      jobLineItems
+        .filter((lineItem) => lineItem.id !== undefined)
+        .map((lineItem) => ({
+          label: lineItem.product?.productName ?? 'Unknown Product',
+          value: lineItem.id as number,
+        })),
+      (option) => option.label,
+    );
   }, [isEditing, selectedDocket?.jobItem, jobLineItems]);
 
   const selectedJob = React.useMemo<SelectedJobPrefill>(() => {

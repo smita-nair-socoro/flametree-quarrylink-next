@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -91,12 +92,15 @@ export default function SupplierForm({
 
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>
-      departments
-        .filter((department) => department.id !== undefined)
-        .map((department) => ({
-          value: department.id as number,
-          label: `${department.departmentName}`,
-        })),
+      sortByLabel(
+        departments
+          .filter((department) => department.id !== undefined)
+          .map((department) => ({
+            value: department.id as number,
+            label: `${department.departmentName}`,
+          })),
+        (option) => option.label,
+      ),
     [departments],
   );
 
@@ -136,16 +140,19 @@ export default function SupplierForm({
   const supplierOptions = React.useMemo(() => {
     if (!quarriesData) return [];
 
-    return quarriesData
-      .filter(
-        (quarry) =>
-          !existingQuarryIds.includes(quarry.id) ||
-          quarry.id === quarrySupplierId,
-      )
-      .map((quarry) => ({
-        label: quarry.name,
-        value: quarry.id,
-      }));
+    return sortByLabel(
+      quarriesData
+        .filter(
+          (quarry) =>
+            !existingQuarryIds.includes(quarry.id) ||
+            quarry.id === quarrySupplierId,
+        )
+        .map((quarry) => ({
+          label: quarry.name,
+          value: quarry.id,
+        })),
+      (option) => option.label,
+    );
   }, [quarriesData, existingQuarryIds, quarrySupplierId]);
 
   // TODO: Zod Validation
@@ -198,7 +205,7 @@ export default function SupplierForm({
               control={supplierForm.control}
               name="quarrySupplierId"
               label="Quarry / Supplier Name*"
-              searchLabel="Suppliers"
+              searchLabel="quarries and suppliers"
               options={supplierOptions}
               placeholder="Select a Supplier"
               formItemClassName="w-full"

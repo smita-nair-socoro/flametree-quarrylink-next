@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { User, UserDelete } from '@/lib/types/user';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import {
   AlertTriangle,
   Users,
@@ -79,11 +80,13 @@ export function useTeamMemberActions(
   const filteredTeamMembers = teamMembers?.filter(
     (member) => member.enabled === true,
   );
-  const teamMemberOptions: { label: string; value: string }[] =
+  const teamMemberOptions: { label: string; value: string }[] = sortByLabel(
     filteredTeamMembers?.map((member) => ({
       label: member.name,
       value: member.sub,
-    })) || [];
+    })) || [],
+    (option) => option.label,
+  );
 
   const userName = teamMemberData?.name;
 

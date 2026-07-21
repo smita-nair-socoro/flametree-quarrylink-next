@@ -829,6 +829,7 @@ export default function CustomerForm({
               control={customerForm.control}
               name="account_manager"
               label="Account Manager*"
+              searchLabel="account managers"
               options={accountManagerOptions}
               autoSelectForOnlyOneOption={!isEditing}
               placeholder="Select Account Manager"

@@ -13,6 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -60,19 +61,22 @@ interface FormProps {
   scrollToSection?: string;
 }
 
-const truckTypeOptions: FormSelectOption[] = [
-  { label: 'Truck', value: TRUCK_TYPE.TRUCK },
-  { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
-  { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
-  { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
-  { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
-  { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
-  { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
-  { label: 'Quad', value: TRUCK_TYPE.QUAD },
-  { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
-  { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
-  { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
-];
+const truckTypeOptions: FormSelectOption[] = sortByLabel(
+  [
+    { label: 'Truck', value: TRUCK_TYPE.TRUCK },
+    { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
+    { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
+    { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
+    { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
+    { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
+    { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
+    { label: 'Quad', value: TRUCK_TYPE.QUAD },
+    { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
+    { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
+    { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
+  ],
+  (option) => option.label,
+);
 
 export default function TruckForm({
   id,
@@ -99,13 +103,16 @@ export default function TruckForm({
 
   const haulierItems = React.useMemo(
     () =>
-      hauliers
-        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
-        .map((h) => ({
-          id: h.id,
-          label: h.haulierName,
-          fields: { email: h.emailAddress, phone: h.phoneNumber },
-        })),
+      sortByLabel(
+        hauliers
+          .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
+          .map((h) => ({
+            id: h.id,
+            label: h.haulierName,
+            fields: { email: h.emailAddress, phone: h.phoneNumber },
+          })),
+        (item) => item.label,
+      ),
     [hauliers, tenantEmail],
   );
 
@@ -147,12 +154,15 @@ export default function TruckForm({
   );
   const driverOptions: FormMultiSelectOption[] = React.useMemo(
     () =>
-      haulierDrivers
-        .filter((d) => d.id != null)
-        .map((d) => ({
-          label: d.driverName,
-          value: String(d.id),
-        })),
+      sortByLabel(
+        haulierDrivers
+          .filter((d) => d.id != null)
+          .map((d) => ({
+            label: d.driverName,
+            value: String(d.id),
+          })),
+        (option) => option.label,
+      ),
     [haulierDrivers],
   );
 

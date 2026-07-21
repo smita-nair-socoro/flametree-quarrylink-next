@@ -5,6 +5,7 @@ import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { sortByLabelOtherLast } from '@/lib/utils/sort-options';
 
 export const VOID_REASON_LABELS: Record<string, string> = {
   entered_in_error: 'Entered in error',
@@ -17,8 +18,9 @@ export const VOID_REASON_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-const VOID_REASONS = Object.entries(VOID_REASON_LABELS).map(
-  ([value, label]) => ({ value, label }),
+const VOID_REASONS = sortByLabelOtherLast(
+  Object.entries(VOID_REASON_LABELS).map(([value, label]) => ({ value, label })),
+  (option) => option.label,
 );
 
 export function VoidDocketDescription({
