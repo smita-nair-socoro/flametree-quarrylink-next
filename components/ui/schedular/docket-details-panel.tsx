@@ -96,6 +96,8 @@ export function DocketDetailsPanel({
     enabled: !!docketId,
   });
 
+  console.log('fullDocket', fullDocket);
+
   const [plannedLoadSizeValue, setPlannedLoadSizeValue] = useState<string>('');
   const [actualLoadSizeValue, setActualLoadSizeValue] = useState<string>('');
   const [tareWeightValue, setTareWeightValue] = useState<string>('');
@@ -341,7 +343,7 @@ export function DocketDetailsPanel({
           </button>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col gap-6">
+        <div className="p-4 flex-1 flex flex-col gap-6">
           {/* Docket Number & Badge */}
           <div className="flex items-center justify-between">
             <button
@@ -637,19 +639,39 @@ export function DocketDetailsPanel({
                 Locations
               </h3>
             </div>
-            <div className="flex flex-col gap-5 p-4">
+            <div className="grid grid-cols-2 gap-5 p-4">
               <div className="flex flex-col gap-1 text-sm font-medium">
                 <div className=" text-gray-500">Pickup</div>
-                <div className=" text-gray-900">
-                  {dispatchAddressLabel(docket.pickUpAddress)}
+                <div className=" text-gray-900 flex flex-col gap-0.5">
+                  <span>
+                    {docket.deliveryAddress?.streetDetailsPrimary ?? ''}
+                  </span>
+                  <span>
+                    {docket.deliveryAddress?.suburb ?? ''}{' '}
+                    {docket.deliveryAddress?.state ?? ''}{' '}
+                    {docket.deliveryAddress?.postcode ?? ''}
+                  </span>
+                  <span>
+                    <span>{docket.deliveryAddress?.country ?? ''}</span>
+                  </span>
                 </div>
               </div>
               {(!docket.jobItem ||
                 docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-                <div className="flex flex-col gap-0 text-sm font-medium">
+                <div className="flex flex-col gap-1 text-sm font-medium">
                   <div className=" text-gray-500">Delivery</div>
-                  <div className=" text-gray-900">
-                    {dispatchAddressLabel(docket.deliveryAddress)}
+                  <div className=" text-gray-900 flex flex-col gap-0.5">
+                    <span>
+                      {docket.pickUpAddress?.streetDetailsPrimary ?? ''}
+                    </span>
+                    <span>
+                      {docket.pickUpAddress?.suburb ?? ''}{' '}
+                      {docket.pickUpAddress?.state ?? ''}{' '}
+                      {docket.pickUpAddress?.postcode ?? ''}
+                    </span>
+                    <span>
+                      <span>{docket.pickUpAddress?.country ?? ''}</span>
+                    </span>
                   </div>
                 </div>
               )}
