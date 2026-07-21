@@ -11,12 +11,21 @@ async function fetchLogoAsBase64(url: string): Promise<string | undefined> {
     const response = await fetch(url);
     if (!response.ok) return undefined;
     const blob = await response.blob();
-    return await new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
+
+    // PNGs work fine in pdfkit and may have transparency — keep as PNG.
+    // JPEGs with non-sRGB colour profiles cause pdfkit's "Unknown version" crash;
+    // decode + re-encode via canvas to normalise to sRGB.
+    // Cap at 240px (logo renders at 30pt in the PDF).
+    const isPng = blob.type === 'image/png';
+    const MAX = 240;
+    const bitmap = await createImageBitmap(blob);
+    const scale = Math.min(1, MAX / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    bitmap.close();
+    return canvas.toDataURL(isPng ? 'image/png' : 'image/jpeg', 0.85);
   } catch {
     return undefined;
   }
@@ -35,16 +44,21 @@ export async function downloadQuotePdf(
   quoteId: string,
   filename: string,
   baseUrl?: string,
-  tenantDetails?: StripeTenantDetailsSnapshot
+  tenantDetails?: StripeTenantDetailsSnapshot,
 ): Promise<void> {
   try {
-    // Pre-fetch logo as base64 so react-pdf can render it without CORS issues
-    const logoUrl = data.navbar.logoUrl && !data.navbar.logoError
-      ? await fetchLogoAsBase64(data.navbar.logoUrl)
-      : undefined;
+    // Pre-fetch logo as base64 so react-pdf can render it without CORS issues.
+    // The logo URL always comes from the backend (CloudFront), never a local path.
+    const resolvedLogoUrl =
+      data.navbar.logoUrl && !data.navbar.logoError
+        ? await fetchLogoAsBase64(data.navbar.logoUrl)
+        : undefined;
     const pdfData: QuotationData = {
       ...data,
-      navbar: { ...data.navbar, logoUrl: logoUrl ?? data.navbar.logoUrl },
+      navbar: {
+        ...data.navbar,
+        logoUrl: resolvedLogoUrl ?? data.navbar.logoUrl,
+      },
     };
 
     // Generate PDF blob from the QuotePdfDocument component
@@ -54,7 +68,7 @@ export async function downloadQuotePdf(
         quoteId={quoteId}
         baseUrl={baseUrl || window.location.origin}
         tenantDetails={tenantDetails}
-      />
+      />,
     ).toBlob();
 
     // Create a temporary URL for the blob
@@ -68,7 +82,7 @@ export async function downloadQuotePdf(
     link.click();
 
     // Clean up
-    document.body.removeChild(link);
+    link.remove();
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error('Failed to generate or download PDF:', error);

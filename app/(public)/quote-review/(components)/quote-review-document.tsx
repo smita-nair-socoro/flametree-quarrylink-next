@@ -43,6 +43,7 @@ export default function QuoteReviewDocument({
   token,
 }: Readonly<QuoteReviewDocumentProps>) {
   const [logoError, setLogoError] = useState(false);
+  const [isPdfDownloading, setIsPdfDownloading] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [approveFullName, setApproveFullName] = useState('');
@@ -358,6 +359,7 @@ export default function QuoteReviewDocument({
   }
 
   const handleDownloadPDF = async () => {
+    setIsPdfDownloading(true);
     try {
       await downloadQuotePdf(
         { ...quotationData, navbar: { ...quotationData.navbar, logoError } },
@@ -372,6 +374,8 @@ export default function QuoteReviewDocument({
           ? error.message
           : 'Failed to download PDF. Please try again.',
       );
+    } finally {
+      setIsPdfDownloading(false);
     }
   };
 
@@ -498,6 +502,7 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+            isPdfDownloading={isPdfDownloading}
             logoError={logoError}
             onLogoError={() => setLogoError(true)}
           />
