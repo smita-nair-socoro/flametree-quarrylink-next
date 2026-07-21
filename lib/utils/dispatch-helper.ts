@@ -22,6 +22,7 @@ import type {
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
 import type { TruckResource } from '@/lib/types/truck';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import {
   normalizeDeliveryCollectionEndIso,
   normalizeDeliveryCollectionStartIso,
@@ -445,20 +446,26 @@ export function buildSchedulerFilterDriverOptions(
   driversData?: DispatchDocketDTO | null,
 ): SchedulerFilterOption[] {
   if (!driversData?.resources) return [];
-  return driversData.resources.filter(isDispatchDriverResource).map((r) => ({
-    id: String(r.id),
-    label: r.driverName,
-  }));
+  return sortByLabel(
+    driversData.resources.filter(isDispatchDriverResource).map((r) => ({
+      id: String(r.id),
+      label: r.driverName,
+    })),
+    (r) => r.label,
+  );
 }
 
 export function buildSchedulerFilterTruckOptions(
   trucksData?: DispatchDocketDTO | null,
 ): SchedulerFilterOption[] {
   if (!trucksData?.resources) return [];
-  return trucksData.resources.filter(isDispatchTruckResource).map((r) => ({
-    id: String(r.id),
-    label: r.licensePlate,
-  }));
+  return sortByLabel(
+    trucksData.resources.filter(isDispatchTruckResource).map((r) => ({
+      id: String(r.id),
+      label: r.licensePlate,
+    })),
+    (r) => r.label,
+  );
 }
 
 export function buildSchedulerFilterHaulierOptions(
@@ -486,9 +493,10 @@ export function buildSchedulerFilterHaulierOptions(
     }
   }
 
-  return [...byId.entries()]
-    .sort((a, b) => a[1].localeCompare(b[1]))
-    .map(([id, label]) => ({ id: String(id), label }));
+  return sortByLabel(
+    [...byId.entries()].map(([id, label]) => ({ id: String(id), label })),
+    (r) => r.label,
+  );
 }
 
 export function docketMatchesScheduleJobFilters(
@@ -774,24 +782,16 @@ export function isGenericDispatchTruckName(name?: string): boolean {
 export function sortTruckResourcesAlphabeticalGenericLast(
   list: TruckResource[],
 ): TruckResource[] {
-  return [...list].sort((a, b) => {
-    const genericA = isGenericDispatchTruckName(a.name);
-    const genericB = isGenericDispatchTruckName(b.name);
-    if (genericA !== genericB) return genericA ? 1 : -1;
-    return (a.name || '').localeCompare(b.name || '', undefined, {
-      sensitivity: 'base',
-    });
-  });
+  const sorted = sortByLabel(list, (r) => r.name || '');
+  const normal = sorted.filter((r) => !isGenericDispatchTruckName(r.name));
+  const generic = sorted.filter((r) => isGenericDispatchTruckName(r.name));
+  return [...normal, ...generic];
 }
 
 function sortDispatchResourcesAlphabetical(
   list: TruckResource[],
 ): TruckResource[] {
-  return [...list].sort((a, b) =>
-    (a.name || '').localeCompare(b.name || '', undefined, {
-      sensitivity: 'base',
-    }),
-  );
+  return sortByLabel(list, (r) => r.name || '');
 }
 
 function sortDispatchResourcesByBusinessType(
