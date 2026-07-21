@@ -70,11 +70,10 @@ export function ChecklistReportModal({
   ).length;
   const unansweredCount = totalQuestions - allAnswers.length;
   const isPass = data?.status === CHECKLIST_STATUS.PASS;
-  const passPercent = isPass
-    ? totalQuestions > 0
+  const passPercent =
+    totalQuestions > 0
       ? Math.round((yesCount / totalQuestions) * 100)
       : 0
-    : 0;
 
   const [collapsedSections, setCollapsedSections] = React.useState<Set<string>>(
     new Set(),
@@ -151,11 +150,10 @@ export function ChecklistReportModal({
                     </span>
                   </div>
                   <span
-                    className={`flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full border ${
-                      isPass
-                        ? 'border-green-500 text-green-600 bg-green-50'
-                        : 'border-red-400 text-red-600 bg-red-50'
-                    }`}
+                    className={`flex items-center gap-1 text-sm font-medium px-3 py-1 rounded-full border ${isPass
+                      ? 'border-green-500 text-green-600 bg-green-50'
+                      : 'border-red-400 text-red-600 bg-red-50'
+                      }`}
                   >
                     {isPass ? (
                       <CircleCheck className="w-3.5 h-3.5" />
@@ -202,12 +200,12 @@ export function ChecklistReportModal({
                     <span
                       className={`font-semibold ${isPass ? 'text-[#7C3AED]' : 'text-red-600'}`}
                     >
-                      {passPercent}% pass
+                      {passPercent}%
                     </span>
                   </div>
                   <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className={`h-full rounded-full transition-all ${isPass ? 'bg-green-500' : 'bg-red-500'}`}
+                      className={`h-full rounded-full transition-all ${isPass ? 'bg-green-500' : passPercent === 0 ? 'bg-red-500' : 'bg-orange-500'}`}
                       style={{ width: `${passPercent}%` }}
                     />
                   </div>
@@ -337,46 +335,46 @@ export function ChecklistReportModal({
                                 {/* Comment + Photos aligned */}
                                 {(!!answer.comment ||
                                   (hasPhotos && photosExpanded)) && (
-                                  <div className="flex gap-3 items-start justify-between">
-                                    {!!answer.comment ? (
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-xs text-muted-foreground">
-                                          Notes:
-                                        </p>
-                                        <p className="text-sm text-[#364153] whitespace-pre-wrap">
-                                          {answer.comment}
-                                        </p>
-                                      </div>
-                                    ) : (
-                                      <div className="flex-1" />
-                                    )}
-                                    {hasPhotos && photosExpanded && (
-                                      <div className="flex flex-wrap gap-2 shrink-0">
-                                        {answer.photoKeys.map((key, idx) => (
-                                          <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => setPreviewSrc(key)}
-                                            className="relative w-[200px] h-[150px] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
-                                          >
-                                            <Image
-                                              src={key}
-                                              alt={`Photo ${idx + 1}`}
-                                              fill
-                                              className="object-cover"
-                                            />
-                                            <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                                              <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
-                                                <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
-                                                Photo Captured
-                                              </span>
-                                            </div>
-                                          </button>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
+                                    <div className="flex gap-3 items-start justify-between">
+                                      {!!answer.comment ? (
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-xs text-muted-foreground">
+                                            Notes:
+                                          </p>
+                                          <p className="text-sm text-[#364153] whitespace-pre-wrap">
+                                            {answer.comment}
+                                          </p>
+                                        </div>
+                                      ) : (
+                                        <div className="flex-1" />
+                                      )}
+                                      {hasPhotos && photosExpanded && (
+                                        <div className="flex flex-wrap gap-2 shrink-0">
+                                          {answer.photoKeys.map((key, idx) => (
+                                            <button
+                                              key={idx}
+                                              type="button"
+                                              onClick={() => setPreviewSrc(key)}
+                                              className="relative w-[200px] h-[150px] rounded-lg overflow-hidden border border-gray-200 hover:opacity-90 transition-opacity"
+                                            >
+                                              <Image
+                                                src={key}
+                                                alt={`Photo ${idx + 1}`}
+                                                fill
+                                                className="object-cover"
+                                              />
+                                              <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                                                <span className="flex items-center gap-1.5 bg-black/50 text-white text-xs font-medium px-2 py-1 rounded-full">
+                                                  <CircleCheckBig className="w-3.5 h-3.5 text-green-400" />
+                                                  Photo Captured
+                                                </span>
+                                              </div>
+                                            </button>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
                               </div>
                             );
                           })}

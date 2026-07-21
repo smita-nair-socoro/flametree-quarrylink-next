@@ -77,6 +77,7 @@ export default function DriverForm({
   const { hauliers, hasMoreHauliers } = useHauliersForForm({
     enabled: !isEditing,
   });
+
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
 
