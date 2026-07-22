@@ -161,6 +161,7 @@ export default function HaulierPage() {
           columns={haulierColumns(tenantEmail)}
           onRowClick={handleRowClick}
           mobileCardRenderer={renderHaulierCard}
+          mobileUseTablePagination={true}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
           totalElements={totalElements}

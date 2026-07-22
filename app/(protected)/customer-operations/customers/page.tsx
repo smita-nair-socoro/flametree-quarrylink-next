@@ -319,6 +319,7 @@ export default function CustomersPage() {
             onRowClick={handleRowClick}
             defaultSorting={[{ id: 'customer_name', desc: false }]}
             mobileCardRenderer={renderCustomerCard}
+            mobileUseTablePagination={true}
             totalElements={totalElements}
             totalPages={totalPages}
             externalPageIndex={pageIndex}

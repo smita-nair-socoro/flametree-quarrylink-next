@@ -315,6 +315,7 @@ export default function CustomersPage() {
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
               mobileCardRenderer={renderJobCard}
+              mobileUseTablePagination={true}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}

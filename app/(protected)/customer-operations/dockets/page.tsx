@@ -503,6 +503,7 @@ export default function DocketsPage() {
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
                   mobileCardRenderer={renderDocketCard}
+                  mobileUseTablePagination={true}
                   defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
                   totalElements={totalElements}
                   totalPages={totalPages}
