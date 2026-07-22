@@ -17,8 +17,13 @@ import DocketForm from './(components)/forms/docket-form';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   DocketsListQueryOptions,
+  DocketsByJobIdQueryOptions,
+  DocketsByJobIdInfiniteQueryOptions,
+  getDocketItemsFromJobInfinitePages,
   DocketsByDriverIdQueryOptions,
+  DocketsByDriverIdInfiniteQueryOptions,
   DocketsByTruckIdQueryOptions,
+  DocketsByTruckIdInfiniteQueryOptions,
   DocketStatisticsQueryOptions,
   DocketsInfiniteListQueryOptions,
   getDocketItemsFromInfinitePages,
@@ -29,6 +34,7 @@ import {
 } from '@/lib/api/docket';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
+import type { DocketsPage } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
@@ -124,8 +130,6 @@ export default function DocketsPage() {
     [pageIndex, pageSize, search, idsFilter, apiSortParams, apiFilterParams],
   );
 
-  const useAllDocketsQuery = !linkedJobId && !driverId && !truckId;
-
   const {
     data: docketsList,
     isLoading: isAllDocketsLoading,
@@ -134,7 +138,7 @@ export default function DocketsPage() {
     isError: isAllDocketsError,
   } = useQuery({
     ...DocketsListQueryOptions(listQueryParams),
-    enabled: useAllDocketsQuery,
+    enabled: !linkedJobId && !driverId && !truckId,
   });
 
   const {
@@ -159,11 +163,27 @@ export default function DocketsPage() {
     enabled: !!truckId,
   });
 
-  const docketsResponse = driverId
-    ? driverDockets
-    : truckId
-      ? truckDockets
-      : docketsList;
+  const {
+    data: jobDockets,
+    isLoading: isJobDocketsLoading,
+    isFetching: isJobDocketsFetching,
+    error: jobDocketsError,
+    isError: isJobDocketsError,
+  } = useQuery({
+    ...DocketsByJobIdQueryOptions(linkedJobId ?? 0, listQueryParams),
+    enabled: !!linkedJobId,
+  });
+
+  let docketsResponse: typeof jobDockets | typeof driverDockets | typeof truckDockets | typeof docketsList;
+  if (linkedJobId) {
+    docketsResponse = jobDockets;
+  } else if (driverId) {
+    docketsResponse = driverDockets;
+  } else if (truckId) {
+    docketsResponse = truckDockets;
+  } else {
+    docketsResponse = docketsList;
+  }
 
   const docketsListResponse = React.useMemo((): DocketsListResponse | null => {
     if (
@@ -176,10 +196,14 @@ export default function DocketsPage() {
     return null;
   }, [docketsResponse]);
 
-  const docketPage = React.useMemo(
-    () => getDocketsPageFromListResponse(docketsListResponse),
-    [docketsListResponse],
-  );
+  const docketPage = React.useMemo((): DocketsPage | null => {
+    if (!docketsResponse) return null;
+    if ('dockets' in (docketsResponse as object))
+      return getDocketsPageFromListResponse(docketsResponse as DocketsListResponse);
+    if ('content' in (docketsResponse as object))
+      return docketsResponse as DocketsPage;
+    return null;
+  }, [docketsResponse]);
 
   const facetOptions = React.useMemo(
     () => buildDocketFacetOptions(docketsListResponse),
@@ -190,7 +214,12 @@ export default function DocketsPage() {
   let isFetching: boolean;
   let isError: boolean;
   let error: Error | null;
-  if (driverId) {
+  if (linkedJobId) {
+    isLoading = isJobDocketsLoading;
+    isFetching = isJobDocketsFetching;
+    isError = isJobDocketsError;
+    error = jobDocketsError;
+  } else if (driverId) {
     isLoading = isDriverDocketsLoading;
     isFetching = isDriverDocketsFetching;
     isError = isDriverDocketsError;
@@ -209,7 +238,12 @@ export default function DocketsPage() {
 
   const isMobile = useIsMobile();
 
-  const useAllDocketsInfinite = !driverId && !truckId && !linkedJobId && !idsFilter;
+  const infiniteBaseParams = {
+    pageSize: 25,
+    search: search.trim() || undefined,
+    ...apiFilterParams,
+  };
+
   const {
     data: infiniteData,
     fetchNextPage,
@@ -217,17 +251,62 @@ export default function DocketsPage() {
     isFetchingNextPage,
     isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions({
-      pageSize: 25,
-      search: search.trim() || undefined,
-      ...apiFilterParams,
-    }),
-    enabled: isMobile && useAllDocketsInfinite,
+    ...DocketsInfiniteListQueryOptions(infiniteBaseParams),
+    enabled: isMobile && !linkedJobId && !driverId && !truckId && !idsFilter,
+  });
+
+  const {
+    data: driverInfiniteData,
+    fetchNextPage: driverFetchNextPage,
+    hasNextPage: driverHasNextPage,
+    isFetchingNextPage: driverIsFetchingNextPage,
+    isFetching: driverInfiniteIsFetching,
+  } = useInfiniteQuery({
+    ...DocketsByDriverIdInfiniteQueryOptions(driverId ?? 0, infiniteBaseParams),
+    enabled: isMobile && !!driverId && !idsFilter,
+  });
+
+  const {
+    data: truckInfiniteData,
+    fetchNextPage: truckFetchNextPage,
+    hasNextPage: truckHasNextPage,
+    isFetchingNextPage: truckIsFetchingNextPage,
+    isFetching: truckInfiniteIsFetching,
+  } = useInfiniteQuery({
+    ...DocketsByTruckIdInfiniteQueryOptions(truckId ?? 0, infiniteBaseParams),
+    enabled: isMobile && !!truckId && !idsFilter,
+  });
+
+  const {
+    data: jobInfiniteData,
+    fetchNextPage: jobFetchNextPage,
+    hasNextPage: jobHasNextPage,
+    isFetchingNextPage: jobIsFetchingNextPage,
+    isFetching: jobInfiniteIsFetching,
+  } = useInfiniteQuery({
+    ...DocketsByJobIdInfiniteQueryOptions(linkedJobId ?? 0, { pageSize: 25, ...apiSortParams }),
+    enabled: isMobile && !!linkedJobId && !idsFilter,
   });
 
   const mobileItems = React.useMemo(
     () => getDocketItemsFromInfinitePages(infiniteData?.pages),
     [infiniteData?.pages],
+  );
+  const driverMobileItems = React.useMemo(
+    () => getDocketItemsFromInfinitePages(
+      driverInfiniteData?.pages as (DocketsListResponse | null | undefined)[],
+    ),
+    [driverInfiniteData?.pages],
+  );
+  const truckMobileItems = React.useMemo(
+    () => getDocketItemsFromInfinitePages(
+      truckInfiniteData?.pages as (DocketsListResponse | null | undefined)[],
+    ),
+    [truckInfiniteData?.pages],
+  );
+  const jobMobileItems = React.useMemo(
+    () => getDocketItemsFromJobInfinitePages(jobInfiniteData?.pages),
+    [jobInfiniteData?.pages],
   );
 
   const items: DocketDTO[] = React.useMemo(() => {
@@ -505,6 +584,51 @@ export default function DocketsPage() {
     );
   }
 
+  let mobileInfiniteProps:
+    | {
+        items: typeof mobileItems;
+        hasNextPage: boolean;
+        isFetchingNextPage: boolean;
+        isLoading: boolean;
+        fetchNextPage: () => void;
+      }
+    | undefined;
+  if (!idsFilter) {
+    if (linkedJobId) {
+      mobileInfiniteProps = {
+        items: jobMobileItems,
+        hasNextPage: jobHasNextPage,
+        isFetchingNextPage: jobIsFetchingNextPage,
+        isLoading: jobInfiniteIsFetching,
+        fetchNextPage: jobFetchNextPage,
+      };
+    } else if (driverId) {
+      mobileInfiniteProps = {
+        items: driverMobileItems,
+        hasNextPage: driverHasNextPage,
+        isFetchingNextPage: driverIsFetchingNextPage,
+        isLoading: driverInfiniteIsFetching,
+        fetchNextPage: driverFetchNextPage,
+      };
+    } else if (truckId) {
+      mobileInfiniteProps = {
+        items: truckMobileItems,
+        hasNextPage: truckHasNextPage,
+        isFetchingNextPage: truckIsFetchingNextPage,
+        isLoading: truckInfiniteIsFetching,
+        fetchNextPage: truckFetchNextPage,
+      };
+    } else {
+      mobileInfiniteProps = {
+        items: mobileItems,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading: infiniteIsFetching,
+        fetchNextPage,
+      };
+    }
+  }
+
   let tableContent: React.ReactNode;
   if (isLoading && !docketsResponse) {
     tableContent = (
@@ -524,7 +648,7 @@ export default function DocketsPage() {
   } else {
     tableContent = (
       <>
-        {(linkedJobId || idsFilter || driverId || truckId) && (
+        {!!(linkedJobId || idsFilter || driverId || truckId) && (
           <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
             <div className="mt-1 text-sm text-muted-foreground">
               {filterDescription}
@@ -547,17 +671,7 @@ export default function DocketsPage() {
           searchPlaceHolder="Search dockets..."
           onRowClick={handleRowClick}
           mobileCardRenderer={renderDocketCard}
-          mobileInfinite={
-            useAllDocketsInfinite
-              ? {
-                  items: mobileItems,
-                  hasNextPage,
-                  isFetchingNextPage,
-                  isLoading: infiniteIsFetching,
-                  fetchNextPage,
-                }
-              : undefined
-          }
+          mobileInfinite={mobileInfiniteProps}
           defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
           totalElements={totalElements}
           totalPages={totalPages}
