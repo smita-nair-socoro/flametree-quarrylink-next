@@ -32,7 +32,6 @@ import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
@@ -47,12 +46,13 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
-  const { currencyCode } = useTenantCurrencyTax();
-
+  const { formatCentsToCurrency, currencyCode } = useTenantCurrencyTax();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'customer_name', desc: false },
   ]);
@@ -130,7 +130,8 @@ export default function CustomersPage() {
 
   const totalElements = customerPage?.totalElements ?? items.length;
   const totalPages =
-    customerPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    customerPage?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -230,11 +231,15 @@ export default function CustomersPage() {
     const formattedStatus = formatCustomerStatus(
       customer.customerStatus as CUSTOMER_STATUS,
     );
-    const displayName =
-      customer.customerType === 'BUSINESS'
-        ? customer.businessName?.trim() || customer.individualContactName
-        : customer.individualContactName;
-    const formattedCreditLimit = centsToDollars(customer.creditLimit);
+
+    let displayName: string;
+    if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
+      const first = customer.contactPersonFirstName ?? '';
+      const last = customer.contactPersonLastName ?? '';
+      displayName = `${first} ${last}`.trim() || 'N/A';
+    } else {
+      displayName = customer.individualContactName ?? '';
+    }
 
     return (
       <MobileCard
@@ -250,7 +255,7 @@ export default function CustomersPage() {
           {
             icon: <User className="h-4 w-4" />,
             label: 'Contact',
-            value: customer.individualContactName,
+            value: displayName,
           },
           {
             icon: <Mail className="h-4 w-4" />,
@@ -260,7 +265,7 @@ export default function CustomersPage() {
           {
             icon: <CreditCard className="h-4 w-4" />,
             label: 'Credit Limit',
-            value: `$${formattedCreditLimit}`,
+            value: formatCentsToCurrency(customer.creditLimit),
           },
           {
             icon: <User className="h-4 w-4" />,
