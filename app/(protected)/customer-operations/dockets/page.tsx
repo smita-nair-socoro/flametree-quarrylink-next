@@ -3,20 +3,31 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
-import { Package, FileText, Wallet, CircleAlert, User, Calendar, Hash } from 'lucide-react';
+import {
+  Package,
+  FileText,
+  Wallet,
+  CircleAlert,
+  User,
+  Calendar,
+  Hash,
+} from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   DocketsListQueryOptions,
   DocketsByDriverIdQueryOptions,
   DocketsByTruckIdQueryOptions,
   DocketStatisticsQueryOptions,
+  DocketsInfiniteListQueryOptions,
+  getDocketItemsFromInfinitePages,
   toDocketApiFilterParams,
   toDocketApiSortParams,
   getDocketsPageFromListResponse,
   buildDocketFacetOptions,
 } from '@/lib/api/docket';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
 import { Button } from '@/components/ui/button';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
@@ -26,7 +37,7 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax, formatCurrency } from '@/lib/utils/tenant-config-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
 import { useDocketActions } from '@/hooks/use-docket-actions';
@@ -66,7 +77,8 @@ export default function DocketsPage() {
   }, [truckIdParam]);
 
   // `ids` is the canonical param; `docketId` is kept for older links.
-  const docketIdsParam = searchParams.get('ids') ?? searchParams.get('docketId');
+  const docketIdsParam =
+    searchParams.get('ids') ?? searchParams.get('docketId');
   const idsFilter = React.useMemo(() => {
     if (!docketIdsParam) return undefined;
     const ids = docketIdsParam
@@ -83,7 +95,9 @@ export default function DocketsPage() {
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'deliveryCollectionDate', desc: true },
   ]);
@@ -172,26 +186,48 @@ export default function DocketsPage() {
     [docketsListResponse],
   );
 
-  const isLoading = driverId
-    ? isDriverDocketsLoading
-    : truckId
-      ? isTruckDocketsLoading
-      : isAllDocketsLoading;
-  const isFetching = driverId
-    ? isDriverDocketsFetching
-    : truckId
-      ? isTruckDocketsFetching
-      : isAllDocketsFetching;
-  const isError = driverId
-    ? isDriverDocketsError
-    : truckId
-      ? isTruckDocketsError
-      : isAllDocketsError;
-  const error = driverId
-    ? driverDocketsError
-    : truckId
-      ? truckDocketsError
-      : allDocketsError;
+  let isLoading: boolean;
+  let isFetching: boolean;
+  let isError: boolean;
+  let error: Error | null;
+  if (driverId) {
+    isLoading = isDriverDocketsLoading;
+    isFetching = isDriverDocketsFetching;
+    isError = isDriverDocketsError;
+    error = driverDocketsError;
+  } else if (truckId) {
+    isLoading = isTruckDocketsLoading;
+    isFetching = isTruckDocketsFetching;
+    isError = isTruckDocketsError;
+    error = truckDocketsError;
+  } else {
+    isLoading = isAllDocketsLoading;
+    isFetching = isAllDocketsFetching;
+    isError = isAllDocketsError;
+    error = allDocketsError;
+  }
+
+  const isMobile = useIsMobile();
+
+  const useAllDocketsInfinite = !driverId && !truckId;
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...DocketsInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile && useAllDocketsInfinite,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getDocketItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
 
   const items: DocketDTO[] = React.useMemo(() => {
     return (docketPage?.content ?? []).map((docket) => ({
@@ -202,7 +238,6 @@ export default function DocketsPage() {
   const totalElements = docketPage?.totalElements ?? items.length;
   const totalPages =
     docketPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
-
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -336,65 +371,200 @@ export default function DocketsPage() {
     actions.view(row);
   };
 
-  const renderDocketCard = React.useCallback(
-    (docket: DocketDTO) => {
-      const customer = docket.job?.customerDto;
-      const customerName =
-        customer?.customerType === 'BUSINESS'
-          ? customer?.businessName || 'N/A'
-          : customer?.individualContactName || (customer as any)?.contactName || 'N/A';
-      const productName = docket.jobItem?.product?.productName || '-';
-      const date = docket.deliveryCollectionDate
-        ? formatLocalDate(docket.deliveryCollectionDate.toString())
-        : '-';
-      const loadSize =
-        docket.docketStatus !== 'UNASSIGNED' &&
-        docket.docketStatus !== 'PENDING' &&
-        docket.docketStatus !== 'ASSIGNED'
-          ? docket.actualLoadSize ?? 0
-          : docket.plannedLoadSize ?? 0;
-      const uom = docket.jobItem?.productSellUom;
-      const qty = uom
-        ? `${formatNumberThousandSeparator(loadSize)} ${formatUomLabel(uom)}`
-        : formatNumberThousandSeparator(loadSize);
-      const displayStatus =
-        (docket.docketStatus as string) === 'READY_FOR_COLLECTION'
-          ? 'READY'
-          : docket.docketStatus;
+  const renderDocketCard = React.useCallback((docket: DocketDTO) => {
+    const customer = docket.job?.customerDto;
+    const customerName =
+      customer?.customerType === 'BUSINESS'
+        ? customer?.businessName || 'N/A'
+        : customer?.individualContactName ||
+          (customer as any)?.contactName ||
+          'N/A';
+    const productName = docket.jobItem?.product?.productName || '-';
+    const date = docket.deliveryCollectionDate
+      ? formatLocalDate(docket.deliveryCollectionDate.toString())
+      : '-';
+    const loadSize =
+      docket.docketStatus !== 'UNASSIGNED' &&
+      docket.docketStatus !== 'PENDING' &&
+      docket.docketStatus !== 'ASSIGNED'
+        ? (docket.actualLoadSize ?? 0)
+        : (docket.plannedLoadSize ?? 0);
+    const uom = docket.jobItem?.productSellUom;
+    const qty = uom
+      ? `${formatNumberThousandSeparator(loadSize)} ${formatUomLabel(uom)}`
+      : formatNumberThousandSeparator(loadSize);
+    const displayStatus =
+      (docket.docketStatus as string) === 'READY_FOR_COLLECTION'
+        ? 'READY'
+        : docket.docketStatus;
 
-      return (
-        <MobileCard
-          title={docket.docketNumber || 'N/A'}
-          description={
-            <>
-              <Hash className="h-3.5 w-3.5" />
-              <span className="truncate">{docket.job?.jobNumber || '-'}</span>
-            </>
-          }
-          badges={
-            <>
-              <TableBadges names={[displayStatus]} visibleCount={1} />
-              <TableBadges names={[docket.jobItem?.jobItemType]} visibleCount={1} />
-            </>
-          }
-          actions={<DocketTableActions docket={docket} />}
-          fields={[
-            { icon: <User className="h-4 w-4" />, label: 'Customer', value: customerName },
-            { icon: <Package className="h-4 w-4" />, label: 'Product', value: productName },
-            { icon: <Calendar className="h-4 w-4" />, label: 'Date', value: date },
-            { icon: <FileText className="h-4 w-4" />, label: 'Quantity', value: qty },
-          ]}
-        />
-      );
-    },
-    [],
-  );
+    return (
+      <MobileCard
+        title={docket.docketNumber || 'N/A'}
+        description={
+          <>
+            <Hash className="h-3.5 w-3.5" />
+            <span className="truncate">{docket.job?.jobNumber || '-'}</span>
+          </>
+        }
+        badges={
+          <>
+            <TableBadges names={[displayStatus]} visibleCount={1} />
+            <TableBadges
+              names={[docket.jobItem?.jobItemType]}
+              visibleCount={1}
+            />
+          </>
+        }
+        actions={<DocketTableActions docket={docket} />}
+        fields={[
+          {
+            icon: <User className="h-4 w-4" />,
+            label: 'Customer',
+            value: customerName,
+          },
+          {
+            icon: <Package className="h-4 w-4" />,
+            label: 'Product',
+            value: productName,
+          },
+          {
+            icon: <Calendar className="h-4 w-4" />,
+            label: 'Date',
+            value: date,
+          },
+          {
+            icon: <FileText className="h-4 w-4" />,
+            label: 'Quantity',
+            value: qty,
+          },
+        ]}
+      />
+    );
+  }, []);
 
   React.useEffect(() => {
     if (isError && error) {
       console.error('Docket API Error:', error);
     }
   }, [isError, error]);
+
+  let tableId: string;
+  if (idsFilter) {
+    tableId = `docket_filtered_${idsFilter.join('_')}`;
+  } else if (driverId) {
+    tableId = `docket_driver_${driverId}`;
+  } else if (truckId) {
+    tableId = `docket_truck_${truckId}`;
+  } else if (linkedJobId) {
+    tableId = `docket_linked_${linkedJobId}`;
+  } else {
+    tableId = 'docket_main_data_table';
+  }
+
+  let filterDescription: React.ReactNode = null;
+  if (idsFilter) {
+    filterDescription = (
+      <span>
+        Showing{' '}
+        {idsFilter.length === 1
+          ? 'a selected docket'
+          : `${idsFilter.length} selected dockets`}
+      </span>
+    );
+  } else if (driverId) {
+    filterDescription = (
+      <>
+        <span>Showing dockets assigned to </span>
+        <span className="font-semibold text-foreground">
+          {driverNameParam || `driver #${driverId}`}
+        </span>
+      </>
+    );
+  } else if (truckId) {
+    filterDescription = (
+      <>
+        <span>Showing dockets linked to </span>
+        <span className="font-semibold text-foreground">
+          {truckNameParam || `truck #${truckId}`}
+        </span>
+      </>
+    );
+  } else if (linkedJobNumberParam) {
+    filterDescription = (
+      <>
+        <span>Showing dockets</span>
+        <span>{' for '}</span>
+        <span className="font-semibold text-foreground">
+          {linkedJobNumberParam}
+        </span>
+      </>
+    );
+  } else {
+    filterDescription = <span>{`Showing dockets for job #${linkedJobId}`}</span>;
+  }
+
+  let tableContent: React.ReactNode;
+  if (isLoading && !docketsResponse) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Loading dockets...</p>
+        </div>
+      </div>
+    );
+  } else if (isError) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">Error loading dockets</div>
+      </div>
+    );
+  } else {
+    tableContent = (
+      <>
+        {(linkedJobId || idsFilter || driverId || truckId) && (
+          <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+            <div className="mt-1 text-sm text-muted-foreground">
+              {filterDescription}
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.push('/customer-operations/dockets')}
+            >
+              Reset Filter
+            </Button>
+          </div>
+        )}
+        <DataTableClient
+          key={tableId}
+          tableId={tableId}
+          data={items ?? []}
+          columns={getDocketColumns(currencyCode, taxLabel)}
+          facetDefinition={facetDefs}
+          searchPlaceHolder="Search dockets..."
+          onRowClick={handleRowClick}
+          mobileCardRenderer={renderDocketCard}
+          mobileInfiniteItems={useAllDocketsInfinite ? mobileItems : undefined}
+          mobileHasNextPage={useAllDocketsInfinite ? hasNextPage : undefined}
+          mobileIsFetchingNextPage={useAllDocketsInfinite ? isFetchingNextPage : undefined}
+          onFetchNextPage={useAllDocketsInfinite ? fetchNextPage : undefined}
+          defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
+          totalElements={totalElements}
+          totalPages={totalPages}
+          externalPageIndex={pageIndex}
+          externalPageSize={pageSize}
+          externalSorting={sorting}
+          onPaginationChange={handlePaginationChange}
+          onSearchChange={handleSearchChange}
+          onFacetFiltersChange={handleFacetFiltersChange}
+          onSortingChange={handleSortingChange}
+          isLoading={isFetching}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
@@ -425,101 +595,7 @@ export default function DocketsPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !docketsResponse ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p>Loading dockets...</p>
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">Error loading dockets</div>
-          </div>
-        ) : (
-          <>
-            {(linkedJobId || idsFilter || driverId || truckId) && (
-              <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
-                <div className="mt-1 text-sm text-muted-foreground">
-                  {idsFilter ? (
-                    <span>
-                      Showing{' '}
-                      {idsFilter.length === 1
-                        ? 'a selected docket'
-                        : `${idsFilter.length} selected dockets`}
-                    </span>
-                  ) : driverId ? (
-                    <>
-                      <span>Showing dockets assigned to </span>
-                      <span className="font-semibold text-foreground">
-                        {driverNameParam || `driver #${driverId}`}
-                      </span>
-                    </>
-                  ) : truckId ? (
-                    <>
-                      <span>Showing dockets linked to </span>
-                      <span className="font-semibold text-foreground">
-                        {truckNameParam || `truck #${truckId}`}
-                      </span>
-                    </>
-                  ) : linkedJobNumberParam ? (
-                    <>
-                      <span>Showing dockets</span>
-                      <span>{' for '}</span>
-                      <span className="font-semibold text-foreground">
-                        {linkedJobNumberParam}
-                      </span>
-                    </>
-                  ) : (
-                    <span>{`Showing dockets for job #${linkedJobId}`}</span>
-                  )}
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/customer-operations/dockets')}
-                >
-                  Reset Filter
-                </Button>
-              </div>
-            )}
-            {(() => {
-              const tableId = idsFilter
-                ? `docket_filtered_${idsFilter.join('_')}`
-                : driverId
-                  ? `docket_driver_${driverId}`
-                  : truckId
-                    ? `docket_truck_${truckId}`
-                    : linkedJobId
-                      ? `docket_linked_${linkedJobId}`
-                      : 'docket_main_data_table';
-              return (
-                <DataTableClient
-                  key={tableId}
-                  tableId={tableId}
-                  data={items ?? []}
-                  columns={getDocketColumns(currencyCode, taxLabel)}
-                  facetDefinition={facetDefs}
-                  searchPlaceHolder="Search dockets..."
-                  onRowClick={handleRowClick}
-                  mobileCardRenderer={renderDocketCard}
-                  mobileUseTablePagination={true}
-                  defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
-                  totalElements={totalElements}
-                  totalPages={totalPages}
-                  externalPageIndex={pageIndex}
-                  externalPageSize={pageSize}
-                  externalSorting={sorting}
-                  onPaginationChange={handlePaginationChange}
-                  onSearchChange={handleSearchChange}
-                  onFacetFiltersChange={handleFacetFiltersChange}
-                  onSortingChange={handleSortingChange}
-                  isLoading={isFetching}
-                />
-              );
-            })()}
-          </>
-        )}
+        {tableContent}
       </div>
     </div>
   );

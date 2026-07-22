@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from './button';
 import {
+  ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -57,6 +58,9 @@ import {
   Loader2,
   Plus,
   Search,
+  Filter,
+  X,
+  Check,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -88,7 +92,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from './accordion';
-import { Filter, X, Check } from 'lucide-react';
 import { formatNumberThousandSeparatorWithoutDecimal } from '@/lib/utils/number';
 
 interface DataTableProps<TData, TValue> {
@@ -112,6 +115,10 @@ interface DataTableProps<TData, TValue> {
     onViewDetails?: () => void,
   ) => React.ReactNode; // Render function for mobile cards
   mobileUseTablePagination?: boolean; // Use TanStack pagination instead of mobile load-more cards
+  mobileInfiniteItems?: TData[]; // Flattened items from useInfiniteQuery for mobile load-more
+  mobileHasNextPage?: boolean;
+  mobileIsFetchingNextPage?: boolean;
+  onFetchNextPage?: () => void; // Called when mobile "Load More" is tapped
   totalElements?: number; // External pagination total records
   totalPages?: number; // External pagination total pages
   onPaginationChange?: (page: number, pageSize: number) => void; // Callback for server-side pagination
@@ -179,8 +186,12 @@ export function DataTableClient<TData, TValue>({
   rowSelectionFilter,
   bulkActionsSlot,
   defaultSorting, // Default sorting configuration (optional)
-  mobileCardRenderer, // Render function for mobile cards
+  mobileCardRenderer,
   mobileUseTablePagination = false,
+  mobileInfiniteItems,
+  mobileHasNextPage,
+  mobileIsFetchingNextPage,
+  onFetchNextPage,
   totalElements,
   totalPages,
   onPaginationChange,
@@ -880,6 +891,215 @@ export function DataTableClient<TData, TValue>({
     </div>
   ) : null;
 
+  let mobileCardList: ReactNode = null;
+  if (isMobile && mobileCardRenderer) {
+    if (onFetchNextPage) {
+      const items = mobileInfiniteItems ?? [];
+      if (items.length === 0 && !isLoading) {
+        mobileCardList = (
+          <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/empty-table.svg"
+                alt="No data available"
+                width={128}
+                height={128}
+                className="w-32 h-auto"
+              />
+            </div>
+            <h3 className="text-gray-700 font-medium mb-1">
+              No items are available
+            </h3>
+          </div>
+        );
+      } else {
+        mobileCardList = (
+          <>
+            {items.map((item, index) => {
+              const rawId = (item as Record<string, unknown>)?.id;
+              const id =
+                typeof rawId === 'string' || typeof rawId === 'number'
+                  ? String(rawId)
+                  : String(index);
+              const handleViewDetails = onRowClick
+                ? () => onRowClick(item)
+                : undefined;
+              return (
+                <div key={id} className="p-0 gap-0">
+                  {mobileCardRenderer(item, handleViewDetails)}
+                </div>
+              );
+            })}
+
+            {mobileHasNextPage && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  onClick={onFetchNextPage}
+                  disabled={mobileIsFetchingNextPage}
+                  className="w-full"
+                >
+                  {mobileIsFetchingNextPage ? (
+                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                  ) : (
+                    `Load More (${(totalElements ?? 0) - items.length} remaining)`
+                  )}
+                </Button>
+              </div>
+            )}
+
+            <div className="text-center text-sm text-muted-foreground pt-2">
+              Showing {items.length} of{' '}
+              {formatNumberThousandSeparatorWithoutDecimal(
+                totalElements ?? items.length,
+              )}{' '}
+              items
+            </div>
+          </>
+        );
+      }
+    } else {
+      const filteredRows = table.getFilteredRowModel().rows;
+      const paginatedRows = table.getPaginationRowModel().rows;
+      const visibleRows = mobileUseTablePagination
+        ? paginatedRows
+        : filteredRows.slice(0, mobileVisibleCount);
+      const hasMore =
+        !mobileUseTablePagination && filteredRows.length > mobileVisibleCount;
+
+      if (visibleRows.length === 0) {
+        mobileCardList = (
+          <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
+            <div className="flex justify-center mb-4">
+              <Image
+                src="/empty-table.svg"
+                alt="No data available"
+                width={128}
+                height={128}
+                className="w-32 h-auto"
+              />
+            </div>
+            <h3 className="text-gray-700 font-medium mb-1">
+              No items are available
+            </h3>
+          </div>
+        );
+      } else {
+        mobileCardList = (
+          <>
+            {visibleRows.map((row) => {
+              const handleViewDetails = onRowClick
+                ? () => onRowClick(row.original)
+                : undefined;
+              return (
+                <div key={row.id} className="p-0 gap-0">
+                  {mobileCardRenderer(row.original, handleViewDetails)}
+                </div>
+              );
+            })}
+
+            {hasMore && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE)
+                  }
+                  className="w-full"
+                >
+                  Load More ({filteredRows.length - mobileVisibleCount}{' '}
+                  remaining)
+                </Button>
+              </div>
+            )}
+
+            {mobileUseTablePagination ? (
+              <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
+                <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                  <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
+                    <div className="whitespace-nowrap">
+                      {filteredRows.length} records
+                    </div>
+                    <div className="flex items-center gap-1.5 whitespace-nowrap">
+                      <Input
+                        className="h-6 w-10 px-1 text-center text-xs"
+                        inputMode="numeric"
+                        value={mobilePageInput}
+                        onChange={(event) =>
+                          setMobilePageInput(event.target.value)
+                        }
+                        onBlur={handleMobilePageInputCommit}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            handleMobilePageInputCommit();
+                          }
+                        }}
+                      />
+                      <span>
+                        Page {effectivePagination.pageIndex + 1} of{' '}
+                        {table.getPageCount()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex justify-center">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        type="button"
+                        onClick={() => table.setPageIndex(0)}
+                        disabled={!table.getCanPreviousPage()}
+                      >
+                        <ChevronsLeft className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        type="button"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                      >
+                        <ChevronLeft className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        type="button"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                      >
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        type="button"
+                        onClick={() =>
+                          table.setPageIndex(table.getPageCount() - 1)
+                        }
+                        disabled={!table.getCanNextPage()}
+                      >
+                        <ChevronsRight className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-sm text-muted-foreground pt-2">
+                Showing {visibleRows.length} of {filteredRows.length} items
+              </div>
+            )}
+          </>
+        );
+      }
+    }
+  }
+
   return (
     <div className="space-y-6 md:space-y-4">
       {!simpleTable && (
@@ -1125,7 +1345,7 @@ export function DataTableClient<TData, TValue>({
                         const displayName =
                           (col.columnDef.meta as string) ||
                           col.id
-                            .replace(/_/g, ' ')
+                            .replaceAll('_', ' ')
                             .replace(/\b\w/g, (char) => char.toUpperCase());
                         return (
                           <DropdownMenuCheckboxItem
@@ -1187,150 +1407,8 @@ export function DataTableClient<TData, TValue>({
       {/* Mobile Card View */}
       {isMobile && mobileCardRenderer ? (
         <div className="relative space-y-3">
-          {/* Card list */}
-          {(() => {
-            const filteredRows = table.getFilteredRowModel().rows;
-            const paginatedRows = table.getPaginationRowModel().rows;
-            const visibleRows = mobileUseTablePagination
-              ? paginatedRows
-              : filteredRows.slice(0, mobileVisibleCount);
-            const hasMore =
-              !mobileUseTablePagination &&
-              filteredRows.length > mobileVisibleCount;
-
-            if (visibleRows.length === 0) {
-              return (
-                <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
-                  <div className="flex justify-center mb-4">
-                    <Image
-                      src="/empty-table.svg"
-                      alt="No data available"
-                      width={128}
-                      height={128}
-                      className="w-32 h-auto"
-                    />
-                  </div>
-                  <h3 className="text-gray-700 font-medium mb-1">
-                    No items are available
-                  </h3>
-                </div>
-              );
-            }
-
-            return (
-              <>
-                {visibleRows.map((row) => {
-                  const handleViewDetails = onRowClick
-                    ? () => onRowClick(row.original)
-                    : undefined;
-                  return (
-                    <div key={row.id} className="p-0 gap-0">
-                      {mobileCardRenderer(row.original, handleViewDetails)}
-                    </div>
-                  );
-                })}
-
-                {/* Load More button */}
-                {hasMore && (
-                  <div className="flex justify-center pt-2">
-                    <Button
-                      variant="outline"
-                      onClick={() =>
-                        setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE)
-                      }
-                      className="w-full"
-                    >
-                      Load More ({filteredRows.length - mobileVisibleCount}{' '}
-                      remaining)
-                    </Button>
-                  </div>
-                )}
-
-                {mobileUseTablePagination ? (
-                  <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
-                    <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-                      <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2">
-                        <div className="whitespace-nowrap">
-                          {filteredRows.length} records
-                        </div>
-                        <div className="flex items-center gap-1.5 whitespace-nowrap">
-                          <Input
-                            className="h-6 w-10 px-1 text-center text-xs"
-                            inputMode="numeric"
-                            value={mobilePageInput}
-                            onChange={(event) =>
-                              setMobilePageInput(event.target.value)
-                            }
-                            onBlur={handleMobilePageInputCommit}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter') {
-                                handleMobilePageInputCommit();
-                              }
-                            }}
-                          />
-                          <span>
-                            Page {effectivePagination.pageIndex + 1} of{' '}
-                            {table.getPageCount()}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex justify-center">
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            type="button"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage()}
-                          >
-                            <ChevronsLeft className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            type="button"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage()}
-                          >
-                            <ChevronLeft className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            type="button"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage()}
-                          >
-                            <ChevronRight className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7"
-                            type="button"
-                            onClick={() =>
-                              table.setPageIndex(table.getPageCount() - 1)
-                            }
-                            disabled={!table.getCanNextPage()}
-                          >
-                            <ChevronsRight className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-sm text-muted-foreground pt-2">
-                    Showing {visibleRows.length} of {filteredRows.length} items
-                  </div>
-                )}
-              </>
-            );
-          })()}
-          {loadingOverlay}
+          {mobileCardList}
+          {!onPaginationChange && loadingOverlay}
         </div>
       ) : (
         <>

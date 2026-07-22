@@ -15,14 +15,17 @@ import {
 import { getJobColumns } from './(components)/(data-tables)/job/columns';
 import { JobTableActions } from './(components)/(data-tables)/job/job-table-actions';
 import { useJobActions } from '@/hooks/use-job-actions';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   JobsListQueryOptions,
   JobStatisticsQueryOptions,
+  JobsInfiniteListQueryOptions,
+  getJobsFromInfinitePages,
   toJobApiSortParams,
   toJobApiFilterParams,
   buildJobFacetOptions,
 } from '@/lib/api/job';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { centsToDollars } from '@/lib/utils/currency';
 import {
   useTenantCurrencyTax,
@@ -83,6 +86,27 @@ export default function CustomersPage() {
       ...apiSortParams,
       ...apiFilterParams,
     }),
+  );
+
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...JobsInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getJobsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
   );
 
   const jobsPage = jobsList?.jobs;
@@ -315,7 +339,10 @@ export default function CustomersPage() {
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
               mobileCardRenderer={renderJobCard}
-              mobileUseTablePagination={true}
+              mobileInfiniteItems={mobileItems}
+              mobileHasNextPage={hasNextPage}
+              mobileIsFetchingNextPage={isFetchingNextPage}
+              onFetchNextPage={fetchNextPage}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}

@@ -13,16 +13,19 @@ import {
 } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   ProductsListQueryOptions,
   ProductReportingQueryOptions,
+  ProductsInfiniteListQueryOptions,
+  getProductItemsFromInfinitePages,
   getProductsPageFromListResponse,
   toProductApiFilterParams,
   toProductApiSortParams,
   buildProductFacetOptions,
   isProductsListResponse,
 } from '@/lib/api/product';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -100,6 +103,27 @@ export default function ProductsPage() {
   );
 
   const { data: reportingData } = useQuery(ProductReportingQueryOptions());
+
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...ProductsInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile && !isLinkedFilter,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getProductItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
 
   const productPage = React.useMemo(
     () => getProductsPageFromListResponse(productsData),
@@ -350,6 +374,10 @@ export default function ProductsPage() {
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
+              mobileInfiniteItems={!isLinkedFilter ? mobileItems : undefined}
+              mobileHasNextPage={!isLinkedFilter ? hasNextPage : undefined}
+              mobileIsFetchingNextPage={!isLinkedFilter ? isFetchingNextPage : undefined}
+              onFetchNextPage={!isLinkedFilter ? fetchNextPage : undefined}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={isLinkedFilter ? 0 : pageIndex}

@@ -141,6 +141,22 @@ export function getDocketItemsFromListResponse(
   return data.content ?? [];
 }
 
+export function getDocketItemsFromInfinitePages(
+  pages: (DocketsListResponse | null | undefined)[] | undefined,
+): DocketDTO[] {
+  const seenIds = new Set<number>();
+  const result: DocketDTO[] = [];
+  for (const page of pages ?? []) {
+    for (const item of page?.dockets?.content ?? []) {
+      if (item.id != null && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        result.push(item);
+      }
+    }
+  }
+  return result;
+}
+
 export function getDocketItemsFromJobPage(
   page: DocketsPage | null | undefined,
 ): DocketDTO[] {

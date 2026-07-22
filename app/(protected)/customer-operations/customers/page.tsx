@@ -15,16 +15,19 @@ import {
   Mail,
   CreditCard,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   CustomersListQueryOptions,
   CustomerReportingQueryOptions,
+  CustomersInfiniteListQueryOptions,
+  getCustomerItemsFromInfinitePages,
   toCustomerApiFilterParams,
   toCustomerApiSortParams,
   getCustomersPageFromListResponse,
   buildCustomerFacetOptions,
   isCustomersListResponse,
 } from '@/lib/api/customer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError } from '@/lib/toast';
@@ -81,6 +84,27 @@ export default function CustomersPage() {
   );
 
   const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
+
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...CustomersInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getCustomerItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
 
   const customerPage = React.useMemo(
     () => getCustomersPageFromListResponse(customersData),
@@ -268,6 +292,53 @@ export default function CustomersPage() {
     [facetOptions],
   );
 
+  let tableContent: React.ReactNode;
+  if (isLoading && !customersData) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Loading customers...</p>
+        </div>
+      </div>
+    );
+  } else if (isError) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-destructive">
+          Error loading customers
+        </div>
+      </div>
+    );
+  } else {
+    tableContent = (
+      <DataTableClient
+        tableId="customer_main_data_table"
+        data={items ?? []}
+        columns={getCustomerColumns(currencyCode)}
+        facetDefinition={facetDefs}
+        searchPlaceHolder="Search customers..."
+        onRowClick={handleRowClick}
+        defaultSorting={[{ id: 'customer_name', desc: false }]}
+        mobileCardRenderer={renderCustomerCard}
+        mobileInfiniteItems={mobileItems}
+        mobileHasNextPage={hasNextPage}
+        mobileIsFetchingNextPage={isFetchingNextPage}
+        onFetchNextPage={fetchNextPage}
+        totalElements={totalElements}
+        totalPages={totalPages}
+        externalPageIndex={pageIndex}
+        externalPageSize={pageSize}
+        externalSorting={sorting}
+        onPaginationChange={handlePaginationChange}
+        onSearchChange={handleSearchChange}
+        onFacetFiltersChange={handleFacetFiltersChange}
+        onSortingChange={handleSortingChange}
+        isLoading={isFetching}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
@@ -296,42 +367,7 @@ export default function CustomersPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !customersData ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p>Loading customers...</p>
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center text-destructive">
-              Error loading customers
-            </div>
-          </div>
-        ) : (
-          <DataTableClient
-            tableId="customer_main_data_table"
-            data={items ?? []}
-            columns={getCustomerColumns(currencyCode)}
-            facetDefinition={facetDefs}
-            searchPlaceHolder="Search customers..."
-            onRowClick={handleRowClick}
-            defaultSorting={[{ id: 'customer_name', desc: false }]}
-            mobileCardRenderer={renderCustomerCard}
-            mobileUseTablePagination={true}
-            totalElements={totalElements}
-            totalPages={totalPages}
-            externalPageIndex={pageIndex}
-            externalPageSize={pageSize}
-            externalSorting={sorting}
-            onPaginationChange={handlePaginationChange}
-            onSearchChange={handleSearchChange}
-            onFacetFiltersChange={handleFacetFiltersChange}
-            onSortingChange={handleSortingChange}
-            isLoading={isFetching}
-          />
-        )}
+        {tableContent}
       </div>
     </div>
   );

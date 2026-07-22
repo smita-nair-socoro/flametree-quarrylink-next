@@ -2,13 +2,16 @@
 
 import React from 'react';
 import { Building2, Truck, Users, Mail, Phone } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   HauliersListQueryOptions,
   HaulierStatisticsQueryOptions,
+  HauliersInfiniteListQueryOptions,
+  getHaulierItemsFromInfinitePages,
   toHaulierApiSortParams,
   getHaulierItemsFromListResponse,
 } from '@/lib/api/haulier';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
@@ -82,6 +85,26 @@ export default function HaulierPage() {
       setPageSize(newSize);
     },
     [],
+  );
+
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    ...HauliersInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+    }),
+    enabled: isMobile,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getHaulierItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
   );
 
   const renderHaulierCard = React.useCallback(
@@ -161,7 +184,10 @@ export default function HaulierPage() {
           columns={haulierColumns(tenantEmail)}
           onRowClick={handleRowClick}
           mobileCardRenderer={renderHaulierCard}
-          mobileUseTablePagination={true}
+          mobileInfiniteItems={mobileItems}
+          mobileHasNextPage={hasNextPage}
+          mobileIsFetchingNextPage={isFetchingNextPage}
+          onFetchNextPage={fetchNextPage}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
           totalElements={totalElements}
