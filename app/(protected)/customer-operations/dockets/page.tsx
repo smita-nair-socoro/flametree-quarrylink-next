@@ -209,7 +209,7 @@ export default function DocketsPage() {
 
   const isMobile = useIsMobile();
 
-  const useAllDocketsInfinite = !driverId && !truckId && !linkedJobId;
+  const useAllDocketsInfinite = !driverId && !truckId && !linkedJobId && !idsFilter;
   const {
     data: infiniteData,
     fetchNextPage,

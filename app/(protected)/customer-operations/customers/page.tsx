@@ -275,7 +275,7 @@ export default function CustomersPage() {
         ]}
       />
     );
-  }, []);
+  }, [formatCentsToCurrency]);
 
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [

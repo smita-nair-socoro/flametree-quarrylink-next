@@ -207,9 +207,11 @@ export function DataTableClient<TData, TValue>({
 
   const mobileInfiniteItems = mobileInfinite?.items;
   const mobileHasNextPage = mobileInfinite?.hasNextPage;
-  const mobileIsFetchingNextPage = mobileInfinite?.isFetchingNextPage;
+  const mobileIsFetchingNextPage = mobileInfinite?.isFetchingNextPage ?? false;
   const mobileIsLoading = mobileInfinite?.isLoading ?? false;
   const onFetchNextPage = mobileInfinite?.fetchNextPage;
+  const mobileIsFetchingNextPageRef = useRef(mobileIsFetchingNextPage);
+  mobileIsFetchingNextPageRef.current = mobileIsFetchingNextPage;
 
   const getStorageKey = useCallback(
     (key: string) => `${tableId}_${key}`,
@@ -494,13 +496,13 @@ export function DataTableClient<TData, TValue>({
 
   // Infinite scroll: fetch next page when sentinel enters the viewport
   useEffect(() => {
-    if (!onFetchNextPage || !mobileHasNextPage || mobileIsFetchingNextPage) return;
+    if (!onFetchNextPage || !mobileHasNextPage) return;
     const sentinel = mobileSentinelRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries[0].isIntersecting && !mobileIsFetchingNextPageRef.current) {
           onFetchNextPage();
         }
       },
@@ -509,7 +511,7 @@ export function DataTableClient<TData, TValue>({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [onFetchNextPage, mobileHasNextPage, mobileIsFetchingNextPage]);
+  }, [onFetchNextPage, mobileHasNextPage]);
 
   // Client-side load-more: expand visible count when sentinel enters the viewport
   useEffect(() => {
@@ -1437,7 +1439,7 @@ export function DataTableClient<TData, TValue>({
       {isMobile && mobileCardRenderer ? (
         <div className="relative space-y-3">
           {mobileCardList}
-          {!onPaginationChange && loadingOverlay}
+          {loadingOverlay}
         </div>
       ) : (
         <>

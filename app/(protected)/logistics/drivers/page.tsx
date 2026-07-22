@@ -31,10 +31,7 @@ import { useDriverActions } from '@/hooks/use-driver-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
-import {
-  formatPhoneNumber,
-  normalizePhoneNumber,
-} from '@/lib/utils/phone-helper';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 
 export default function DriversPage() {
   const searchParams = useSearchParams();

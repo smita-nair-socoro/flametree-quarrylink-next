@@ -97,9 +97,10 @@ export default function CustomersPage() {
     ...JobsInfiniteListQueryOptions({
       pageSize: 25,
       search: search.trim() || undefined,
+      ids: idsFilter,
       ...apiFilterParams,
     }),
-    enabled: isMobile,
+    enabled: isMobile && !idsFilter,
   });
 
   const mobileItems = React.useMemo(
@@ -339,13 +340,13 @@ export default function CustomersPage() {
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
               mobileCardRenderer={renderJobCard}
-              mobileInfinite={{
+              mobileInfinite={!idsFilter ? {
                 items: mobileItems,
                 hasNextPage,
                 isFetchingNextPage,
                 isLoading: infiniteIsFetching,
                 fetchNextPage,
-              }}
+              } : undefined}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}
