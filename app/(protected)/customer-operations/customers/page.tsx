@@ -92,6 +92,7 @@ export default function CustomersPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
     ...CustomersInfiniteListQueryOptions({
       pageSize: 25,
@@ -324,6 +325,7 @@ export default function CustomersPage() {
         mobileInfiniteItems={mobileItems}
         mobileHasNextPage={hasNextPage}
         mobileIsFetchingNextPage={isFetchingNextPage}
+        mobileIsLoading={infiniteIsFetching}
         onFetchNextPage={fetchNextPage}
         totalElements={totalElements}
         totalPages={totalPages}

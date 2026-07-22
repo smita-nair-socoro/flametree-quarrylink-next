@@ -215,6 +215,7 @@ export default function DocketsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
     ...DocketsInfiniteListQueryOptions({
       pageSize: 25,
@@ -549,6 +550,7 @@ export default function DocketsPage() {
           mobileInfiniteItems={useAllDocketsInfinite ? mobileItems : undefined}
           mobileHasNextPage={useAllDocketsInfinite ? hasNextPage : undefined}
           mobileIsFetchingNextPage={useAllDocketsInfinite ? isFetchingNextPage : undefined}
+          mobileIsLoading={useAllDocketsInfinite ? infiniteIsFetching : undefined}
           onFetchNextPage={useAllDocketsInfinite ? fetchNextPage : undefined}
           defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
           totalElements={totalElements}

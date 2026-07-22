@@ -94,6 +94,7 @@ export default function HaulierPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
     ...HauliersInfiniteListQueryOptions({
       pageSize: 25,
@@ -187,6 +188,7 @@ export default function HaulierPage() {
           mobileInfiniteItems={mobileItems}
           mobileHasNextPage={hasNextPage}
           mobileIsFetchingNextPage={isFetchingNextPage}
+          mobileIsLoading={infiniteIsFetching}
           onFetchNextPage={fetchNextPage}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}

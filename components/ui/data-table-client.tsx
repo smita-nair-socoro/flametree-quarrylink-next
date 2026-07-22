@@ -118,6 +118,7 @@ interface DataTableProps<TData, TValue> {
   mobileInfiniteItems?: TData[]; // Flattened items from useInfiniteQuery for mobile load-more
   mobileHasNextPage?: boolean;
   mobileIsFetchingNextPage?: boolean;
+  mobileIsLoading?: boolean; // Infinite query's isFetching (initial load / search refetch)
   onFetchNextPage?: () => void; // Called when mobile "Load More" is tapped
   totalElements?: number; // External pagination total records
   totalPages?: number; // External pagination total pages
@@ -191,6 +192,7 @@ export function DataTableClient<TData, TValue>({
   mobileInfiniteItems,
   mobileHasNextPage,
   mobileIsFetchingNextPage,
+  mobileIsLoading = false,
   onFetchNextPage,
   totalElements,
   totalPages,
@@ -335,6 +337,8 @@ export function DataTableClient<TData, TValue>({
     () => defaultSorting ?? [],
     [defaultSorting],
   );
+  const defaultSortingStateRef = useRef(defaultSortingState);
+  defaultSortingStateRef.current = defaultSortingState;
 
   // Initialize state with sessionStorage values or defaults
   const [pagination, setPagination] = useState<PaginationState>(() => {
@@ -543,14 +547,14 @@ export function DataTableClient<TData, TValue>({
 
       // Reset all state to defaults
       setPagination(defaultPagination);
-      setSorting(defaultSortingState);
+      setSorting(defaultSortingStateRef.current);
       setColumnFilters(defaultColumnFilters);
       setActiveColumnFilters(defaultColumnFilters);
       setGlobalFilter(defaultGlobalFilter);
       setColumnVisibility(defaultColumnVisibility);
       setPaginationSize(defaultPaginationSize);
     }
-  }, [isMobile, tableId, getStorageKey, defaultSortingState]);
+  }, [isMobile, tableId, getStorageKey]);
 
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
@@ -918,7 +922,14 @@ export function DataTableClient<TData, TValue>({
   if (isMobile && mobileCardRenderer) {
     if (onFetchNextPage) {
       const items = mobileInfiniteItems ?? [];
-      if (items.length === 0 && !isLoading) {
+      const mobileEffectivelyLoading = isLoading || mobileIsLoading || isSearching;
+      if (items.length === 0 && mobileEffectivelyLoading) {
+        mobileCardList = (
+          <div className="flex justify-center py-12">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        );
+      } else if (items.length === 0) {
         mobileCardList = (
           <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
             <div className="flex justify-center mb-4">
@@ -1161,11 +1172,7 @@ export function DataTableClient<TData, TValue>({
                 onChange={(e) => table.setGlobalFilter(String(e.target.value))}
                 startIcon={<Search size={18} />}
                 className="w-full bg-white"
-                endIcon={
-                  isSearching ? (
-                    <Loader2 size={18} className="animate-spin" />
-                  ) : null
-                }
+                endIcon={null}
               />
             </div>
 

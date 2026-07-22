@@ -111,6 +111,7 @@ export default function ProductsPage() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
     ...ProductsInfiniteListQueryOptions({
       pageSize: 25,
@@ -377,6 +378,7 @@ export default function ProductsPage() {
               mobileInfiniteItems={!isLinkedFilter ? mobileItems : undefined}
               mobileHasNextPage={!isLinkedFilter ? hasNextPage : undefined}
               mobileIsFetchingNextPage={!isLinkedFilter ? isFetchingNextPage : undefined}
+              mobileIsLoading={!isLinkedFilter ? infiniteIsFetching : undefined}
               onFetchNextPage={!isLinkedFilter ? fetchNextPage : undefined}
               totalElements={totalElements}
               totalPages={totalPages}
