@@ -376,7 +376,7 @@ export default function ProductsPage() {
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
               mobileInfinite={!isLinkedFilter ? {
-                items: mobileItems,
+                items: mobileItems as unknown as ProductDetails[],
                 hasNextPage,
                 isFetchingNextPage,
                 isLoading: infiniteIsFetching,
