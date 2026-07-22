@@ -2,10 +2,21 @@
 
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { UsersRound, UserCheck, Truck, TriangleAlert, Building2, Mail, Phone } from 'lucide-react';
+import {
+  UsersRound,
+  UserCheck,
+  Truck,
+  TriangleAlert,
+  Building2,
+  Mail,
+  Phone,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { DriversListQueryOptions, DriverStatisticsQueryOptions } from '@/lib/api/driver';
+import {
+  DriversListQueryOptions,
+  DriverStatisticsQueryOptions,
+} from '@/lib/api/driver';
 import { UsersListQueryOptions } from '@/lib/api/user';
 import { DriverDTO } from '@/lib/types/driver';
 import {
@@ -20,7 +31,10 @@ import { useDriverActions } from '@/hooks/use-driver-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
-import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import {
+  formatPhoneNumber,
+  normalizePhoneNumber,
+} from '@/lib/utils/phone-helper';
 
 export default function DriversPage() {
   const searchParams = useSearchParams();
@@ -49,7 +63,9 @@ export default function DriversPage() {
 
   const items: DriverDTO[] = React.useMemo(() => {
     const all = Array.isArray(drivers) ? drivers : [];
-    return haulierId ? all.filter((d) => d.haulier?.id === Number(haulierId)) : all;
+    return haulierId
+      ? all.filter((d) => d.haulier?.id === Number(haulierId))
+      : all;
   }, [drivers, haulierId]);
 
   const facetDefs: FacetDefinition[] = [
@@ -80,21 +96,42 @@ export default function DriversPage() {
 
   const renderDriverCard = React.useCallback(
     (driver: DriverDTO) => {
-      const userSub = emailToSubMap.get(driver.emailAddress?.toLowerCase() ?? '');
+      const userSub = emailToSubMap.get(
+        driver.emailAddress?.toLowerCase() ?? '',
+      );
       return (
         <MobileCard
           title={driver.driverName || '-'}
           badges={
             <>
-              <TableBadges names={[driver.driverType as string]} visibleCount={1} />
-              <TableBadges names={[driver.driverStatus as string]} visibleCount={1} />
+              <TableBadges
+                names={[driver.driverType as string]}
+                visibleCount={1}
+              />
+              <TableBadges
+                names={[driver.driverStatus as string]}
+                visibleCount={1}
+              />
             </>
           }
           actions={<DriverTableActions driver={driver} userSub={userSub} />}
           fields={[
-            { icon: <Building2 className="h-4 w-4" />, label: 'Haulier', value: driver.haulier?.haulierName || '-' },
-            { icon: <Mail className="h-4 w-4" />, label: 'Email', value: driver.emailAddress || '-' },
-            { icon: <Phone className="h-4 w-4" />, label: 'Phone', value: formatPhoneNumber(normalizePhoneNumber(driver.phoneNumber)) || '-' },
+            {
+              icon: <Building2 className="h-4 w-4" />,
+              label: 'Haulier',
+              value: driver.haulier?.haulierName || '-',
+            },
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: driver.emailAddress || '-',
+            },
+            //need to update formatPhoneNumber for international numbers, currently it only works for AU numbers
+            {
+              icon: <Phone className="h-4 w-4" />,
+              label: 'Phone',
+              value: formatPhoneNumber(driver.phoneNumber) || '-',
+            },
           ]}
         />
       );
@@ -160,11 +197,7 @@ export default function DriversPage() {
         </div>
       </div>
 
-      <StatsCards
-        cards={statsCards}
-        mobileGridCols={1}
-        desktopGridCols={4}
-      />
+      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} />
 
       {haulierId && (
         <div className="flex flex-row items-center gap-5 mb-3">
@@ -187,7 +220,9 @@ export default function DriversPage() {
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         <DataTableClient
-          key={haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'}
+          key={
+            haulierId ? `driver_haulier_${haulierId}` : 'driver_main_data_table'
+          }
           tableId="driver_main_data_table"
           data={items}
           columns={driverColumns(emailToSubMap)}

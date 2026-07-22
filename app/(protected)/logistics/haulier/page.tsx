@@ -24,7 +24,7 @@ import { useHaulierActions } from '@/hooks/use-haulier-actions';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
-import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 import type { SortingState } from '@tanstack/react-table';
 
 export default function HaulierPage() {
@@ -46,10 +46,7 @@ export default function HaulierPage() {
     [sorting],
   );
 
-  const {
-    data: hauliersData,
-    isFetching,
-  } = useQuery(
+  const { data: hauliersData, isFetching } = useQuery(
     HauliersListQueryOptions({
       page: pageIndex,
       pageSize,
@@ -65,7 +62,8 @@ export default function HaulierPage() {
 
   const totalElements = hauliersData?.totalElements ?? items.length;
   const totalPages =
-    hauliersData?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    hauliersData?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -119,8 +117,16 @@ export default function HaulierPage() {
           badges={<TableBadges names={[haulierType]} visibleCount={1} />}
           actions={<HaulierTableActions haulier={haulier} />}
           fields={[
-            { icon: <Mail className="h-4 w-4" />, label: 'Email', value: haulier.emailAddress || '-' },
-            { icon: <Phone className="h-4 w-4" />, label: 'Phone', value: formatPhoneNumber(normalizePhoneNumber(haulier.phoneNumber)) || '-' },
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: haulier.emailAddress || '-',
+            },
+            {
+              icon: <Phone className="h-4 w-4" />,
+              label: 'Phone',
+              value: formatPhoneNumber(haulier.phoneNumber) || '-',
+            },
           ]}
         />
       );
