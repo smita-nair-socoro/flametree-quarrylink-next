@@ -75,10 +75,13 @@ export default function DriverForm({
   const isEditing = Boolean(id);
 
   const { hauliers, hasMoreHauliers } = useHauliersForForm({
-    enabled: !isEditing,
+    enabled: true,
   });
+
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
-  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
+  const internalHaulier = hauliers.find((h) =>
+    isInternalHaulier(h.emailAddress, tenantEmail),
+  );
 
   const haulierItems = React.useMemo(
     () =>
@@ -189,7 +192,7 @@ export default function DriverForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }
@@ -389,10 +392,7 @@ export default function DriverForm({
               <FormItem>
                 <FormLabel>Haulier*</FormLabel>
                 <Input
-                  value={
-                    internalHaulier?.haulierName ??
-                    'My Company Haulier'
-                  }
+                  value={internalHaulier?.haulierName ?? 'My Company Haulier'}
                   disabled
                 />
               </FormItem>
@@ -615,7 +615,6 @@ export default function DriverForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>
