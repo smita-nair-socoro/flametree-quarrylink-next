@@ -115,11 +115,13 @@ interface DataTableProps<TData, TValue> {
     onViewDetails?: () => void,
   ) => React.ReactNode; // Render function for mobile cards
   mobileUseTablePagination?: boolean; // Use TanStack pagination instead of mobile load-more cards
-  mobileInfiniteItems?: TData[]; // Flattened items from useInfiniteQuery for mobile load-more
-  mobileHasNextPage?: boolean;
-  mobileIsFetchingNextPage?: boolean;
-  mobileIsLoading?: boolean; // Infinite query's isFetching (initial load / search refetch)
-  onFetchNextPage?: () => void; // Called when mobile "Load More" is tapped
+  mobileInfinite?: {
+    items: TData[];
+    hasNextPage?: boolean;
+    isFetchingNextPage?: boolean;
+    isLoading?: boolean;
+    fetchNextPage: () => void;
+  };
   totalElements?: number; // External pagination total records
   totalPages?: number; // External pagination total pages
   onPaginationChange?: (page: number, pageSize: number) => void; // Callback for server-side pagination
@@ -189,11 +191,7 @@ export function DataTableClient<TData, TValue>({
   defaultSorting, // Default sorting configuration (optional)
   mobileCardRenderer,
   mobileUseTablePagination = false,
-  mobileInfiniteItems,
-  mobileHasNextPage,
-  mobileIsFetchingNextPage,
-  mobileIsLoading = false,
-  onFetchNextPage,
+  mobileInfinite,
   totalElements,
   totalPages,
   onPaginationChange,
@@ -206,6 +204,12 @@ export function DataTableClient<TData, TValue>({
   isLoading = false,
 }: Readonly<DataTableProps<TData, TValue>>) {
   const isMobile = useIsMobile();
+
+  const mobileInfiniteItems = mobileInfinite?.items;
+  const mobileHasNextPage = mobileInfinite?.hasNextPage;
+  const mobileIsFetchingNextPage = mobileInfinite?.isFetchingNextPage;
+  const mobileIsLoading = mobileInfinite?.isLoading ?? false;
+  const onFetchNextPage = mobileInfinite?.fetchNextPage;
 
   const getStorageKey = useCallback(
     (key: string) => `${tableId}_${key}`,
@@ -437,8 +441,8 @@ export function DataTableClient<TData, TValue>({
   const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
 
-  // Sentinel div for mobile infinite scroll
-  const mobileScrollSentinelRef = useRef<HTMLDivElement>(null);
+  // Sentinel div for mobile auto-scroll (shared between infinite and client-side paths)
+  const mobileSentinelRef = useRef<HTMLDivElement>(null);
 
   // Inline filter layout measurement
   const rowRef = useRef<HTMLDivElement>(null);
@@ -491,7 +495,7 @@ export function DataTableClient<TData, TValue>({
   // Infinite scroll: fetch next page when sentinel enters the viewport
   useEffect(() => {
     if (!onFetchNextPage || !mobileHasNextPage || mobileIsFetchingNextPage) return;
-    const sentinel = mobileScrollSentinelRef.current;
+    const sentinel = mobileSentinelRef.current;
     if (!sentinel) return;
 
     const observer = new IntersectionObserver(
@@ -506,6 +510,23 @@ export function DataTableClient<TData, TValue>({
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [onFetchNextPage, mobileHasNextPage, mobileIsFetchingNextPage]);
+
+  // Client-side load-more: expand visible count when sentinel enters the viewport
+  useEffect(() => {
+    if (onFetchNextPage) return;
+    const sentinel = mobileSentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE);
+        }
+      },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [onFetchNextPage, mobileVisibleCount]);
 
   // Notify parent of selection changes
   useEffect(() => {
@@ -966,7 +987,7 @@ export function DataTableClient<TData, TValue>({
             })}
 
             {/* Intersection sentinel — triggers next page fetch when scrolled into view */}
-            <div ref={mobileScrollSentinelRef} className="h-4" />
+            <div ref={mobileSentinelRef} className="h-4" />
 
             {mobileIsFetchingNextPage && (
               <div className="flex justify-center py-4">
@@ -992,7 +1013,6 @@ export function DataTableClient<TData, TValue>({
         : filteredRows.slice(0, mobileVisibleCount);
       const hasMore =
         !mobileUseTablePagination && filteredRows.length > mobileVisibleCount;
-
       if (visibleRows.length === 0) {
         mobileCardList = (
           <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
@@ -1024,20 +1044,7 @@ export function DataTableClient<TData, TValue>({
               );
             })}
 
-            {hasMore && (
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE)
-                  }
-                  className="w-full"
-                >
-                  Load More ({filteredRows.length - mobileVisibleCount}{' '}
-                  remaining)
-                </Button>
-              </div>
-            )}
+            {hasMore && <div ref={mobileSentinelRef} className="h-4" />}
 
             {mobileUseTablePagination ? (
               <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">

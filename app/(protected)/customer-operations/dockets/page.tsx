@@ -547,11 +547,13 @@ export default function DocketsPage() {
           searchPlaceHolder="Search dockets..."
           onRowClick={handleRowClick}
           mobileCardRenderer={renderDocketCard}
-          mobileInfiniteItems={useAllDocketsInfinite ? mobileItems : undefined}
-          mobileHasNextPage={useAllDocketsInfinite ? hasNextPage : undefined}
-          mobileIsFetchingNextPage={useAllDocketsInfinite ? isFetchingNextPage : undefined}
-          mobileIsLoading={useAllDocketsInfinite ? infiniteIsFetching : undefined}
-          onFetchNextPage={useAllDocketsInfinite ? fetchNextPage : undefined}
+          mobileInfinite={useAllDocketsInfinite ? {
+            items: mobileItems,
+            hasNextPage,
+            isFetchingNextPage,
+            isLoading: infiniteIsFetching,
+            fetchNextPage,
+          } : undefined}
           defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
           totalElements={totalElements}
           totalPages={totalPages}

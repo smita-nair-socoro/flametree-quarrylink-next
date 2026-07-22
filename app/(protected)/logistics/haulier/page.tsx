@@ -185,11 +185,13 @@ export default function HaulierPage() {
           columns={haulierColumns(tenantEmail)}
           onRowClick={handleRowClick}
           mobileCardRenderer={renderHaulierCard}
-          mobileInfiniteItems={mobileItems}
-          mobileHasNextPage={hasNextPage}
-          mobileIsFetchingNextPage={isFetchingNextPage}
-          mobileIsLoading={infiniteIsFetching}
-          onFetchNextPage={fetchNextPage}
+          mobileInfinite={{
+            items: mobileItems,
+            hasNextPage,
+            isFetchingNextPage,
+            isLoading: infiniteIsFetching,
+            fetchNextPage,
+          }}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
           totalElements={totalElements}

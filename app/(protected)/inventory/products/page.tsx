@@ -375,11 +375,13 @@ export default function ProductsPage() {
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
-              mobileInfiniteItems={!isLinkedFilter ? mobileItems : undefined}
-              mobileHasNextPage={!isLinkedFilter ? hasNextPage : undefined}
-              mobileIsFetchingNextPage={!isLinkedFilter ? isFetchingNextPage : undefined}
-              mobileIsLoading={!isLinkedFilter ? infiniteIsFetching : undefined}
-              onFetchNextPage={!isLinkedFilter ? fetchNextPage : undefined}
+              mobileInfinite={!isLinkedFilter ? {
+                items: mobileItems,
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              } : undefined}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={isLinkedFilter ? 0 : pageIndex}

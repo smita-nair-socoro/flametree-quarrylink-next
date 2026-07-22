@@ -322,11 +322,13 @@ export default function CustomersPage() {
         onRowClick={handleRowClick}
         defaultSorting={[{ id: 'customer_name', desc: false }]}
         mobileCardRenderer={renderCustomerCard}
-        mobileInfiniteItems={mobileItems}
-        mobileHasNextPage={hasNextPage}
-        mobileIsFetchingNextPage={isFetchingNextPage}
-        mobileIsLoading={infiniteIsFetching}
-        onFetchNextPage={fetchNextPage}
+        mobileInfinite={{
+          items: mobileItems,
+          hasNextPage,
+          isFetchingNextPage,
+          isLoading: infiniteIsFetching,
+          fetchNextPage,
+        }}
         totalElements={totalElements}
         totalPages={totalPages}
         externalPageIndex={pageIndex}

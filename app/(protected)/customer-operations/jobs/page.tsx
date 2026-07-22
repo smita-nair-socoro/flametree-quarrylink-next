@@ -340,11 +340,13 @@ export default function CustomersPage() {
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
               mobileCardRenderer={renderJobCard}
-              mobileInfiniteItems={mobileItems}
-              mobileHasNextPage={hasNextPage}
-              mobileIsFetchingNextPage={isFetchingNextPage}
-              mobileIsLoading={infiniteIsFetching}
-              onFetchNextPage={fetchNextPage}
+              mobileInfinite={{
+                items: mobileItems,
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              }}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}
