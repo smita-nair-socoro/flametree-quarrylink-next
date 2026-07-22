@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Building2, Truck, Users } from 'lucide-react';
+import { Building2, Truck, Users, Mail, Phone } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import {
   HauliersListQueryOptions,
@@ -12,11 +12,16 @@ import {
 import { HaulierDTO } from '@/lib/types/haulier';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
+import { HaulierTableActions } from './(components)/(data-tables)/haulier/haulier-table-actions';
 import { FormDialog } from '@/components/form-dialog';
 import HaulierForm from './(components)/forms/haulier-form';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
+import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import type { SortingState } from '@tanstack/react-table';
 
 export default function HaulierPage() {
@@ -79,6 +84,26 @@ export default function HaulierPage() {
     [],
   );
 
+  const renderHaulierCard = React.useCallback(
+    (haulier: HaulierDTO) => {
+      const haulierType = isInternalHaulier(haulier.emailAddress, tenantEmail)
+        ? 'INTERNAL'
+        : 'SUBCONTRACTOR';
+      return (
+        <MobileCard
+          title={haulier.haulierName || '-'}
+          badges={<TableBadges names={[haulierType]} visibleCount={1} />}
+          actions={<HaulierTableActions haulier={haulier} />}
+          fields={[
+            { icon: <Mail className="h-4 w-4" />, label: 'Email', value: haulier.emailAddress || '-' },
+            { icon: <Phone className="h-4 w-4" />, label: 'Phone', value: formatPhoneNumber(normalizePhoneNumber(haulier.phoneNumber)) || '-' },
+          ]}
+        />
+      );
+    },
+    [tenantEmail],
+  );
+
   const statsCards: StatsCardData[] = [
     {
       title: 'Total Hauliers',
@@ -135,6 +160,7 @@ export default function HaulierPage() {
           data={items}
           columns={haulierColumns(tenantEmail)}
           onRowClick={handleRowClick}
+          mobileCardRenderer={renderHaulierCard}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
           totalElements={totalElements}

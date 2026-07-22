@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
-import { Package, FileText, Wallet, CircleAlert } from 'lucide-react';
+import { Package, FileText, Wallet, CircleAlert, User, Calendar, Hash } from 'lucide-react';
 import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery } from '@tanstack/react-query';
@@ -26,11 +26,17 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useTenantCurrencyTax, formatCurrency } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
+import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { formatLocalDate } from '@/lib/utils/date';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { formatUomLabel } from '@/lib/utils/docket-helper';
 
 export default function DocketsPage() {
   const router = useRouter();
@@ -330,6 +336,60 @@ export default function DocketsPage() {
     actions.view(row);
   };
 
+  const renderDocketCard = React.useCallback(
+    (docket: DocketDTO) => {
+      const customer = docket.job?.customerDto;
+      const customerName =
+        customer?.customerType === 'BUSINESS'
+          ? customer?.businessName || 'N/A'
+          : customer?.individualContactName || (customer as any)?.contactName || 'N/A';
+      const productName = docket.jobItem?.product?.productName || '-';
+      const date = docket.deliveryCollectionDate
+        ? formatLocalDate(docket.deliveryCollectionDate.toString())
+        : '-';
+      const loadSize =
+        docket.docketStatus !== 'UNASSIGNED' &&
+        docket.docketStatus !== 'PENDING' &&
+        docket.docketStatus !== 'ASSIGNED'
+          ? docket.actualLoadSize ?? 0
+          : docket.plannedLoadSize ?? 0;
+      const uom = docket.jobItem?.productSellUom;
+      const qty = uom
+        ? `${formatNumberThousandSeparator(loadSize)} ${formatUomLabel(uom)}`
+        : formatNumberThousandSeparator(loadSize);
+      const displayStatus =
+        (docket.docketStatus as string) === 'READY_FOR_COLLECTION'
+          ? 'READY'
+          : docket.docketStatus;
+
+      return (
+        <MobileCard
+          title={docket.docketNumber || 'N/A'}
+          description={
+            <>
+              <Hash className="h-3.5 w-3.5" />
+              <span className="truncate">{docket.job?.jobNumber || '-'}</span>
+            </>
+          }
+          badges={
+            <>
+              <TableBadges names={[displayStatus]} visibleCount={1} />
+              <TableBadges names={[docket.jobItem?.jobItemType]} visibleCount={1} />
+            </>
+          }
+          actions={<DocketTableActions docket={docket} />}
+          fields={[
+            { icon: <User className="h-4 w-4" />, label: 'Customer', value: customerName },
+            { icon: <Package className="h-4 w-4" />, label: 'Product', value: productName },
+            { icon: <Calendar className="h-4 w-4" />, label: 'Date', value: date },
+            { icon: <FileText className="h-4 w-4" />, label: 'Quantity', value: qty },
+          ]}
+        />
+      );
+    },
+    [],
+  );
+
   React.useEffect(() => {
     if (isError && error) {
       console.error('Docket API Error:', error);
@@ -442,6 +502,7 @@ export default function DocketsPage() {
                   facetDefinition={facetDefs}
                   searchPlaceHolder="Search dockets..."
                   onRowClick={handleRowClick}
+                  mobileCardRenderer={renderDocketCard}
                   defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
                   totalElements={totalElements}
                   totalPages={totalPages}

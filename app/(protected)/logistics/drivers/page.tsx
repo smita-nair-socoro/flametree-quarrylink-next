@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { UsersRound, UserCheck, Truck, TriangleAlert } from 'lucide-react';
+import { UsersRound, UserCheck, Truck, TriangleAlert, Building2, Mail, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { DriversListQueryOptions, DriverStatisticsQueryOptions } from '@/lib/api/driver';
@@ -13,10 +13,14 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { driverColumns } from './(components)/(data-tables)/driver/columns';
+import { DriverTableActions } from './(components)/(data-tables)/driver/driver-table-actions';
 import { FormDialog } from '@/components/form-dialog';
 import DriverForm from './(components)/forms/driver-form';
 import { useDriverActions } from '@/hooks/use-driver-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 export default function DriversPage() {
   const searchParams = useSearchParams();
@@ -73,6 +77,30 @@ export default function DriversPage() {
   const handleRowClick = (driverData: DriverDTO) => {
     actions.view(driverData);
   };
+
+  const renderDriverCard = React.useCallback(
+    (driver: DriverDTO) => {
+      const userSub = emailToSubMap.get(driver.emailAddress?.toLowerCase() ?? '');
+      return (
+        <MobileCard
+          title={driver.driverName || '-'}
+          badges={
+            <>
+              <TableBadges names={[driver.driverType as string]} visibleCount={1} />
+              <TableBadges names={[driver.driverStatus as string]} visibleCount={1} />
+            </>
+          }
+          actions={<DriverTableActions driver={driver} userSub={userSub} />}
+          fields={[
+            { icon: <Building2 className="h-4 w-4" />, label: 'Haulier', value: driver.haulier?.haulierName || '-' },
+            { icon: <Mail className="h-4 w-4" />, label: 'Email', value: driver.emailAddress || '-' },
+            { icon: <Phone className="h-4 w-4" />, label: 'Phone', value: formatPhoneNumber(normalizePhoneNumber(driver.phoneNumber)) || '-' },
+          ]}
+        />
+      );
+    },
+    [emailToSubMap],
+  );
 
   const statsCards: StatsCardData[] = [
     {
@@ -167,6 +195,7 @@ export default function DriversPage() {
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'driverName', desc: false }]}
           onRowClick={handleRowClick}
+          mobileCardRenderer={renderDriverCard}
         />
       </div>
     </div>
