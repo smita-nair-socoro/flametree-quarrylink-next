@@ -26,11 +26,7 @@ import {
   buildJobFacetOptions,
 } from '@/lib/api/job';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { centsToDollars } from '@/lib/utils/currency';
-import {
-  useTenantCurrencyTax,
-  getCurrencySymbol,
-} from '@/lib/utils/tenant-config-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
@@ -39,7 +35,8 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, formatCentsToCurrency } =
+    useTenantCurrencyTax();
 
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
 
@@ -138,7 +135,7 @@ export default function CustomersPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      value: formatCentsToCurrency(statistics?.uninvoicedDocketsValue ?? 0),
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -249,8 +246,10 @@ export default function CustomersPage() {
       const customerName =
         job.customerDto?.customerType === 'INDIVIDUAL'
           ? job.customerDto?.individualContactName
-          : job.customerDto?.businessName;
-      const uninvoiced = `${getCurrencySymbol(currencyCode)}${centsToDollars(job.uninvoicedDocketsAmount ?? 0)}`;
+          : job.customerDto?.businessName || job.contactPersonName || 'N/A';
+      const uninvoiced = formatCentsToCurrency(
+        job.uninvoicedDocketsAmount ?? 0,
+      );
 
       return (
         <MobileCard
@@ -282,7 +281,7 @@ export default function CustomersPage() {
         />
       );
     },
-    [currencyCode],
+    [formatCentsToCurrency],
   );
 
   return (
