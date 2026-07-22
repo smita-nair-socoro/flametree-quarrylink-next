@@ -36,7 +36,6 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
@@ -59,7 +58,8 @@ export default function DocketsPage() {
   const truckIdParam = searchParams.get('truckId');
   const truckNameParam = searchParams.get('truckName');
 
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, formatCentsToCurrency } =
+    useTenantCurrencyTax();
 
   const linkedJobId = React.useMemo(() => {
     const parsed = Number(linkedJobIdParam);
@@ -209,7 +209,7 @@ export default function DocketsPage() {
 
   const isMobile = useIsMobile();
 
-  const useAllDocketsInfinite = !driverId && !truckId;
+  const useAllDocketsInfinite = !driverId && !truckId && !linkedJobId;
   const {
     data: infiniteData,
     fetchNextPage,
@@ -303,7 +303,7 @@ export default function DocketsPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      value: formatCentsToCurrency(statistics?.uninvoicedDocketsValue ?? 0),
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -377,9 +377,7 @@ export default function DocketsPage() {
     const customerName =
       customer?.customerType === 'BUSINESS'
         ? customer?.businessName || 'N/A'
-        : customer?.individualContactName ||
-          (customer as any)?.contactName ||
-          'N/A';
+        : customer?.individualContactName || customer?.contactName || 'N/A';
     const productName = docket.jobItem?.product?.productName || '-';
     const date = docket.deliveryCollectionDate
       ? formatLocalDate(docket.deliveryCollectionDate.toString())
@@ -502,7 +500,9 @@ export default function DocketsPage() {
       </>
     );
   } else {
-    filterDescription = <span>{`Showing dockets for job #${linkedJobId}`}</span>;
+    filterDescription = (
+      <span>{`Showing dockets for job #${linkedJobId}`}</span>
+    );
   }
 
   let tableContent: React.ReactNode;
@@ -547,13 +547,17 @@ export default function DocketsPage() {
           searchPlaceHolder="Search dockets..."
           onRowClick={handleRowClick}
           mobileCardRenderer={renderDocketCard}
-          mobileInfinite={useAllDocketsInfinite ? {
-            items: mobileItems,
-            hasNextPage,
-            isFetchingNextPage,
-            isLoading: infiniteIsFetching,
-            fetchNextPage,
-          } : undefined}
+          mobileInfinite={
+            useAllDocketsInfinite
+              ? {
+                  items: mobileItems,
+                  hasNextPage,
+                  isFetchingNextPage,
+                  isLoading: infiniteIsFetching,
+                  fetchNextPage,
+                }
+              : undefined
+          }
           defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
           totalElements={totalElements}
           totalPages={totalPages}
