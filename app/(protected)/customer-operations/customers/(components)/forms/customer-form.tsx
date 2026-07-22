@@ -42,7 +42,7 @@ import {
   PAYMENT_TERMS_OPTIONS,
 } from '@/hooks/customer/use-customer-form-state';
 import { AuditInformation } from '@/components/audit-information';
-import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareLabel, useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { Separator } from '@/components/ui/separator';
 import AdditionalContactForm from './additional-contact-form';
@@ -72,6 +72,8 @@ export default function CustomerForm({
   const isEditing = Boolean(id);
   const customerId = id ?? 0;
   const accSoftware = useAccountingSoftwareLabel();
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB';
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -126,7 +128,7 @@ export default function CustomerForm({
   );
 
   useFormDialogFooter(
-    isDesktop ? (
+    isDesktop && !readOnly ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           {isEditing ? 'Close' : 'Cancel'}
@@ -135,7 +137,7 @@ export default function CustomerForm({
           form="add-new-customer-form"
           className="cursor-pointer"
           type="submit"
-          disabled={isSubmitting || isFormBlocked}
+          disabled={isSubmitting || isFormBlocked || readOnly}
         >
           {isSubmitting && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -371,6 +373,7 @@ export default function CustomerForm({
                         handleFormFieldChange('customer_type', value);
                       }}
                       className="grid grid-flow-col auto-cols-max gap-4"
+                      disabled={readOnly}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
@@ -415,6 +418,7 @@ export default function CustomerForm({
                         handleFormFieldChange('payment_type', value);
                       }}
                       className="grid grid-flow-col auto-cols-max gap-4"
+                      disabled={readOnly}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
@@ -455,6 +459,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="Enter Business Name"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -482,6 +487,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="email@example.com"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -510,6 +516,7 @@ export default function CustomerForm({
                         defaultCountry="AU"
                         placeholder="Enter phone number"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -560,6 +567,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="Enter Contact Person Name"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -613,6 +621,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="Enter Last Name"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -640,6 +649,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="email@example.com"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -667,6 +677,7 @@ export default function CustomerForm({
                         defaultCountry="AU"
                         placeholder="Enter phone number"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -694,6 +705,7 @@ export default function CustomerForm({
                         className="w-full"
                         placeholder="email@example.com"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -722,6 +734,7 @@ export default function CustomerForm({
                         defaultCountry="AU"
                         placeholder="Enter phone number"
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -757,6 +770,7 @@ export default function CustomerForm({
                         }
                         decimalPlaces={2}
                         allowNegative={false}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -799,6 +813,7 @@ export default function CustomerForm({
                                 'payment_terms',
                               ]);
                             }}
+                            readOnly={readOnly}
                           />
                         </FormControl>
                         <FormMessage className="absolute mt-9 whitespace-nowrap" />
@@ -819,6 +834,7 @@ export default function CustomerForm({
                         'payment_terms',
                       ]);
                     }}
+                    disabled={readOnly}
                   />
                 </div>
               </div>
@@ -840,6 +856,7 @@ export default function CustomerForm({
                     : 'col-span-1 col-start-2'
                   : 'col-span-2'
               }
+              disabled={readOnly}
             />
 
             {/* Billing Address */}
@@ -866,6 +883,7 @@ export default function CustomerForm({
                       dialogTitle="Search for Billing Address"
                       placeholder="Search for Billing Address..."
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -892,6 +910,7 @@ export default function CustomerForm({
                       dialogWidth="600px"
                       contentClass="-mt-5"
                       preventAutoFocus
+                      hideButton={readOnly}
                     >
                       <AdditionalContactForm customerId={customerId} />
                     </FormDialog>
@@ -933,13 +952,15 @@ export default function CustomerForm({
                     )}
                   >
                     <span className="text-lg font-semibold">Attachments</span>
-                    <Button
-                      type="button"
-                      className="cursor-pointer"
-                      onClick={() => setAddAttachmentOpen(true)}
-                    >
-                      Add Attachment
-                    </Button>
+                    {!readOnly && (
+                      <Button
+                        type="button"
+                        className="cursor-pointer"
+                        onClick={() => setAddAttachmentOpen(true)}
+                      >
+                        Add Attachment
+                      </Button>
+                    )}
                   </div>
 
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

@@ -16,13 +16,14 @@ export const DEFAULT_TAX_PERCENTAGE = 10;
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
 
-export type AccountingSoftwareProvider = 'XERO' | 'MYOB';
+export type AccountingSoftwareProvider = 'XERO' | 'MYOB' | 'ACUMATICA';
 
 /** Normalizes the tenant's raw accounting software value for feature routing. */
 export function getAccountingSoftwareProvider(
   accountingSoftware?: string,
 ): AccountingSoftwareProvider | null {
   const value = (accountingSoftware || '').toUpperCase();
+  if (value.includes('ACUMATICA')) return 'ACUMATICA';
   if (value.includes('MYOB')) return 'MYOB';
   if (value.includes('XERO')) return 'XERO';
   return null;

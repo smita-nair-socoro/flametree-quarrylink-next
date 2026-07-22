@@ -33,6 +33,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -45,6 +46,8 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
   const { currencyCode } = useTenantCurrencyTax();
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB';
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -147,9 +150,8 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${
-        reportingData?.totalCustomersChangePercentThisMonth || 0
-      } this month`,
+      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
+        } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -158,9 +160,8 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${
-        reportingData?.activeCustomersPercentOfTotal || 0
-      }% of total`,
+      description: `${reportingData?.activeCustomersPercentOfTotal || 0
+        }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -169,9 +170,8 @@ export default function CustomersPage() {
     {
       title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${
-        reportingData?.businessCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.businessCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -180,9 +180,8 @@ export default function CustomersPage() {
     {
       title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${
-        reportingData?.individualCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.individualCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -282,6 +281,7 @@ export default function CustomersPage() {
             dialogTitle="Add New Customer"
             dialogDescription="Fill in the required fields to add a new customer."
             buttonTitle="Add Customer"
+            hideButton={readOnly}
           >
             <CustomerForm />
           </FormDialog>

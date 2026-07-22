@@ -160,6 +160,9 @@ interface AddProductDrawerDialogProps {
   /** When true, prevents auto-focus on any element when the dialog opens */
   preventAutoFocus?: boolean;
 
+  /** When true, hides the trigger button */
+  hideButton?: boolean;
+
   /**
    * **THIS** is our form (or any other content) to render inside
    * the drawer/dialog—e.g. our <ProductForm />.
@@ -232,6 +235,7 @@ export function FormDialog({
   preventAutoFocus,
   footer,
   footerClassName,
+  hideButton = false,
 }: Readonly<AddProductDrawerDialogProps>) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const [effectiveId, setEffectiveId] = React.useState(id);
@@ -412,28 +416,30 @@ export function FormDialog({
   }, [open]);
 
   let triggerNode: React.ReactNode;
-  if (trigger) {
-    if (React.isValidElement(trigger)) {
-      triggerNode = React.cloneElement(trigger, {
-        onClick: () => handleOpen(false),
-      });
+  if (!hideButton) {
+    if (trigger) {
+      if (React.isValidElement(trigger)) {
+        triggerNode = React.cloneElement(trigger, {
+          onClick: () => handleOpen(false),
+        });
+      } else {
+        triggerNode = (
+          <button
+            type="button"
+            className="contents"
+            onClick={() => handleOpen(false)}
+          >
+            {trigger}
+          </button>
+        );
+      }
     } else {
-      triggerNode = (
-        <button
-          type="button"
-          className="contents"
-          onClick={() => handleOpen(false)}
-        >
-          {trigger}
-        </button>
+      triggerNode = !hideTrigger && (
+        <Button onClick={() => handleOpen(true)} variant="default">
+          <Plus className="h-4 w-4" /> {triggerTitle}
+        </Button>
       );
     }
-  } else {
-    triggerNode = !hideTrigger && (
-      <Button onClick={() => handleOpen(true)} variant="default">
-        <Plus className="h-4 w-4" /> {triggerTitle}
-      </Button>
-    );
   }
 
   const forceClose = React.useCallback(() => {

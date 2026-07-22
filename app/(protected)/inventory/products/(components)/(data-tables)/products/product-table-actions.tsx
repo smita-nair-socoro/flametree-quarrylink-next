@@ -12,6 +12,7 @@ import {
 import { useProductActions } from '@/hooks/use-product-actions';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductStore } from '@/app/stores/product-store';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface ProducTableActionProps {
   product: ProductDetails;
@@ -21,7 +22,8 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useProductActions(product);
   const isUnavailable = product.isActive === false;
-
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB';
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct,
   );
@@ -65,26 +67,30 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {!isUnavailable ? (
-            <DropdownMenuItem onClick={handleUnavailable} className="text-destructive focus:text-destructive">
-              <Ban className="h-4 w-4 mr-2 text-red-600" />
-              Mark as Unavailable
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem onClick={handleAvailable} className="text-green-600 focus:text-green-600">
-              <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-              Mark as Available
-            </DropdownMenuItem>
+          {!readOnly && (
+            <>
+              <DropdownMenuSeparator />
+              {!isUnavailable ? (
+                <DropdownMenuItem onClick={handleUnavailable} className="text-destructive focus:text-destructive">
+                  <Ban className="h-4 w-4 mr-2 text-red-600" />
+                  Mark as Unavailable
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem onClick={handleAvailable} className="text-green-600 focus:text-green-600">
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                  Mark as Available
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                Delete
+              </DropdownMenuItem>
+            </>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={handleDelete}
-            className="text-destructive focus:text-destructive"
-          >
-            <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-            Delete
-          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

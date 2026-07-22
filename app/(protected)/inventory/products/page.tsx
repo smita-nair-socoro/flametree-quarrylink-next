@@ -27,6 +27,7 @@ import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -43,7 +44,8 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
-
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB';
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
     'linkedQuarrySupplierId',
@@ -129,9 +131,8 @@ export default function ProductsPage() {
     {
       title: 'Unavailable Products',
       value: reportingData?.unavailableProductsCount || 0,
-      description: `${
-        reportingData?.unavailableProductsPercentOfInventory || 0
-      }% of inventory`,
+      description: `${reportingData?.unavailableProductsPercentOfInventory || 0
+        }% of inventory`,
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
       iconColor: 'text-[#9F0712]',
@@ -140,9 +141,8 @@ export default function ProductsPage() {
     {
       title: 'Average Product Margin',
       value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
-      description: `${
-        reportingData?.averageProductMarginChangeVsLastMonth || 0
-      }% last month`,
+      description: `${reportingData?.averageProductMarginChangeVsLastMonth || 0
+        }% last month`,
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
       iconColor: 'text-[#00A63E]',
@@ -151,9 +151,8 @@ export default function ProductsPage() {
     {
       title: 'Total Products',
       value: reportingData?.totalProducts || 0,
-      description: `+${
-        reportingData?.productsAddedThisMonth || 0
-      } added this month`,
+      description: `+${reportingData?.productsAddedThisMonth || 0
+        } added this month`,
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
       iconColor: 'text-[#0891B2]',
@@ -290,7 +289,7 @@ export default function ProductsPage() {
         <h1 className="text-2xl">Products</h1>
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product">
+          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
             <ProductForm />
           </FormDialog>
         </div>

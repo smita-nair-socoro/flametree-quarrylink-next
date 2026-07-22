@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface CustomerTableActionsProps {
   customer: CustomerDTO;
@@ -21,7 +22,8 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
   const isArchived = customer?.customerStatus === 'ARCHIVED';
-
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB';
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();
@@ -47,8 +49,8 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          {!isArchived && <DropdownMenuSeparator />}
-          {!isArchived && (
+          {(!isArchived && !readOnly) && <DropdownMenuSeparator />}
+          {(!isArchived && !readOnly) && (
             <DropdownMenuItem
               onClick={handleArchive}
               className="text-destructive focus:text-destructive"
