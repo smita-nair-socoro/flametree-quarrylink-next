@@ -827,6 +827,21 @@ export function sortDispatchDriverList(
   );
 }
 
+/** Default driver column order: INTERNAL (alpha by driver name) then subcontractor (alpha by driver name). */
+export function sortDispatchBoardDriverColumns(
+  drivers: TruckResource[],
+): TruckResource[] {
+  const internal = drivers.filter(
+    (d) => d.businessType === TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  const external = drivers.filter(
+    (d) => d.businessType !== TRUCK_BUSINESS_TYPE.INTERNAL,
+  );
+  const byDriverName = (list: TruckResource[]) =>
+    sortByLabel(list, (r) => r.drivers || '');
+  return [...byDriverName(internal), ...byDriverName(external)];
+}
+
 /** Default truck column order when utilisation sorting is off. */
 export function sortDispatchBoardTruckColumns(
   trucks: TruckResource[],
