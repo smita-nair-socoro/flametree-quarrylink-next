@@ -526,7 +526,7 @@ export function DataTableClient<TData, TValue>({
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [onFetchNextPage, mobileVisibleCount]);
+  }, [onFetchNextPage]);
 
   // Notify parent of selection changes
   useEffect(() => {
