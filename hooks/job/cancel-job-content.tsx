@@ -3,6 +3,7 @@ import { CircleX, TriangleAlert } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { JobDTO } from '@/lib/types/job';
 import { Textarea } from '@/components/ui/textarea';
+import { sortByLabelOtherLast } from '@/lib/utils/sort-options';
 
 export function CannotCancelJobDescription({
   job,
@@ -151,8 +152,9 @@ export const CANCEL_REASON_LABELS: Record<string, string> = {
   other: 'Other reason',
 };
 
-const CANCEL_REASONS = Object.entries(CANCEL_REASON_LABELS).map(
-  ([, label]) => ({ value: label, label }),
+const CANCEL_REASONS = sortByLabelOtherLast(
+  Object.entries(CANCEL_REASON_LABELS).map(([, label]) => ({ value: label, label })),
+  (option) => option.label,
 );
 
 export function CancelJobDescription({ job }: { job?: JobDTO | null }) {

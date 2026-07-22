@@ -453,19 +453,19 @@ const getDialogConfigs = (
                   <SelectValue placeholder="Select a reason..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="price_too_high">Price too high</SelectItem>
-                  <SelectItem value="timeline_conflict">
-                    Timeline conflict
-                  </SelectItem>
-                  <SelectItem value="scope_changed">Scope changed</SelectItem>
-                  <SelectItem value="customer_unresponsive">
-                    Customer unresponsive
-                  </SelectItem>
                   <SelectItem value="competitor_selected">
                     Competitor selected
                   </SelectItem>
+                  <SelectItem value="customer_unresponsive">
+                    Customer unresponsive
+                  </SelectItem>
+                  <SelectItem value="price_too_high">Price too high</SelectItem>
                   <SelectItem value="project_cancelled">
                     Project cancelled
+                  </SelectItem>
+                  <SelectItem value="scope_changed">Scope changed</SelectItem>
+                  <SelectItem value="timeline_conflict">
+                    Timeline conflict
                   </SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>

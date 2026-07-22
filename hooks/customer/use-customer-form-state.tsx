@@ -33,6 +33,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 type CustomerFormValues = z.infer<typeof NewCustomerFormSchema>;
 
@@ -240,9 +241,10 @@ export function useCustomerFormState({
   );
   const accountManagerOptions = React.useMemo(
     () =>
-      users
-        .map((user) => ({ label: user.name, value: user.sub }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
+      sortByLabel(
+        users.map((user) => ({ label: user.name, value: user.sub })),
+        (option) => option.label,
+      ),
     [users],
   );
 

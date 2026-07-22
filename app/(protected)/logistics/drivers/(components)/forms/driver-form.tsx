@@ -13,6 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -85,13 +86,16 @@ export default function DriverForm({
 
   const haulierItems = React.useMemo(
     () =>
-      hauliers
-        .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
-        .map((h) => ({
-          id: h.id,
-          label: h.haulierName,
-          fields: { email: h.emailAddress, phone: h.phoneNumber },
-        })),
+      sortByLabel(
+        hauliers
+          .filter((h) => !isInternalHaulier(h.emailAddress, tenantEmail))
+          .map((h) => ({
+            id: h.id,
+            label: h.haulierName,
+            fields: { email: h.emailAddress, phone: h.phoneNumber },
+          })),
+        (item) => item.label,
+      ),
     [hauliers, tenantEmail],
   );
 
@@ -224,15 +228,16 @@ export default function DriverForm({
   );
   const truckOptions = React.useMemo(
     () =>
-      haulierTrucks
-        .map((t) => ({
+      sortByLabel(
+        haulierTrucks.map((t) => ({
           label:
             t.model === 'GENERIC' && t.licensePlate.startsWith('GENERIC')
               ? t.licensePlate.replace(/-\d+$/, '')
               : t.licensePlate,
           value: String(t.id),
-        }))
-        .sort((a, b) => a.label.localeCompare(b.label)),
+        })),
+        (option) => option.label,
+      ),
     [haulierTrucks],
   );
 

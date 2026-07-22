@@ -56,6 +56,7 @@ import {
   formatLocalDate,
   formatLocalISO,
   isDocketOnSelectedLocalDay,
+  sortDispatchBoardDriverColumns,
 } from '@/lib/utils/dispatch-helper';
 
 function countTrucksWithAssignedBookingsOnSelectedDay(
@@ -264,7 +265,7 @@ export function DispatchView({
       });
     }
     if (viewType === 'drivers' && driversData) {
-      return (driversData.resources || []).map((r) => {
+      const mapped = (driversData.resources || []).map((r) => {
         if ('driverName' in r) {
           return {
             id: String(r.id),
@@ -289,6 +290,7 @@ export function DispatchView({
           businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
         };
       });
+      return sortDispatchBoardDriverColumns(mapped);
     }
     return [];
   }, [trucksData, driversData, viewType]);

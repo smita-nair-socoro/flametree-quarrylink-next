@@ -14,6 +14,7 @@ import {
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 
 import { cn, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -96,12 +97,15 @@ export default function QuarrySupplierForm({
 
   const accountCodeOptions = React.useMemo<FormSelectOption[]>(
     () =>
-      accountCodes
-        .filter((accountCode) => accountCode.id !== undefined)
-        .map((accountCode) => ({
-          value: accountCode.id as number,
-          label: `${accountCode.code} - ${accountCode.name}`,
-        })),
+      sortByLabel(
+        accountCodes
+          .filter((accountCode) => accountCode.id !== undefined)
+          .map((accountCode) => ({
+            value: accountCode.id as number,
+            label: `${accountCode.code} - ${accountCode.name}`,
+          })),
+        (option) => option.label,
+      ),
     [accountCodes],
   );
 

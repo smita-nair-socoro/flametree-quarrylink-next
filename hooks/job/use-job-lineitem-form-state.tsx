@@ -45,6 +45,7 @@ import { JOB_STATUS } from '@/lib/types/job-enums';
 import { toAddressType } from '@/lib/utils/address-helper';
 import { toAddressPayload } from '@/lib/utils/address-helper';
 import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 type FormValues = z.infer<typeof NewJobLineItemFormSchema>;
 
@@ -340,9 +341,7 @@ export function useJobLineItemFormState({
       const name = qsp?.quarrySupplier?.name || '';
       byId.set(quarrySupplierId, { id: quarrySupplierId, name });
     }
-    return Array.from(byId.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return sortByLabel(Array.from(byId.values()), (supplier) => supplier.name);
   }, [productDetailsQuery.data, selectedProductId]);
 
   const quarryOptions: SelectOption[] = React.useMemo(
@@ -535,19 +534,23 @@ export function useJobLineItemFormState({
 
   // Static options
   const truckTypeOptions: SelectOption[] = React.useMemo(
-    () => [
-      { label: 'Truck', value: 'TRUCK' },
-      { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
-      { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
-      { label: 'Rigid truck', value: 'RIGID_TRUCK' },
-      { label: 'Flatbed', value: 'FLATBED' },
-      { label: 'Tipper', value: 'TIPPER' },
-      { label: 'Tandem', value: 'TANDEM' },
-      { label: 'Quad', value: 'QUAD' },
-      { label: 'Tri-Axle', value: 'TRI_AXLE' },
-      { label: 'Tautliner', value: 'TAUTLINER' },
-      { label: 'Crane Truck', value: 'CRANE_TRUCK' },
-    ],
+    () =>
+      sortByLabel(
+        [
+          { label: 'Truck', value: 'TRUCK' },
+          { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
+          { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
+          { label: 'Rigid truck', value: 'RIGID_TRUCK' },
+          { label: 'Flatbed', value: 'FLATBED' },
+          { label: 'Tipper', value: 'TIPPER' },
+          { label: 'Tandem', value: 'TANDEM' },
+          { label: 'Quad', value: 'QUAD' },
+          { label: 'Tri-Axle', value: 'TRI_AXLE' },
+          { label: 'Tautliner', value: 'TAUTLINER' },
+          { label: 'Crane Truck', value: 'CRANE_TRUCK' },
+        ],
+        (option) => option.label,
+      ),
     [],
   );
 
