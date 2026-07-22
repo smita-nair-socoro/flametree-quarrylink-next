@@ -433,6 +433,9 @@ export function DataTableClient<TData, TValue>({
   const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
 
+  // Sentinel div for mobile infinite scroll
+  const mobileScrollSentinelRef = useRef<HTMLDivElement>(null);
+
   // Inline filter layout measurement
   const rowRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -480,6 +483,26 @@ export function DataTableClient<TData, TValue>({
       setMobilePageInput(String(effectivePagination.pageIndex + 1));
     }
   }, [isMobile, mobileUseTablePagination, effectivePagination.pageIndex]);
+
+  // Infinite scroll: fetch next page when sentinel enters the viewport
+  useEffect(() => {
+    if (!onFetchNextPage || !mobileHasNextPage || mobileIsFetchingNextPage) return;
+    const sentinel = mobileScrollSentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          onFetchNextPage();
+        }
+      },
+      { threshold: 0.1 },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [onFetchNextPage, mobileHasNextPage, mobileIsFetchingNextPage]);
+
   // Notify parent of selection changes
   useEffect(() => {
     if (enableRowSelection && onRowSelectionChange) {
@@ -931,20 +954,12 @@ export function DataTableClient<TData, TValue>({
               );
             })}
 
-            {mobileHasNextPage && (
-              <div className="flex justify-center pt-2">
-                <Button
-                  variant="outline"
-                  onClick={onFetchNextPage}
-                  disabled={mobileIsFetchingNextPage}
-                  className="w-full"
-                >
-                  {mobileIsFetchingNextPage ? (
-                    <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                  ) : (
-                    `Load More (${(totalElements ?? 0) - items.length} remaining)`
-                  )}
-                </Button>
+            {/* Intersection sentinel — triggers next page fetch when scrolled into view */}
+            <div ref={mobileScrollSentinelRef} className="h-4" />
+
+            {mobileIsFetchingNextPage && (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             )}
 
