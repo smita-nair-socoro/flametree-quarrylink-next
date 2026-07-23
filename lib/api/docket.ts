@@ -252,7 +252,7 @@ export const useCreateDocket = () => {
 
 export type DocketsByJobIdParams = Pick<
   DocketsListParams,
-  'page' | 'pageSize' | 'size' | 'sortBy' | 'sortOrder'
+  'page' | 'pageSize' | 'size' | 'search' | 'sortBy' | 'sortOrder'
 >;
 
 export const DocketsByJobIdQueryOptions = (
@@ -541,7 +541,7 @@ export function getDocketItemsFromJobInfinitePages(
 
 export const DocketsByJobIdInfiniteQueryOptions = (
   jobId: number,
-  params?: Pick<DocketsListParams, 'pageSize' | 'sortBy' | 'sortOrder'>,
+  params?: Pick<DocketsListParams, 'pageSize' | 'search' | 'sortBy' | 'sortOrder'>,
 ) =>
   infiniteQueryOptions({
     queryKey: [...DocketKeys.byJobId(jobId), 'infinite', params],

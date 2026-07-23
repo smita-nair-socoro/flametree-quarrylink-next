@@ -253,6 +253,7 @@ export default function DocketsPage() {
   } = useInfiniteQuery({
     ...DocketsByJobIdInfiniteQueryOptions(linkedJobId ?? 0, {
       pageSize: 25,
+      search: search.trim() || undefined,
       ...apiSortParams,
     }),
     enabled: isMobile && !!linkedJobId && !idsFilter,
