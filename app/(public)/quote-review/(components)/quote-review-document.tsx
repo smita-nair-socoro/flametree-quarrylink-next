@@ -44,6 +44,7 @@ export default function QuoteReviewDocument({
   token,
 }: Readonly<QuoteReviewDocumentProps>) {
   const [logoError, setLogoError] = useState(false);
+  const [isPdfDownloading, setIsPdfDownloading] = useState(false);
   const [approveDialogOpen, setApproveDialogOpen] = useState(false);
   const [declineDialogOpen, setDeclineDialogOpen] = useState(false);
   const [approveFullName, setApproveFullName] = useState('');
@@ -258,19 +259,19 @@ export default function QuoteReviewDocument({
                 <SelectValue placeholder="Select a reason..." />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="price_too_high">Price too high</SelectItem>
-                <SelectItem value="timeline_conflict">
-                  Timeline conflict
-                </SelectItem>
-                <SelectItem value="scope_changed">Scope changed</SelectItem>
-                <SelectItem value="customer_unresponsive">
-                  Customer unresponsive
-                </SelectItem>
                 <SelectItem value="competitor_selected">
                   Competitor selected
                 </SelectItem>
+                <SelectItem value="customer_unresponsive">
+                  Customer unresponsive
+                </SelectItem>
+                <SelectItem value="price_too_high">Price too high</SelectItem>
                 <SelectItem value="project_cancelled">
                   Project cancelled
+                </SelectItem>
+                <SelectItem value="scope_changed">Scope changed</SelectItem>
+                <SelectItem value="timeline_conflict">
+                  Timeline conflict
                 </SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
@@ -359,6 +360,7 @@ export default function QuoteReviewDocument({
   }
 
   const handleDownloadPDF = async () => {
+    setIsPdfDownloading(true);
     try {
       await downloadQuotePdf(
         { ...quotationData, navbar: { ...quotationData.navbar, logoError } },
@@ -373,6 +375,8 @@ export default function QuoteReviewDocument({
           ? error.message
           : 'Failed to download PDF. Please try again.',
       );
+    } finally {
+      setIsPdfDownloading(false);
     }
   };
 
@@ -499,6 +503,7 @@ export default function QuoteReviewDocument({
             {...quotationData.navbar}
             status={navbarStatus}
             onDownloadPDF={handleDownloadPDF}
+            isPdfDownloading={isPdfDownloading}
             logoError={logoError}
             onLogoError={() => setLogoError(true)}
           />

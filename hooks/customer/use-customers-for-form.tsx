@@ -12,6 +12,7 @@ import { CUSTOMER_STATUS } from '@/lib/types/customer-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { Quotation } from '@/lib/types/quotation';
 import { useDebounce } from '@/hooks/use-debounce';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 function toCustomerSelectOption(customer: CustomerDTO): FormSelectOption | null {
   if (
@@ -32,10 +33,12 @@ function toCustomerSelectOption(customer: CustomerDTO): FormSelectOption | null 
 export function buildCustomerSelectOptions(
   customers: CustomerDTO[],
 ): FormSelectOption[] {
-  return customers
-    .map(toCustomerSelectOption)
-    .filter((option): option is FormSelectOption => option != null)
-    .sort((a, b) => a.label.localeCompare(b.label));
+  return sortByLabel(
+    customers
+      .map(toCustomerSelectOption)
+      .filter((option): option is FormSelectOption => option != null),
+    (option) => option.label,
+  );
 }
 
 /** Map quotation detail customer fields into a CustomerDTO for the form select. */

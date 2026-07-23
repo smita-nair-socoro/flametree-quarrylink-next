@@ -4,6 +4,7 @@ import { AlertTriangle, CircleStop } from 'lucide-react';
 import { SelectOptions } from '@/components/ui/select-options';
 import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
+import { sortByLabelOtherLast } from '@/lib/utils/sort-options';
 
 export const STOP_REASON_LABELS: Record<string, string> = {
   vehicle_breakdown: 'Vehicle breakdown',
@@ -19,8 +20,9 @@ export const STOP_REASON_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-const STOP_REASONS = Object.entries(STOP_REASON_LABELS).map(
-  ([value, label]) => ({ value, label }),
+const STOP_REASONS = sortByLabelOtherLast(
+  Object.entries(STOP_REASON_LABELS).map(([value, label]) => ({ value, label })),
+  (option) => option.label,
 );
 
 export function StopTransitDescription({ docket }: { docket?: DocketDTO | null }) {

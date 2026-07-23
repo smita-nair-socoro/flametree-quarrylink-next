@@ -7,6 +7,7 @@ import {
   getJobsFromInfinitePages,
 } from '@/lib/api/job';
 import { useDebounce } from '@/hooks/use-debounce';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { FormSelectOption } from '@/components/ui/form-select';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { BADGE_COLORS } from '@/lib/utils';
@@ -83,7 +84,7 @@ export function useJobsForForm({
       });
     }
 
-    return options;
+    return sortByLabel(options, (option) => option.label);
   }, [jobs, selectedJobId, fallbackJob]);
 
   const onOptionsListScrollEnd = React.useCallback(() => {

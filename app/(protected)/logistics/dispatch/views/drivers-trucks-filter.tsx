@@ -20,11 +20,13 @@ import {
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { TRUCK_BUSINESS_TYPE } from '@/lib/types/truck-enums';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
-}[] = [
+}[] = sortByLabel(
+  [
     { value: DOCKET_STATUS.ASSIGNED, label: 'Assigned' },
     { value: DOCKET_STATUS.IN_TRANSIT, label: 'In transit' },
     { value: DOCKET_STATUS.STOPPED, label: 'Stopped' },
@@ -33,15 +35,17 @@ export const DEFAULT_JOB_STATUS_FILTER_OPTIONS: {
     { value: DOCKET_STATUS.INVOICED, label: 'Invoiced' },
     { value: DOCKET_STATUS.CANCELLED, label: 'Cancelled' },
     { value: DOCKET_STATUS.VOIDED, label: 'Voided' },
-  ];
+  ],
+  (o) => o.label,
+);
 
 export const SCHEDULE_MONTH_JOB_STATUS_FILTER_OPTIONS: {
   value: string;
   label: string;
-}[] = [
-    { value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' },
-    ...DEFAULT_JOB_STATUS_FILTER_OPTIONS,
-  ];
+}[] = sortByLabel(
+  [{ value: DOCKET_STATUS.UNASSIGNED, label: 'Unassigned' }, ...DEFAULT_JOB_STATUS_FILTER_OPTIONS],
+  (o) => o.label,
+);
 
 const DRIVER_STATUS_OPTIONS: { value: DRIVER_STATUS; label: string }[] = [
   { value: DRIVER_STATUS.ACTIVE, label: 'Active' },
