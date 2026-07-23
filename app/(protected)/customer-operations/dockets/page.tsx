@@ -284,7 +284,10 @@ export default function DocketsPage() {
     isFetchingNextPage: jobIsFetchingNextPage,
     isFetching: jobInfiniteIsFetching,
   } = useInfiniteQuery({
-    ...DocketsByJobIdInfiniteQueryOptions(linkedJobId ?? 0, { pageSize: 25, ...apiSortParams }),
+    ...DocketsByJobIdInfiniteQueryOptions(linkedJobId ?? 0, {
+      ...infiniteBaseParams,
+      ...apiSortParams,
+    }),
     enabled: isMobile && !!linkedJobId && !idsFilter,
   });
 

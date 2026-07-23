@@ -124,14 +124,25 @@ function formatFacetEnumLabel(value: string): string {
     .join(' ');
 }
 
+/** The 3 shapes a docket list endpoint (list/getbydriverId/getbytruckId/getbyjobId) can return. */
+type DocketListPayload = DocketsListResponse | DocketsPage | DocketDTO[];
+
+/** Normalizes any of the 3 shapes a docket list endpoint can return into a single DocketsPage. */
 export function getDocketsPageFromListResponse(
-  data: DocketsListResponse | null | undefined,
+  data: DocketListPayload | null | undefined,
 ): DocketsPage | null {
-  return data?.dockets ?? null;
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return { content: data, totalElements: data.length, totalPages: 1 };
+  }
+  if ('dockets' in data) {
+    return data.dockets ?? null;
+  }
+  return data;
 }
 
 export function getDocketItemsFromListResponse(
-  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+  data: DocketListPayload | null | undefined,
 ): DocketDTO[] {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -142,12 +153,12 @@ export function getDocketItemsFromListResponse(
 }
 
 export function getDocketItemsFromInfinitePages(
-  pages: (DocketsListResponse | null | undefined)[] | undefined,
+  pages: (DocketListPayload | null | undefined)[] | undefined,
 ): DocketDTO[] {
   const seenIds = new Set<number>();
   const result: DocketDTO[] = [];
   for (const page of pages ?? []) {
-    for (const item of page?.dockets?.content ?? []) {
+    for (const item of getDocketItemsFromListResponse(page)) {
       if (item.id != null && !seenIds.has(item.id)) {
         seenIds.add(item.id);
         result.push(item);
@@ -530,7 +541,7 @@ export function getDocketItemsFromJobInfinitePages(
 
 export const DocketsByJobIdInfiniteQueryOptions = (
   jobId: number,
-  params?: Pick<DocketsListParams, 'pageSize' | 'sortBy' | 'sortOrder'>,
+  params?: Omit<DocketsListParams, 'page'>,
 ) =>
   infiniteQueryOptions({
     queryKey: [...DocketKeys.byJobId(jobId), 'infinite', params],
@@ -562,7 +573,7 @@ export const DocketsByDriverIdInfiniteQueryOptions = (
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      const page = getDocketsPageFromListResponse(lastPage as DocketsListResponse);
+      const page = getDocketsPageFromListResponse(lastPage);
       if (!page?.content?.length) return undefined;
       const nextPage = lastPageParam + 1;
       return nextPage > page.totalPages ? undefined : nextPage;
@@ -584,7 +595,7 @@ export const DocketsByTruckIdInfiniteQueryOptions = (
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      const page = getDocketsPageFromListResponse(lastPage as DocketsListResponse);
+      const page = getDocketsPageFromListResponse(lastPage);
       if (!page?.content?.length) return undefined;
       const nextPage = lastPageParam + 1;
       return nextPage > page.totalPages ? undefined : nextPage;
