@@ -461,8 +461,36 @@ export function DataTableClient<TData, TValue>({
   const [mobilePageInput, setMobilePageInput] = useState('1');
   const MOBILE_PAGE_SIZE = 10;
 
-  // Sentinel div for mobile auto-scroll (shared between infinite and client-side paths)
-  const mobileSentinelRef = useRef<HTMLDivElement>(null);
+  const mobileHasNextPageRef = useRef(mobileHasNextPage);
+  mobileHasNextPageRef.current = mobileHasNextPage;
+  const mobileSentinelObserverRef = useRef<IntersectionObserver | null>(null);
+  const handleMobileSentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      mobileSentinelObserverRef.current?.disconnect();
+      mobileSentinelObserverRef.current = null;
+      if (!node) return;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (!entries[0]?.isIntersecting) return;
+          if (onFetchNextPage) {
+            if (
+              mobileHasNextPageRef.current &&
+              !mobileIsFetchingNextPageRef.current
+            ) {
+              onFetchNextPage();
+            }
+          } else {
+            setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE);
+          }
+        },
+        { threshold: 0.1 },
+      );
+      observer.observe(node);
+      mobileSentinelObserverRef.current = observer;
+    },
+    [onFetchNextPage],
+  );
 
   // Inline filter layout measurement
   const rowRef = useRef<HTMLDivElement>(null);
@@ -511,42 +539,6 @@ export function DataTableClient<TData, TValue>({
       setMobilePageInput(String(effectivePagination.pageIndex + 1));
     }
   }, [isMobile, mobileUseTablePagination, effectivePagination.pageIndex]);
-
-  // Infinite scroll: fetch next page when sentinel enters the viewport
-  useEffect(() => {
-    if (!onFetchNextPage || !mobileHasNextPage) return;
-    const sentinel = mobileSentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !mobileIsFetchingNextPageRef.current) {
-          onFetchNextPage();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [onFetchNextPage, mobileHasNextPage]);
-
-  // Client-side load-more: expand visible count when sentinel enters the viewport
-  useEffect(() => {
-    if (onFetchNextPage) return;
-    const sentinel = mobileSentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setMobileVisibleCount((prev) => prev + MOBILE_PAGE_SIZE);
-        }
-      },
-      { threshold: 0.1 },
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [onFetchNextPage]);
 
   // Notify parent of selection changes
   useEffect(() => {
@@ -963,7 +955,8 @@ export function DataTableClient<TData, TValue>({
   if (isMobile && mobileCardRenderer) {
     if (onFetchNextPage) {
       const items = mobileInfiniteItems ?? [];
-      const mobileEffectivelyLoading = isLoading || mobileIsLoading || isSearching;
+      const mobileEffectivelyLoading =
+        isLoading || mobileIsLoading || isSearching;
       if (items.length === 0 && mobileEffectivelyLoading) {
         mobileCardList = (
           <div className="flex justify-center py-12">
@@ -992,7 +985,7 @@ export function DataTableClient<TData, TValue>({
             })}
 
             {/* Intersection sentinel — triggers next page fetch when scrolled into view */}
-            <div ref={mobileSentinelRef} className="h-4" />
+            <div ref={handleMobileSentinelRef} className="h-4" />
 
             {mobileIsFetchingNextPage && (
               <div className="flex justify-center py-4">
@@ -1034,7 +1027,7 @@ export function DataTableClient<TData, TValue>({
               );
             })}
 
-            {hasMore && <div ref={mobileSentinelRef} className="h-4" />}
+            {hasMore && <div ref={handleMobileSentinelRef} className="h-4" />}
 
             {mobileUseTablePagination ? (
               <div className="border-t border-[#E4E4E7] bg-white px-3 py-2 text-xs text-gray-500">
