@@ -541,7 +541,7 @@ export function getDocketItemsFromJobInfinitePages(
 
 export const DocketsByJobIdInfiniteQueryOptions = (
   jobId: number,
-  params?: Omit<DocketsListParams, 'page'>,
+  params?: Pick<DocketsListParams, 'pageSize' | 'sortBy' | 'sortOrder'>,
 ) =>
   infiniteQueryOptions({
     queryKey: [...DocketKeys.byJobId(jobId), 'infinite', params],

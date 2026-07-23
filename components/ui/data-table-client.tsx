@@ -173,6 +173,24 @@ function areColumnFiltersEqual(
   });
 }
 
+/** Empty state shown for the mobile card list, whether backed by infinite scroll or client-side pagination. */
+function MobileEmptyState() {
+  return (
+    <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
+      <div className="flex justify-center mb-4">
+        <Image
+          src="/empty-table.svg"
+          alt="No data available"
+          width={128}
+          height={128}
+          className="w-32 h-auto"
+        />
+      </div>
+      <h3 className="text-gray-700 font-medium mb-1">No items are available</h3>
+    </div>
+  );
+}
+
 export function DataTableClient<TData, TValue>({
   columns,
   data = [],
@@ -953,22 +971,7 @@ export function DataTableClient<TData, TValue>({
           </div>
         );
       } else if (items.length === 0) {
-        mobileCardList = (
-          <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
-            <div className="flex justify-center mb-4">
-              <Image
-                src="/empty-table.svg"
-                alt="No data available"
-                width={128}
-                height={128}
-                className="w-32 h-auto"
-              />
-            </div>
-            <h3 className="text-gray-700 font-medium mb-1">
-              No items are available
-            </h3>
-          </div>
-        );
+        mobileCardList = <MobileEmptyState />;
       } else {
         mobileCardList = (
           <>
@@ -1016,22 +1019,7 @@ export function DataTableClient<TData, TValue>({
       const hasMore =
         !mobileUseTablePagination && filteredRows.length > mobileVisibleCount;
       if (visibleRows.length === 0) {
-        mobileCardList = (
-          <div className="relative bg-purple-50 border-2 border-dashed border-purple-200 p-12 text-center rounded-md">
-            <div className="flex justify-center mb-4">
-              <Image
-                src="/empty-table.svg"
-                alt="No data available"
-                width={128}
-                height={128}
-                className="w-32 h-auto"
-              />
-            </div>
-            <h3 className="text-gray-700 font-medium mb-1">
-              No items are available
-            </h3>
-          </div>
-        );
+        mobileCardList = <MobileEmptyState />;
       } else {
         mobileCardList = (
           <>
