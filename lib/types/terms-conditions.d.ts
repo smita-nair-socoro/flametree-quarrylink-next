@@ -29,3 +29,26 @@ export type QuoteSettingItem =
   | QuoteTextTemplateItem
   | QuoteExternalLinkItem
   | QuoteTermsAndConditionsDocument;
+
+export interface PolicyDocumentDTO {
+  id: number;
+  name: string;
+  originalFileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  defaultItem: boolean;
+  archived: boolean;
+  archivedAt: string;
+}
+
+export interface PolicyDocumentViewDTO {
+  id: number;
+  originalFileName: string;
+  mimeType: string;
+  url: string;
+}
+
+export interface PolicyDocumentMetadata {
+  name: string;
+  defaultItem: boolean;
+}

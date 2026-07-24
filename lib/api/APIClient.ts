@@ -117,6 +117,11 @@ import {
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  PolicyDocumentDTO,
+  PolicyDocumentMetadata,
+  PolicyDocumentViewDTO,
+} from '../types/terms-conditions';
 
 type RequestBody =
   | BodyInit
@@ -1794,5 +1799,38 @@ export const APIClient = {
       }),
     deleteDepartment: (id: number) =>
       appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
+  },
+
+  policyDocuments: {
+    getAll: () =>
+      appClient.Get<PolicyDocumentDTO[]>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+      ),
+    create: (metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', JSON.stringify(metadata));
+      formData.append('file', file);
+      return appClient.Post<PolicyDocumentDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+        { body: formData },
+      );
+    },
+    update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', JSON.stringify(metadata));
+      formData.append('file', file);
+      return appClient.Put<PolicyDocumentDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+        { body: formData },
+      );
+    },
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+      ),
+    view: (id: number) =>
+      appClient.Get<PolicyDocumentViewDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}/view`,
+      ),
   },
 };
