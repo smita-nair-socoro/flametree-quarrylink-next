@@ -13,7 +13,7 @@ import {
 } from '@/lib/types/terms-conditions';
 
 export function isPolicyDocument(item: QuoteSettingItem): item is PolicyDocumentDTO {
-  return isPolicyDocument(item) && item.mimeType === 'application/pdf';
+  return 'mimeType' in item && (item as PolicyDocumentDTO).mimeType === 'application/pdf';
 }
 import {
   TextTemplateFormValues,
@@ -30,7 +30,7 @@ import {
 // Placeholder data for text templates and external links (no API yet)
 const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[] = [
   {
-    id: '1',
+    id: 'tt-1',
     name: 'Standard Supply Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
@@ -38,7 +38,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     updatedAt: '2026-07-03',
   },
   {
-    id: '2',
+    id: 'tt-2',
     name: 'Credit Account Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
@@ -46,7 +46,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     updatedAt: '2026-07-03',
   },
   {
-    id: '3',
+    id: 'tt-3',
     name: 'Pre-Paid / COD Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
@@ -54,7 +54,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     updatedAt: '2026-07-03',
   },
   {
-    id: '4',
+    id: 'tt-4',
     name: 'Customer Collection Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
@@ -62,7 +62,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     updatedAt: '2026-07-03',
   },
   {
-    id: '5',
+    id: 'el-1',
     name: 'TESTING',
     type: QuoteSettingItemType.EXTERNAL_LINK,
     url: '#',
@@ -71,7 +71,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
   },
 ];
 
-let nextMockId = MOCK_NON_DOCUMENT_ITEMS.length + 1;
+let nextMockId = 0;
 
 export function useQuoteSettingsActions() {
   const { data: documentItem } = useQuery(PolicyDocumentQueryOptions());
@@ -222,7 +222,7 @@ export function useQuoteSettingsActions() {
   const submitTextTemplate = React.useCallback(
     (values: TextTemplateFormValues) => {
       applyLocalItem({
-        id: editingTextTemplate?.id ?? String(nextMockId++),
+        id: editingTextTemplate?.id ?? `tt-new-${nextMockId++}`,
         name: values.name,
         type: QuoteSettingItemType.TEXT_TEMPLATE,
         content: values.content,
@@ -242,7 +242,7 @@ export function useQuoteSettingsActions() {
   const submitExternalLink = React.useCallback(
     (values: ExternalLinkFormValues) => {
       applyLocalItem({
-        id: editingExternalLink?.id ?? String(nextMockId++),
+        id: editingExternalLink?.id ?? `el-new-${nextMockId++}`,
         name: values.name,
         type: QuoteSettingItemType.EXTERNAL_LINK,
         url: values.url,

@@ -43,11 +43,15 @@ export const createQuoteSettingsColumns = ({
     accessorFn: (row) => row.name,
     header: 'Name',
     cell: ({ row }) => {
-      const Icon = isPolicyDocument(row.original) ? Paperclip : typeIcons[row.original.type];
+      const Icon = isPolicyDocument(row.original)
+        ? Paperclip
+        : typeIcons[row.original.type];
       return (
         <div className="flex items-center gap-2 py-2">
           <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="font-medium text-[#09090B]">{row.original.name}</span>
+          <span className="font-medium text-[#09090B]">
+            {row.original.name}
+          </span>
         </div>
       );
     },
@@ -60,35 +64,20 @@ export const createQuoteSettingsColumns = ({
         ? QuoteSettingItemType.UPLOADED_DOCUMENT
         : row.original.type;
       return (
-        <Badge variant="outline" className={QUOTE_SETTING_TYPE_BADGE_CLASSES[type]}>
+        <Badge
+          variant="outline"
+          className={QUOTE_SETTING_TYPE_BADGE_CLASSES[type]}
+        >
           {typeLabels[type]}
         </Badge>
       );
     },
   },
   {
-    id: 'file',
-    header: 'File',
-    cell: ({ row }) => {
-      if (!(isPolicyDocument(row.original))) {
-        return <span className="text-muted-foreground">—</span>;
-      }
-      return (
-        <div className="flex flex-col gap-0.5">
-          <span className="text-sm text-[#09090B] truncate max-w-[220px]">
-            {row.original.originalFileName}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {formatFileSize(row.original.fileSizeBytes)}
-          </span>
-        </div>
-      );
-    },
-  },
-  {
     id: 'default',
     header: 'Default',
-    accessorFn: (row) => (isPolicyDocument(row) ? row.defaultItem : row.isDefault),
+    accessorFn: (row) =>
+      isPolicyDocument(row) ? row.defaultItem : row.isDefault,
     cell: ({ row }) => {
       const isDefault = isPolicyDocument(row.original)
         ? row.original.defaultItem
@@ -105,7 +94,9 @@ export const createQuoteSettingsColumns = ({
     header: 'Last updated',
     accessorFn: (row) => (isPolicyDocument(row) ? '' : row.updatedAt),
     cell: ({ row }) => {
-      const updatedAt = isPolicyDocument(row.original) ? '' : row.original.updatedAt;
+      const updatedAt = isPolicyDocument(row.original)
+        ? ''
+        : row.original.updatedAt;
       return (
         <span className="text-muted-foreground">
           {formatCalendarDate(updatedAt, 'd MMM yyyy')}
