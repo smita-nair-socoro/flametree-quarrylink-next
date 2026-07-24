@@ -23,7 +23,7 @@ export function ProductTableActions({ product }: ProducTableActionProps) {
   const { actions, confirmDialogs, viewDialog } = useProductActions(product);
   const isUnavailable = product.isActive === false;
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   const setSelectedProduct = useProductStore(
     (state) => state.setSelectedProduct,
   );

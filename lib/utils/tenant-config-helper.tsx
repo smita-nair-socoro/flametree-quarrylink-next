@@ -16,15 +16,15 @@ export const DEFAULT_TAX_PERCENTAGE = 10;
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
 
-export type AccountingSoftwareProvider = 'XERO' | 'MYOB' | 'ACUMATICA';
+export type AccountingSoftwareProvider = 'XERO' | 'MYOB_BUSINESS' | 'MYOB_ACUMATICA';
 
 /** Normalizes the tenant's raw accounting software value for feature routing. */
 export function getAccountingSoftwareProvider(
   accountingSoftware?: string,
 ): AccountingSoftwareProvider | null {
   const value = (accountingSoftware || '').toUpperCase();
-  if (value.includes('ACUMATICA')) return 'ACUMATICA';
-  if (value.includes('MYOB')) return 'MYOB';
+  if (value.includes('ACUMATICA')) return 'MYOB_ACUMATICA';
+  if (value.includes('MYOB')) return 'MYOB_BUSINESS';
   if (value.includes('XERO')) return 'XERO';
   return null;
 }
@@ -37,14 +37,15 @@ export function useAccountingSoftwareProvider(): AccountingSoftwareProvider | nu
 
 /**
  * Maps the tenant's raw accounting software value (e.g. "XERO",
- * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB"). Falls back to
+ * "MYOB_BUSINESS") to a user-facing label ("Xero", "MYOB Business", "MYOB Acumatica"). Falls back to
  * Xero for tenants without the field set.
  */
 export function getAccountingSoftwareLabel(
   accountingSoftware?: string,
 ): string {
   const provider = getAccountingSoftwareProvider(accountingSoftware);
-  if (provider === 'MYOB') return 'MYOB';
+  if (provider === 'MYOB_BUSINESS') return 'MYOB Business';
+  if (provider === 'MYOB_ACUMATICA') return 'MYOB Acumatica';
   if (provider === 'XERO') return 'Xero';
   return DEFAULT_ACCOUNTING_SOFTWARE_LABEL;
 }

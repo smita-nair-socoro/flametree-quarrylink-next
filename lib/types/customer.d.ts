@@ -275,6 +275,16 @@ export interface CustomerAttachmentDTO {
   fileSizeBytes: number;
 }
 
-export interface customerAttachmentResponseDTO {
-  string;
+interface syncResult {
+  success: boolean;
+  accSoftwareContactId: string;
+  externalStatus: string;
+  reason: string;
+}
+
+export interface SyncAllFromAccSoftwareResponse {
+  totalAttempted: number;
+  successCount: number;
+  failureCount: number;
+  result: syncResult[];
 }

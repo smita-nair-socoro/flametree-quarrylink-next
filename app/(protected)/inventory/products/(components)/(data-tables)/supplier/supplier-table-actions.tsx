@@ -25,7 +25,7 @@ export function SupplierTableActions({
 }: SupplierTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   // Add productId to quarry data for the actions
   const quarryWithProductId = React.useMemo(

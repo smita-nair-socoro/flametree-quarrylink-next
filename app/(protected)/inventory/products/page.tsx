@@ -45,7 +45,7 @@ export default function ProductsPage() {
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
     'linkedQuarrySupplierId',

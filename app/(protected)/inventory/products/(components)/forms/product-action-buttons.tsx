@@ -50,7 +50,7 @@ export function ProductActionButtons({
   const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
   const viewDialog = suppressDialogs ? null : internal.viewDialog;
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   // Early returns for null quotation or new quotation
   if (!product) {
     return null;

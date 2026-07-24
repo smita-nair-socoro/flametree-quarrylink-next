@@ -90,7 +90,7 @@ export default function SupplierForm({
     return departmentsQuery.data ?? [];
   }, [departmentsQuery.data]);
 
-  const readOnly = accountingSoftware === 'MYOB';
+  const readOnly = accountingSoftware === 'MYOB_ACUMATICA';
 
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>

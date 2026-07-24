@@ -23,7 +23,7 @@ export function CustomerTableActions({ customer }: CustomerTableActionsProps) {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
   const isArchived = customer?.customerStatus === 'ARCHIVED';
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   const handleView = () => {
     setDropdownOpen(false);
     actions.view();

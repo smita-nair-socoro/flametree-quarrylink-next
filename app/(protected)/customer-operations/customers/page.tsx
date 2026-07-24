@@ -47,7 +47,7 @@ export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
   const { currencyCode } = useTenantCurrencyTax();
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);

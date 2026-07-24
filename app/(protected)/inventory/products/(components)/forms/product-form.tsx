@@ -76,7 +76,7 @@ export default function ProductForm({
   const [isEditing] = React.useState(Boolean(id));
 
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);

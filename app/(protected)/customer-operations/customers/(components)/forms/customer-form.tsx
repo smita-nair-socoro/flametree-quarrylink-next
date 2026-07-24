@@ -73,7 +73,7 @@ export default function CustomerForm({
   const customerId = id ?? 0;
   const accSoftware = useAccountingSoftwareLabel();
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const customerForm = useForm<z.infer<typeof NewCustomerFormSchema>>({
     resolver: zodResolver(NewCustomerFormSchema),

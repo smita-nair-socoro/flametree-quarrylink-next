@@ -19,7 +19,7 @@ export function CustomerActionButtons({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isArchived = customer?.customerStatus === 'ARCHIVED';
   const accSoftwareProvider = useAccountingSoftwareProvider();
-  const readOnly = accSoftwareProvider === 'MYOB';
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
 
   if (!customer) return null;
