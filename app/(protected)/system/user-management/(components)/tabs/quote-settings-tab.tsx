@@ -27,6 +27,7 @@ export default function QuoteSettingsTab() {
     submitTextTemplate,
     submitExternalLink,
     submitReplaceDocument,
+    isSubmittingDocument,
   } = useQuoteSettingsActions();
 
   const columns = React.useMemo(
@@ -72,7 +73,7 @@ export default function QuoteSettingsTab() {
               }
             >
               <Upload className="h-4 w-4 mr-2" />
-              Add document
+              {documentItem ? 'Replace PDF document' : 'Add PDF document'}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => actions.add(QuoteSettingItemType.EXTERNAL_LINK)}
@@ -99,6 +100,7 @@ export default function QuoteSettingsTab() {
         currentDocument={documentItem}
         editingTextTemplate={editingTextTemplate}
         editingExternalLink={editingExternalLink}
+        isSubmittingDocument={isSubmittingDocument}
         onOpenChange={(open) => {
           if (!open) closeAddDialog();
         }}

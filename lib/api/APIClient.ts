@@ -1803,7 +1803,7 @@ export const APIClient = {
 
   policyDocuments: {
     getAll: () =>
-      appClient.Get<PolicyDocumentDTO[]>(
+      appClient.Get<PolicyDocumentDTO | null>(
         `/socoro/quarrylink/api/quote-content-library/policy-document`,
       ),
     create: (metadata: PolicyDocumentMetadata, file: File) => {

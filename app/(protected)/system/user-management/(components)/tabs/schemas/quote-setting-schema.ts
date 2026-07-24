@@ -61,7 +61,6 @@ export const replaceDocumentFormSchema = z.object({
         });
       }
     }),
-  isDefault: z.boolean(),
 });
 
 export type TextTemplateFormValues = z.infer<typeof textTemplateFormSchema>;

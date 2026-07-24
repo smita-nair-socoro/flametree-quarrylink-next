@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
-import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
+import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 
 interface QuoteSettingsTableActionsProps {
   item: QuoteSettingItem;
@@ -27,8 +27,7 @@ export function QuoteSettingsTableActions({
   onDelete,
 }: Readonly<QuoteSettingsTableActionsProps>) {
   const [open, setOpen] = React.useState(false);
-  const isUploadedDocument =
-    item.type === QuoteSettingItemType.UPLOADED_DOCUMENT;
+  const isUploadedDocument = isPolicyDocument(item);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -65,7 +64,7 @@ export function QuoteSettingsTableActions({
             View / Edit
           </DropdownMenuItem>
         )}
-        {!item.isDefault && (
+        {!(isPolicyDocument(item) ? item.defaultItem : item.isDefault) && (
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

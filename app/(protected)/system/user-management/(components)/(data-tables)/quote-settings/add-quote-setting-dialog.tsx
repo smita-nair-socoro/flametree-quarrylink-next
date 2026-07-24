@@ -36,15 +36,16 @@ import {
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
   QuoteExternalLinkItem,
-  QuoteTermsAndConditionsDocument,
+  PolicyDocumentDTO,
   QuoteTextTemplateItem,
 } from '@/lib/types/terms-conditions';
 
 interface AddQuoteSettingDialogProps {
   type: QuoteSettingItemType | null;
-  currentDocument?: QuoteTermsAndConditionsDocument;
+  currentDocument?: PolicyDocumentDTO;
   editingTextTemplate?: QuoteTextTemplateItem | null;
   editingExternalLink?: QuoteExternalLinkItem | null;
+  isSubmittingDocument?: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmitTextTemplate: (values: TextTemplateFormValues) => void;
   onSubmitExternalLink: (values: ExternalLinkFormValues) => void;
@@ -56,6 +57,7 @@ export function AddQuoteSettingDialog({
   currentDocument,
   editingTextTemplate,
   editingExternalLink,
+  isSubmittingDocument = false,
   onOpenChange,
   onSubmitTextTemplate,
   onSubmitExternalLink,
@@ -128,6 +130,7 @@ export function AddQuoteSettingDialog({
         {type === QuoteSettingItemType.UPLOADED_DOCUMENT && (
           <ReplaceDocumentForm
             currentDocument={currentDocument}
+            isSubmitting={isSubmittingDocument}
             onCancel={handleCancel}
             onSubmit={onSubmitReplaceDocument}
           />
@@ -328,10 +331,12 @@ function ExternalLinkForm({
 
 function ReplaceDocumentForm({
   currentDocument,
+  isSubmitting = false,
   onCancel,
   onSubmit,
 }: Readonly<{
-  currentDocument?: QuoteTermsAndConditionsDocument;
+  currentDocument?: PolicyDocumentDTO;
+  isSubmitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: ReplaceDocumentFormValues) => void;
 }>) {
@@ -342,7 +347,6 @@ function ReplaceDocumentForm({
     defaultValues: {
       name: currentDocument?.name ?? '',
       file: undefined,
-      isDefault: currentDocument?.isDefault ?? false,
     },
   });
 
@@ -365,7 +369,7 @@ function ReplaceDocumentForm({
           {currentDocument && (
             <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
               Current document: {currentDocument.name} (
-              {currentDocument.fileName})
+              {currentDocument.originalFileName})
             </div>
           )}
           <FormField
@@ -423,29 +427,18 @@ function ReplaceDocumentForm({
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="isDefault"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <FormLabel className="font-normal text-[#09090B]">
-                  Attach to new quotes by default
-                </FormLabel>
-              </FormItem>
-            )}
-          />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              {isReplacing ? 'Replace Document' : 'Upload Document'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? isReplacing
+                  ? 'Replacing…'
+                  : 'Uploading…'
+                : isReplacing
+                  ? 'Replace Document'
+                  : 'Upload Document'}
             </Button>
           </DialogFooter>
         </form>

@@ -3,7 +3,8 @@ import { APIClient } from './APIClient';
 import { PolicyDocumentKeys } from './keys';
 import type { PolicyDocumentMetadata } from '../types/terms-conditions';
 
-export const PolicyDocumentsQueryOptions = () =>
+// Returns the single tenant policy document, or null if none exists yet.
+export const PolicyDocumentQueryOptions = () =>
   queryOptions({
     queryKey: PolicyDocumentKeys.list(),
     queryFn: () => APIClient.policyDocuments.getAll(),

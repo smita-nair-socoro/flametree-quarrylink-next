@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatCalendarDate } from '@/lib/utils/date';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
+import { QUOTE_SETTING_TYPE_BADGE_CLASSES } from '@/lib/utils';
+import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingsTableActions } from './quote-settings-table-actions';
 
 const typeLabels: Record<QuoteSettingItemType, string> = {
@@ -14,17 +16,16 @@ const typeLabels: Record<QuoteSettingItemType, string> = {
   [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'Uploaded document',
 };
 
-const typeBadgeClasses: Record<QuoteSettingItemType, string> = {
-  [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
-  [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
-};
-
 const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: FileText,
   [QuoteSettingItemType.EXTERNAL_LINK]: Link2,
   [QuoteSettingItemType.UPLOADED_DOCUMENT]: Paperclip,
 };
+
+function formatFileSize(bytes: number): string {
+  const kb = bytes / 1024;
+  return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+}
 
 interface CreateQuoteSettingsColumnsArgs {
   onEdit: (item: QuoteSettingItem) => void;
@@ -42,50 +43,75 @@ export const createQuoteSettingsColumns = ({
     accessorFn: (row) => row.name,
     header: 'Name',
     cell: ({ row }) => {
-      const Icon = typeIcons[row.original.type];
+      const Icon = isPolicyDocument(row.original) ? Paperclip : typeIcons[row.original.type];
       return (
         <div className="flex items-center gap-2 py-2">
           <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="font-medium text-[#09090B]">
-            {row.original.name}
-          </span>
+          <span className="font-medium text-[#09090B]">{row.original.name}</span>
         </div>
       );
     },
   },
   {
     id: 'type',
-    accessorFn: (row) => row.type,
     header: 'Type',
-    cell: ({ row }) => (
-      <Badge
-        variant="outline"
-        className={typeBadgeClasses[row.original.type]}
-      >
-        {typeLabels[row.original.type]}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const type = isPolicyDocument(row.original)
+        ? QuoteSettingItemType.UPLOADED_DOCUMENT
+        : row.original.type;
+      return (
+        <Badge variant="outline" className={QUOTE_SETTING_TYPE_BADGE_CLASSES[type]}>
+          {typeLabels[type]}
+        </Badge>
+      );
+    },
+  },
+  {
+    id: 'file',
+    header: 'File',
+    cell: ({ row }) => {
+      if (!(isPolicyDocument(row.original))) {
+        return <span className="text-muted-foreground">—</span>;
+      }
+      return (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-[#09090B] truncate max-w-[220px]">
+            {row.original.originalFileName}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {formatFileSize(row.original.fileSizeBytes)}
+          </span>
+        </div>
+      );
+    },
   },
   {
     id: 'default',
-    accessorFn: (row) => row.isDefault,
     header: 'Default',
-    cell: ({ row }) =>
-      row.original.isDefault ? (
+    accessorFn: (row) => (isPolicyDocument(row) ? row.defaultItem : row.isDefault),
+    cell: ({ row }) => {
+      const isDefault = isPolicyDocument(row.original)
+        ? row.original.defaultItem
+        : row.original.isDefault;
+      return isDefault ? (
         <Badge>Default</Badge>
       ) : (
         <span className="text-muted-foreground">—</span>
-      ),
+      );
+    },
   },
   {
     id: 'updatedAt',
-    accessorFn: (row) => row.updatedAt,
     header: 'Last updated',
-    cell: ({ row }) => (
-      <span className="text-muted-foreground">
-        {formatCalendarDate(row.original.updatedAt, 'd MMM yyyy')}
-      </span>
-    ),
+    accessorFn: (row) => (isPolicyDocument(row) ? '' : row.updatedAt),
+    cell: ({ row }) => {
+      const updatedAt = isPolicyDocument(row.original) ? '' : row.original.updatedAt;
+      return (
+        <span className="text-muted-foreground">
+          {formatCalendarDate(updatedAt, 'd MMM yyyy')}
+        </span>
+      );
+    },
   },
   {
     id: 'actions',

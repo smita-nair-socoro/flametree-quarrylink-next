@@ -17,18 +17,10 @@ export interface QuoteExternalLinkItem extends QuoteSettingItemBase {
   url: string;
 }
 
-/** The uploaded quote terms and conditions / policy document attached under Notes & Terms. */
-export interface QuoteTermsAndConditionsDocument extends QuoteSettingItemBase {
-  type: QuoteSettingItemType.UPLOADED_DOCUMENT;
-  fileName: string;
-  fileSizeLabel: string;
-  url: string;
-}
-
 export type QuoteSettingItem =
   | QuoteTextTemplateItem
   | QuoteExternalLinkItem
-  | QuoteTermsAndConditionsDocument;
+  | PolicyDocumentDTO;
 
 export interface PolicyDocumentDTO {
   id: number;
