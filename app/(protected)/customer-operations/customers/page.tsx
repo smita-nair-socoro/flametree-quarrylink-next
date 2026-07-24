@@ -173,9 +173,8 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${
-        reportingData?.totalCustomersChangePercentThisMonth || 0
-      } this month`,
+      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
+        } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -184,9 +183,8 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${
-        reportingData?.activeCustomersPercentOfTotal || 0
-      }% of total`,
+      description: `${reportingData?.activeCustomersPercentOfTotal || 0
+        }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -195,9 +193,8 @@ export default function CustomersPage() {
     {
       title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${
-        reportingData?.businessCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.businessCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -206,9 +203,8 @@ export default function CustomersPage() {
     {
       title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${
-        reportingData?.individualCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.individualCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -234,21 +230,24 @@ export default function CustomersPage() {
       );
 
       let displayName: string;
+      let contactName: string;
+      let customerEmail: string;
       if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
+
+        displayName = customer.businessName ?? '';
+        customerEmail = customer.businessEmail ?? '';
         const first = customer.contactPersonFirstName ?? '';
         const last = customer.contactPersonLastName ?? '';
-        displayName = `${first} ${last}`.trim() || 'N/A';
+        contactName = `${first} ${last}`.trim() || 'N/A';
       } else {
         displayName = customer.individualContactName ?? '';
+        customerEmail = customer.contactPersonEmail ?? '';
+        contactName = customer.individualContactName ?? '';
       }
 
       return (
         <MobileCard
-          title={
-            customer.customerType === CUSTOMER_TYPE.BUSINESS
-              ? customer.businessName
-              : customer.individualContactName || 'N/A'
-          }
+          title={displayName}
           badges={
             <>
               <TableBadges names={[customer.customerType]} visibleCount={1} />
@@ -260,12 +259,12 @@ export default function CustomersPage() {
             {
               icon: <User className="h-4 w-4" />,
               label: 'Contact',
-              value: displayName,
+              value: contactName,
             },
             {
               icon: <Mail className="h-4 w-4" />,
               label: 'Email',
-              value: customer.contactPersonEmail,
+              value: customerEmail,
             },
             {
               icon: <CreditCard className="h-4 w-4" />,
