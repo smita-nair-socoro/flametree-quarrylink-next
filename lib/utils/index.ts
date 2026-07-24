@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from 'clsx';
+import { QuoteSettingItemType } from '../types/term-conditions-enums';
 import { compareAsc } from 'date-fns';
 import { parseBackendDateTime } from './date';
 import { twMerge } from 'tailwind-merge';
@@ -216,6 +217,12 @@ export function dateSortingFn(
   if (!bValid) return -1;
   return compareAsc(da, db);
 }
+
+export const QUOTE_SETTING_TYPE_BADGE_CLASSES: Record<QuoteSettingItemType, string> = {
+  [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
+  [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
+  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
+};
 
 // Material Type Badge Colors
 export const MATERIAL_TYPE_COLORS: Record<string, string> = {

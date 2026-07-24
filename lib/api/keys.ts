@@ -195,3 +195,9 @@ export const DepartmentKeys = {
   all: ['departments'] as const,
   list: () => [...DepartmentKeys.all, 'list'] as const,
 };
+
+export const PolicyDocumentKeys = {
+  all: ['policy-documents'] as const,
+  list: () => [...PolicyDocumentKeys.all, 'list'] as const,
+  view: (id: number) => [...PolicyDocumentKeys.all, 'view', id] as const,
+};

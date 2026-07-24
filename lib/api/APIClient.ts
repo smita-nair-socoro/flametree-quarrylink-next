@@ -1808,7 +1808,7 @@ export const APIClient = {
       ),
     create: (metadata: PolicyDocumentMetadata, file: File) => {
       const formData = new FormData();
-      formData.append('metadata', JSON.stringify(metadata));
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       formData.append('file', file);
       return appClient.Post<PolicyDocumentDTO>(
         `/socoro/quarrylink/api/quote-content-library/policy-document`,
@@ -1817,7 +1817,7 @@ export const APIClient = {
     },
     update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
       const formData = new FormData();
-      formData.append('metadata', JSON.stringify(metadata));
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       formData.append('file', file);
       return appClient.Put<PolicyDocumentDTO>(
         `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
