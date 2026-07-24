@@ -37,7 +37,7 @@ export const QuotationFormSchema = z.object({
     .string()
     .max(2000, { message: 'Must be 2000 characters or fewer' })
     .optional(),
-  attachedItemIds: z.array(z.string()).optional(),
+  attachedItemIds: z.array(z.union([z.string(), z.number()])).optional(),
 });
 
 export type QuotationFormValues = z.infer<typeof QuotationFormSchema>;

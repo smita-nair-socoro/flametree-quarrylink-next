@@ -1,6 +1,7 @@
 'use client';
 
 import { Control } from 'react-hook-form';
+import { useQueryClient } from '@tanstack/react-query';
 import { MessageSquare, FileText, Link2, Upload } from 'lucide-react';
 import {
   FormControl,
@@ -12,9 +13,15 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
+import {
+  useQuoteSettingsActions,
+  isPolicyDocument,
+} from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
+import { PolicyDocumentViewQueryOptions } from '@/lib/api/policy-document';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { notifyError } from '@/lib/toast';
 import z from 'zod';
 import { QuotationFormSchema } from './schemas/quotation-form-schema';
 
@@ -32,9 +39,14 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.UPLOADED_DOCUMENT]: Upload,
 };
 
+function formatFileSize(bytes: number): string {
+  const kb = bytes / 1024;
+  return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+}
+
 function itemSubtitle(item: QuoteSettingItem): string {
-  if (item.type === QuoteSettingItemType.UPLOADED_DOCUMENT) {
-    return `${typeLabels[item.type]} · ${item.fileSizeLabel}`;
+  if (isPolicyDocument(item)) {
+    return `${typeLabels[QuoteSettingItemType.UPLOADED_DOCUMENT]} · ${formatFileSize(item.fileSizeBytes)}`;
   }
   return typeLabels[item.type];
 }
@@ -49,6 +61,18 @@ export function NotesTermsSection({
   disabled,
 }: Readonly<NotesTermsSectionProps>) {
   const { items } = useQuoteSettingsActions();
+  const queryClient = useQueryClient();
+
+  const viewPolicyDocument = async (id: number) => {
+    try {
+      const { url } = await queryClient.fetchQuery(
+        PolicyDocumentViewQueryOptions(id),
+      );
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      notifyError(extractErrorMessage(err));
+    }
+  };
 
   return (
     <div className="col-span-full space-y-4">
@@ -109,7 +133,7 @@ export function NotesTermsSection({
           name="attachedItemIds"
           render={({ field }) => {
             const selectedIds = field.value ?? [];
-            const toggle = (id: string, checked: boolean) => {
+            const toggle = (id: string | number, checked: boolean) => {
               field.onChange(
                 checked
                   ? [...selectedIds, id]
@@ -122,7 +146,9 @@ export function NotesTermsSection({
                 <FormLabel>Attached items</FormLabel>
                 <div className="rounded-md border border-[#E4E4E7] bg-white divide-y divide-[#E4E4E7]">
                   {items.map((item) => {
-                    const Icon = typeIcons[item.type];
+                    const Icon = isPolicyDocument(item)
+                      ? typeIcons[QuoteSettingItemType.UPLOADED_DOCUMENT]
+                      : typeIcons[item.type];
                     const checked = selectedIds.includes(item.id);
                     return (
                       <label
@@ -146,8 +172,7 @@ export function NotesTermsSection({
                             {itemSubtitle(item)}
                           </p>
                         </div>
-                        {item.type ===
-                          QuoteSettingItemType.UPLOADED_DOCUMENT && (
+                        {isPolicyDocument(item) && (
                           <Button
                             type="button"
                             variant="link"
@@ -155,7 +180,7 @@ export function NotesTermsSection({
                             className="h-auto p-0"
                             onClick={(e) => {
                               e.preventDefault();
-                              window.open(item.url, '_blank', 'noopener,noreferrer');
+                              viewPolicyDocument(item.id);
                             }}
                           >
                             View

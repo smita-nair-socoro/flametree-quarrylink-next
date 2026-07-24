@@ -22,11 +22,6 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.UPLOADED_DOCUMENT]: Paperclip,
 };
 
-function formatFileSize(bytes: number): string {
-  const kb = bytes / 1024;
-  return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
-}
-
 interface CreateQuoteSettingsColumnsArgs {
   onEdit: (item: QuoteSettingItem) => void;
   onSetDefault: (item: QuoteSettingItem) => void;
@@ -76,18 +71,13 @@ export const createQuoteSettingsColumns = ({
   {
     id: 'default',
     header: 'Default',
-    accessorFn: (row) =>
-      isPolicyDocument(row) ? row.defaultItem : row.isDefault,
-    cell: ({ row }) => {
-      const isDefault = isPolicyDocument(row.original)
-        ? row.original.defaultItem
-        : row.original.isDefault;
-      return isDefault ? (
+    accessorFn: (row) => row.defaultItem,
+    cell: ({ row }) =>
+      row.original.defaultItem ? (
         <Badge>Default</Badge>
       ) : (
         <span className="text-muted-foreground">—</span>
-      );
-    },
+      ),
   },
   {
     id: 'updatedAt',

@@ -28,8 +28,6 @@ import {
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
-import {
-} from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
@@ -108,7 +106,9 @@ export default function QuotationForm({
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
       isEditing,
-      isEditing ? [] : libraryItems.filter((it) => it.isDefault).map((it) => it.id),
+      isEditing
+        ? []
+        : libraryItems.filter((it) => it.defaultItem).map((it) => it.id),
     ),
   });
 
@@ -199,7 +199,7 @@ export default function QuotationForm({
           quotationForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-            '',
+              '',
           );
           quotationForm.setValue('receiptEmail', '');
 
@@ -222,9 +222,9 @@ export default function QuotationForm({
       customerEmail,
       ...(values.receiptEmail
         ? values.receiptEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : []),
     ].filter(Boolean);
     const submitCustomer = customers.find((c) => c.id === values.customerId);
@@ -426,24 +426,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
@@ -454,7 +454,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
@@ -534,7 +534,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}

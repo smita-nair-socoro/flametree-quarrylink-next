@@ -26,13 +26,13 @@ export const textTemplateFormSchema = z.object({
       (html) => html.length <= MAX_TERMS_LENGTH,
       `Must be ${MAX_TERMS_LENGTH} characters or fewer, including formatting`,
     ),
-  isDefault: z.boolean(),
+  defaultItem: z.boolean(),
 });
 
 export const externalLinkFormSchema = z.object({
   name: z.string().trim().min(1, 'Display label is required').max(120),
   url: z.string().trim().min(1, 'URL is required').url('Enter a valid URL'),
-  isDefault: z.boolean(),
+  defaultItem: z.boolean(),
 });
 
 export const replaceDocumentFormSchema = z.object({

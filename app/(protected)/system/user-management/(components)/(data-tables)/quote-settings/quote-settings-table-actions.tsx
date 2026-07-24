@@ -64,7 +64,7 @@ export function QuoteSettingsTableActions({
             View / Edit
           </DropdownMenuItem>
         )}
-        {!(isPolicyDocument(item) ? item.defaultItem : item.isDefault) && (
+        {!item.defaultItem && (
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

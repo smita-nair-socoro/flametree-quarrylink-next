@@ -3,7 +3,7 @@ import { QuoteSettingItemType } from './term-conditions-enums';
 interface QuoteSettingItemBase {
   id: string;
   name: string;
-  isDefault: boolean;
+  defaultItem: boolean;
   updatedAt: string;
 }
 

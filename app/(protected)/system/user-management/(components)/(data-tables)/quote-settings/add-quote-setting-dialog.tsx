@@ -155,7 +155,7 @@ function TextTemplateForm({
     defaultValues: {
       name: editingItem?.name ?? '',
       content: editingItem?.content ?? '',
-      isDefault: editingItem?.isDefault ?? false,
+      defaultItem: editingItem?.defaultItem ?? false,
     },
   });
 
@@ -205,7 +205,7 @@ function TextTemplateForm({
           />
           <FormField
             control={form.control}
-            name="isDefault"
+            name="defaultItem"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
                 <FormControl>
@@ -249,7 +249,7 @@ function ExternalLinkForm({
     defaultValues: {
       name: editingItem?.name ?? '',
       url: editingItem?.url ?? '',
-      isDefault: editingItem?.isDefault ?? false,
+      defaultItem: editingItem?.defaultItem ?? false,
     },
   });
 
@@ -300,7 +300,7 @@ function ExternalLinkForm({
           />
           <FormField
             control={form.control}
-            name="isDefault"
+            name="defaultItem"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
                 <FormControl>

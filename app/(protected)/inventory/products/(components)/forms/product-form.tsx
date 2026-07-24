@@ -50,7 +50,6 @@ import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
@@ -68,7 +67,6 @@ import {
 export default function ProductForm({
   id,
   onCancel,
-  onSuccess,
   onSaved,
   className,
   onDirtyChange,

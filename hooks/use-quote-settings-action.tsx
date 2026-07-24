@@ -34,7 +34,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     name: 'Standard Supply Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
-    isDefault: false,
+    defaultItem: false,
     updatedAt: '2026-07-03',
   },
   {
@@ -42,7 +42,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     name: 'Credit Account Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
-    isDefault: false,
+    defaultItem: false,
     updatedAt: '2026-07-03',
   },
   {
@@ -50,7 +50,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     name: 'Pre-Paid / COD Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
-    isDefault: false,
+    defaultItem: false,
     updatedAt: '2026-07-03',
   },
   {
@@ -58,7 +58,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     name: 'Customer Collection Terms',
     type: QuoteSettingItemType.TEXT_TEMPLATE,
     content: '',
-    isDefault: false,
+    defaultItem: false,
     updatedAt: '2026-07-03',
   },
   {
@@ -66,7 +66,7 @@ const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
     name: 'TESTING',
     type: QuoteSettingItemType.EXTERNAL_LINK,
     url: '#',
-    isDefault: true,
+    defaultItem: true,
     updatedAt: '2026-07-03',
   },
 ];
@@ -171,7 +171,7 @@ export function useQuoteSettingsActions() {
         return;
       }
       setLocalItems((prev) =>
-        prev.map((it) => ({ ...it, isDefault: it.id === item.id })),
+        prev.map((it) => ({ ...it, defaultItem: it.id === item.id })),
       );
       notifySuccess(`"${item.name}" set as default.`);
     },
@@ -210,8 +210,8 @@ export function useQuoteSettingsActions() {
     (newItem: QuoteTextTemplateItem | QuoteExternalLinkItem) => {
       setLocalItems((prev) => {
         const withoutExisting = prev.filter((it) => it.id !== newItem.id);
-        const base = newItem.isDefault
-          ? withoutExisting.map((it) => ({ ...it, isDefault: false }))
+        const base = newItem.defaultItem
+          ? withoutExisting.map((it) => ({ ...it, defaultItem: false }))
           : withoutExisting;
         return [...base, newItem];
       });
@@ -226,7 +226,7 @@ export function useQuoteSettingsActions() {
         name: values.name,
         type: QuoteSettingItemType.TEXT_TEMPLATE,
         content: values.content,
-        isDefault: values.isDefault,
+        defaultItem: values.defaultItem,
         updatedAt: new Date().toISOString(),
       });
       notifySuccess(
@@ -246,7 +246,7 @@ export function useQuoteSettingsActions() {
         name: values.name,
         type: QuoteSettingItemType.EXTERNAL_LINK,
         url: values.url,
-        isDefault: values.isDefault,
+        defaultItem: values.defaultItem,
         updatedAt: new Date().toISOString(),
       });
       notifySuccess(

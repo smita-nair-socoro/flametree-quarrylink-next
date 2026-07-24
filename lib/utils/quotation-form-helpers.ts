@@ -13,7 +13,7 @@ import type { Quotation } from '../types/quotation';
 export function quotationToFormValues(
   quotation: Quotation | null,
   isEditing: boolean,
-  defaultItemIds: string[] = [],
+  defaultItemIds: (string | number)[] = [],
 ) {
   if (!quotation && !isEditing) {
     // New quotation defaults
@@ -50,7 +50,9 @@ export function quotationToFormValues(
       : undefined,
     receiptEmail: (quotation?.emailRecipients || []).join(','),
     phone: normalizePhoneNumber(
-      quotation?.phone || quotation?.customerWithAddressResponseDto?.phone || ''
+      quotation?.phone ||
+        quotation?.customerWithAddressResponseDto?.phone ||
+        '',
     ),
     // Not yet persisted by the backend; local-only until the API supports it.
     customerNotes: '',
