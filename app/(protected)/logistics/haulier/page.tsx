@@ -1,22 +1,30 @@
 'use client';
 
 import React from 'react';
-import { Building2, Truck, Users } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Building2, Truck, Users, Mail, Phone } from 'lucide-react';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   HauliersListQueryOptions,
   HaulierStatisticsQueryOptions,
+  HauliersInfiniteListQueryOptions,
+  getHaulierItemsFromInfinitePages,
   toHaulierApiSortParams,
   getHaulierItemsFromListResponse,
 } from '@/lib/api/haulier';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { HaulierDTO } from '@/lib/types/haulier';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { haulierColumns } from './(components)/(data-tables)/haulier/columns';
+import { HaulierTableActions } from './(components)/(data-tables)/haulier/haulier-table-actions';
 import { FormDialog } from '@/components/form-dialog';
 import HaulierForm from './(components)/forms/haulier-form';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { isInternalHaulier } from '@/lib/utils/haulier-helper';
+import { formatPhoneNumber } from '@/lib/utils/phone-helper';
 import type { SortingState } from '@tanstack/react-table';
 
 export default function HaulierPage() {
@@ -38,10 +46,7 @@ export default function HaulierPage() {
     [sorting],
   );
 
-  const {
-    data: hauliersData,
-    isFetching,
-  } = useQuery(
+  const { data: hauliersData, isFetching } = useQuery(
     HauliersListQueryOptions({
       page: pageIndex,
       pageSize,
@@ -57,7 +62,8 @@ export default function HaulierPage() {
 
   const totalElements = hauliersData?.totalElements ?? items.length;
   const totalPages =
-    hauliersData?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    hauliersData?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -77,6 +83,55 @@ export default function HaulierPage() {
       setPageSize(newSize);
     },
     [],
+  );
+
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching: infiniteIsFetching,
+  } = useInfiniteQuery({
+    ...HauliersInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+    }),
+    enabled: isMobile,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getHaulierItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
+
+  const renderHaulierCard = React.useCallback(
+    (haulier: HaulierDTO) => {
+      const haulierType = isInternalHaulier(haulier.emailAddress, tenantEmail)
+        ? 'INTERNAL'
+        : 'SUBCONTRACTOR';
+      return (
+        <MobileCard
+          title={haulier.haulierName || '-'}
+          badges={<TableBadges names={[haulierType]} visibleCount={1} />}
+          actions={<HaulierTableActions haulier={haulier} />}
+          fields={[
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: haulier.emailAddress || '-',
+            },
+            {
+              icon: <Phone className="h-4 w-4" />,
+              label: 'Phone',
+              value: formatPhoneNumber(haulier.phoneNumber) || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [tenantEmail],
   );
 
   const statsCards: StatsCardData[] = [
@@ -135,6 +190,14 @@ export default function HaulierPage() {
           data={items}
           columns={haulierColumns(tenantEmail)}
           onRowClick={handleRowClick}
+          mobileCardRenderer={renderHaulierCard}
+          mobileInfinite={{
+            items: mobileItems,
+            hasNextPage,
+            isFetchingNextPage,
+            isLoading: infiniteIsFetching,
+            fetchNextPage,
+          }}
           searchPlaceHolder="Search hauliers..."
           defaultSorting={[{ id: 'haulierName', desc: false }]}
           totalElements={totalElements}

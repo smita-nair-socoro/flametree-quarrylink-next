@@ -124,14 +124,25 @@ function formatFacetEnumLabel(value: string): string {
     .join(' ');
 }
 
+/** The 3 shapes a docket list endpoint (list/getbydriverId/getbytruckId/getbyjobId) can return. */
+type DocketListPayload = DocketsListResponse | DocketsPage | DocketDTO[];
+
+/** Normalizes any of the 3 shapes a docket list endpoint can return into a single DocketsPage. */
 export function getDocketsPageFromListResponse(
-  data: DocketsListResponse | null | undefined,
+  data: DocketListPayload | null | undefined,
 ): DocketsPage | null {
-  return data?.dockets ?? null;
+  if (!data) return null;
+  if (Array.isArray(data)) {
+    return { content: data, totalElements: data.length, totalPages: 1 };
+  }
+  if ('dockets' in data) {
+    return data.dockets ?? null;
+  }
+  return data;
 }
 
 export function getDocketItemsFromListResponse(
-  data: DocketsListResponse | DocketsPage | DocketDTO[] | null | undefined,
+  data: DocketListPayload | null | undefined,
 ): DocketDTO[] {
   if (!data) return [];
   if (Array.isArray(data)) return data;
@@ -139,6 +150,22 @@ export function getDocketItemsFromListResponse(
     return data.dockets?.content ?? [];
   }
   return data.content ?? [];
+}
+
+export function getDocketItemsFromInfinitePages(
+  pages: (DocketListPayload | null | undefined)[] | undefined,
+): DocketDTO[] {
+  const seenIds = new Set<number>();
+  const result: DocketDTO[] = [];
+  for (const page of pages ?? []) {
+    for (const item of getDocketItemsFromListResponse(page)) {
+      if (item.id != null && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        result.push(item);
+      }
+    }
+  }
+  return result;
 }
 
 export function getDocketItemsFromJobPage(
@@ -225,7 +252,7 @@ export const useCreateDocket = () => {
 
 export type DocketsByJobIdParams = Pick<
   DocketsListParams,
-  'page' | 'pageSize' | 'size' | 'sortBy' | 'sortOrder'
+  'page' | 'pageSize' | 'size' | 'search' | 'sortBy' | 'sortOrder'
 >;
 
 export const DocketsByJobIdQueryOptions = (
@@ -494,4 +521,84 @@ export const DocketsByDriverIdQueryOptions = (
     placeholderData: keepPreviousData,
     staleTime: 5_000,
     enabled: !!driverId,
+  });
+
+export function getDocketItemsFromJobInfinitePages(
+  pages: (DocketsPage | null | undefined)[] | undefined,
+): DocketDTO[] {
+  const seenIds = new Set<number>();
+  const result: DocketDTO[] = [];
+  for (const page of pages ?? []) {
+    for (const item of page?.content ?? []) {
+      if (item.id != null && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        result.push(item);
+      }
+    }
+  }
+  return result;
+}
+
+export const DocketsByJobIdInfiniteQueryOptions = (
+  jobId: number,
+  params?: Pick<DocketsListParams, 'pageSize' | 'search' | 'sortBy' | 'sortOrder'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.byJobId(jobId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getByJobId(jobId, {
+        ...params,
+        page: pageParam,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (!lastPage?.content?.length) return undefined;
+      const nextPage = lastPageParam + 1;
+      return nextPage > lastPage.totalPages ? undefined : nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export const DocketsByDriverIdInfiniteQueryOptions = (
+  driverId: number,
+  params?: Omit<DocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.docketsByDriverId(driverId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getDocketsByDriverId(driverId, {
+        ...params,
+        page: pageParam,
+        pageSize: params?.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getDocketsPageFromListResponse(lastPage);
+      if (!page?.content?.length) return undefined;
+      const nextPage = lastPageParam + 1;
+      return nextPage > page.totalPages ? undefined : nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export const DocketsByTruckIdInfiniteQueryOptions = (
+  truckId: number,
+  params?: Omit<DocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.docketsByTruckId(truckId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getDocketsByTruckId(truckId, {
+        ...params,
+        page: pageParam,
+        pageSize: params?.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getDocketsPageFromListResponse(lastPage);
+      if (!page?.content?.length) return undefined;
+      const nextPage = lastPageParam + 1;
+      return nextPage > page.totalPages ? undefined : nextPage;
+    },
+    staleTime: 5_000,
   });

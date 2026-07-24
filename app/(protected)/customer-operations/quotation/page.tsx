@@ -27,7 +27,6 @@ import {
   QuotationReportingQueryOptions,
 } from '@/lib/api/quotation';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -41,7 +40,7 @@ import { formatLocalDate } from '@/lib/utils/date';
 export default function QuotationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currencyCode, currencySymbol, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, formatCentsToCurrency } = useTenantCurrencyTax();
   // Use React Query to fetch quotations data
   const {
     data: quotationsData,
@@ -112,7 +111,7 @@ export default function QuotationsPage() {
     `${value > 0 ? '+' : ''}${value} vs last month`;
 
   const formatValueChange = (value: number) =>
-    `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
+    `${value > 0 ? '+' : value < 0 ? '-' : ''}${formatCentsToCurrency(Math.abs(value))} vs last month`;
 
   const changeColor = (value: number) => {
     if (value > 0) return 'text-[#00A63E]';
@@ -142,9 +141,7 @@ export default function QuotationsPage() {
     },
     {
       title: 'Total Quote Value',
-      value: `$${centsToDollars(
-        reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
-      )}`,
+      value: formatCentsToCurrency(reportingData?.totalValueOfQuotesRaisedThisMonth || 0),
       description: formatValueChange(quotesValueChange),
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -206,9 +203,7 @@ export default function QuotationsPage() {
   // Mobile card renderer
   const renderQuotationCard = React.useCallback(
     (quotation: Quotation) => {
-      const formattedTotal = quotation.totalSellPrice
-        ? `${currencySymbol}${centsToDollars(quotation.totalSellPrice)}`
-        : `${currencySymbol}0.00`;
+      const formattedTotal = formatCentsToCurrency(quotation.totalSellPrice ?? 0);
       const expiryDate = quotation.expiryDate || '-';
       const formattedExpiryDate =
         expiryDate === '-' ? '-' : formatLocalDate(expiryDate);
@@ -255,7 +250,7 @@ export default function QuotationsPage() {
         />
       );
     },
-    [currencySymbol],
+    [formatCentsToCurrency],
   );
 
   // const handleRowSelectionChange = (selected: Quotation[]) => {
