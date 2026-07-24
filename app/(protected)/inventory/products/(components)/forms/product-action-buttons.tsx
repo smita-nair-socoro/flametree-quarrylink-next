@@ -12,10 +12,12 @@ import { MoreHorizontal, ArchiveRestore, Ban, Trash2 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
+import { notifyWarning } from '@/lib/toast';
 
 interface ProductActionButtonsProps {
   product: ProductDetails | null | undefined;
   layout?: 'compact' | 'expanded';
+  hasUnsavedChanges?: boolean;
   /**
    * When provided, these actions will be used instead of creating a new
    * `useProductActions` instance. This lets the header buttons operate on the
@@ -39,6 +41,7 @@ interface ProductActionButtonsProps {
 export function ProductActionButtons({
   product,
   layout = 'expanded',
+  hasUnsavedChanges = false,
   actionsOverride,
   suppressDialogs = false,
 }: ProductActionButtonsProps) {
@@ -48,6 +51,14 @@ export function ProductActionButtons({
   const actions = actionsOverride ?? internal.actions;
   const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
   const viewDialog = suppressDialogs ? null : internal.viewDialog;
+
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
 
   // Early returns for null quotation or new quotation
   if (!product) {
@@ -75,7 +86,7 @@ export function ProductActionButtons({
             {!isUnavailable && (
               <>
                 <DropdownMenuItem
-                  onClick={actions.unavailable}
+                  onClick={() => runAction(actions.unavailable)}
                   className="text-destructive focus:text-destructive"
                 >
                   <Ban className="h-4 w-4 mr-2 text-red-600" />
@@ -87,7 +98,7 @@ export function ProductActionButtons({
             {isUnavailable && (
               <>
                 <DropdownMenuItem
-                  onClick={actions.available}
+                  onClick={() => runAction(actions.available)}
                   className="text-green-600 focus:text-green-600"
                 >
                   <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
@@ -97,7 +108,7 @@ export function ProductActionButtons({
               </>
             )}
             <DropdownMenuItem
-              onClick={actions.delete}
+              onClick={() => runAction(actions.delete)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2 text-destructive" />
@@ -127,7 +138,7 @@ export function ProductActionButtons({
           <DropdownMenuContent align="end" className="w-48">
             {!isUnavailable ? (
               <DropdownMenuItem
-                onClick={actions.unavailable}
+                onClick={() => runAction(actions.unavailable)}
                 className="text-destructive focus:text-destructive"
               >
                 <Ban className="h-4 w-4 mr-2 text-red-600" />
@@ -135,7 +146,7 @@ export function ProductActionButtons({
               </DropdownMenuItem>
             ) : (
               <DropdownMenuItem
-                onClick={actions.available}
+                onClick={() => runAction(actions.available)}
                 className="text-green-600 focus:text-green-600"
               >
                 <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
@@ -143,7 +154,7 @@ export function ProductActionButtons({
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={actions.delete}>
+            <DropdownMenuItem onClick={() => runAction(actions.delete)}>
               <Trash2 className="h-4 w-4 mr-2 text-destructive" />
               <span className="text-destructive">Delete</span>
             </DropdownMenuItem>

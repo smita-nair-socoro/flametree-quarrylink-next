@@ -262,17 +262,20 @@ export default function TruckForm({
         if (newTruck && typeof newTruck.id === 'number') {
           addNewRecordId('truck_main_data_table', newTruck.id);
         }
+        onSuccess?.();
       }
 
       notifySuccess(
         isEditing ? 'Truck Updated Successfully!' : 'Truck Added Successfully!',
       );
-      onSuccess?.();
+      if (isEditing) {
+        truckForm.reset(values);
+      }
       onSaved?.();
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     }
   }

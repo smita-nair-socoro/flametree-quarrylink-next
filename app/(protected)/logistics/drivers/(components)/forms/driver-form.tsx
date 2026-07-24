@@ -184,6 +184,7 @@ export default function DriverForm({
         if (newDriver && typeof newDriver.id === 'number') {
           addNewRecordId('driver_main_data_table', newDriver.id);
         }
+        onSuccess?.();
       }
 
       notifySuccess(
@@ -191,12 +192,14 @@ export default function DriverForm({
           ? 'Driver Updated Successfully!'
           : 'Driver Added Successfully!',
       );
-      onSuccess?.();
+      if (isEditing) {
+        driverForm.reset(values);
+      }
       onSaved?.();
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
+        `Failed to ${isEditing ? 'update' : 'save'} driver. Please try again.`,
       );
     }
   }

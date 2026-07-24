@@ -52,7 +52,6 @@ import { getCustomerAttachmentColumns } from '../(data-tables)/attachment/column
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   onSaved?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
   className?: string;
@@ -65,7 +64,6 @@ export default function CustomerForm({
   onSaved,
   onDirtyChange,
   className,
-  onSuccess,
 }: FormProps) {
   const router = useRouter();
   const isDesktop = useMediaQuery('(min-width: 768px)');
@@ -113,7 +111,6 @@ export default function CustomerForm({
     isEditing,
     customerForm,
     onDirtyChange,
-    onSuccess,
     onSaved,
   });
 

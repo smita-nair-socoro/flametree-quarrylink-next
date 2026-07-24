@@ -13,19 +13,37 @@ import { HaulierDTO } from '@/lib/types/haulier';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { useHaulierActions } from '@/hooks/use-haulier-actions';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
+import { notifyWarning } from '@/lib/toast';
 
 interface HaulierActionButtonsProps {
   haulier: HaulierDTO | null | undefined;
   onDelete?: () => void;
+  hasUnsavedChanges?: boolean;
 }
 
 export function HaulierActionButtons({
   haulier,
   onDelete,
+  hasUnsavedChanges = false,
 }: HaulierActionButtonsProps) {
   const { actions, confirmDialogs } = useHaulierActions(haulier, { onDeleteSuccess: onDelete });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const isSubcontractor = !isInternalHaulier(haulier?.emailAddress, tenantEmail);
+
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
+
+  const handleNavigate = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (hasUnsavedChanges) {
+      event.preventDefault();
+      notifyWarning('You have unsaved changes. Please save first');
+    }
+  };
 
   if (!haulier?.id) return null;
 
@@ -43,6 +61,7 @@ export function HaulierActionButtons({
           href={`/logistics/trucks/?haulierId=${haulier.id}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleNavigate}
         >
           <Truck className="h-4 w-4 mr-1.5" />
           Linked Trucks
@@ -58,6 +77,7 @@ export function HaulierActionButtons({
           href={`/logistics/drivers/?haulierId=${haulier.id}`}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={handleNavigate}
         >
           <Users className="h-4 w-4 mr-1.5" />
           Linked Drivers
@@ -77,7 +97,7 @@ export function HaulierActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">
             <DropdownMenuItem
-              onClick={actions.delete}
+              onClick={() => runAction(actions.delete)}
               className="text-red-600 focus:text-red-600"
             >
               <Trash2 className="h-4 w-4 mr-2 text-red-600" />

@@ -163,7 +163,6 @@ interface UseCustomerFormStateOptions {
   isEditing: boolean;
   customerForm: UseFormReturn<CustomerFormValues>;
   onDirtyChange?: (isDirty: boolean) => void;
-  onSuccess?: () => void;
   onSaved?: () => void;
 }
 
@@ -175,7 +174,6 @@ export function useCustomerFormState({
   isEditing,
   customerForm,
   onDirtyChange,
-  onSuccess,
   onSaved,
 }: UseCustomerFormStateOptions) {
   const createCustomer = useCreateCustomer();
@@ -452,6 +450,7 @@ export function useCustomerFormState({
 
         if (isEditing && !isRetrySyncRef.current) {
           notifySuccess('Customer Updated Successfully!');
+          customerForm.reset(customerForm.getValues());
         } else {
           notifySuccess('Customer Added Successfully!');
 
@@ -465,7 +464,6 @@ export function useCustomerFormState({
           handleSyncNote(result.accSoftwareNotes);
         }
 
-        onSuccess?.();
         onSaved?.();
       } catch (error) {
         console.error(
@@ -539,7 +537,6 @@ export function useCustomerFormState({
       handleSyncNote,
       isEditing,
       onSaved,
-      onSuccess,
       selectedCustomer,
     ],
   );

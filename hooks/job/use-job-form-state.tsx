@@ -278,9 +278,9 @@ export function useJobFormState({
 
         const receiptEmails = values.receiptEmail
           ? values.receiptEmail
-              .split(',')
-              .map((email) => email.trim())
-              .filter(Boolean)
+            .split(',')
+            .map((email) => email.trim())
+            .filter(Boolean)
           : [];
 
         const customerEmail = selectedCustomer?.contactPersonEmail;
@@ -329,6 +329,7 @@ export function useJobFormState({
           }
 
           notifySuccess('Job updated successfully');
+          jobForm.reset(jobForm.getValues());
         } else {
           const createdJob = await createJob.mutateAsync(payload);
 
@@ -344,7 +345,7 @@ export function useJobFormState({
       } catch (error) {
         notifyError(
           extractErrorMessage(error) ||
-            `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
         );
       }
     },

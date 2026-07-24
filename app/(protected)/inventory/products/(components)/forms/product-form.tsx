@@ -50,7 +50,6 @@ import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
@@ -68,7 +67,6 @@ import {
 export default function ProductForm({
   id,
   onCancel,
-  onSuccess,
   onSaved,
   className,
   onDirtyChange,
@@ -199,6 +197,7 @@ export default function ProductForm({
           id,
           data: { ...buildProductPayload(values, needDensityOverride), id },
         });
+        productForm.reset(values);
         onSaved?.();
       } catch (error) {
         notifyError(extractErrorMessage(error));
@@ -207,7 +206,7 @@ export default function ProductForm({
         setIsSubmitting(false);
       }
     },
-    [id, updateProduct, buildProductPayload, onSaved],
+    [id, updateProduct, buildProductPayload, onSaved, productForm],
   );
 
   const handleDensityModalConfirm = React.useCallback(() => {

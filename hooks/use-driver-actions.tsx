@@ -421,6 +421,7 @@ export function useDriverActions(
   const driverId = driverData?.id;
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const selectedDriver = useDriverStore((state) => state.selectedDriver);
 
   const deleteDriverMutation = useDeleteDriver();
@@ -721,8 +722,12 @@ export function useDriverActions(
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
-        if (!open) setScrollToSection(undefined);
+        if (!open) {
+          setIsFormDirty(false);
+          setScrollToSection(undefined);
+        }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       headerInfo={{
         useSelectedDriver: true,
@@ -731,6 +736,7 @@ export function useDriverActions(
         <DriverActionButtons
           driver={driverData ?? selectedDriver}
           onDelete={() => setViewOpen(false)}
+          hasUnsavedChanges={isFormDirty}
         />
       }
     >
