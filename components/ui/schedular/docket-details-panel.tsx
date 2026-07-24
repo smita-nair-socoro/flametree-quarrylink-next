@@ -35,6 +35,7 @@ import {
 } from '@/components/checklist-report-modal';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError } from '@/lib/toast';
+import { CopyableEmail } from '@/lib/utils/copyableEmail';
 
 function dispatchAddressLabel(
   addr: string | Partial<Address> | undefined,
@@ -110,13 +111,13 @@ export function DocketDetailsPanel({
   useEffect(() => {
     setPlannedLoadSizeValue(
       fullDocket?.plannedLoadSize?.toString() ||
-        fullDocket?.actualLoadSize?.toString() ||
-        '0',
+      fullDocket?.actualLoadSize?.toString() ||
+      '0',
     );
     setActualLoadSizeValue(
       fullDocket?.actualLoadSize?.toString() ||
-        fullDocket?.plannedLoadSize?.toString() ||
-        '0',
+      fullDocket?.plannedLoadSize?.toString() ||
+      '0',
     );
   }, [fullDocket?.id, fullDocket?.plannedLoadSize, fullDocket?.actualLoadSize]);
 
@@ -341,7 +342,7 @@ export function DocketDetailsPanel({
           </button>
         </div>
 
-        <div className="p-6 flex-1 flex flex-col gap-6">
+        <div className="p-4 flex-1 flex flex-col gap-6">
           {/* Docket Number & Badge */}
           <div className="flex items-center justify-between">
             <button
@@ -419,8 +420,8 @@ export function DocketDetailsPanel({
               )}
 
               {!isDocketFinalised ||
-              (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
-                docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
+                (docket.jobItem?.jobItemType === JOB_LINE_ITEM_TYPE.COLLECTION &&
+                  docket.docketStatus !== DOCKET_STATUS.COLLECTED) ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex flex-col gap-1">
                     <div className="text-xs text-gray-500 mb-1">
@@ -604,10 +605,10 @@ export function DocketDetailsPanel({
                 <span className="text-[13px] font-bold text-[#0F172A]">
                   {docket.jobItem.totalQuantityRequired > 0
                     ? Math.round(
-                        (docket.jobItem.deliveredQuantity /
-                          docket.jobItem.totalQuantityRequired) *
-                          100,
-                      )
+                      (docket.jobItem.deliveredQuantity /
+                        docket.jobItem.totalQuantityRequired) *
+                      100,
+                    )
                     : 0}
                   %
                 </span>
@@ -619,8 +620,8 @@ export function DocketDetailsPanel({
                     width: `${Math.min(
                       docket.jobItem.totalQuantityRequired > 0
                         ? (docket.jobItem.deliveredQuantity /
-                            docket.jobItem.totalQuantityRequired) *
-                            100
+                          docket.jobItem.totalQuantityRequired) *
+                        100
                         : 0,
                       100,
                     )}%`,
@@ -637,22 +638,42 @@ export function DocketDetailsPanel({
                 Locations
               </h3>
             </div>
-            <div className="flex flex-col gap-5 p-4">
+            <div className="grid grid-cols-2 gap-5 p-4">
               <div className="flex flex-col gap-1 text-sm font-medium">
                 <div className=" text-gray-500">Pickup</div>
-                <div className=" text-gray-900">
-                  {dispatchAddressLabel(docket.pickUpAddress)}
+                <div className=" text-gray-900 flex flex-col gap-0.5">
+                  <span>
+                    {docket.deliveryAddress?.streetDetailsPrimary ?? ''}
+                  </span>
+                  <span>
+                    {docket.deliveryAddress?.suburb ?? ''}{' '}
+                    {docket.deliveryAddress?.state ?? ''}{' '}
+                    {docket.deliveryAddress?.postcode ?? ''}
+                  </span>
+                  <span>
+                    <span>{docket.deliveryAddress?.country ?? ''}</span>
+                  </span>
                 </div>
               </div>
               {(!docket.jobItem ||
                 docket.jobItem.jobItemType === JOB_LINE_ITEM_TYPE.DELIVERY) && (
-                <div className="flex flex-col gap-0 text-sm font-medium">
-                  <div className=" text-gray-500">Delivery</div>
-                  <div className=" text-gray-900">
-                    {dispatchAddressLabel(docket.deliveryAddress)}
+                  <div className="flex flex-col gap-1 text-sm font-medium">
+                    <div className=" text-gray-500">Delivery</div>
+                    <div className=" text-gray-900 flex flex-col gap-0.5">
+                      <span>
+                        {docket.pickUpAddress?.streetDetailsPrimary ?? ''}
+                      </span>
+                      <span>
+                        {docket.pickUpAddress?.suburb ?? ''}{' '}
+                        {docket.pickUpAddress?.state ?? ''}{' '}
+                        {docket.pickUpAddress?.postcode ?? ''}
+                      </span>
+                      <span>
+                        <span>{docket.pickUpAddress?.country ?? ''}</span>
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           </div>
 
@@ -746,9 +767,9 @@ export function DocketDetailsPanel({
                 <div className="text-sm font-medium text-gray-900">
                   {docket.jobItem?.quarrySupplier?.contactPersonName || ''}
                 </div>
-                <div className="text-xs text-blue-600 mt-0.5 break-all">
-                  {docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}
-                </div>
+                <CopyableEmail
+                  email={docket.jobItem?.quarrySupplier?.contactPersonEmail || ''}
+                />
               </div>
             </div>
           </div>
@@ -791,12 +812,12 @@ export function DocketDetailsPanel({
             (() => {
               const driverChecklist =
                 docket.hasTodayDriverPreStart &&
-                docket.driverChecklistSubmissionId
+                  docket.driverChecklistSubmissionId
                   ? docket.driverChecklistSubmission
                   : null;
               const truckChecklist =
                 docket.hasTodayTruckInspectionByCurrentDriver &&
-                docket.truckChecklistSubmissionId
+                  docket.truckChecklistSubmissionId
                   ? docket.truckChecklistSubmission
                   : null;
 
