@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
+import { Gem, PackageX, TrendingUp, Package, Tag, Box, RefreshCw } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
@@ -22,7 +22,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { centsToDollars } from '@/lib/utils/currency';
+import { usePullFromAccSoftware } from '@/lib/api/product';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
@@ -35,6 +35,8 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -43,6 +45,17 @@ export default function ProductsPage() {
   const { actions, confirmDialogs, viewDialog } = useProductActions();
   const accSoftwareProvider = useAccountingSoftwareProvider();
   const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncProductFromAcumatica = usePullFromAccSoftware();
+
+  const handleSyncProductFromAcumatica = async () => {
+    try {
+      await syncProductFromAcumatica.mutateAsync();
+      notifySuccess('Products synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }
   const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
@@ -302,12 +315,22 @@ export default function ProductsPage() {
       {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
+        {readOnly ? (
+          <Button onClick={() => handleSyncProductFromAcumatica()}>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Sync Product
+            </div>
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
+              <ProductForm />
+            </FormDialog>
+          </div>
+        )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
-            <ProductForm />
-          </FormDialog>
-        </div>
+
       </div>
       <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
