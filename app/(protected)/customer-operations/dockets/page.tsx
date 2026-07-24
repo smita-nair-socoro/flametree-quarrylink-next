@@ -428,12 +428,7 @@ export default function DocketsPage() {
     const date = docket.deliveryCollectionDate
       ? formatLocalDate(docket.deliveryCollectionDate.toString())
       : '-';
-    const loadSize =
-      docket.docketStatus !== 'UNASSIGNED' &&
-      docket.docketStatus !== 'PENDING' &&
-      docket.docketStatus !== 'ASSIGNED'
-        ? (docket.actualLoadSize ?? 0)
-        : (docket.plannedLoadSize ?? 0);
+    const loadSize = docket.actualLoadSize || docket.plannedLoadSize || 0;
     const uom = docket.jobItem?.productSellUom;
     const qty = uom
       ? `${formatNumberThousandSeparator(loadSize)} ${formatUomLabel(uom)}`
