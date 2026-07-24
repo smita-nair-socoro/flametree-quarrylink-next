@@ -227,55 +227,62 @@ export default function CustomersPage() {
     actions.view(customer);
   };
 
-  const renderCustomerCard = React.useCallback((customer: CustomerDTO) => {
-    const formattedStatus = formatCustomerStatus(
-      customer.customerStatus as CUSTOMER_STATUS,
-    );
+  const renderCustomerCard = React.useCallback(
+    (customer: CustomerDTO) => {
+      const formattedStatus = formatCustomerStatus(
+        customer.customerStatus as CUSTOMER_STATUS,
+      );
 
-    let displayName: string;
-    if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
-      const first = customer.contactPersonFirstName ?? '';
-      const last = customer.contactPersonLastName ?? '';
-      displayName = `${first} ${last}`.trim() || 'N/A';
-    } else {
-      displayName = customer.individualContactName ?? '';
-    }
+      let displayName: string;
+      if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
+        const first = customer.contactPersonFirstName ?? '';
+        const last = customer.contactPersonLastName ?? '';
+        displayName = `${first} ${last}`.trim() || 'N/A';
+      } else {
+        displayName = customer.individualContactName ?? '';
+      }
 
-    return (
-      <MobileCard
-        title={displayName}
-        badges={
-          <>
-            <TableBadges names={[customer.customerType]} visibleCount={1} />
-            <TableBadges names={[formattedStatus]} visibleCount={1} />
-          </>
-        }
-        actions={<CustomerTableActions customer={customer} />}
-        fields={[
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Contact',
-            value: displayName,
-          },
-          {
-            icon: <Mail className="h-4 w-4" />,
-            label: 'Email',
-            value: customer.contactPersonEmail,
-          },
-          {
-            icon: <CreditCard className="h-4 w-4" />,
-            label: 'Credit Limit',
-            value: formatCentsToCurrency(customer.creditLimit),
-          },
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Account Manager',
-            value: customer.accountManagerName || '-',
-          },
-        ]}
-      />
-    );
-  }, [formatCentsToCurrency]);
+      return (
+        <MobileCard
+          title={
+            customer.customerType === CUSTOMER_TYPE.BUSINESS
+              ? customer.businessName
+              : customer.individualContactName
+          }
+          badges={
+            <>
+              <TableBadges names={[customer.customerType]} visibleCount={1} />
+              <TableBadges names={[formattedStatus]} visibleCount={1} />
+            </>
+          }
+          actions={<CustomerTableActions customer={customer} />}
+          fields={[
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Contact',
+              value: displayName,
+            },
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: customer.contactPersonEmail,
+            },
+            {
+              icon: <CreditCard className="h-4 w-4" />,
+              label: 'Credit Limit',
+              value: formatCentsToCurrency(customer.creditLimit),
+            },
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Account Manager',
+              value: customer.accountManagerName || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [formatCentsToCurrency],
+  );
 
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [
