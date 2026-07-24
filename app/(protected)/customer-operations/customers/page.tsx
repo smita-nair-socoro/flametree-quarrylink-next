@@ -247,7 +247,7 @@ export default function CustomersPage() {
           title={
             customer.customerType === CUSTOMER_TYPE.BUSINESS
               ? customer.businessName
-              : customer.individualContactName
+              : customer.individualContactName || 'N/A'
           }
           badges={
             <>
