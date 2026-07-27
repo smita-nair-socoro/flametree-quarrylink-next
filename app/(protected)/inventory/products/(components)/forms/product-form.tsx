@@ -141,7 +141,7 @@ export default function ProductForm({
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
     return sortByLabel(
-      materialsData.map((material) => ({
+      materialsData.filter((material) => material.name !== 'UNKNOWN').map((material) => ({
         label: material.name,
         value: material.id,
       })),
