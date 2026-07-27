@@ -41,8 +41,17 @@ import {
   useDuplicateQuotation,
 } from '@/lib/api/quotation';
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
-import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
+import {
+  quotationToFormValues,
+  mapQuoteEditorContentItems,
+  selectedItemIdsFromContent,
+} from '@/lib/utils/quotation-form-helpers';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
+import { useQuery } from '@tanstack/react-query';
+import {
+  QuoteEditorContentQueryOptions,
+  useUpdateQuoteEditorContent,
+} from '@/lib/api/quote-profile-content';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
@@ -139,6 +148,34 @@ export default function QuotationForm({
     }
   }, [isEditing, currentQuotation, quotationForm]);
 
+  // Quote content panel: GET /quote/{quoteId}/content returns the tenant's full
+  // content library, annotated with which items are selected for this quote.
+  const { data: quoteContent } = useQuery(
+    QuoteEditorContentQueryOptions(id ?? 0),
+  );
+  const updateQuoteEditorContent = useUpdateQuoteEditorContent();
+
+  const contentSectionItems = React.useMemo(
+    () =>
+      isEditing
+        ? mapQuoteEditorContentItems(quoteContent?.availableItems)
+        : libraryItems,
+    [isEditing, quoteContent, libraryItems],
+  );
+
+  // Seed customer notes / attached item selections once the quote's content loads.
+  React.useEffect(() => {
+    if (!isEditing || !quoteContent) return;
+    quotationForm.setValue('customerNotes', quoteContent.customerNotesHtml ?? '', {
+      shouldDirty: false,
+    });
+    quotationForm.setValue(
+      'attachedItemIds',
+      selectedItemIdsFromContent(quoteContent.availableItems),
+      { shouldDirty: false },
+    );
+  }, [isEditing, quoteContent, quotationForm]);
+
   // Report dirty-state to parent dialog
   React.useEffect(() => {
     onDirtyChange?.(quotationForm.formState.isDirty);
@@ -214,6 +251,26 @@ export default function QuotationForm({
     return () => subscription.unsubscribe();
   }, [customers, quotationForm, isEditing]);
 
+  const saveQuoteContent = async (
+    quoteIdToSave: number,
+    values: QuotationFormValues,
+  ) => {
+    try {
+      await updateQuoteEditorContent.mutateAsync({
+        quoteId: quoteIdToSave,
+        data: {
+          customerNotesHtml: values.customerNotes || '',
+          items: (values.attachedItemIds ?? []).map((itemId) => ({
+            libraryItemId: Number(itemId),
+          })),
+        },
+      });
+    } catch (error) {
+      console.error('Error saving quote content selections:', error);
+      notifyError('Quote saved, but failed to save quote content selections.');
+    }
+  };
+
   async function onSubmit(values: QuotationFormValues) {
     console.log('[QuotationForm] Validation passed, submitting:', values);
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
@@ -261,6 +318,7 @@ export default function QuotationForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
           addNewRecordId('quotation_main_data_table', newQuotation.id);
+          await saveQuoteContent(newQuotation.id, values);
         }
 
         notifySuccess('Quote duplicated successfully');
@@ -297,6 +355,7 @@ export default function QuotationForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
           addNewRecordId('quotation_main_data_table', newQuotation.id);
+          await saveQuoteContent(newQuotation.id, values);
         }
 
         notifySuccess('Quote created successfully');
@@ -334,6 +393,7 @@ export default function QuotationForm({
           id: id!,
           ...transformed,
         });
+        await saveQuoteContent(id!, values);
         notifySuccess('Quote updated successfully');
         onSaved?.();
         onSuccess?.();
@@ -1028,6 +1088,7 @@ export default function QuotationForm({
 
                 <QuoteContentAndNotesSection
                   control={quotationForm.control}
+                  items={contentSectionItems}
                   disabled={isEditing && !isDuplicate && !canEdit}
                 />
 

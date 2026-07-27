@@ -13,10 +13,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import {
-  useQuoteSettingsActions,
-  isPolicyDocument,
-} from '@/hooks/use-quote-settings-action';
+import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 import { PolicyDocumentViewQueryOptions } from '@/lib/api/quote-profile-content';
@@ -30,13 +27,13 @@ const MAX_NOTES_LENGTH = 2000;
 const typeLabels: Record<QuoteSettingItemType, string> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: 'Text template',
   [QuoteSettingItemType.EXTERNAL_LINK]: 'External link',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'Uploaded document',
+  [QuoteSettingItemType.POLICY_DOCUMENT]: 'Policy document',
 };
 
 const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: FileText,
   [QuoteSettingItemType.EXTERNAL_LINK]: Link2,
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: Upload,
+  [QuoteSettingItemType.POLICY_DOCUMENT]: Upload,
 };
 
 function formatFileSize(bytes: number): string {
@@ -46,21 +43,22 @@ function formatFileSize(bytes: number): string {
 
 function itemSubtitle(item: QuoteSettingItem): string {
   if (isPolicyDocument(item)) {
-    return `${typeLabels[QuoteSettingItemType.UPLOADED_DOCUMENT]} · ${formatFileSize(item.fileSizeBytes)}`;
+    return `${typeLabels[QuoteSettingItemType.POLICY_DOCUMENT]} · ${formatFileSize(item.fileSizeBytes)}`;
   }
   return typeLabels[item.type];
 }
 
 interface QuoteContentAndNotesSectionProps {
   control: Control<z.infer<typeof QuotationFormSchema>>;
+  items: QuoteSettingItem[];
   disabled?: boolean;
 }
 
 export function QuoteContentAndNotesSection({
   control,
+  items,
   disabled,
 }: Readonly<QuoteContentAndNotesSectionProps>) {
-  const { items } = useQuoteSettingsActions();
   const queryClient = useQueryClient();
 
   const viewPolicyDocument = async (id: number) => {
@@ -147,7 +145,7 @@ export function QuoteContentAndNotesSection({
                 <div className="rounded-md border border-[#E4E4E7] bg-white divide-y divide-[#E4E4E7]">
                   {items.map((item) => {
                     const Icon = isPolicyDocument(item)
-                      ? typeIcons[QuoteSettingItemType.UPLOADED_DOCUMENT]
+                      ? typeIcons[QuoteSettingItemType.POLICY_DOCUMENT]
                       : typeIcons[item.type];
                     const checked = selectedIds.includes(item.id);
                     return (

@@ -27,7 +27,7 @@ export function QuoteSettingsTableActions({
   onDelete,
 }: Readonly<QuoteSettingsTableActionsProps>) {
   const [open, setOpen] = React.useState(false);
-  const isUploadedDocument = isPolicyDocument(item);
+  const isDocument = isPolicyDocument(item);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -41,7 +41,7 @@ export function QuoteSettingsTableActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        {isUploadedDocument ? (
+        {isDocument ? (
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

@@ -221,7 +221,7 @@ export function dateSortingFn(
 export const QUOTE_SETTING_TYPE_BADGE_CLASSES: Record<QuoteSettingItemType, string> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
   [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
+  [QuoteSettingItemType.POLICY_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
 };
 
 // Material Type Badge Colors

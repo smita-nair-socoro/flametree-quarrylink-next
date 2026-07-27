@@ -12,13 +12,13 @@ import { QuoteSettingsTableActions } from './quote-settings-table-actions';
 const typeLabels: Record<QuoteSettingItemType, string> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: 'Text template',
   [QuoteSettingItemType.EXTERNAL_LINK]: 'External link',
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: 'Uploaded document',
+  [QuoteSettingItemType.POLICY_DOCUMENT]: 'Policy document',
 };
 
 const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.TEXT_TEMPLATE]: FileText,
   [QuoteSettingItemType.EXTERNAL_LINK]: Link2,
-  [QuoteSettingItemType.UPLOADED_DOCUMENT]: Paperclip,
+  [QuoteSettingItemType.POLICY_DOCUMENT]: Paperclip,
 };
 
 interface CreateQuoteSettingsColumnsArgs {
@@ -55,7 +55,7 @@ export const createQuoteSettingsColumns = ({
     header: 'Type',
     cell: ({ row }) => {
       const type = isPolicyDocument(row.original)
-        ? QuoteSettingItemType.UPLOADED_DOCUMENT
+        ? QuoteSettingItemType.POLICY_DOCUMENT
         : row.original.type;
       return (
         <Badge

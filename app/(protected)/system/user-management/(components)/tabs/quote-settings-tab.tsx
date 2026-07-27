@@ -63,7 +63,7 @@ export default function QuoteSettingsTab() {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
-                actions.add(QuoteSettingItemType.UPLOADED_DOCUMENT)
+                actions.add(QuoteSettingItemType.POLICY_DOCUMENT)
               }
             >
               <Upload className="h-4 w-4 mr-2" />
