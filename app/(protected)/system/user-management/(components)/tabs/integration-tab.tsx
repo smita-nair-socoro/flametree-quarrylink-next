@@ -9,7 +9,7 @@ import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions'
 import { useMyobBusinessIntegrationActions } from '@/hooks/use-myob-business-integration-actions';
 import { useMyobAcumaticaIntegrationActions } from '@/hooks/use-myob-acumatica-integration-actions';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
-import { XeroFieldMappings } from './xero-field-mappings';
+import { FieldMappings } from './field-mapping';
 
 function XeroIntegrationCard() {
   const {
@@ -69,7 +69,7 @@ function XeroIntegrationCard() {
             )}
           </div>
 
-          {xeroConnected && <XeroFieldMappings />}
+          {xeroConnected && <FieldMappings />}
         </CardContent>
       </Card>
       {xeroConnectDialog}
@@ -86,50 +86,54 @@ function MyobBusinessIntegrationCard() {
 
   return (
     <>
-      <Card className="max-w-md py-3 rounded-md">
-        <CardContent className="flex flex-col gap-3 px-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 w-13 h-13 rounded-xl bg-[#6B2D8B] flex items-center justify-center overflow-hidden p-2">
-              <Image
-                src="/MyOB-logo.png"
-                alt="MYOB"
-                width={100}
-                height={100}
-                className="object-contain brightness-0 invert"
-              />
+      <Card className={`rounded-lg py-4 ${myobConnected ? 'max-w-3xl' : 'max-w-md'}`}>
+        <CardContent className="flex flex-col gap-4 px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 w-13 h-13 rounded-xl bg-[#6B2D8B] flex items-center justify-center overflow-hidden p-2">
+                <Image
+                  src="/MyOB-logo.png"
+                  alt="MYOB"
+                  width={100}
+                  height={100}
+                  className="object-contain brightness-0 invert"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-semibold text-sm">MYOB Business</span>
+                {myobConnected ? (
+                  <Badge
+                    variant="outline"
+                    className="text-green-600 border-green-300 bg-green-50 gap-1"
+                  >
+                    <CheckCircle className="w-3 h-3" />
+                    Connected
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-[#18181B] border-[#00000000] bg-[#F4F4F5]"
+                  >
+                    Not Connected
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="font-semibold text-sm">MYOB Business</span>
-              {myobConnected ? (
-                <Badge
-                  variant="outline"
-                  className="text-green-600 border-green-300 bg-green-50 gap-1"
-                >
-                  <CheckCircle className="w-3 h-3" />
-                  Connected
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="text-[#18181B] border-[#00000000] bg-[#F4F4F5]"
-                >
-                  Not Connected
-                </Badge>
-              )}
-            </div>
+            {!myobConnected && (
+              <Button
+                size="sm"
+                className="bg-[#13B5EA] hover:bg-[#0FA3D4] rounded-lg w-full max-w-40 sm:w-auto"
+                onClick={myobActions.connect}
+              >
+                Connect to MYOB Acumatica
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
 
-          {!myobConnected && (
-            <Button
-              size="sm"
-              className="bg-[#6B2D8B] hover:bg-[#5a2576] rounded-lg w-full max-w-40 sm:w-auto"
-              onClick={myobActions.connect}
-            >
-              Connect to MYOB Business
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          )}
+          {myobConnected && <FieldMappings />}
         </CardContent>
       </Card>
       {myobConnectDialog}
@@ -146,50 +150,54 @@ function MyobAcumaticaIntegrationCard() {
 
   return (
     <>
-      <Card className="max-w-md py-3 rounded-md">
-        <CardContent className="flex flex-col gap-3 px-3 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="flex-shrink-0 w-13 h-13 rounded-xl bg-[#6B2D8B] flex items-center justify-center overflow-hidden p-2">
-              <Image
-                src="/MyOB-logo.png"
-                alt="MYOB"
-                width={100}
-                height={100}
-                className="object-contain brightness-0 invert"
-              />
+      <Card className={`rounded-lg py-4 ${myobConnected ? 'max-w-3xl' : 'max-w-md'}`}>
+        <CardContent className="flex flex-col gap-4 px-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="flex-shrink-0 w-13 h-13 rounded-xl bg-[#6B2D8B] flex items-center justify-center overflow-hidden p-2">
+                <Image
+                  src="/MyOB-logo.png"
+                  alt="MYOB"
+                  width={100}
+                  height={100}
+                  className="object-contain brightness-0 invert"
+                />
+              </div>
+
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="font-semibold text-sm">MYOB Acumatica</span>
+                {myobConnected ? (
+                  <Badge
+                    variant="outline"
+                    className="text-green-600 border-green-300 bg-green-50 gap-1"
+                  >
+                    <CheckCircle className="w-3 h-3" />
+                    Connected
+                  </Badge>
+                ) : (
+                  <Badge
+                    variant="outline"
+                    className="text-[#18181B] border-[#00000000] bg-[#F4F4F5]"
+                  >
+                    Not Connected
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3 min-w-0">
-              <span className="font-semibold text-sm">MYOB Acumatica</span>
-              {myobConnected ? (
-                <Badge
-                  variant="outline"
-                  className="text-green-600 border-green-300 bg-green-50 gap-1"
-                >
-                  <CheckCircle className="w-3 h-3" />
-                  Connected
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="text-[#18181B] border-[#00000000] bg-[#F4F4F5]"
-                >
-                  Not Connected
-                </Badge>
-              )}
-            </div>
+            {!myobConnected && (
+              <Button
+                size="sm"
+                className="bg-[#13B5EA] hover:bg-[#0FA3D4] rounded-lg w-full max-w-40 sm:w-auto"
+                onClick={myobActions.connect}
+              >
+                Connect to MYOB Acumatica
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            )}
           </div>
 
-          {!myobConnected && (
-            <Button
-              size="sm"
-              className="bg-[#6B2D8B] hover:bg-[#5a2576] rounded-lg w-full max-w-50 sm:max-w-40"
-              onClick={myobActions.connect}
-            >
-              Connect
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          )}
+          {myobConnected && <FieldMappings />}
         </CardContent>
       </Card>
       {myobConnectDialog}

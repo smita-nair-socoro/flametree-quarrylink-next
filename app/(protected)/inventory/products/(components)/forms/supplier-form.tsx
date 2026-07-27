@@ -41,7 +41,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 import { useGetDepartments } from '@/lib/api/department';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
@@ -80,10 +80,12 @@ export default function SupplierForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const accountingSoftware = useAccountingSoftwareProvider();
-  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
-  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const { accountingSoftwareLabel, showAccountingMapping } =
+    useAccountingIntegrationConnection();
+  const showDepartmentMapping =
+    showAccountingMapping && accountingSoftware !== 'MYOB_ACUMATICA';
   const departmentsQuery = useGetDepartments({
-    enabled: showXeroMapping,
+    enabled: showDepartmentMapping,
   });
 
   const departments = React.useMemo(() => {
@@ -273,14 +275,17 @@ export default function SupplierForm({
               )}
             />
 
-            {showXeroMapping && (
+            {showDepartmentMapping && (
               <>
                 <Separator className="col-span-full my-2 mb-5" />
 
                 <div className="flex flex-col mb-3">
-                  <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                  <h2 className="text-sm font-semibold mb-1">
+                    {accountingSoftwareLabel} Mapping
+                  </h2>
                   <p className="text-xs text-muted-foreground">
-                    Optional fields pushed to Xero on invoice creation.
+                    Optional fields pushed to {accountingSoftwareLabel} on
+                    invoice creation.
                   </p>
                 </div>
                 <FormSelect
@@ -426,7 +431,7 @@ export default function SupplierForm({
         supplierProductName: processedValues.supplierProductName,
         supplierProductCode: processedValues.supplierProductCode,
         densityTonnagePerM3: processedValues.densityTonnagePerM3,
-        ...(showXeroMapping && processedValues.departmentId != null
+        ...(showDepartmentMapping && processedValues.departmentId != null
           ? { departmentId: processedValues.departmentId }
           : {}),
         availableUnits: availableUnits,
