@@ -14,7 +14,9 @@ import {
   User,
   Mail,
   CreditCard,
+  RefreshCw,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   CustomersListQueryOptions,
@@ -26,15 +28,17 @@ import {
   getCustomersPageFromListResponse,
   buildCustomerFacetOptions,
   isCustomersListResponse,
+  usePullFromAccSoftware,
 } from '@/lib/api/customer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -47,6 +51,21 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
   const { formatCentsToCurrency, currencyCode } = useTenantCurrencyTax();
+
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncCustomerFromAcumatica = usePullFromAccSoftware();
+
+  const handleSyncCustomerFromAcumatica = async () => {
+    try {
+      await syncCustomerFromAcumatica.mutateAsync();
+      notifySuccess('Customers synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }
+
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
@@ -363,15 +382,25 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl">Customers</h1>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Add New Customer"
-            dialogDescription="Fill in the required fields to add a new customer."
-            buttonTitle="Add Customer"
-          >
-            <CustomerForm />
-          </FormDialog>
-        </div>
+        {readOnly ? (
+          <Button onClick={() => handleSyncCustomerFromAcumatica()}>
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Sync Customer
+            </div>
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog
+              dialogTitle="Add New Customer"
+              dialogDescription="Fill in the required fields to add a new customer."
+              buttonTitle="Add Customer"
+              hideButton={readOnly}
+            >
+              <CustomerForm />
+            </FormDialog>
+          </div>
+        )}
       </div>
 
       <StatsCards

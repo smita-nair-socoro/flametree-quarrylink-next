@@ -174,3 +174,18 @@ export interface ProductsListResponse {
   materials?: MaterialType[];
   statuses?: boolean[];
 }
+
+interface syncResult {
+  success: boolean;
+  productId: number;
+  productCode: string;
+  productName: string;
+  materialName: string;
+  reason: string;
+}
+export interface PullFromAccSoftwareResponse {
+  totalAttempted: number;
+  successCount: number;
+  failureCount: number;
+  result: syncResult[];
+}

@@ -8,6 +8,7 @@ import {
   ProductReporting,
   ProductsListResponse,
   ProductsPage,
+  PullFromAccSoftwareResponse,
 } from '../types/product';
 import {
   CustomerDTO,
@@ -19,6 +20,7 @@ import {
   CustomerAttachmentDTO,
   AdditionalContactApiDTO,
   AdditionalContactsPage,
+  SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
 import {
   Quarry,
@@ -56,8 +58,6 @@ import {
   TenantLogoUploadResponse,
   TenantLogoResponse,
 } from '../types/client';
-import { XeroConnectResponseDTO, XeroStatusResponseDTO } from '../types/xero';
-import { MyobConnectResponseDTO, MyobStatusResponseDTO } from '../types/myob';
 import { CustomerDeliveryAddress } from '../types/address';
 import {
   DocketAssignRequest,
@@ -113,6 +113,8 @@ import {
   TrackingCategoryDefinition,
   AccountCode,
   createUpdateTrackingCategory,
+  StatusResponseDTO,
+  ConnectResponseDTO,
 } from '../types/accounting';
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
@@ -523,6 +525,10 @@ const appClient = {
 
 export const APIClient = {
   products: {
+    pullFromAccSoftware: () =>
+      appClient.Put<PullFromAccSoftwareResponse>(
+        `/socoro/quarrylink/api/product/pull-from-acc-software`,
+      ),
     reporting: () =>
       appClient.Get<ProductReporting>(
         `/socoro/quarrylink/api/product/reporting`,
@@ -663,6 +669,10 @@ export const APIClient = {
   },
 
   customers: {
+    syncAllFromAccSoftware: () =>
+      appClient.Put<SyncAllFromAccSoftwareResponse>(
+        `/socoro/quarrylink/api/customer/sync-all-from-acc-software`,
+      ),
     reporting: () =>
       appClient.Get<CustomerReporting>(
         `/socoro/quarrylink/api/customer/reporting`,
@@ -1619,7 +1629,7 @@ export const APIClient = {
   xero: {
     connect: async (userEmail: string) => {
       const tenantId = await getTenantId();
-      return appClient.Post<XeroConnectResponseDTO>(
+      return appClient.Post<ConnectResponseDTO>(
         `/quarrylink/tenant-fusion/api/xero/internal/connect`,
         {
           body: { tenantId, userEmail },
@@ -1629,17 +1639,17 @@ export const APIClient = {
     },
     getStatus: async () => {
       const tenantId = await getTenantId();
-      return appClient.Get<XeroStatusResponseDTO>(
+      return appClient.Get<StatusResponseDTO>(
         `/quarrylink/tenant-fusion/api/xero/internal/${tenantId}/status`,
         { omitTenantHeaders: true },
       );
     },
   },
 
-  myob: {
+  myobBusiness: {
     connect: async (userEmail: string) => {
       const tenantId = await getTenantId();
-      return appClient.Post<MyobConnectResponseDTO>(
+      return appClient.Post<ConnectResponseDTO>(
         `/quarrylink/tenant-fusion/api/myob-business/internal/connect`,
         {
           body: { tenantId, userEmail },
@@ -1649,14 +1659,35 @@ export const APIClient = {
     },
     getStatus: async () => {
       const tenantId = await getTenantId();
-      return appClient.Get<MyobStatusResponseDTO>(
+      return appClient.Get<StatusResponseDTO>(
         `/quarrylink/tenant-fusion/api/myob-business/internal/${tenantId}/status`,
         { omitTenantHeaders: true },
       );
     },
   },
 
+  myobAcumatica: {
+    connect: async (userEmail: string) => {
+      const tenantId = await getTenantId();
+      return appClient.Post<ConnectResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-acumatica/internal/connect`,
+        { body: { tenantId, userEmail }, omitTenantHeaders: true },
+      );
+    },
+    getStatus: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Get<StatusResponseDTO>(
+        `/quarrylink/tenant-fusion/api/myob-acumatica/internal/${tenantId}/status`,
+        { omitTenantHeaders: true },
+      );
+    },
+  },
+
   invoices: {
+    pullFromAccSoftware: () =>
+      appClient.Put<PullFromAccSoftwareResponse>(
+        `/socoro/quarrylink/api/invoices/pull-from-acc-software`,
+      ),
     getAll: (
       jobId: number,
       params?: {
