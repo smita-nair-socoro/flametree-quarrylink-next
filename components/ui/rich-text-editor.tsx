@@ -100,139 +100,142 @@ export function RichTextEditor({
       isAlignRight: editor?.isActive({ textAlign: 'right' }) ?? false,
       canUndo: editor?.can().undo() ?? false,
       canRedo: editor?.can().redo() ?? false,
-      characters: editor
-        ? editor.isEmpty
-          ? 0
-          : editor.getHTML().length
-        : 0,
     }),
   });
 
-  const isOverLimit =
-    maxLength !== undefined && (state?.characters ?? 0) > maxLength;
+  // Counted straight from the controlled `value` prop (kept in sync via
+  // onChange on every keystroke) rather than reading the editor state, since
+  // `immediatelyRender: false` means the editor's own snapshot doesn't
+  // reflect the initial content until the first transaction after mount
+  // (e.g. a click) - which showed a stale "0" count until then.
+  const characterCount = value.length;
+
+  const isOverLimit = maxLength !== undefined && characterCount > maxLength;
 
   return (
-    <div
-      className={cn(
-        'border-input rounded-md border bg-transparent text-base shadow-xs transition-[color,box-shadow] md:text-sm',
-        'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
-        'aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
-        className,
-      )}
-      {...props}
-    >
-      <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-1 py-1">
-        <Toggle
-          size="sm"
-          aria-label="Bold"
-          pressed={state?.isBold ?? false}
-          onPressedChange={() => editor?.chain().focus().toggleBold().run()}
-        >
-          <Bold />
-        </Toggle>
-        <Toggle
-          size="sm"
-          aria-label="Italic"
-          pressed={state?.isItalic ?? false}
-          onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
-        >
-          <Italic />
-        </Toggle>
-        <Toggle
-          size="sm"
-          aria-label="Underline"
-          pressed={state?.isUnderline ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().toggleUnderline().run()
-          }
-        >
-          <Underline />
-        </Toggle>
-        <Separator orientation="vertical" className="mx-1 !h-5" />
-        <Toggle
-          size="sm"
-          aria-label="Bullet list"
-          pressed={state?.isBulletList ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().toggleBulletList().run()
-          }
-        >
-          <List />
-        </Toggle>
-        <Toggle
-          size="sm"
-          aria-label="Numbered list"
-          pressed={state?.isOrderedList ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().toggleOrderedList().run()
-          }
-        >
-          <ListOrdered />
-        </Toggle>
-        <Separator orientation="vertical" className="mx-1 !h-5" />
-        <Toggle
-          size="sm"
-          aria-label="Align left"
-          pressed={state?.isAlignLeft ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().setTextAlign('left').run()
-          }
-        >
-          <AlignLeft />
-        </Toggle>
-        <Toggle
-          size="sm"
-          aria-label="Align centre"
-          pressed={state?.isAlignCenter ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().setTextAlign('center').run()
-          }
-        >
-          <AlignCenter />
-        </Toggle>
-        <Toggle
-          size="sm"
-          aria-label="Align right"
-          pressed={state?.isAlignRight ?? false}
-          onPressedChange={() =>
-            editor?.chain().focus().setTextAlign('right').run()
-          }
-        >
-          <AlignRight />
-        </Toggle>
-        <Separator orientation="vertical" className="mx-1 !h-5" />
-        <LinkControl editor={editor} isActive={state?.isLink ?? false} />
-        <Separator orientation="vertical" className="mx-1 !h-5" />
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label="Undo"
-          disabled={!state?.canUndo}
-          onClick={() => editor?.chain().focus().undo().run()}
-        >
-          <Undo2 />
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          aria-label="Redo"
-          disabled={!state?.canRedo}
-          onClick={() => editor?.chain().focus().redo().run()}
-        >
-          <Redo2 />
-        </Button>
+    <div className="space-y-1">
+      <div
+        className={cn(
+          'border-input rounded-md border bg-transparent text-base shadow-xs transition-[color,box-shadow] md:text-sm',
+          'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]',
+          'aria-invalid:ring-destructive/20 aria-invalid:border-destructive',
+          className,
+        )}
+        {...props}
+      >
+        <div className="flex flex-wrap items-center gap-0.5 border-b border-input px-1 py-1">
+          <Toggle
+            size="sm"
+            aria-label="Bold"
+            pressed={state?.isBold ?? false}
+            onPressedChange={() => editor?.chain().focus().toggleBold().run()}
+          >
+            <Bold />
+          </Toggle>
+          <Toggle
+            size="sm"
+            aria-label="Italic"
+            pressed={state?.isItalic ?? false}
+            onPressedChange={() => editor?.chain().focus().toggleItalic().run()}
+          >
+            <Italic />
+          </Toggle>
+          <Toggle
+            size="sm"
+            aria-label="Underline"
+            pressed={state?.isUnderline ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().toggleUnderline().run()
+            }
+          >
+            <Underline />
+          </Toggle>
+          <Separator orientation="vertical" className="mx-1 !h-5" />
+          <Toggle
+            size="sm"
+            aria-label="Bullet list"
+            pressed={state?.isBulletList ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().toggleBulletList().run()
+            }
+          >
+            <List />
+          </Toggle>
+          <Toggle
+            size="sm"
+            aria-label="Numbered list"
+            pressed={state?.isOrderedList ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().toggleOrderedList().run()
+            }
+          >
+            <ListOrdered />
+          </Toggle>
+          <Separator orientation="vertical" className="mx-1 !h-5" />
+          <Toggle
+            size="sm"
+            aria-label="Align left"
+            pressed={state?.isAlignLeft ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().setTextAlign('left').run()
+            }
+          >
+            <AlignLeft />
+          </Toggle>
+          <Toggle
+            size="sm"
+            aria-label="Align centre"
+            pressed={state?.isAlignCenter ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().setTextAlign('center').run()
+            }
+          >
+            <AlignCenter />
+          </Toggle>
+          <Toggle
+            size="sm"
+            aria-label="Align right"
+            pressed={state?.isAlignRight ?? false}
+            onPressedChange={() =>
+              editor?.chain().focus().setTextAlign('right').run()
+            }
+          >
+            <AlignRight />
+          </Toggle>
+          <Separator orientation="vertical" className="mx-1 !h-5" />
+          <LinkControl editor={editor} isActive={state?.isLink ?? false} />
+          <Separator orientation="vertical" className="mx-1 !h-5" />
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label="Undo"
+            disabled={!state?.canUndo}
+            onClick={() => editor?.chain().focus().undo().run()}
+          >
+            <Undo2 />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label="Redo"
+            disabled={!state?.canRedo}
+            onClick={() => editor?.chain().focus().redo().run()}
+          >
+            <Redo2 />
+          </Button>
+        </div>
+        <EditorContent editor={editor} className="rich-text-content" />
       </div>
-      <EditorContent editor={editor} className="rich-text-content" />
       {maxLength !== undefined && (
         <div
           className={cn(
-            'px-3 pb-1.5 text-right text-xs',
+            'text-right text-xs',
             isOverLimit ? 'text-destructive' : 'text-muted-foreground',
           )}
         >
-          {state?.characters ?? 0}/{maxLength}
+          {characterCount}/{maxLength}
         </div>
       )}
     </div>
