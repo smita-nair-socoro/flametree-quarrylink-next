@@ -2,8 +2,9 @@ import {
   QUOTE_ITEM_TYPE as QuoteItemType,
   QUOTE_STATUS as QuoteStatus,
 } from './quotation-enums';
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
-import { CustomerDeliveryAddress } from './address';
+import { Address, CustomerDeliveryAddress } from './address';
 import { TenantLogoResponse } from './client';
 
 // DTO type for API response (uses camelCase from backend)
@@ -91,6 +92,75 @@ export interface QuotationLineItem {
   isDeleted: boolean;
 }
 
+/**
+ * Nested customer shape returned ONLY by GET /quote/{id}/preview (and the
+ * public link equivalent) — distinct from `CustomerWithAddressResponseDTO`,
+ * which is the shape used by the regular quotation CRUD endpoints
+ * (getById/getAll/getWithQuoteItems/create). Do not merge these: the two
+ * endpoints currently serialize the customer differently.
+ */
+export interface QuotePreviewCustomerDTO {
+  id?: number;
+  customerType: CUSTOMER_TYPE;
+  businessName?: string;
+  individualContactName?: string;
+  contactPersonPhone?: string;
+  contactPersonEmail?: string;
+  contactPersonFirstName?: string;
+  contactPersonLastName?: string;
+  billingAddressId?: number;
+  billingAddress: Address;
+  creditLimit: number;
+  accountManagerName?: string;
+  accountManagerSub: string;
+  accountManagerEmail?: string;
+  invoiceDueDateDayCount: number;
+  paymentTermType: string;
+  customerStatus: CUSTOMER_STATUS;
+  businessEmail?: string;
+  businessPhone?: string;
+  remainingCredit?: number;
+  paymentType: string;
+  abn?: string;
+  accSoftwareNotes?: string;
+  accSoftwareContactId?: string;
+  lastAccSoftwareSyncDirection?: string;
+  lastAccSoftwareSyncStatus?: string;
+  lastSyncedAt?: string;
+  version: number;
+  deleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+}
+
+/** Line item shape returned by GET /quote/{id}/preview (and the public link equivalent). */
+export interface QuotePreviewLineItem
+  extends Omit<QuotationLineItem, 'isDeleted'> {
+  quarrySupplierProductId?: number;
+  requiredLoads: number;
+  isDeleted: boolean;
+  deleted?: boolean;
+}
+
+/** Quote DTO shape returned by GET /quote/{id}/preview (and the public link equivalent). */
+export interface QuotePreviewDto
+  extends Omit<
+    QuotationDTO,
+    | 'email'
+    | 'customerWithAddressResponseDto'
+    | 'totalTruckSellPrice'
+    | 'totalTruckCostPrice'
+    | 'grossProfit'
+    | 'grossProfitPercentage'
+    | 'quoteItems'
+  > {
+  customerWithAddressResponseDto: QuotePreviewCustomerDTO;
+  accountManagerEmail?: string;
+  quoteItems: QuotePreviewLineItem[];
+}
+
 export interface StripeTenantDetailsSnapshot {
   tenantName: string;
   businessName: string;
@@ -123,11 +193,30 @@ export interface TenantProfileSnapshot {
   timeZoneId?: string;
 }
 
+export interface QuoteContentItem {
+  contentType: string;
+  name: string;
+  sortOrder: number;
+  contentHtml?: string;
+  externalUrl?: string;
+  externalLinkText?: string;
+  originalFileName?: string;
+  mimeType?: string;
+  fileSizeBytes?: number;
+  viewUrl?: string;
+}
+
+export interface QuoteContent {
+  customerNotesHtml?: string;
+  items: QuoteContentItem[];
+}
+
 export interface PublicQuoteLinkResponse {
-  quoteDto: QuotationDTO;
+  quoteDto: QuotePreviewDto;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
   tenantLogoDto?: TenantLogoResponse;
   tenantProfile?: TenantProfileSnapshot;
+  content?: QuoteContent;
 }
 
 /** Quote summary returned after a public approve/decline decision. */

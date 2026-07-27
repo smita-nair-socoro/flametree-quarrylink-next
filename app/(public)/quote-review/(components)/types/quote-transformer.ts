@@ -125,16 +125,18 @@ export function transformQuoteData(
   // Determine customer display name based on customer type
   let customerDisplayName: string;
   if (customerWithAddressResponseDto?.customerType === 'BUSINESS') {
-    // For business: use businessName, fallback to contactName
+    // For business: use businessName, fallback to individualContactName
     customerDisplayName =
       customerWithAddressResponseDto.businessName ||
-      customerWithAddressResponseDto.contactName ||
+      customerWithAddressResponseDto.individualContactName ||
       customerName ||
       'N/A';
   } else if (customerWithAddressResponseDto?.customerType === 'INDIVIDUAL') {
-    // For individual: use contactName
+    // For individual: use individualContactName
     customerDisplayName =
-      customerWithAddressResponseDto.contactName || customerName || 'N/A';
+      customerWithAddressResponseDto.individualContactName ||
+      customerName ||
+      'N/A';
   } else {
     // Default: use top-level customerName
     customerDisplayName = customerName || 'N/A';
