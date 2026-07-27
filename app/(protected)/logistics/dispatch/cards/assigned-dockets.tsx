@@ -89,7 +89,7 @@ function getDocketIntervalHours(d: DispatchDocket): {
     if (startRaw === null || endRaw === null) return fallbackSlotInterval(d);
     if (endRaw <= startRaw) return fallbackSlotInterval(d);
 
-    let startH = clampGridHour(Math.floor(startRaw));
+    const startH = clampGridHour(Math.floor(startRaw));
     let endH = Math.min(Math.ceil(endRaw), GRID_SPAN_HOURS);
 
     if (endH <= startH) {
