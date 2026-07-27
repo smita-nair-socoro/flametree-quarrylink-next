@@ -2,17 +2,17 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { ArrowRight, FileText, ShieldCheck, Unplug, CircleUser } from 'lucide-react';
-import { useConnectMyob, useMyobStatus } from '@/lib/api/myob';
+import { useConnectMyobBusiness, useMyobBusinessStatus } from '@/lib/api/accounting';
 import { useAuth } from '@/hooks/use-auth';
 
-export function useMyobIntegrationActions() {
+export function useMyobBusinessIntegrationActions() {
   const { attributes } = useAuth();
-  const { data: myobStatus, refetch: refetchStatus } = useMyobStatus();
+  const { data: myobStatus, refetch: refetchStatus } = useMyobBusinessStatus();
   const isConnected = myobStatus?.connected ?? false;
   const [showConnectModal, setShowConnectModal] = React.useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = React.useState(false);
 
-  const connectMyob = useConnectMyob();
+  const connectMyobBusiness = useConnectMyobBusiness();
 
   const actions = {
     connect: () => setShowConnectModal(true),
@@ -20,7 +20,7 @@ export function useMyobIntegrationActions() {
   };
 
   const handleConnect = () => {
-    connectMyob.mutate(attributes?.email ?? '', {
+    connectMyobBusiness.mutate(attributes?.email ?? '', {
       onSuccess: (data) => {
         setShowConnectModal(false);
         if (data?.authorizeUrl) {
@@ -40,10 +40,10 @@ export function useMyobIntegrationActions() {
       open={showConnectModal}
       onOpenChangeAction={setShowConnectModal}
       titleIcon={<ShieldCheck className="w-5 h-5 text-muted-foreground" />}
-      title="MYOB will ask for"
+      title="MYOB Business will ask for"
       description={
         <p className="text-sm text-[#71717B] -mt-3">
-          Shown on MYOB&apos;s consent screen before you allow access.
+          Shown on MYOB Business's consent screen before you allow access.
         </p>
       }
       content={
@@ -64,7 +64,7 @@ export function useMyobIntegrationActions() {
             <div className="flex items-center gap-2">
               <CircleUser className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <p className="font-medium text-[#09090B] text-[14px]">
-                Your MYOB profile
+                Your MYOB Business profile
               </p>
             </div>
             <p className="text-[12px] text-[#71717B]">
@@ -73,11 +73,11 @@ export function useMyobIntegrationActions() {
           </div>
         </div>
       }
-      confirmText="Continue to MYOB"
+      confirmText="Continue to MYOB Business"
       confirmCustomColor="#6B2D8B"
       confirmCustomClass="flex-row-reverse"
       confirmIcon={<ArrowRight className="w-4 h-4" />}
-      confirmDisabled={connectMyob.isPending}
+      confirmDisabled={connectMyobBusiness.isPending}
       onConfirmAction={handleConnect}
     />
   );
@@ -91,11 +91,11 @@ export function useMyobIntegrationActions() {
           <Unplug className="w-6 h-6 text-[#D42422]" />
         </div>
       }
-      title="Disconnect MYOB?"
+      title="Disconnect MYOB Business?"
       description={
         <p className="text-sm text-muted-foreground -mt-3">
           Customer sync and invoices will stop until you connect again. You can
-          also revoke access in MYOB under Connected apps.
+          also revoke access in MYOB Business under Connected apps.
         </p>
       }
       confirmText="Disconnect"

@@ -147,3 +147,13 @@ export const InvoicePdfQueryOptions = (id: number) =>
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const usePullFromAccSoftware = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
+    },
+    mutationFn: () => APIClient.invoices.pullFromAccSoftware(),
+  });
+};

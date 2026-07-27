@@ -90,6 +90,8 @@ export default function SupplierForm({
     return departmentsQuery.data ?? [];
   }, [departmentsQuery.data]);
 
+  const readOnly = accountingSoftware === 'MYOB_ACUMATICA';
+
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>
       sortByLabel(
@@ -210,6 +212,7 @@ export default function SupplierForm({
               placeholder="Select a Supplier"
               formItemClassName="w-full"
               autoSelectForOnlyOneOption={!isEditing}
+              disabled={readOnly}
             />
             <FormField
               control={supplierForm.control}
@@ -222,6 +225,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Name"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -239,6 +243,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Code"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -260,6 +265,7 @@ export default function SupplierForm({
                       maxDecimals={2}
                       suffix="TN/m³"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -307,6 +313,7 @@ export default function SupplierForm({
           <PricingConfigurationTable
             control={supplierForm.control}
             watch={supplierForm.watch}
+            readOnly={readOnly}
           />
         </div>
       ),
@@ -323,7 +330,7 @@ export default function SupplierForm({
               Optional - can be overridden in quotes
             </p>
           </div>
-          <TruckRatesTable control={supplierForm.control} />
+          <TruckRatesTable control={supplierForm.control} readOnly={readOnly} />
         </div>
       ),
     },
@@ -597,7 +604,7 @@ export default function SupplierForm({
     }
   }
   useFormDialogFooter(
-    isDesktop ? (
+    isDesktop && !readOnly ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           <X className="w-4 h-4 mr-2" />
@@ -779,7 +786,7 @@ export default function SupplierForm({
             );
           })()}
 
-          {!isDesktop && (
+          {!isDesktop && !readOnly && (
             <div className="flex flex-col gap-3 mb-6">
               {!isEditing && (
                 <Button
@@ -812,7 +819,6 @@ export default function SupplierForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>

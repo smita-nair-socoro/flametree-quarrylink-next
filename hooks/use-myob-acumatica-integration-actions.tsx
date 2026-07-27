@@ -1,24 +1,18 @@
 'use client';
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
-import {
-  ArrowRight,
-  FileText,
-  ShieldCheck,
-  Unplug,
-  CircleUser,
-} from 'lucide-react';
-import { useConnectXero, useXeroStatus } from '@/lib/api/accounting';
+import { ArrowRight, FileText, ShieldCheck, Unplug, CircleUser } from 'lucide-react';
+import { useConnectMyobAcumatica, useMyobAcumaticaStatus } from '@/lib/api/accounting';
 import { useAuth } from '@/hooks/use-auth';
 
-export function useXeroIntegrationActions() {
+export function useMyobAcumaticaIntegrationActions() {
   const { attributes } = useAuth();
-  const { data: xeroStatus, refetch: refetchStatus } = useXeroStatus();
-  const isConnected = xeroStatus?.connected ?? false;
+  const { data: myobAcumaticaStatus, refetch: refetchStatus } = useMyobAcumaticaStatus();
+  const isConnected = myobAcumaticaStatus?.connected ?? false;
   const [showConnectModal, setShowConnectModal] = React.useState(false);
   const [showDisconnectModal, setShowDisconnectModal] = React.useState(false);
 
-  const connectXero = useConnectXero();
+  const connectMyobAcumatica = useConnectMyobAcumatica();
 
   const actions = {
     connect: () => setShowConnectModal(true),
@@ -26,7 +20,7 @@ export function useXeroIntegrationActions() {
   };
 
   const handleConnect = () => {
-    connectXero.mutate(attributes?.email ?? '', {
+    connectMyobAcumatica.mutate(attributes?.email ?? '', {
       onSuccess: (data) => {
         setShowConnectModal(false);
         if (data?.authorizeUrl) {
@@ -46,14 +40,14 @@ export function useXeroIntegrationActions() {
       open={showConnectModal}
       onOpenChangeAction={setShowConnectModal}
       titleIcon={<ShieldCheck className="w-5 h-5 text-muted-foreground" />}
-      title="Xero will ask for"
+      title="MYOB Acumatica will ask for"
       description={
         <p className="text-sm text-[#71717B] -mt-3">
-          Shown on Xero&apos;s consent screen before you allow access.
+          Shown on MYOB Acumatica's consent screen before you allow access.
         </p>
       }
       content={
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2">
           <div className="border rounded-lg p-4 flex flex-col gap-2 bg-[#F4F4F566]">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-muted-foreground flex-shrink-0" />
@@ -70,7 +64,7 @@ export function useXeroIntegrationActions() {
             <div className="flex items-center gap-2">
               <CircleUser className="w-5 h-5 text-muted-foreground flex-shrink-0" />
               <p className="font-medium text-[#09090B] text-[14px]">
-                Your Xero profile
+                Your MYOB Acumatica profile
               </p>
             </div>
             <p className="text-[12px] text-[#71717B]">
@@ -79,11 +73,10 @@ export function useXeroIntegrationActions() {
           </div>
         </div>
       }
-      confirmText="Continue to Xero"
-      confirmCustomColor="#13B5EA"
+      confirmText="Continue to MYOB Acumatica"
+      confirmCustomColor="#6B2D8B"
       confirmCustomClass="flex-row-reverse"
-      confirmIcon={<ArrowRight className="w-4 h-4" />}
-      confirmDisabled={connectXero.isPending}
+      confirmDisabled={connectMyobAcumatica.isPending}
       onConfirmAction={handleConnect}
     />
   );
@@ -97,11 +90,11 @@ export function useXeroIntegrationActions() {
           <Unplug className="w-6 h-6 text-[#D42422]" />
         </div>
       }
-      title="Disconnect Xero?"
+      title="Disconnect MYOB Acumatica?"
       description={
         <p className="text-sm text-muted-foreground -mt-3">
           Customer sync and invoices will stop until you connect again. You can
-          also revoke access in Xero under Connected apps.
+          also revoke access in MYOB Acumatica under Connected apps.
         </p>
       }
       confirmText="Disconnect"

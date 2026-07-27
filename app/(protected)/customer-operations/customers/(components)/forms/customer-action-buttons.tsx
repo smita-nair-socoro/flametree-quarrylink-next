@@ -5,6 +5,7 @@ import { Archive } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { CustomerDTO } from '@/lib/types/customer';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface CustomerActionButtonsProps {
   customer: CustomerDTO | null | undefined;
@@ -17,7 +18,8 @@ export function CustomerActionButtons({
 }: CustomerActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isArchived = customer?.customerStatus === 'ARCHIVED';
-
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   const { actions, confirmDialogs, viewDialog } = useCustomerActions(customer);
 
   if (!customer) return null;
@@ -30,7 +32,7 @@ export function CustomerActionButtons({
         {confirmDialogs}
         {viewDialog}
 
-        {!isArchived && (
+        {(!isArchived || !readOnly) && (
           <Button
             variant="outline"
             size="sm"
@@ -51,7 +53,7 @@ export function CustomerActionButtons({
       {confirmDialogs}
       {viewDialog}
 
-      {!isArchived && (
+      {(!isArchived && !readOnly) && (
         <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
           <Button
             variant="ghost"

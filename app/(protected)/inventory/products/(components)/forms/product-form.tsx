@@ -22,7 +22,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';
@@ -50,7 +50,6 @@ import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
@@ -68,7 +67,6 @@ import {
 export default function ProductForm({
   id,
   onCancel,
-  onSuccess,
   onSaved,
   className,
   onDirtyChange,
@@ -76,6 +74,9 @@ export default function ProductForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
+
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
@@ -140,7 +141,7 @@ export default function ProductForm({
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
     return sortByLabel(
-      materialsData.map((material) => ({
+      materialsData.filter((material) => material.name !== 'UNKNOWN').map((material) => ({
         label: material.name,
         value: material.id,
       })),
@@ -278,63 +279,65 @@ export default function ProductForm({
   }
 
   useFormDialogFooter(
-    isDesktop && isEditing ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          form="add-new-product-form"
-          type="submit"
-          className="cursor-pointer"
-        >
-          Save Changes
-        </Button>
-      </div>
-    ) : isDesktop && createStep === 1 ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        {!productJustCreated && (
+    !readOnly && (
+      isDesktop && isEditing ? (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button
             form="add-new-product-form"
-            className="cursor-pointer"
             type="submit"
-            disabled={isSubmitting}
+            className="cursor-pointer"
+            disabled={readOnly}
           >
-            {isSubmitting ? 'Adding Product...' : 'Create Product'}
+            Save Changes
           </Button>
-        )}
-        {productJustCreated && (
-          <>
+        </div>
+      ) : isDesktop && createStep === 1 ? (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
+          {!productJustCreated && (
             <Button
-              variant="outline"
-              disabled
-              className="cursor-not-allowed"
+              form="add-new-product-form"
+              className="cursor-pointer"
+              type="submit"
+              disabled={isSubmitting || readOnly}
             >
-              ✓ Product Created
+              {isSubmitting ? 'Adding Product...' : 'Create Product'}
             </Button>
-            <Button type="button" onClick={() => setCreateStep(2)}>
-              Next
-            </Button>
-          </>
-        )}
-      </div>
-    ) : isDesktop ? (
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          type="button"
-          onClick={() => setCreateStep(1)}
-        >
-          Back to Details
-        </Button>
-        <Button type="button" onClick={onCancel}>
-          Save Changes
-        </Button>
-      </div>
-    ) : null,
+          )}
+          {productJustCreated && (
+            <>
+              <Button
+                variant="outline"
+                disabled
+                className="cursor-not-allowed"
+              >
+                ✓ Product Created
+              </Button>
+              <Button type="button" onClick={() => setCreateStep(2)}>
+                Next
+              </Button>
+            </>
+          )}
+        </div>
+      ) : isDesktop ? (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setCreateStep(1)}
+          >
+            Back to Details
+          </Button>
+          <Button type="button" onClick={onCancel}>
+            Save Changes
+          </Button>
+        </div>
+      ) : null),
   );
 
   // Show loading state when fetching product details or materials
@@ -561,7 +564,9 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Name"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
+
                         />
                       </FormControl>
                       <FormMessage />
@@ -581,6 +586,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Code"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
                         />
                       </FormControl>
@@ -599,7 +605,7 @@ export default function ProductForm({
                   placeholder="Select Material Type"
                   showSearch={true}
                   className="col-span-1"
-                  disabled={productJustCreated}
+                  disabled={productJustCreated || readOnly}
                   autoSelectForOnlyOneOption={!isEditing}
                 />
 
@@ -621,6 +627,7 @@ export default function ProductForm({
                           suffix="TN/m³"
                           {...field}
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -642,6 +649,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Description"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
                         />
                       </FormControl>
@@ -711,6 +719,7 @@ export default function ProductForm({
                       buttonTitle="Add Quarry / Supplier"
                       dialogWidth="700px"
                       contentClass="-mt-5"
+                      hideButton={readOnly}
                     >
                       <SupplierForm
                         productId={activeProductId ?? undefined}
@@ -809,7 +818,7 @@ export default function ProductForm({
             />
           )}
 
-          {!isDesktop && (
+          {!isDesktop && !readOnly && (
             <>
               {isEditing ? (
                 <div className="flex flex-col col-span-full gap-3 mb-6">

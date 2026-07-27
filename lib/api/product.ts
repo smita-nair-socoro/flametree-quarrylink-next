@@ -109,7 +109,9 @@ export function isProductsListResponse(
   );
 }
 
-export function buildProductFacetOptions(response?: ProductsListResponse | null) {
+export function buildProductFacetOptions(
+  response?: ProductsListResponse | null,
+) {
   return {
     materials: (response?.materials ?? []).map((material) => ({
       value: String(material.id),
@@ -232,7 +234,7 @@ export const ProductDetailWithMaterialQueryOptions = (productId: number) =>
   });
 
 export const ProductDetailWithQuarrySupplierProductQueryOptions = (
-  productId: number
+  productId: number,
 ) =>
   queryOptions({
     queryKey: ProductKeys.detailWithQuarrySupplierProduct(productId),
@@ -301,5 +303,16 @@ export const useDeleteProduct = () => {
         });
       }
     },
+  });
+};
+
+export const usePullFromAccSoftware = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ProductKeys.list() });
+      queryClient.invalidateQueries({ queryKey: ProductKeys.all });
+    },
+    mutationFn: () => APIClient.products.pullFromAccSoftware(),
   });
 };

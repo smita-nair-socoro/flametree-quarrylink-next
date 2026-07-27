@@ -5,7 +5,51 @@ import {
   createUpdateTrackingCategory,
   TrackingCategory,
 } from '../types/accounting';
-import { AccountingKeys } from './keys';
+import {
+  AccountingKeys,
+  XeroKeys,
+  MyobAcumaticaKeys,
+  MyobBusinessKeys,
+} from './keys';
+
+// Xero, Acumatica, MYOB Connect
+export const useConnectXero = () =>
+  useMutation({
+    mutationKey: XeroKeys.connect(),
+    mutationFn: (userEmail: string) => APIClient.xero.connect(userEmail),
+  });
+
+export const useXeroStatus = () =>
+  useQuery({
+    queryKey: XeroKeys.status(),
+    queryFn: () => APIClient.xero.getStatus(),
+  });
+
+export const useConnectMyobBusiness = () =>
+  useMutation({
+    mutationKey: MyobBusinessKeys.connect(),
+    mutationFn: (userEmail: string) =>
+      APIClient.myobBusiness.connect(userEmail),
+  });
+
+export const useMyobBusinessStatus = () =>
+  useQuery({
+    queryKey: MyobBusinessKeys.status(),
+    queryFn: () => APIClient.myobBusiness.getStatus(),
+  });
+
+export const useConnectMyobAcumatica = () =>
+  useMutation({
+    mutationKey: MyobAcumaticaKeys.connect(),
+    mutationFn: (userEmail: string) =>
+      APIClient.myobAcumatica.connect(userEmail),
+  });
+
+export const useMyobAcumaticaStatus = () =>
+  useQuery({
+    queryKey: MyobAcumaticaKeys.status(),
+    queryFn: () => APIClient.myobAcumatica.getStatus(),
+  });
 
 export const useCreateTrackingCategory = () => {
   const queryClient = useQueryClient();
