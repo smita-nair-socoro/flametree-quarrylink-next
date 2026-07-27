@@ -21,7 +21,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { PolicyDocumentFormSchema } from './schemas/policy-document-form-schema';
-import { PolicyDocumentDTO } from '@/lib/types/terms-conditions';
+import { PolicyDocumentItem } from '@/lib/types/terms-conditions';
 import {
   useCreatePolicyDocument,
   useUpdatePolicyDocument,
@@ -30,7 +30,7 @@ import {
 type PolicyDocumentFormValues = z.infer<typeof PolicyDocumentFormSchema>;
 
 interface PolicyDocumentFormProps {
-  currentDocument?: PolicyDocumentDTO;
+  currentDocument?: PolicyDocumentItem;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;

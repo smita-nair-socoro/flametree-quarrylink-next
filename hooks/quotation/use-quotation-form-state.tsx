@@ -2,7 +2,13 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
+import { QuoteEditorContentQueryOptions } from '@/lib/api/quote-profile-content';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
+import {
+  mapQuoteEditorContentItems,
+  selectedItemIdsFromContent,
+  sortQuoteContentItems,
+} from '@/lib/utils/quotation-form-helpers';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
 
@@ -14,6 +20,9 @@ import type { Quotation } from '@/lib/types/quotation';
  * - Dynamic labels based on quote type
  * - Pricing calculations with GST
  * - Customer phone/email auto-fill
+ * - Quote content panel data (text templates / external links / policy
+ *   document + customer notes), via the single GET /quote/{quoteId}/content
+ *   endpoint - only relevant once the quote exists (isEditing)
  */
 export function useQuotationFormState(
   selectedQuotation: Quotation | null,
@@ -76,6 +85,36 @@ export function useQuotationFormState(
     );
   }, [isEditing, currentQuotation, taxPercentage, currencyCode]);
 
+  // ===== QUOTE CONTENT PANEL =====
+  // The create-new-quote flow doesn't render the Quote content panel at all,
+  // so this is only enabled once we have a real quote id (isEditing).
+  const { data: quoteContent } = useQuery(
+    QuoteEditorContentQueryOptions(selectedQuotation?.id ?? 0),
+  );
+
+  const contentItems = React.useMemo(
+    () =>
+      sortQuoteContentItems(
+        mapQuoteEditorContentItems(quoteContent?.availableItems),
+      ),
+    [quoteContent],
+  );
+
+  // Seed customer notes / attached item selections once the quote's content loads.
+  React.useEffect(() => {
+    if (!isEditing || !quoteContent) return;
+    quotationForm.setValue(
+      'customerNotes',
+      quoteContent.customerNotesHtml ?? '',
+      { shouldDirty: false },
+    );
+    quotationForm.setValue(
+      'attachedItemIds',
+      selectedItemIdsFromContent(quoteContent.availableItems),
+      { shouldDirty: false },
+    );
+  }, [isEditing, quoteContent, quotationForm]);
+
   return {
     // Data
     currentQuotation,
@@ -88,5 +127,8 @@ export function useQuotationFormState(
 
     // Pricing (includes gst and totalInvoiceIncGST)
     pricingBreakdown,
+
+    // Quote content panel
+    contentItems,
   };
 }

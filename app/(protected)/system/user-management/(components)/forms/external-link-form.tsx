@@ -55,7 +55,6 @@ export default function ExternalLinkForm({
     defaultValues: {
       name: editingItem?.name ?? '',
       url: editingItem?.externalUrl ?? '',
-      linkText: editingItem?.externalLinkText ?? '',
       defaultItem: editingItem?.defaultItem ?? false,
     },
   });
@@ -68,7 +67,8 @@ export default function ExternalLinkForm({
     const data = {
       name: values.name,
       externalUrl: values.url,
-      externalLinkText: values.linkText,
+      // No separate "link text" field in the UI - reuse the display label.
+      externalLinkText: values.name,
       defaultItem: values.defaultItem,
     };
     const onSettled = {
@@ -153,22 +153,6 @@ export default function ExternalLinkForm({
                   {...field}
                 />
               </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="linkText"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Link text</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. View Credit Policy" {...field} />
-              </FormControl>
-              <p className="text-xs text-muted-foreground -mt-1">
-                The clickable text customers see on the quote.
-              </p>
               <FormMessage />
             </FormItem>
           )}

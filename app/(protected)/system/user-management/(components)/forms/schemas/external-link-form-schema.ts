@@ -20,6 +20,5 @@ export const ExternalLinkFormSchema = z.object({
     .min(1, 'URL is required')
     .transform(normalizeUrl)
     .refine(isHttpUrl, 'Enter a valid URL'),
-  linkText: z.string().trim().min(1, 'Link text is required').max(120),
   defaultItem: z.boolean(),
 });

@@ -9,7 +9,7 @@ import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
   QuoteExternalLinkItem,
   QuoteSettingItem,
-  PolicyDocumentDTO,
+  PolicyDocumentItem,
   QuoteTextTemplateItem,
 } from '@/lib/types/terms-conditions';
 import {
@@ -26,8 +26,8 @@ import TextTemplateForm from '@/app/(protected)/system/user-management/(componen
 import ExternalLinkForm from '@/app/(protected)/system/user-management/(components)/forms/external-link-form';
 import PolicyDocumentForm from '@/app/(protected)/system/user-management/(components)/forms/policy-document-form';
 
-export function isPolicyDocument(item: QuoteSettingItem): item is PolicyDocumentDTO {
-  return 'mimeType' in item && (item as PolicyDocumentDTO).mimeType === 'application/pdf';
+export function isPolicyDocument(item: QuoteSettingItem): item is PolicyDocumentItem {
+  return 'mimeType' in item && (item as PolicyDocumentItem).mimeType === 'application/pdf';
 }
 
 export function useQuoteSettingsActions() {
