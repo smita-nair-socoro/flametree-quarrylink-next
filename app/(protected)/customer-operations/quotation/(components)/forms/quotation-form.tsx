@@ -43,15 +43,9 @@ import {
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
 import {
   quotationToFormValues,
-  mapQuoteEditorContentItems,
-  selectedItemIdsFromContent,
+  buildQuoteContentSelectionItems,
 } from '@/lib/utils/quotation-form-helpers';
-import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
-import { useQuery } from '@tanstack/react-query';
-import {
-  QuoteEditorContentQueryOptions,
-  useUpdateQuoteEditorContent,
-} from '@/lib/api/quote-profile-content';
+import { useUpdateQuoteEditorContent } from '@/lib/api/quote-profile-content';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
@@ -108,16 +102,11 @@ export default function QuotationForm({
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
   const selectedQuotation = useSelectedQuotation();
 
-  const { items: libraryItems } = useQuoteSettingsActions();
-
   const quotationForm = useForm<QuotationFormValues>({
     resolver: zodResolver(getQuotationFormSchema(isEditing)),
     defaultValues: quotationToFormValues(
       isEditing ? selectedQuotation : null,
       isEditing,
-      isEditing
-        ? []
-        : libraryItems.filter((it) => it.defaultItem).map((it) => it.id),
     ),
   });
 
@@ -125,7 +114,8 @@ export default function QuotationForm({
   const updateQuotation = useUpdateQuotation();
   const duplicateQuotation = useDuplicateQuotation();
 
-  // All form state management: data fetching, labels, pricing, customer auto-fill
+  // All form state management: data fetching, labels, pricing, customer
+  // auto-fill, and Quote content panel data (via GET /quote/{quoteId}/content)
   const {
     currentQuotation,
     isLoadingDetail,
@@ -133,6 +123,7 @@ export default function QuotationForm({
     dateLabel,
     timeWindowLabel,
     pricingBreakdown,
+    contentItems,
   } = useQuotationFormState(
     selectedQuotation,
     isEditing,
@@ -141,40 +132,22 @@ export default function QuotationForm({
     currencyCode,
   );
 
-  // Update form values when API data loads
-  React.useEffect(() => {
-    if (isEditing && currentQuotation) {
-      quotationForm.reset(quotationToFormValues(currentQuotation, true));
-    }
-  }, [isEditing, currentQuotation, quotationForm]);
-
-  // Quote content panel: GET /quote/{quoteId}/content returns the tenant's full
-  // content library, annotated with which items are selected for this quote.
-  const { data: quoteContent } = useQuery(
-    QuoteEditorContentQueryOptions(id ?? 0),
-  );
   const updateQuoteEditorContent = useUpdateQuoteEditorContent();
 
-  const contentSectionItems = React.useMemo(
-    () =>
-      isEditing
-        ? mapQuoteEditorContentItems(quoteContent?.availableItems)
-        : libraryItems,
-    [isEditing, quoteContent, libraryItems],
-  );
-
-  // Seed customer notes / attached item selections once the quote's content loads.
+  // Update form values when API data loads.
+  // customerNotes/attachedItemIds are owned by the separate quote-content sync
+  // effect (in useQuotationFormState) - carry forward whatever it already set
+  // instead of overwriting with blanks, since that effect can resolve before
+  // or after this one (two independent queries).
   React.useEffect(() => {
-    if (!isEditing || !quoteContent) return;
-    quotationForm.setValue('customerNotes', quoteContent.customerNotesHtml ?? '', {
-      shouldDirty: false,
-    });
-    quotationForm.setValue(
-      'attachedItemIds',
-      selectedItemIdsFromContent(quoteContent.availableItems),
-      { shouldDirty: false },
-    );
-  }, [isEditing, quoteContent, quotationForm]);
+    if (isEditing && currentQuotation) {
+      quotationForm.reset({
+        ...quotationToFormValues(currentQuotation, true),
+        customerNotes: quotationForm.getValues('customerNotes'),
+        attachedItemIds: quotationForm.getValues('attachedItemIds'),
+      });
+    }
+  }, [isEditing, currentQuotation, quotationForm]);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -260,9 +233,10 @@ export default function QuotationForm({
         quoteId: quoteIdToSave,
         data: {
           customerNotesHtml: values.customerNotes || '',
-          items: (values.attachedItemIds ?? []).map((itemId) => ({
-            libraryItemId: Number(itemId),
-          })),
+          items: buildQuoteContentSelectionItems(
+            values.attachedItemIds ?? [],
+            contentItems,
+          ),
         },
       });
     } catch (error) {
@@ -353,9 +327,10 @@ export default function QuotationForm({
         const newQuotation = await createQuotation.mutateAsync(transformed);
 
         // Add the new record ID to sessionStorage for highlighting
+        // Note: the Quote content panel isn't shown during plain creation
+        // (only when editing/duplicating), so there's no content to save here.
         if (newQuotation && typeof newQuotation.id === 'number') {
           addNewRecordId('quotation_main_data_table', newQuotation.id);
-          await saveQuoteContent(newQuotation.id, values);
         }
 
         notifySuccess('Quote created successfully');
@@ -395,8 +370,9 @@ export default function QuotationForm({
         });
         await saveQuoteContent(id!, values);
         notifySuccess('Quote updated successfully');
+        // Keep the dialog open on update (unlike create/duplicate) so staff
+        // can keep reviewing/editing - just clear the dirty/unsaved state.
         onSaved?.();
-        onSuccess?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 
@@ -1088,7 +1064,7 @@ export default function QuotationForm({
 
                 <QuoteContentAndNotesSection
                   control={quotationForm.control}
-                  items={contentSectionItems}
+                  items={contentItems}
                   disabled={isEditing && !isDuplicate && !canEdit}
                 />
 

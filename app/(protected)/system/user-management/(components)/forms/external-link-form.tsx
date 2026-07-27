@@ -67,7 +67,6 @@ export default function ExternalLinkForm({
     const data = {
       name: values.name,
       externalUrl: values.url,
-      // No separate "link text" field in the UI - reuse the display label.
       externalLinkText: values.name,
       defaultItem: values.defaultItem,
     };
@@ -100,11 +99,7 @@ export default function ExternalLinkForm({
         >
           Cancel
         </Button>
-        <Button
-          form="external-link-form"
-          type="submit"
-          disabled={isSubmitting}
-        >
+        <Button form="external-link-form" type="submit" disabled={isSubmitting}>
           {isSubmitting ? (
             <>
               <Spinner className="mr-2 h-4 w-4" />

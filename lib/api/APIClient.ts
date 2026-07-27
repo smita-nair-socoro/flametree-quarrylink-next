@@ -120,7 +120,7 @@ import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
 import {
-  PolicyDocumentDTO,
+  PolicyDocumentItem,
   PolicyDocumentMetadata,
   PolicyDocumentViewDTO,
   QuoteTextTemplateResponseDto,
@@ -1842,14 +1842,14 @@ export const APIClient = {
 
   policyDocuments: {
     getAll: () =>
-      appClient.Get<PolicyDocumentDTO | null>(
+      appClient.Get<PolicyDocumentItem | null>(
         `/socoro/quarrylink/api/quote-content-library/policy-document`,
       ),
     create: (metadata: PolicyDocumentMetadata, file: File) => {
       const formData = new FormData();
       formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       formData.append('file', file);
-      return appClient.Post<PolicyDocumentDTO>(
+      return appClient.Post<PolicyDocumentItem>(
         `/socoro/quarrylink/api/quote-content-library/policy-document`,
         { body: formData },
       );
@@ -1858,7 +1858,7 @@ export const APIClient = {
       const formData = new FormData();
       formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
       formData.append('file', file);
-      return appClient.Put<PolicyDocumentDTO>(
+      return appClient.Put<PolicyDocumentItem>(
         `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
         { body: formData },
       );

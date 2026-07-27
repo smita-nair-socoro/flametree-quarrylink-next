@@ -45,9 +45,9 @@ export interface QuoteExternalLinkItem extends QuoteExternalLinkResponseDto {
 export type QuoteSettingItem =
   | QuoteTextTemplateItem
   | QuoteExternalLinkItem
-  | PolicyDocumentDTO;
+  | PolicyDocumentItem;
 
-export interface PolicyDocumentDTO {
+export interface PolicyDocumentItem {
   id: number;
   name: string;
   originalFileName: string;
@@ -68,4 +68,42 @@ export interface PolicyDocumentViewDTO {
 export interface PolicyDocumentMetadata {
   name: string;
   defaultItem: boolean;
+}
+
+// Quote editor "Quote content" panel - aggregates all 3 library content types
+// (plus per-quote customer notes) into a single read/write endpoint.
+export interface QuoteEditorContentItemResponseDto {
+  id: number;
+  contentType: QuoteSettingItemType;
+  name: string;
+  contentHtml?: string;
+  externalUrl?: string;
+  externalLinkText?: string;
+  originalFileName?: string;
+  mimeType?: string;
+  fileSizeBytes?: number;
+  defaultItem: boolean;
+  archived: boolean;
+  selected: boolean;
+  attachmentId?: number;
+  sortOrder?: number;
+  visible: boolean;
+}
+
+export interface QuoteEditorContentResponseDto {
+  quoteId: number;
+  editable: boolean;
+  customerNotesHtml: string;
+  availableItems: QuoteEditorContentItemResponseDto[];
+}
+
+export interface QuoteContentSelectionItemRequestDto {
+  libraryItemId: number;
+  sortOrder?: number;
+  visible?: boolean;
+}
+
+export interface QuoteContentSelectionRequestDto {
+  customerNotesHtml?: string;
+  items: QuoteContentSelectionItemRequestDto[];
 }
