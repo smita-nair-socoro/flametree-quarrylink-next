@@ -46,6 +46,8 @@ interface AddQuoteSettingDialogProps {
   editingTextTemplate?: QuoteTextTemplateItem | null;
   editingExternalLink?: QuoteExternalLinkItem | null;
   isSubmittingDocument?: boolean;
+  isSubmittingTextTemplate?: boolean;
+  isSubmittingExternalLink?: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmitTextTemplate: (values: TextTemplateFormValues) => void;
   onSubmitExternalLink: (values: ExternalLinkFormValues) => void;
@@ -58,6 +60,8 @@ export function AddQuoteSettingDialog({
   editingTextTemplate,
   editingExternalLink,
   isSubmittingDocument = false,
+  isSubmittingTextTemplate = false,
+  isSubmittingExternalLink = false,
   onOpenChange,
   onSubmitTextTemplate,
   onSubmitExternalLink,
@@ -115,6 +119,7 @@ export function AddQuoteSettingDialog({
           <TextTemplateForm
             key={editingTextTemplate?.id ?? 'new'}
             editingItem={editingTextTemplate}
+            isSubmitting={isSubmittingTextTemplate}
             onCancel={handleCancel}
             onSubmit={onSubmitTextTemplate}
           />
@@ -123,6 +128,7 @@ export function AddQuoteSettingDialog({
           <ExternalLinkForm
             key={editingExternalLink?.id ?? 'new'}
             editingItem={editingExternalLink}
+            isSubmitting={isSubmittingExternalLink}
             onCancel={handleCancel}
             onSubmit={onSubmitExternalLink}
           />
@@ -142,10 +148,12 @@ export function AddQuoteSettingDialog({
 
 function TextTemplateForm({
   editingItem,
+  isSubmitting = false,
   onCancel,
   onSubmit,
 }: Readonly<{
   editingItem?: QuoteTextTemplateItem | null;
+  isSubmitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: TextTemplateFormValues) => void;
 }>) {
@@ -154,7 +162,7 @@ function TextTemplateForm({
     resolver: zodResolver(textTemplateFormSchema),
     defaultValues: {
       name: editingItem?.name ?? '',
-      content: editingItem?.content ?? '',
+      content: editingItem?.contentHtml ?? '',
       defaultItem: editingItem?.defaultItem ?? false,
     },
   });
@@ -221,11 +229,20 @@ function TextTemplateForm({
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {isEditing ? 'Save Changes' : 'Add Template'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Saving…'
+                : isEditing
+                  ? 'Save Changes'
+                  : 'Add Template'}
             </Button>
           </DialogFooter>
         </form>
@@ -236,10 +253,12 @@ function TextTemplateForm({
 
 function ExternalLinkForm({
   editingItem,
+  isSubmitting = false,
   onCancel,
   onSubmit,
 }: Readonly<{
   editingItem?: QuoteExternalLinkItem | null;
+  isSubmitting?: boolean;
   onCancel: () => void;
   onSubmit: (values: ExternalLinkFormValues) => void;
 }>) {
@@ -248,7 +267,8 @@ function ExternalLinkForm({
     resolver: zodResolver(externalLinkFormSchema),
     defaultValues: {
       name: editingItem?.name ?? '',
-      url: editingItem?.url ?? '',
+      url: editingItem?.externalUrl ?? '',
+      linkText: editingItem?.externalLinkText ?? '',
       defaultItem: editingItem?.defaultItem ?? false,
     },
   });
@@ -300,6 +320,22 @@ function ExternalLinkForm({
           />
           <FormField
             control={form.control}
+            name="linkText"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Link text</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g. View Credit Policy" {...field} />
+                </FormControl>
+                <p className="text-xs text-muted-foreground -mt-1">
+                  The clickable text customers see on the quote.
+                </p>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="defaultItem"
             render={({ field }) => (
               <FormItem className="flex flex-row items-center gap-2 space-y-0 rounded-md border border-[#E4E4E7] bg-[#F4F4F54D] px-3 py-2.5 text-[#09090B]">
@@ -316,11 +352,20 @@ function ExternalLinkForm({
             )}
           />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit">
-              {isEditing ? 'Save Changes' : 'Add Link'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Saving…'
+                : isEditing
+                  ? 'Save Changes'
+                  : 'Add Link'}
             </Button>
           </DialogFooter>
         </form>

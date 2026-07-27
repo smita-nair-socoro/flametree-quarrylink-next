@@ -28,6 +28,8 @@ export default function QuoteSettingsTab() {
     submitExternalLink,
     submitReplaceDocument,
     isSubmittingDocument,
+    isSubmittingTextTemplate,
+    isSubmittingExternalLink,
   } = useQuoteSettingsActions();
 
   const columns = React.useMemo(
@@ -101,6 +103,8 @@ export default function QuoteSettingsTab() {
         editingTextTemplate={editingTextTemplate}
         editingExternalLink={editingExternalLink}
         isSubmittingDocument={isSubmittingDocument}
+        isSubmittingTextTemplate={isSubmittingTextTemplate}
+        isSubmittingExternalLink={isSubmittingExternalLink}
         onOpenChange={(open) => {
           if (!open) closeAddDialog();
         }}

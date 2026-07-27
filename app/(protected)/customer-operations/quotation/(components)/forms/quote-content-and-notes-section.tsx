@@ -19,7 +19,7 @@ import {
 } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
-import { PolicyDocumentViewQueryOptions } from '@/lib/api/policy-document';
+import { PolicyDocumentViewQueryOptions } from '@/lib/api/quote-profile-content';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError } from '@/lib/toast';
 import z from 'zod';
@@ -51,15 +51,15 @@ function itemSubtitle(item: QuoteSettingItem): string {
   return typeLabels[item.type];
 }
 
-interface NotesTermsSectionProps {
+interface QuoteContentAndNotesSectionProps {
   control: Control<z.infer<typeof QuotationFormSchema>>;
   disabled?: boolean;
 }
 
-export function NotesTermsSection({
+export function QuoteContentAndNotesSection({
   control,
   disabled,
-}: Readonly<NotesTermsSectionProps>) {
+}: Readonly<QuoteContentAndNotesSectionProps>) {
   const { items } = useQuoteSettingsActions();
   const queryClient = useQueryClient();
 

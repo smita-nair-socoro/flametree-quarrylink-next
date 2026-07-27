@@ -25,64 +25,32 @@ import {
   useCreatePolicyDocument,
   useUpdatePolicyDocument,
   useDeletePolicyDocument,
-} from '@/lib/api/policy-document';
-
-// Placeholder data for text templates and external links (no API yet)
-const MOCK_NON_DOCUMENT_ITEMS: (QuoteTextTemplateItem | QuoteExternalLinkItem)[] = [
-  {
-    id: 'tt-1',
-    name: 'Standard Supply Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    defaultItem: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: 'tt-2',
-    name: 'Credit Account Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    defaultItem: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: 'tt-3',
-    name: 'Pre-Paid / COD Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    defaultItem: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: 'tt-4',
-    name: 'Customer Collection Terms',
-    type: QuoteSettingItemType.TEXT_TEMPLATE,
-    content: '',
-    defaultItem: false,
-    updatedAt: '2026-07-03',
-  },
-  {
-    id: 'el-1',
-    name: 'TESTING',
-    type: QuoteSettingItemType.EXTERNAL_LINK,
-    url: '#',
-    defaultItem: true,
-    updatedAt: '2026-07-03',
-  },
-];
-
-let nextMockId = 0;
+  TextTemplateListQueryOptions,
+  useCreateTextTemplate,
+  useUpdateTextTemplate,
+  useDeleteTextTemplate,
+  ExternalLinkListQueryOptions,
+  useCreateExternalLink,
+  useUpdateExternalLink,
+  useDeleteExternalLink,
+} from '@/lib/api/quote-profile-content';
 
 export function useQuoteSettingsActions() {
   const { data: documentItem } = useQuery(PolicyDocumentQueryOptions());
+  const { data: textTemplateList } = useQuery(TextTemplateListQueryOptions());
+  const { data: externalLinkList } = useQuery(ExternalLinkListQueryOptions());
+
   const createPolicyDocument = useCreatePolicyDocument();
   const updatePolicyDocument = useUpdatePolicyDocument();
   const deletePolicyDocument = useDeletePolicyDocument();
 
-  // Text templates and external links are local state until their API is ready
-  const [localItems, setLocalItems] = React.useState<
-    (QuoteTextTemplateItem | QuoteExternalLinkItem)[]
-  >(MOCK_NON_DOCUMENT_ITEMS);
+  const createTextTemplate = useCreateTextTemplate();
+  const updateTextTemplate = useUpdateTextTemplate();
+  const deleteTextTemplate = useDeleteTextTemplate();
+
+  const createExternalLink = useCreateExternalLink();
+  const updateExternalLink = useUpdateExternalLink();
+  const deleteExternalLink = useDeleteExternalLink();
 
   const [addDialogType, setAddDialogType] =
     React.useState<QuoteSettingItemType | null>(null);
@@ -91,9 +59,31 @@ export function useQuoteSettingsActions() {
   const [editingExternalLink, setEditingExternalLink] =
     React.useState<QuoteExternalLinkItem | null>(null);
 
+  const textTemplates: QuoteTextTemplateItem[] = React.useMemo(
+    () =>
+      (textTemplateList ?? []).map((item) => ({
+        ...item,
+        type: QuoteSettingItemType.TEXT_TEMPLATE as const,
+      })),
+    [textTemplateList],
+  );
+
+  const externalLinks: QuoteExternalLinkItem[] = React.useMemo(
+    () =>
+      (externalLinkList ?? []).map((item) => ({
+        ...item,
+        type: QuoteSettingItemType.EXTERNAL_LINK as const,
+      })),
+    [externalLinkList],
+  );
+
   const items: QuoteSettingItem[] = React.useMemo(
-    () => (documentItem ? [...localItems, documentItem] : localItems),
-    [localItems, documentItem],
+    () => [
+      ...textTemplates,
+      ...externalLinks,
+      ...(documentItem ? [documentItem] : []),
+    ],
+    [textTemplates, externalLinks, documentItem],
   );
 
   // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
@@ -170,27 +160,57 @@ export function useQuoteSettingsActions() {
         openDialogDeferred(QuoteSettingItemType.UPLOADED_DOCUMENT);
         return;
       }
-      setLocalItems((prev) =>
-        prev.map((it) => ({ ...it, defaultItem: it.id === item.id })),
+      const onSettled = {
+        onSuccess: () => notifySuccess(`"${item.name}" set as default.`),
+        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+      };
+      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+        updateTextTemplate.mutate(
+          {
+            id: item.id,
+            data: {
+              name: item.name,
+              contentHtml: item.contentHtml,
+              defaultItem: true,
+            },
+          },
+          onSettled,
+        );
+        return;
+      }
+      updateExternalLink.mutate(
+        {
+          id: item.id,
+          data: {
+            name: item.name,
+            externalUrl: item.externalUrl,
+            externalLinkText: item.externalLinkText,
+            defaultItem: true,
+          },
+        },
+        onSettled,
       );
-      notifySuccess(`"${item.name}" set as default.`);
     },
-    [openDialogDeferred],
+    [openDialogDeferred, updateTextTemplate, updateExternalLink],
   );
 
   const remove = React.useCallback(
     (item: QuoteSettingItem) => {
+      const onSettled = {
+        onSuccess: () => notifySuccess(`"${item.name}" deleted.`),
+        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+      };
       if (isPolicyDocument(item)) {
-        deletePolicyDocument.mutate(item.id, {
-          onSuccess: () => notifySuccess(`"${item.name}" deleted.`),
-          onError: (err) => notifyError(extractErrorMessage(err)),
-        });
+        deletePolicyDocument.mutate(item.id, onSettled);
         return;
       }
-      setLocalItems((prev) => prev.filter((it) => it.id !== item.id));
-      notifySuccess(`"${item.name}" deleted.`);
+      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+        deleteTextTemplate.mutate(item.id, onSettled);
+        return;
+      }
+      deleteExternalLink.mutate(item.id, onSettled);
     },
-    [deletePolicyDocument],
+    [deletePolicyDocument, deleteTextTemplate, deleteExternalLink],
   );
 
   const openAddDialog = React.useCallback(
@@ -206,57 +226,65 @@ export function useQuoteSettingsActions() {
     setEditingExternalLink(null);
   }, []);
 
-  const applyLocalItem = React.useCallback(
-    (newItem: QuoteTextTemplateItem | QuoteExternalLinkItem) => {
-      setLocalItems((prev) => {
-        const withoutExisting = prev.filter((it) => it.id !== newItem.id);
-        const base = newItem.defaultItem
-          ? withoutExisting.map((it) => ({ ...it, defaultItem: false }))
-          : withoutExisting;
-        return [...base, newItem];
-      });
-    },
-    [],
-  );
-
   const submitTextTemplate = React.useCallback(
     (values: TextTemplateFormValues) => {
-      applyLocalItem({
-        id: editingTextTemplate?.id ?? `tt-new-${nextMockId++}`,
+      const data = {
         name: values.name,
-        type: QuoteSettingItemType.TEXT_TEMPLATE,
-        content: values.content,
+        contentHtml: values.content,
         defaultItem: values.defaultItem,
-        updatedAt: new Date().toISOString(),
-      });
-      notifySuccess(
-        editingTextTemplate
-          ? `"${values.name}" updated.`
-          : `"${values.name}" added.`,
-      );
-      closeAddDialog();
+      };
+      const onSettled = {
+        onSuccess: () => {
+          notifySuccess(
+            editingTextTemplate
+              ? `"${values.name}" updated.`
+              : `"${values.name}" added.`,
+          );
+          closeAddDialog();
+        },
+        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+      };
+      if (editingTextTemplate) {
+        updateTextTemplate.mutate(
+          { id: editingTextTemplate.id, data },
+          onSettled,
+        );
+      } else {
+        createTextTemplate.mutate(data, onSettled);
+      }
     },
-    [applyLocalItem, closeAddDialog, editingTextTemplate],
+    [editingTextTemplate, createTextTemplate, updateTextTemplate, closeAddDialog],
   );
 
   const submitExternalLink = React.useCallback(
     (values: ExternalLinkFormValues) => {
-      applyLocalItem({
-        id: editingExternalLink?.id ?? `el-new-${nextMockId++}`,
+      const data = {
         name: values.name,
-        type: QuoteSettingItemType.EXTERNAL_LINK,
-        url: values.url,
+        externalUrl: values.url,
+        externalLinkText: values.linkText,
         defaultItem: values.defaultItem,
-        updatedAt: new Date().toISOString(),
-      });
-      notifySuccess(
-        editingExternalLink
-          ? `"${values.name}" updated.`
-          : `"${values.name}" added.`,
-      );
-      closeAddDialog();
+      };
+      const onSettled = {
+        onSuccess: () => {
+          notifySuccess(
+            editingExternalLink
+              ? `"${values.name}" updated.`
+              : `"${values.name}" added.`,
+          );
+          closeAddDialog();
+        },
+        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+      };
+      if (editingExternalLink) {
+        updateExternalLink.mutate(
+          { id: editingExternalLink.id, data },
+          onSettled,
+        );
+      } else {
+        createExternalLink.mutate(data, onSettled);
+      }
     },
-    [applyLocalItem, closeAddDialog, editingExternalLink],
+    [editingExternalLink, createExternalLink, updateExternalLink, closeAddDialog],
   );
 
   const submitReplaceDocument = React.useCallback(
@@ -294,6 +322,10 @@ export function useQuoteSettingsActions() {
 
   const isSubmittingDocument =
     createPolicyDocument.isPending || updatePolicyDocument.isPending;
+  const isSubmittingTextTemplate =
+    createTextTemplate.isPending || updateTextTemplate.isPending;
+  const isSubmittingExternalLink =
+    createExternalLink.isPending || updateExternalLink.isPending;
 
   const actions = React.useMemo(
     () => ({ view, edit, setDefault, remove, add: openAddDialog }),
@@ -312,5 +344,7 @@ export function useQuoteSettingsActions() {
     submitExternalLink,
     submitReplaceDocument,
     isSubmittingDocument,
+    isSubmittingTextTemplate,
+    isSubmittingExternalLink,
   };
 }

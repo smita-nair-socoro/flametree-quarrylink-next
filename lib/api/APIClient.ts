@@ -123,6 +123,10 @@ import {
   PolicyDocumentDTO,
   PolicyDocumentMetadata,
   PolicyDocumentViewDTO,
+  QuoteTextTemplateResponseDto,
+  QuoteTextTemplateRequestDto,
+  QuoteExternalLinkResponseDto,
+  QuoteExternalLinkRequestDto,
 } from '../types/terms-conditions';
 
 type RequestBody =
@@ -1864,6 +1868,48 @@ export const APIClient = {
     view: (id: number) =>
       appClient.Get<PolicyDocumentViewDTO>(
         `/socoro/quarrylink/api/quote-content-library/policy-document/${id}/view`,
+      ),
+  },
+
+  textTemplates: {
+    getAll: () =>
+      appClient.Get<QuoteTextTemplateResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+      ),
+    create: (data: QuoteTextTemplateRequestDto) =>
+      appClient.Post<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteTextTemplateRequestDto) =>
+      appClient.Put<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+  },
+
+  externalLinks: {
+    getAll: () =>
+      appClient.Get<QuoteExternalLinkResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+      ),
+    create: (data: QuoteExternalLinkRequestDto) =>
+      appClient.Post<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteExternalLinkRequestDto) =>
+      appClient.Put<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
       ),
   },
 };

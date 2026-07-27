@@ -3,7 +3,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Link2, Paperclip } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatCalendarDate } from '@/lib/utils/date';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 import { QUOTE_SETTING_TYPE_BADGE_CLASSES } from '@/lib/utils';
@@ -78,21 +77,6 @@ export const createQuoteSettingsColumns = ({
       ) : (
         <span className="text-muted-foreground">—</span>
       ),
-  },
-  {
-    id: 'updatedAt',
-    header: 'Last updated',
-    accessorFn: (row) => (isPolicyDocument(row) ? '' : row.updatedAt),
-    cell: ({ row }) => {
-      const updatedAt = isPolicyDocument(row.original)
-        ? ''
-        : row.original.updatedAt;
-      return (
-        <span className="text-muted-foreground">
-          {formatCalendarDate(updatedAt, 'd MMM yyyy')}
-        </span>
-      );
-    },
   },
   {
     id: 'actions',

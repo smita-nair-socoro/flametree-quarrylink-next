@@ -1,20 +1,45 @@
 import { QuoteSettingItemType } from './term-conditions-enums';
 
-interface QuoteSettingItemBase {
-  id: string;
+// Raw API response shape (no `type` discriminant - each comes from its own endpoint).
+export interface QuoteTextTemplateResponseDto {
+  id: number;
   name: string;
+  contentHtml: string;
   defaultItem: boolean;
-  updatedAt: string;
+  archived: boolean;
+  archivedAt?: string;
 }
 
-export interface QuoteTextTemplateItem extends QuoteSettingItemBase {
+export interface QuoteTextTemplateRequestDto {
+  name: string;
+  contentHtml: string;
+  defaultItem: boolean;
+}
+
+// Frontend model with the `type` discriminant added when building the settings list.
+export interface QuoteTextTemplateItem extends QuoteTextTemplateResponseDto {
   type: QuoteSettingItemType.TEXT_TEMPLATE;
-  content: string;
 }
 
-export interface QuoteExternalLinkItem extends QuoteSettingItemBase {
+export interface QuoteExternalLinkResponseDto {
+  id: number;
+  name: string;
+  externalUrl: string;
+  externalLinkText: string;
+  defaultItem: boolean;
+  archived: boolean;
+  archivedAt?: string;
+}
+
+export interface QuoteExternalLinkRequestDto {
+  name: string;
+  externalUrl: string;
+  externalLinkText: string;
+  defaultItem: boolean;
+}
+
+export interface QuoteExternalLinkItem extends QuoteExternalLinkResponseDto {
   type: QuoteSettingItemType.EXTERNAL_LINK;
-  url: string;
 }
 
 export type QuoteSettingItem =

@@ -208,3 +208,13 @@ export const PolicyDocumentKeys = {
   list: () => [...PolicyDocumentKeys.all, 'list'] as const,
   view: (id: number) => [...PolicyDocumentKeys.all, 'view', id] as const,
 };
+
+export const TextTemplateKeys = {
+  all: ['text-templates'] as const,
+  list: () => [...TextTemplateKeys.all, 'list'] as const,
+};
+
+export const ExternalLinkKeys = {
+  all: ['external-links'] as const,
+  list: () => [...ExternalLinkKeys.all, 'list'] as const,
+};
