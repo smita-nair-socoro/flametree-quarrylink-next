@@ -165,7 +165,6 @@ interface UseCustomerFormStateOptions {
   onDirtyChange?: (isDirty: boolean) => void;
   onSuccess?: () => void;
   onSaved?: () => void;
-  isAcumatica: boolean;
 }
 
 /**
@@ -178,7 +177,6 @@ export function useCustomerFormState({
   onDirtyChange,
   onSuccess,
   onSaved,
-  isAcumatica,
 }: UseCustomerFormStateOptions) {
   const createCustomer = useCreateCustomer();
   const isRetrySyncRef = React.useRef(false);

@@ -118,7 +118,6 @@ export default function CustomerForm({
     onDirtyChange,
     onSuccess,
     onSaved,
-    isAcumatica: readOnly,
   });
 
   const handleAddressChange = useAddressSync(
