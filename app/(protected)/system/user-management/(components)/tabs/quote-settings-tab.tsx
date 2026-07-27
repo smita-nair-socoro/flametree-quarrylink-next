@@ -12,24 +12,16 @@ import {
 import { DataTableClientBasic } from '@/components/ui/data-table-client-basic';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
-import { AddQuoteSettingDialog } from '../(data-tables)/quote-settings/add-quote-setting-dialog';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 export default function QuoteSettingsTab() {
   const {
     items,
     actions,
-    addDialogType,
     documentItem,
-    editingTextTemplate,
-    editingExternalLink,
-    closeAddDialog,
-    submitTextTemplate,
-    submitExternalLink,
-    submitReplaceDocument,
-    isSubmittingDocument,
-    isSubmittingTextTemplate,
-    isSubmittingExternalLink,
+    textTemplateDialog,
+    externalLinkDialog,
+    policyDocumentDialog,
   } = useQuoteSettingsActions();
 
   const columns = React.useMemo(
@@ -97,21 +89,9 @@ export default function QuoteSettingsTab() {
         />
       </div>
 
-      <AddQuoteSettingDialog
-        type={addDialogType}
-        currentDocument={documentItem}
-        editingTextTemplate={editingTextTemplate}
-        editingExternalLink={editingExternalLink}
-        isSubmittingDocument={isSubmittingDocument}
-        isSubmittingTextTemplate={isSubmittingTextTemplate}
-        isSubmittingExternalLink={isSubmittingExternalLink}
-        onOpenChange={(open) => {
-          if (!open) closeAddDialog();
-        }}
-        onSubmitTextTemplate={submitTextTemplate}
-        onSubmitExternalLink={submitExternalLink}
-        onSubmitReplaceDocument={submitReplaceDocument}
-      />
+      {textTemplateDialog}
+      {externalLinkDialog}
+      {policyDocumentDialog}
     </div>
   );
 }
