@@ -3,30 +3,26 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import {
-  Gem,
-  PackageX,
-  TrendingUp,
-  Package,
-  Tag,
-  Box,
-} from 'lucide-react';
+import { Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   ProductsListQueryOptions,
   ProductReportingQueryOptions,
+  ProductsInfiniteListQueryOptions,
+  getProductItemsFromInfinitePages,
   getProductsPageFromListResponse,
   toProductApiFilterParams,
   toProductApiSortParams,
   buildProductFacetOptions,
   isProductsListResponse,
 } from '@/lib/api/product';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -43,6 +39,7 @@ export default function ProductsPage() {
   const searchParams = useSearchParams();
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
+  const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
@@ -101,6 +98,28 @@ export default function ProductsPage() {
 
   const { data: reportingData } = useQuery(ProductReportingQueryOptions());
 
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching: infiniteIsFetching,
+  } = useInfiniteQuery({
+    ...ProductsInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile && !isLinkedFilter,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getProductItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
+
   const productPage = React.useMemo(
     () => getProductsPageFromListResponse(productsData),
     [productsData],
@@ -118,9 +137,7 @@ export default function ProductsPage() {
     {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || 'QuarryLink Product',
-      description: `$${centsToDollars(
-        reportingData?.mostQuotedProductValueThisMonth || 0,
-      )} this month`,
+      description: `${formatCentsToCurrency(reportingData?.mostQuotedProductValueThisMonth || 0)} this month`,
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
       iconColor: 'text-[#733E0A]',
@@ -173,7 +190,7 @@ export default function ProductsPage() {
 
   const renderProductCard = React.useCallback((product: ProductDetails) => {
     const materialName = product.material?.name || '';
-
+    const status = product.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE';
     return (
       <MobileCard
         title={product.productName}
@@ -185,9 +202,7 @@ export default function ProductsPage() {
         }
         badges={
           <>
-            {product.status && (
-              <TableBadges names={[product.status]} visibleCount={1} />
-            )}
+            <TableBadges names={[status]} visibleCount={1} />
             {materialName && (
               <TableBadges names={[materialName]} visibleCount={1} />
             )}
@@ -251,9 +266,7 @@ export default function ProductsPage() {
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
-      newSorting.length > 0
-        ? newSorting
-        : [{ id: 'productName', desc: false }],
+      newSorting.length > 0 ? newSorting : [{ id: 'productName', desc: false }],
     );
     setPageIndex(0);
   }, []);
@@ -350,12 +363,27 @@ export default function ProductsPage() {
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
+              mobileInfinite={
+                !isLinkedFilter
+                  ? {
+                      items: mobileItems as unknown as ProductDetails[],
+                      hasNextPage,
+                      isFetchingNextPage,
+                      isLoading: infiniteIsFetching,
+                      fetchNextPage,
+                    }
+                  : undefined
+              }
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={isLinkedFilter ? 0 : pageIndex}
-              externalPageSize={isLinkedFilter ? filteredItems.length || 10 : pageSize}
+              externalPageSize={
+                isLinkedFilter ? filteredItems.length || 10 : pageSize
+              }
               externalSorting={sorting}
-              onPaginationChange={isLinkedFilter ? undefined : handlePaginationChange}
+              onPaginationChange={
+                isLinkedFilter ? undefined : handlePaginationChange
+              }
               onSearchChange={handleSearchChange}
               onFacetFiltersChange={handleFacetFiltersChange}
               onSortingChange={handleSortingChange}

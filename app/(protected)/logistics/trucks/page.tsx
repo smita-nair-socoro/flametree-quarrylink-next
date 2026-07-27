@@ -2,20 +2,25 @@
 
 import React from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Truck, Activity, CircleUser, TriangleAlert } from 'lucide-react';
+import { Truck, Activity, CircleUser, TriangleAlert, Building2, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { TrucksListQueryOptions, TruckStatisticsQueryOptions } from '@/lib/api/truck';
 import { TruckDTO } from '@/lib/types/truck';
+import { normalizeTruckStatus } from '@/lib/types/truck-enums';
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { truckColumns } from './(components)/(data-tables)/truck/columns';
+import { TruckTableActions } from './(components)/(data-tables)/truck/truck-table-actions';
 import { FormDialog } from '@/components/form-dialog';
 import TruckForm from './(components)/forms/truck-form';
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 export default function TrucksPage() {
   const searchParams = useSearchParams();
@@ -88,6 +93,30 @@ export default function TrucksPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, items]);
 
+  const renderTruckCard = React.useCallback((truck: TruckDTO) => {
+    const isGeneric = truck.model === 'GENERIC';
+    const truckType = isGeneric ? 'GENERIC' : truck.truckType;
+    const status = normalizeTruckStatus(truck.truckStatus);
+    return (
+      <MobileCard
+        title={isGeneric ? '--' : (truck.licensePlate || '-')}
+        badges={
+          <>
+            <TableBadges names={[truckType]} visibleCount={1} />
+            <TableBadges names={status ? [status as string] : [truck.truckStatus as string]} visibleCount={1} />
+          </>
+        }
+        actions={<TruckTableActions truck={truck} />}
+        fields={[
+          { icon: <Truck className="h-4 w-4" />, label: 'Make & Model', value: isGeneric ? '--' : (truck.model || '-') },
+          { icon: <Building2 className="h-4 w-4" />, label: 'Haulier', value: truck.haulier?.haulierName || '-' },
+          { icon: <Package className="h-4 w-4" />, label: 'Volume', value: truck.tankVolumeM3 != null ? `${truck.tankVolumeM3} m³` : '-' },
+          { icon: <Activity className="h-4 w-4" />, label: 'GVM', value: truck.combinationGvm != null ? `${formatNumberThousandSeparator(truck.combinationGvm)} TN` : '-' },
+        ]}
+      />
+    );
+  }, []);
+
   const facetDefs: FacetDefinition[] = [
     { column: 'truckStatus', title: 'Status' },
     { column: 'truckType', title: 'Truck Type' },
@@ -148,6 +177,7 @@ export default function TrucksPage() {
           searchPlaceHolder="Search trucks..."
           defaultSorting={[{ id: 'licensePlate', desc: false }]}
           onRowClick={handleRowClick}
+          mobileCardRenderer={renderTruckCard}
         />
       </div>
     </div>

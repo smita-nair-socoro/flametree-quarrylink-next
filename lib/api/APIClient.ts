@@ -1035,6 +1035,7 @@ export const APIClient = {
     getByJobId: async (
       jobId: number,
       params?: {
+        search?: string;
         sortBy?: string;
         sortOrder?: string;
         page?: number;
@@ -1049,6 +1050,7 @@ export const APIClient = {
         `/socoro/quarrylink/api/dockets/job/${jobId}`,
         {
           queryString: {
+            search: params?.search?.trim() || undefined,
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
             page: params?.page?.toString(),
