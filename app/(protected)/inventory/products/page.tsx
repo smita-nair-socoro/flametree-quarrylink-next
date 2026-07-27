@@ -316,10 +316,15 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
         {readOnly ? (
-          <Button onClick={() => handleSyncProductFromAcumatica()}>
+          <Button
+            onClick={() => handleSyncProductFromAcumatica()}
+            disabled={syncProductFromAcumatica.isPending}
+          >
             <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Sync Product
+              <RefreshCw
+                className={`h-4 w-4 ${syncProductFromAcumatica.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncProductFromAcumatica.isPending ? 'Syncing' : 'Sync Product'}
             </div>
           </Button>
         ) : (
