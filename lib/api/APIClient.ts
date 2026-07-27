@@ -127,6 +127,8 @@ import {
   QuoteTextTemplateRequestDto,
   QuoteExternalLinkResponseDto,
   QuoteExternalLinkRequestDto,
+  QuoteEditorContentResponseDto,
+  QuoteContentSelectionRequestDto,
 } from '../types/terms-conditions';
 
 type RequestBody =
@@ -1910,6 +1912,18 @@ export const APIClient = {
     delete: (id: number) =>
       appClient.Delete(
         `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+  },
+
+  quoteEditorContent: {
+    get: (quoteId: number) =>
+      appClient.Get<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+      ),
+    update: (quoteId: number, data: QuoteContentSelectionRequestDto) =>
+      appClient.Put<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+        { body: data },
       ),
   },
 };

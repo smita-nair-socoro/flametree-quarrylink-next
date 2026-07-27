@@ -1,10 +1,16 @@
 import { queryOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { ExternalLinkKeys, TextTemplateKeys, PolicyDocumentKeys } from './keys';
+import {
+  ExternalLinkKeys,
+  TextTemplateKeys,
+  PolicyDocumentKeys,
+  QuoteEditorContentKeys,
+} from './keys';
 import type {
   QuoteExternalLinkRequestDto,
   QuoteTextTemplateRequestDto,
   PolicyDocumentMetadata,
+  QuoteContentSelectionRequestDto,
 } from '../types/terms-conditions';
 
 export const ExternalLinkListQueryOptions = () =>
@@ -135,6 +141,34 @@ export const useDeletePolicyDocument = () => {
     mutationFn: (id: number) => APIClient.policyDocuments.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PolicyDocumentKeys.list() });
+    },
+  });
+};
+
+// Quote editor "Quote content" panel - the active library items available to
+// attach to a quote, plus the quote's selection state and customer notes.
+export const QuoteEditorContentQueryOptions = (quoteId: number) =>
+  queryOptions({
+    queryKey: QuoteEditorContentKeys.detail(quoteId),
+    queryFn: () => APIClient.quoteEditorContent.get(quoteId),
+    staleTime: 5_000,
+    enabled: quoteId > 0,
+  });
+
+export const useUpdateQuoteEditorContent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      quoteId,
+      data,
+    }: {
+      quoteId: number;
+      data: QuoteContentSelectionRequestDto;
+    }) => APIClient.quoteEditorContent.update(quoteId, data),
+    onSuccess: (_, { quoteId }) => {
+      queryClient.invalidateQueries({
+        queryKey: QuoteEditorContentKeys.detail(quoteId),
+      });
     },
   });
 };

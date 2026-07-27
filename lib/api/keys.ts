@@ -218,3 +218,8 @@ export const ExternalLinkKeys = {
   all: ['external-links'] as const,
   list: () => [...ExternalLinkKeys.all, 'list'] as const,
 };
+
+export const QuoteEditorContentKeys = {
+  all: ['quote-editor-content'] as const,
+  detail: (quoteId: number) => [...QuoteEditorContentKeys.all, quoteId] as const,
+};
