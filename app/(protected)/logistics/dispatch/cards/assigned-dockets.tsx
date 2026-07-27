@@ -78,29 +78,22 @@ function fallbackSlotInterval(d: DispatchDocket): {
   return { start: slotIdx, end };
 }
 
-/** Interval in fractional hours from grid start (04:00 → 0). Never extends past midnight. */
+/** Interval in whole hours from grid start (04:00 → 0) for card layout. Start/end snap to hour boundaries; clamped to 04:00 … 23:00. */
 function getDocketIntervalHours(d: DispatchDocket): {
   start: number;
   end: number;
 } | null {
   if (d.deliveryCollectionStartTime && d.deliveryCollectionEndTime) {
-    const s = new Date(d.deliveryCollectionStartTime.replace('Z', ''));
-    const e = new Date(d.deliveryCollectionEndTime.replace('Z', ''));
-    if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) {
-      return fallbackSlotInterval(d);
-    }
+    const startRaw = hoursSinceGridStart(d.deliveryCollectionStartTime);
+    const endRaw = hoursSinceGridStart(d.deliveryCollectionEndTime);
+    if (startRaw === null || endRaw === null) return fallbackSlotInterval(d);
+    if (endRaw <= startRaw) return fallbackSlotInterval(d);
 
-    let startH = hoursSinceGridStart(d.deliveryCollectionStartTime);
-    if (startH === null) return fallbackSlotInterval(d);
-    startH = clampGridHour(startH);
+    let startH = clampGridHour(Math.floor(startRaw));
+    let endH = Math.min(Math.ceil(endRaw), GRID_SPAN_HOURS);
 
-    const durationMs = e.getTime() - s.getTime();
-    if (durationMs <= 0) return fallbackSlotInterval(d);
-
-    const durationH = durationMs / 3_600_000;
-    let endH = Math.min(startH + durationH, GRID_SPAN_HOURS);
     if (endH <= startH) {
-      endH = Math.min(GRID_SPAN_HOURS, startH + 1 / 60);
+      endH = Math.min(GRID_SPAN_HOURS, startH + 1);
     }
     if (endH <= startH) return null;
     return { start: startH, end: endH };
