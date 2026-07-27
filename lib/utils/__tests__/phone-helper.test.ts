@@ -41,8 +41,8 @@ describe('formatPhoneNumber', () => {
     expect(formatPhoneNumber('0412345678')).toBe('0412345678');
   });
 
-  test('returns an empty string when the E.164 input cannot be formatted', () => {
-    expect(formatPhoneNumber('+notanumber')).toBe('');
+  test('falls back to the original value when the E.164 input cannot be formatted', () => {
+    expect(formatPhoneNumber('+notanumber')).toBe('+notanumber');
   });
 });
 
