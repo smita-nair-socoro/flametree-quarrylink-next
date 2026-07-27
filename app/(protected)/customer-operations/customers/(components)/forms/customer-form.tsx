@@ -49,6 +49,7 @@ import AdditionalContactForm from './additional-contact-form';
 import { AddCustomerAttachmentDialog } from './add-customer-attachment-dialog';
 import { getAdditionalContactColumns } from '../(data-tables)/additional-contact/columns';
 import { getCustomerAttachmentColumns } from '../(data-tables)/attachment/columns';
+import { Label } from '@/components/ui/label';
 
 interface FormProps {
   id?: number;
@@ -117,6 +118,7 @@ export default function CustomerForm({
     onDirtyChange,
     onSuccess,
     onSaved,
+    isAcumatica: readOnly,
   });
 
   const handleAddressChange = useAddressSync(
@@ -494,6 +496,37 @@ export default function CustomerForm({
                   </FormItem>
                 )}
               />
+            )}
+
+            {readOnly && (
+              <div className={
+                isEditing && isDesktop
+                  ? 'col-span-1 col-start-1 mb-5'
+                  : 'col-span-2 mb-5'
+              }>
+                <Label className="mb-2">Customer Location ID</Label>
+                <Input
+                  className="w-full"
+                  value={selectedCustomer?.customerLocationId ?? 'N/A'}
+                  readOnly={readOnly}
+                />
+              </div>
+            )}
+
+            {readOnly && (
+              <div className={
+                isEditing && isDesktop
+                  ? 'col-span-1 col-start-2 mb-5'
+                  : 'col-span-2 mb-5'
+              }>
+
+                <Label className="mb-2">Customer Classification</Label>
+                <Input
+                  className="w-full"
+                  value={selectedCustomer?.customerClassification ?? 'N/A'}
+                  readOnly={readOnly}
+                />
+              </div>
             )}
 
             {/* Business Phone */}
