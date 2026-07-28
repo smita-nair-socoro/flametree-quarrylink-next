@@ -124,7 +124,7 @@ function MyobBusinessIntegrationCard() {
             {!myobConnected && (
               <Button
                 size="sm"
-                className="bg-[#13B5EA] hover:bg-[#0FA3D4] rounded-lg w-full max-w-40 sm:w-auto"
+                className="bg-[#6B2D8B] hover:bg-[#5B247B] rounded-lg w-full max-w-40 sm:w-auto mt-2.5"
                 onClick={myobActions.connect}
               >
                 Connect to MYOB Acumatica
@@ -188,7 +188,7 @@ function MyobAcumaticaIntegrationCard() {
             {!myobConnected && (
               <Button
                 size="sm"
-                className="bg-[#13B5EA] hover:bg-[#0FA3D4] rounded-lg w-full max-w-40 sm:w-auto"
+                className="bg-[#6B2D8B] hover:bg-[#5B247B] rounded-lg w-full max-w-40 sm:w-auto mt-2.5"
                 onClick={myobActions.connect}
               >
                 Connect to MYOB Acumatica
@@ -197,7 +197,7 @@ function MyobAcumaticaIntegrationCard() {
             )}
           </div>
 
-          {myobConnected && <FieldMappings />}
+          <FieldMappings />
         </CardContent>
       </Card>
       {myobConnectDialog}
