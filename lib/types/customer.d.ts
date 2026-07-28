@@ -50,6 +50,8 @@ export interface CustomerDTO {
   isDeleted?: boolean;
 
   accSoftwareContactId?: string | null;
+  customerLocationId?: string;
+  customerClassification?: string;
   accSoftwareNotes?: string;
   lastAccSoftwareSyncDirection?: string | null;
   lastAccSoftwareSyncStatus?: string | null;

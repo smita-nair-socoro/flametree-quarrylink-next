@@ -383,10 +383,17 @@ export default function CustomersPage() {
           <h1 className="text-2xl">Customers</h1>
         </div>
         {readOnly ? (
-          <Button onClick={() => handleSyncCustomerFromAcumatica()}>
+          <Button
+            onClick={() => handleSyncCustomerFromAcumatica()}
+            disabled={syncCustomerFromAcumatica.isPending}
+          >
             <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Sync Customer
+              <RefreshCw
+                className={`h-4 w-4 ${syncCustomerFromAcumatica.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncCustomerFromAcumatica.isPending
+                ? 'Syncing'
+                : 'Sync Customer'}
             </div>
           </Button>
         ) : (

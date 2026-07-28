@@ -664,10 +664,15 @@ export default function DocketsPage() {
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           {showSyncInvoice && (
-            <Button onClick={() => handleSyncInvoiceFromAcumatica()}>
+            <Button
+              onClick={() => handleSyncInvoiceFromAcumatica()}
+              disabled={syncInvoice.isPending}
+            >
               <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Sync Invoice
+                <RefreshCw
+                  className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
+                />
+                {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
               </div>
             </Button>
           )}

@@ -26,6 +26,11 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
 
   const retrySyncMutation = useRetrySync();
 
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isRetrySyncDisabled, setIsRetrySyncDisabled] = React.useState(false);
+  const retrySyncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -48,7 +53,8 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
   const invoices = invoicesPage?.content ?? [];
   const totalElements = invoicesPage?.totalElements ?? 0;
   const totalPages =
-    invoicesPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    invoicesPage?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
@@ -68,6 +74,35 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
   const selectedJob = useSelectedJob();
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
+  React.useEffect(() => {
+    return () => {
+      if (retrySyncCooldownTimeoutRef.current) {
+        clearTimeout(retrySyncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleRetrySync = React.useCallback(async () => {
+    if (isSubmitting || isRetrySyncDisabled) {
+      return;
+    }
+
+    setIsRetrySyncDisabled(true);
+    retrySyncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsRetrySyncDisabled(false);
+      retrySyncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      setIsSubmitting(true);
+      await retrySyncMutation.mutateAsync(jobId);
+    } catch (error) {
+      console.error('Error retrying invoice sync:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, isRetrySyncDisabled, jobId, retrySyncMutation]);
+
   return (
     <div className="flex flex-col gap-4 mt-6">
       <div
@@ -82,15 +117,19 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
           <Button
             variant="outline"
             type="button"
-            onClick={() => {
-              retrySyncMutation.mutate(jobId);
-            }}
+            disabled={isSubmitting || isRetrySyncDisabled}
+            onClick={handleRetrySync}
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw
+              className={cn('h-4 w-4', isSubmitting && 'animate-spin')}
+            />
             Retry Sync
           </Button>
           {jobStatus !== JOB_STATUS.CANCELLED && (
-            <FormDialog dialogTitle="Create Invoice" buttonTitle="Create Invoice">
+            <FormDialog
+              dialogTitle="Create Invoice"
+              buttonTitle="Create Invoice"
+            >
               <InvoiceForm jobId={jobId} />
             </FormDialog>
           )}

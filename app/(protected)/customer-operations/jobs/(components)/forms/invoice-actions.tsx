@@ -219,7 +219,7 @@ export function InvoiceActions({
                   mode: isIndividual ? 'INDIVIDUAL' : 'BULK',
                   docketIds: selectedDockets.map((d) => d.id),
                   inclDeliveryCost: hasDeliveryCost
-                    ? includeDeliveryPrices
+                    ? !includeDeliveryPrices
                     : false,
                 });
               }}

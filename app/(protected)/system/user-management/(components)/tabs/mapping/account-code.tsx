@@ -54,7 +54,7 @@ function AccountCodeForm({
               onDraftChange({ ...draft, code: event.target.value })
             }
           />
-          <p className="text-xs text-[#6A7282]">Xero max 10 characters.</p>
+          <p className="text-xs text-[#6A7282]">Account code max 10 characters.</p>
         </div>
 
         <div className="flex flex-col gap-2">

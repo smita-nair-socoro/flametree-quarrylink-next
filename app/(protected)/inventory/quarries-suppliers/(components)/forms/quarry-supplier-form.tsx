@@ -50,8 +50,7 @@ import {
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
 } from '@/hooks/quarry-supplier/use-quarry-supplier-form-state';
 import { useGetAccountCodes } from '@/lib/api/accounting';
-import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 
 interface FormProps {
   id?: number;
@@ -76,11 +75,10 @@ export default function QuarrySupplierForm({
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
 
-  const accountingSoftware = useAccountingSoftwareProvider();
-  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
-  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const { accountingSoftwareLabel, showAccountingMapping } =
+    useAccountingIntegrationConnection();
   const accountCodesQuery = useGetAccountCodes({
-    enabled: showXeroMapping,
+    enabled: showAccountingMapping,
   });
   const accountCodes = React.useMemo(
     () => accountCodesQuery.data ?? [],
@@ -182,7 +180,7 @@ export default function QuarrySupplierForm({
         contactPersonName: values.contactPersonName || '',
         contactPersonPhone: formatPhoneNumber(values.contactPersonPhone),
         contactPersonEmail: values.contactPersonEmail || '',
-        ...(showXeroMapping && values.accountCodeId != null
+        ...(showAccountingMapping && values.accountCodeId != null
           ? { accountingSoftwareAccountingCodeId: values.accountCodeId }
           : {}),
         ...(websiteValue ? { website: websiteValue } : {}),
@@ -621,14 +619,17 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          {showXeroMapping && (
+          {showAccountingMapping && (
             <>
               <Separator className="col-span-full my-2 mb-5" />
 
               <div className="flex flex-col mb-3">
-                <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                <h2 className="text-sm font-semibold mb-1">
+                  {accountingSoftwareLabel} Mapping
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  Optional account code pushed to Xero on invoice creation.
+                  Optional account code pushed to {accountingSoftwareLabel} on
+                  invoice creation.
                 </p>
               </div>
               <FormSelect
