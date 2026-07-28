@@ -63,6 +63,10 @@ import {
   EMPTY_SUPPLIER_FORM_VALUES,
 } from '@/hooks/product/use-quarry-supplier-product-form-state';
 
+const SUPPLIER_DETAILS_TAB = 'Supplier Details';
+const PRICE_CONFIGURATION_TAB = 'Price Configuration';
+const TRUCK_RATES_TAB = 'Truck Rates';
+
 export default function SupplierForm({
   productId,
   quarrySupplierId,
@@ -78,6 +82,7 @@ export default function SupplierForm({
   const [isEditing] = React.useState(Boolean(quarrySupplierId && productId));
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState(SUPPLIER_DETAILS_TAB);
 
   const accountingSoftware = useAccountingSoftwareProvider();
   const { accountingSoftwareLabel, showAccountingMapping } =
@@ -93,6 +98,8 @@ export default function SupplierForm({
   }, [departmentsQuery.data]);
 
   const readOnly = accountingSoftware === 'MYOB_ACUMATICA';
+
+  const showFormFooter = activeTab === TRUCK_RATES_TAB || !readOnly;
 
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>
@@ -190,7 +197,7 @@ export default function SupplierForm({
 
   const tabs = [
     {
-      name: 'Supplier Details',
+      name: SUPPLIER_DETAILS_TAB,
       content: (
         <Card className="mb-8">
           <CardHeader>
@@ -306,7 +313,7 @@ export default function SupplierForm({
       ),
     },
     {
-      name: 'Price Configuration',
+      name: PRICE_CONFIGURATION_TAB,
       content: (
         <div className="flex flex-col gap-4">
           <div>
@@ -324,7 +331,7 @@ export default function SupplierForm({
       ),
     },
     {
-      name: 'Truck Rates',
+      name: TRUCK_RATES_TAB,
       content: (
         <div className="flex flex-col gap-4">
           <div>
@@ -335,7 +342,7 @@ export default function SupplierForm({
               Optional - can be overridden in quotes
             </p>
           </div>
-          <TruckRatesTable control={supplierForm.control} readOnly={readOnly} />
+          <TruckRatesTable control={supplierForm.control} />
         </div>
       ),
     },
@@ -609,13 +616,13 @@ export default function SupplierForm({
     }
   }
   useFormDialogFooter(
-    isDesktop && !readOnly ? (
+    isDesktop && showFormFooter ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           <X className="w-4 h-4 mr-2" />
           Cancel
         </Button>
-        {!isEditing && (
+        {!isEditing && !readOnly && (
           <Button
             form="add-new-supplier-form"
             className="cursor-pointer"
@@ -711,6 +718,8 @@ export default function SupplierForm({
         >
           <Tab
             tabs={tabs}
+            value={activeTab}
+            onValueChange={setActiveTab}
             defaultTab={tabs[0].name}
             className="w-full min-w-0"
             tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
@@ -791,7 +800,7 @@ export default function SupplierForm({
             );
           })()}
 
-          {!isDesktop && !readOnly && (
+          {!isDesktop && showFormFooter && (
             <div className="flex flex-col gap-3 mb-6">
               {!isEditing && (
                 <Button
