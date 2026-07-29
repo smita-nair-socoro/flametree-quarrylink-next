@@ -171,23 +171,25 @@ export function sortQuoteContentItems(
 
 /**
  * Builds the PUT /quote/{quoteId}/content payload's `items` array: one entry
- * per selected item id, with `sortOrder` set to its position in the panel's
- * display order (from `sortQuoteContentItems`) so the saved order matches
- * what the user sees.
+ * per selected item id, with `sortOrder` set to its rank among the selected
+ * items (0-indexed, contiguous) in the panel's display order (from
+ * `sortQuoteContentItems`) so the saved order matches what the user sees.
+ * The backend rejects gaps (e.g. sortOrder 0, 1, 6), which would happen if
+ * we used each item's index in the full library list instead.
  */
 export function buildQuoteContentSelectionItems(
   selectedIds: (string | number)[],
   orderedItems: QuoteSettingItem[],
 ): QuoteContentSelectionItemRequestDto[] {
-  const sortOrderById = new Map(
-    orderedItems.map((item, index) => [item.id, index]),
-  );
+  const rankById = new Map(orderedItems.map((item, index) => [item.id, index]));
 
-  return selectedIds.map((id) => {
-    const libraryItemId = Number(id);
-    return {
-      libraryItemId,
-      sortOrder: sortOrderById.get(libraryItemId) ?? 0,
-    };
-  });
+  return [...selectedIds]
+    .sort(
+      (a, b) =>
+        (rankById.get(Number(a)) ?? 0) - (rankById.get(Number(b)) ?? 0),
+    )
+    .map((id, index) => ({
+      libraryItemId: Number(id),
+      sortOrder: index,
+    }));
 }

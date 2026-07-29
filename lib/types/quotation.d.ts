@@ -6,6 +6,8 @@ import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
 import { Address, CustomerDeliveryAddress } from './address';
 import { TenantLogoResponse } from './client';
+import { QuoteSettingItemType } from './term-conditions-enums';
+import { QuoteTermItem, QuoteDocument } from './terms-conditions';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -194,7 +196,7 @@ export interface TenantProfileSnapshot {
 }
 
 export interface QuoteContentItem {
-  contentType: string;
+  contentType: QuoteSettingItemType;
   name: string;
   sortOrder: number;
   contentHtml?: string;
@@ -316,6 +318,9 @@ export interface QuotationDisplayData {
     validUntil: string;
     accountManager: string;
   };
+  notes: string[];
+  terms: QuoteTermItem[];
+  documents: QuoteDocument[];
   footer: {
     email: string;
     phone: string;

@@ -107,3 +107,34 @@ export interface QuoteContentSelectionRequestDto {
   customerNotesHtml?: string;
   items: QuoteContentSelectionItemRequestDto[];
 }
+
+// Display models for the public quote-review page, built from the flat
+// `QuoteContentItem[]` returned by GET /quote/{id}/preview and
+// /quote/public/link. Unlike `QuoteEditorContentItemResponseDto`, that shape
+// has no `id`/`defaultItem` - ordering is already resolved server-side via
+// `sortOrder`.
+export interface QuoteTermItem {
+  id: string;
+  name: string;
+  /** Sanitised HTML produced by the rich text editor. */
+  content: string;
+}
+
+export interface QuoteDocumentFile {
+  id: string;
+  type: 'file';
+  name: string;
+  fileType: string;
+  fileName: string;
+  fileSizeLabel: string;
+  url: string;
+}
+
+export interface QuoteDocumentLink {
+  id: string;
+  type: 'link';
+  name: string;
+  url: string;
+}
+
+export type QuoteDocument = QuoteDocumentFile | QuoteDocumentLink;
