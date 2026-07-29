@@ -75,7 +75,10 @@ export default function ProductsPage() {
     return new Set(ids);
   }, [linkedProductIdsParam]);
 
-  const isLinkedFilter = !!linkedProductIdsSet;
+  const linkedProductIds = React.useMemo(
+    () => (linkedProductIdsSet ? Array.from(linkedProductIdsSet) : undefined),
+    [linkedProductIdsSet],
+  );
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -97,6 +100,10 @@ export default function ProductsPage() {
     [facetFilters],
   );
 
+  React.useEffect(() => {
+    setPageIndex(0);
+  }, [linkedProductIdsParam]);
+
   const {
     data: productsData,
     isLoading,
@@ -105,9 +112,10 @@ export default function ProductsPage() {
     isError,
   } = useQuery(
     ProductsListQueryOptions({
-      page: isLinkedFilter ? 0 : pageIndex,
-      pageSize: isLinkedFilter ? 1000 : pageSize,
+      page: pageIndex,
+      pageSize,
       search: search.trim() || undefined,
+      ids: linkedProductIds,
       ...apiSortParams,
       ...apiFilterParams,
     }),
@@ -127,9 +135,10 @@ export default function ProductsPage() {
     ...ProductsInfiniteListQueryOptions({
       pageSize: 25,
       search: search.trim() || undefined,
+      ids: linkedProductIds,
       ...apiFilterParams,
     }),
-    enabled: isMobile && !isLinkedFilter,
+    enabled: isMobile,
   });
 
   const mobileItems = React.useMemo(
@@ -247,18 +256,9 @@ export default function ProductsPage() {
     [productPage],
   );
 
-  const filteredItems = React.useMemo(() => {
-    if (!linkedProductIdsSet) return items;
-    return items.filter((p) => linkedProductIdsSet.has(p.id));
-  }, [items, linkedProductIdsSet]);
-
-  const totalElements = isLinkedFilter
-    ? filteredItems.length
-    : (productPage?.totalElements ?? items.length);
-  const totalPages = isLinkedFilter
-    ? 1
-    : (productPage?.totalPages ??
-      Math.max(1, Math.ceil(totalElements / pageSize)));
+  const totalElements = productPage?.totalElements ?? items.length;
+  const totalPages =
+    productPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -309,6 +309,22 @@ export default function ProductsPage() {
     [facetOptions],
   );
 
+  let linkedFilterSuffix: React.ReactNode = null;
+  if (linkedQuarrySupplierNameParam) {
+    linkedFilterSuffix = (
+      <>
+        <span>{' for '}</span>
+        <span className="font-semibold text-foreground">
+          {linkedQuarrySupplierNameParam}
+        </span>
+      </>
+    );
+  } else if (linkedQuarrySupplierIdParam) {
+    linkedFilterSuffix = (
+      <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
@@ -356,16 +372,7 @@ export default function ProductsPage() {
               {linkedProductIdsSet && (
                 <div className="mt-1 text-sm text-muted-foreground">
                   <span>Showing linked products</span>
-                  {linkedQuarrySupplierNameParam ? (
-                    <>
-                      <span>{' for '}</span>
-                      <span className="font-semibold text-foreground">
-                        {linkedQuarrySupplierNameParam}
-                      </span>
-                    </>
-                  ) : linkedQuarrySupplierIdParam ? (
-                    <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
-                  ) : null}
+                  {linkedFilterSuffix}
                 </div>
               )}
               {linkedProductIdsSet && (
@@ -385,34 +392,26 @@ export default function ProductsPage() {
                   ? `product_linked_${linkedQuarrySupplierIdParam ?? 'unknown'}`
                   : 'product_main_data_table'
               }
-              data={filteredItems ?? []}
+              data={items ?? []}
               columns={productColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
-              mobileInfinite={
-                !isLinkedFilter
-                  ? {
-                    items: mobileItems as unknown as ProductDetails[],
-                    hasNextPage,
-                    isFetchingNextPage,
-                    isLoading: infiniteIsFetching,
-                    fetchNextPage,
-                  }
-                  : undefined
-              }
+              mobileInfinite={{
+                items: mobileItems as unknown as ProductDetails[],
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              }}
               totalElements={totalElements}
               totalPages={totalPages}
-              externalPageIndex={isLinkedFilter ? 0 : pageIndex}
-              externalPageSize={
-                isLinkedFilter ? filteredItems.length || 10 : pageSize
-              }
+              externalPageIndex={pageIndex}
+              externalPageSize={pageSize}
               externalSorting={sorting}
-              onPaginationChange={
-                isLinkedFilter ? undefined : handlePaginationChange
-              }
+              onPaginationChange={handlePaginationChange}
               onSearchChange={handleSearchChange}
               onFacetFiltersChange={handleFacetFiltersChange}
               onSortingChange={handleSortingChange}
