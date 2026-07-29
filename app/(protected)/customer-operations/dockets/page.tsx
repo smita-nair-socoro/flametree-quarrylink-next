@@ -71,14 +71,38 @@ export default function DocketsPage() {
   const showSyncInvoice = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const syncInvoice = usePullFromAccSoftware();
-  const handleSyncInvoiceFromAcumatica = async () => {
+
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncInvoiceFromAcumatica = React.useCallback(async () => {
+    if (syncInvoice.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
     try {
       await syncInvoice.mutateAsync();
       notifySuccess('Invoices synced from Acumatica successfully');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
-  }
+  }, [syncInvoice, isSyncDisabled]);
 
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
@@ -665,8 +689,8 @@ export default function DocketsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           {showSyncInvoice && (
             <Button
-              onClick={() => handleSyncInvoiceFromAcumatica()}
-              disabled={syncInvoice.isPending}
+              onClick={handleSyncInvoiceFromAcumatica}
+              disabled={syncInvoice.isPending || isSyncDisabled}
             >
               <div className="flex items-center gap-2">
                 <RefreshCw

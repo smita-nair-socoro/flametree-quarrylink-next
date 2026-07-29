@@ -313,4 +313,5 @@ export const BADGE_COLORS: Record<string, string> = {
   SYNCED: 'bg-green-100 text-green-800 border-green-900',
   'READY FOR COLLECTION': 'bg-green-100 text-green-800 border-green-900',
   READY_FOR_COLLECTION: 'bg-green-100 text-green-800 border-green-900',
+  UNKNOWN: 'bg-gray-100 text-gray-800 border-gray-900',
 };

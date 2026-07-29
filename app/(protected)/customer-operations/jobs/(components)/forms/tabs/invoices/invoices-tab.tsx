@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import {
   InvoicesListQueryOptions,
   toInvoiceApiSortParams,
+  usePullFromAccSoftware,
+  useRetrySync,
 } from '@/lib/api/invoices';
 import type { SortingState } from '@tanstack/react-table';
 import { getInvoicesColumns } from './(data-tables)/columns';
@@ -14,21 +16,33 @@ import { cn } from '@/lib/utils';
 import { FormDialog } from '@/components/form-dialog';
 import InvoiceForm from './forms/invoice-form';
 import { Button } from '@/components/ui/button';
-import { useRetrySync } from '@/lib/api/invoices';
 import { RefreshCw } from 'lucide-react';
 import { useSelectedJob } from '@/app/stores/job-store';
 import { JOB_STATUS } from '@/lib/types/job-enums';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 export default function InvoicesTab({ jobId }: { jobId: number }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
 
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const showSyncInvoice = accSoftwareProvider === 'MYOB_ACUMATICA';
+
   const retrySyncMutation = useRetrySync();
+  const syncInvoice = usePullFromAccSoftware();
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isRetrySyncDisabled, setIsRetrySyncDisabled] = React.useState(false);
   const retrySyncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
   const [pageIndex, setPageIndex] = React.useState(0);
@@ -79,6 +93,9 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
       if (retrySyncCooldownTimeoutRef.current) {
         clearTimeout(retrySyncCooldownTimeoutRef.current);
       }
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -103,6 +120,25 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
     }
   }, [isSubmitting, isRetrySyncDisabled, jobId, retrySyncMutation]);
 
+  const handleSyncInvoiceFromAcumatica = React.useCallback(async () => {
+    if (syncInvoice.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      await syncInvoice.mutateAsync();
+      notifySuccess('Invoices synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }, [syncInvoice, isSyncDisabled]);
+
   return (
     <div className="flex flex-col gap-4 mt-6">
       <div
@@ -125,6 +161,23 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
             />
             Retry Sync
           </Button>
+          {showSyncInvoice && (
+            <Button
+              variant="outline"
+              onClick={handleSyncInvoiceFromAcumatica}
+              disabled={syncInvoice.isPending || isSyncDisabled}
+            >
+              <div className="flex items-center gap-2">
+                <RefreshCw
+                  className={cn(
+                    'h-4 w-4',
+                    syncInvoice.isPending && 'animate-spin',
+                  )}
+                />
+                {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
+              </div>
+            </Button>
+          )}
           {jobStatus !== JOB_STATUS.CANCELLED && (
             <FormDialog
               dialogTitle="Create Invoice"

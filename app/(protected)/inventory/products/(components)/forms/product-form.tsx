@@ -761,7 +761,7 @@ export default function ProductForm({
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                 {isDesktop ? (
                   <DataTableClient
-                    columns={supplierColumns(selectedProduct?.id, currencyCode, taxLabel)}
+                    columns={supplierColumns(selectedProduct?.id, currencyCode, taxLabel, readOnly)}
                     data={
                       isEditing || productJustCreated
                         ? (selectedProduct?.quarrySupplierProducts ?? [])
@@ -776,8 +776,8 @@ export default function ProductForm({
                       ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
                     ).map((supplier) => {
-                      const cost = supplier.perTnCostPrice || 0;
-                      const sell = supplier.perTnSellPrice || 0;
+                      const cost = !readOnly ? supplier.perTnCostPrice : supplier.perM3CostPrice || 0;
+                      const sell = !readOnly ? supplier.perTnSellPrice : supplier.perM3SellPrice || 0;
                       const margin =
                         sell === 0 ? 0 : ((sell - cost) / sell) * 100;
                       return (
@@ -787,8 +787,8 @@ export default function ProductForm({
                           subtitle={supplier.supplierProductName || 'N/A'}
                           costPrice={cost}
                           sellPrice={sell}
-                          costLabel="Cost (TN)"
-                          sellLabel="Sell (TN)"
+                          costLabel={!readOnly ? 'Cost (TN)' : 'Cost (m³)'}
+                          sellLabel={!readOnly ? 'Sell (TN)' : 'Sell (m³)'}
                           profitLabel="Margin"
                           profitValue={margin}
                           actions={

@@ -628,17 +628,17 @@ export default function QuarrySupplierForm({
                   {accountingSoftwareLabel} Mapping
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Optional account code pushed to {accountingSoftwareLabel} on
+                  Optional {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} pushed to {accountingSoftwareLabel} on
                   invoice creation.
                 </p>
               </div>
               <FormSelect
                 control={quarrySupplierForm.control}
                 name="accountCodeId"
-                label="Account Code"
+                label={accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}
                 options={accountCodeOptions}
-                placeholder="Select account code (optional)"
-                searchLabel="account codes"
+                placeholder={`Select ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} (optional)`}
+                searchLabel={accountingSoftwareLabel === 'MYOB Acumatica' ? 'warehouse ids' : 'account codes'}
                 popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
                 formItemClassName="col-span-full"
                 className="w-full"

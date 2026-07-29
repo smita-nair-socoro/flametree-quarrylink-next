@@ -48,14 +48,37 @@ export default function ProductsPage() {
 
   const syncProductFromAcumatica = usePullFromAccSoftware();
 
-  const handleSyncProductFromAcumatica = async () => {
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncProductFromAcumatica = React.useCallback(async () => {
+    if (syncProductFromAcumatica.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
     try {
       await syncProductFromAcumatica.mutateAsync();
       notifySuccess('Products synced from Acumatica successfully');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
-  }
+  }, [syncProductFromAcumatica, isSyncDisabled]);
   const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
@@ -317,8 +340,8 @@ export default function ProductsPage() {
         <h1 className="text-2xl">Products</h1>
         {readOnly ? (
           <Button
-            onClick={() => handleSyncProductFromAcumatica()}
-            disabled={syncProductFromAcumatica.isPending}
+            onClick={handleSyncProductFromAcumatica}
+            disabled={syncProductFromAcumatica.isPending || isSyncDisabled}
           >
             <div className="flex items-center gap-2">
               <RefreshCw
