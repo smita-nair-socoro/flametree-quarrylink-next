@@ -53,7 +53,9 @@ export function InvoiceDetailsDialog() {
   }, [open]);
 
   const handleDownload = async () => {
-    if (invoiceId == null || isDownloading) return;
+    if (invoiceId == null || isDownloading) {
+      return;
+    }
 
     setIsDownloading(true);
     try {
@@ -67,11 +69,13 @@ export function InvoiceDetailsDialog() {
         return;
       }
 
-      if (accSoftware === 'MYOB_BUSINESS' || accSoftware === 'MYOB_ACUMATICA') {
+      if (accSoftware === 'MYOB Business' || accSoftware === 'MYOB Acumatica') {
         const invoicePdf = await queryClient.fetchQuery(
           InvoicePdfQueryOptions(invoiceId),
         );
-        if (!(invoicePdf instanceof Blob)) return;
+        if (!(invoicePdf instanceof Blob)) {
+          return;
+        }
 
         const url = URL.createObjectURL(invoicePdf);
         const opened = window.open(url, '_blank', 'noopener,noreferrer');
