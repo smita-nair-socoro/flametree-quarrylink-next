@@ -1,13 +1,10 @@
 import React from 'react';
 import { View, Text, Link } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
-import {
-  DUMMY_NOTES,
-  DUMMY_TERMS,
-  DUMMY_DOCUMENTS,
-  type QuoteDocument,
-  type QuoteTermItem,
-} from '../terms-and-conditions';
+import type {
+  QuoteDocument,
+  QuoteTermItem,
+} from '@/lib/types/terms-conditions';
 
 // ---- HTML tokenizer ----
 
@@ -222,17 +219,6 @@ function renderRteHtml(html: string, baseStyle: any): React.ReactNode[] {
   return blocks;
 }
 
-// ---- Sorting utility ----
-
-function sortByDefault<T extends { name: string; isDefault?: boolean }>(items: T[]): T[] {
-  return [...items].sort((a, b) => {
-    const aD = a.isDefault ?? false;
-    const bD = b.isDefault ?? false;
-    if (aD !== bD) return aD ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
-}
-
 // ---- Component ----
 
 export interface TermsAndConditionsPdfProps {
@@ -242,9 +228,9 @@ export interface TermsAndConditionsPdfProps {
 }
 
 export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
-  notes = DUMMY_NOTES,
-  terms = DUMMY_TERMS,
-  documents = DUMMY_DOCUMENTS,
+  notes = [],
+  terms = [],
+  documents = [],
 }) => {
   const hasNotes = notes.length > 0;
   const hasTerms = terms.length > 0;
@@ -254,9 +240,6 @@ export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
 
   // Heading travels with the first section so it's never orphaned alone at page bottom
   const headingOwner = hasNotes ? 'notes' : hasTerms ? 'terms' : 'documents';
-
-  const sortedTerms = sortByDefault(terms);
-  const sortedDocuments = sortByDefault(documents);
 
   return (
     <View style={styles.sectionWithBg}>
@@ -280,7 +263,7 @@ export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
             <Text style={styles.sectionHeading}>Notes & Terms</Text>
           )}
           <Text style={styles.label}>Terms & Conditions</Text>
-          {sortedTerms.map((term) => (
+          {terms.map((term) => (
             <View key={term.id} style={styles.termCardContainer} wrap={false}>
               <Text style={styles.termCardTitle}>{term.name}</Text>
               <View>{renderRteHtml(term.content, styles.termCardBody)}</View>
@@ -299,7 +282,7 @@ export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
             <Text style={styles.sectionHeading}>Notes & Terms</Text>
           )}
           <Text style={styles.label}>Documents</Text>
-          {sortedDocuments.map((doc) => (
+          {documents.map((doc) => (
             <View key={doc.id} style={styles.documentRow} wrap={false}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.documentName}>{doc.name}</Text>

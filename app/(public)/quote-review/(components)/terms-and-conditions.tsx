@@ -7,35 +7,17 @@ import {
   Download,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import type {
+  QuoteTermItem,
+  QuoteDocument,
+} from '@/lib/types/terms-conditions';
 
-export interface QuoteTermItem {
-  id: string;
-  name: string;
-  /** Sanitised HTML produced by the rich text editor. */
-  content: string;
-  isDefault: boolean;
-}
-
-export interface QuoteDocumentFile {
-  id: string;
-  type: 'file';
-  name: string;
-  fileType: string;
-  fileName: string;
-  fileSizeLabel: string;
-  url: string;
-  isDefault?: boolean;
-}
-
-export interface QuoteDocumentLink {
-  id: string;
-  type: 'link';
-  name: string;
-  url: string;
-  isDefault?: boolean;
-}
-
-export type QuoteDocument = QuoteDocumentFile | QuoteDocumentLink;
+export type {
+  QuoteTermItem,
+  QuoteDocumentFile,
+  QuoteDocumentLink,
+  QuoteDocument,
+} from '@/lib/types/terms-conditions';
 
 export interface TermsAndConditionsProps {
   notes?: string[];
@@ -43,106 +25,16 @@ export interface TermsAndConditionsProps {
   documents?: QuoteDocument[];
 }
 
-/** Sort default item first, then alphabetically by name. */
-function sortByDefault<T extends { name: string; isDefault?: boolean }>(
-  items: T[],
-): T[] {
-  return [...items].sort((a, b) => {
-    const aD = a.isDefault ?? false;
-    const bD = b.isDefault ?? false;
-    if (aD !== bD) return aD ? -1 : 1;
-    return a.name.localeCompare(b.name);
-  });
-}
-
-export const DUMMY_NOTES = [
-  'Site access is via the rear loading dock on Rosella Circuit. Please call John on 0412 345 678 at least 30 minutes before arrival.',
-  'Deliveries are restricted to 2:00 PM – 4:00 PM as noted above. A signed delivery docket is required on every drop.',
-];
-
-export const DUMMY_TERMS: QuoteTermItem[] = [
-  {
-    // Default item — tests bold, italic, bullet list
-    id: 'standard-supply',
-    name: 'Standard Supply Terms',
-    content:
-      '<p><strong>Prices quoted</strong> are valid until the expiry date shown on this quote and are <em>exclusive of GST</em> unless stated otherwise.</p>' +
-      '<ul>' +
-      '<li><p>Title to goods passes to the customer upon <strong>delivery</strong> unless otherwise agreed in writing.</p></li>' +
-      '<li><p>The supplier reserves the right to <strong>suspend supply</strong> where accounts are overdue.</p></li>' +
-      '<li><p>Risk of loss or damage passes to the customer upon delivery.</p></li>' +
-      '</ul>',
-    isDefault: true,
-  },
-  {
-    // Tests numbered list, bold percentages, italic, underline
-    id: 'payment-schedule',
-    name: 'Payment Schedule',
-    content:
-      '<p>The following payment milestones apply to this order:</p>' +
-      '<ol>' +
-      '<li><p><strong>30%</strong> deposit due upon acceptance of this quote.</p></li>' +
-      '<li><p><strong>40%</strong> progress payment due prior to dispatch.</p></li>' +
-      '<li><p><strong>30%</strong> balance due within <em>14 days</em> of delivery.</p></li>' +
-      '</ol>' +
-      '<p>Late payments will incur an interest charge of <u>2% per month</u> on the outstanding balance.</p>',
-    isDefault: false,
-  },
-  {
-    // Tests center/right align, underline, strikethrough, links, combined bold+italic
-    id: 'formatting-showcase',
-    name: 'Text Formatting Reference',
-    content:
-      '<p style="text-align: center"><strong>Important Notice — Please Read Carefully</strong></p>' +
-      '<p>This card demonstrates all supported rich text formats:</p>' +
-      '<p><strong>Bold</strong>, <em>italic</em>, <u>underline</u>, <s>strikethrough</s>.</p>' +
-      '<p>Combined styles: <strong><em>bold italic</em></strong>, <strong><u>bold underline</u></strong>.</p>' +
-      '<p>Links are supported: visit our <a href="https://example.com/policy">policy page</a> for full details.</p>' +
-      '<p style="text-align: right"><em>— The Supplier</em></p>',
-    isDefault: false,
-  },
-];
-
-export const DUMMY_DOCUMENTS: QuoteDocument[] = [
-  {
-    id: 'standard-supply-policy',
-    type: 'file',
-    name: 'Standard Supply Policy',
-    fileType: 'PDF',
-    fileName: 'standard-supply-policy.pdf',
-    fileSizeLabel: '242.5 KB',
-    url: '#',
-    isDefault: true,
-  },
-  {
-    id: 'credit-policy',
-    type: 'link',
-    name: 'Credit Policy (SharePoint)',
-    url: 'https://company.sharepoint.com/sites/policies/credit-policy',
-    isDefault: false,
-  },
-  {
-    id: 'whs-site-safety',
-    type: 'link',
-    name: 'WHS Site Safety Requirements',
-    url: 'https://drive.google.com/file/d/example-whs-policy',
-    isDefault: false,
-  },
-];
-
 export function TermsAndConditions({
-  notes = DUMMY_NOTES,
-  terms = DUMMY_TERMS,
-  documents = DUMMY_DOCUMENTS,
+  notes = [],
+  terms = [],
+  documents = [],
 }: Readonly<TermsAndConditionsProps>) {
   const hasNotes = notes.length > 0;
   const hasTerms = terms.length > 0;
   const hasDocuments = documents.length > 0;
 
   if (!hasNotes && !hasTerms && !hasDocuments) return null;
-
-  const sortedTerms = sortByDefault(terms);
-  const sortedDocuments = sortByDefault(documents);
 
   return (
     <div className="bg-white px-8 py-4 pt-10 mb-4">
@@ -171,7 +63,7 @@ export function TermsAndConditions({
             Terms & Conditions
           </h3>
           <div className="space-y-3">
-            {sortedTerms.map((term) => (
+            {terms.map((term) => (
               <div
                 key={term.id}
                 className="rounded-lg border border-gray-200 bg-gray-50 p-4"
@@ -202,7 +94,7 @@ export function TermsAndConditions({
             The following documents and links apply to this quote.
           </p>
           <div className="space-y-2">
-            {sortedDocuments.map((doc) =>
+            {documents.map((doc) =>
               doc.type === 'file' ? (
                 <a
                   key={doc.id}

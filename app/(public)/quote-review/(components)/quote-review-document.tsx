@@ -535,8 +535,12 @@ export default function QuoteReviewDocument({
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
           <Separator />
-          {/* Notes & Terms (dummy data for now) */}
-          <TermsAndConditions />
+          {/* Notes & Terms */}
+          <TermsAndConditions
+            notes={quotationData.notes}
+            terms={quotationData.terms}
+            documents={quotationData.documents}
+          />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}
           {!isPreviewMode && (

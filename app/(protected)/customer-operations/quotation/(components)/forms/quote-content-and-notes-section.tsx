@@ -18,6 +18,7 @@ import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteSettingItem } from '@/lib/types/terms-conditions';
 import { PolicyDocumentViewQueryOptions } from '@/lib/api/quote-profile-content';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { formatFileSize } from '@/lib/utils/number';
 import { notifyError } from '@/lib/toast';
 import z from 'zod';
 import { QuotationFormSchema } from './schemas/quotation-form-schema';
@@ -35,11 +36,6 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.EXTERNAL_LINK]: Link2,
   [QuoteSettingItemType.POLICY_DOCUMENT]: Upload,
 };
-
-function formatFileSize(bytes: number): string {
-  const kb = bytes / 1024;
-  return kb < 1024 ? `${kb.toFixed(1)} KB` : `${(kb / 1024).toFixed(1)} MB`;
-}
 
 function itemSubtitle(item: QuoteSettingItem): string {
   if (isPolicyDocument(item)) {

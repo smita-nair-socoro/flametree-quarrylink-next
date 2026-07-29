@@ -2,14 +2,20 @@ import {
   PublicQuoteLinkResponse,
   QuotationDisplayData,
   QuoteCurrencyTax,
+  QuoteContent,
   TenantProfileSnapshot,
 } from '@/lib/types/quotation';
+import { QuoteTermItem, QuoteDocument } from '@/lib/types/terms-conditions';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
   QUOTE_STATUS as QuoteStatus,
   QUOTE_ITEM_TYPE as QuoteItemType,
 } from '@/lib/types/quotation-enums';
 import { formatAustralianAddress } from '@/lib/utils/address-helper';
-import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import {
+  formatFileSize,
+  formatNumberThousandSeparator,
+} from '@/lib/utils/number';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
 import {
@@ -48,15 +54,83 @@ export function buildQuoteCurrencyTax(
   };
 }
 
+// Text template, then external link, then policy document; alphabetical by name within each type.
+const CONTENT_TYPE_ORDER: Record<QuoteSettingItemType, number> = {
+  [QuoteSettingItemType.TEXT_TEMPLATE]: 0,
+  [QuoteSettingItemType.EXTERNAL_LINK]: 1,
+  [QuoteSettingItemType.POLICY_DOCUMENT]: 2,
+};
+
+/**
+ * Splits the quote content items (flat array, discriminated by
+ * `contentType`) into the notes/terms/documents groups the quote-review
+ * page renders.
+ */
+export function mapQuoteContent(content?: QuoteContent): {
+  notes: string[];
+  terms: QuoteTermItem[];
+  documents: QuoteDocument[];
+} {
+  const notes = (content?.customerNotesHtml ?? '')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const orderedItems = [...(content?.items ?? [])].sort((a, b) => {
+    const typeDiff =
+      CONTENT_TYPE_ORDER[a.contentType] - CONTENT_TYPE_ORDER[b.contentType];
+    return typeDiff !== 0 ? typeDiff : a.name.localeCompare(b.name);
+  });
+
+  const terms: QuoteTermItem[] = [];
+  const documents: QuoteDocument[] = [];
+
+  orderedItems.forEach((item, index) => {
+    const id = `${item.contentType}-${index}`;
+    if (item.contentType === QuoteSettingItemType.TEXT_TEMPLATE) {
+      terms.push({ id, name: item.name, content: item.contentHtml ?? '' });
+      return;
+    }
+    if (item.contentType === QuoteSettingItemType.EXTERNAL_LINK) {
+      documents.push({
+        id,
+        type: 'link',
+        name: item.name,
+        url: item.externalUrl ?? '#',
+      });
+      return;
+    }
+    if (item.contentType === QuoteSettingItemType.POLICY_DOCUMENT) {
+      documents.push({
+        id,
+        type: 'file',
+        name: item.name,
+        fileType: item.mimeType?.split('/')[1]?.toUpperCase() || 'FILE',
+        fileName: item.originalFileName ?? item.name,
+        fileSizeLabel: formatFileSize(item.fileSizeBytes ?? 0),
+        url: item.viewUrl ?? '#',
+      });
+    }
+  });
+
+  return { notes, terms, documents };
+}
+
 /**
  * Transform API response to display format
  */
 export function transformQuoteData(
   apiResponse: PublicQuoteLinkResponse,
 ): QuotationDisplayData {
-  const { quoteDto, stripeTenantDetailsSnapshot, tenantLogoDto, tenantProfile } =
-    apiResponse;
+  const {
+    quoteDto,
+    stripeTenantDetailsSnapshot,
+    tenantLogoDto,
+    tenantProfile,
+    content,
+  } = apiResponse;
   const currencyTax = buildQuoteCurrencyTax(tenantProfile);
+  const { notes, terms, documents } = mapQuoteContent(content);
   const {
     quoteNumber,
     customerName,
@@ -193,6 +267,9 @@ export function transformQuoteData(
       validUntil: formatDateWithOrdinal(expiryDate),
       accountManager: accountManagerName || 'N/A',
     },
+    notes,
+    terms,
+    documents,
     footer: (() => {
       // Format footer address using Australian standard (same as billing address)
       const footerAddressFormatted = formatAustralianAddress(
