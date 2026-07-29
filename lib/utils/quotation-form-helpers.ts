@@ -185,11 +185,11 @@ export function buildQuoteContentSelectionItems(
 
   return [...selectedIds]
     .sort(
-      (a, b) =>
-        (rankById.get(Number(a)) ?? 0) - (rankById.get(Number(b)) ?? 0),
+      (a, b) => (rankById.get(Number(a)) ?? 0) - (rankById.get(Number(b)) ?? 0),
     )
     .map((id, index) => ({
       libraryItemId: Number(id),
       sortOrder: index,
+      visible: true,
     }));
 }

@@ -1,8 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { Control } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
-import { MessageSquare, FileText, Link2, Upload } from 'lucide-react';
+import {
+  MessageSquare,
+  FileText,
+  Link2,
+  Upload,
+  ChevronDown,
+} from 'lucide-react';
 import {
   FormControl,
   FormField,
@@ -15,13 +22,22 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
-import { QuoteSettingItem } from '@/lib/types/terms-conditions';
+import {
+  QuoteSettingItem,
+  QuoteTextTemplateItem,
+} from '@/lib/types/terms-conditions';
 import { PolicyDocumentViewQueryOptions } from '@/lib/api/quote-profile-content';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatFileSize } from '@/lib/utils/number';
 import { notifyError } from '@/lib/toast';
 import z from 'zod';
 import { QuotationFormSchema } from './schemas/quotation-form-schema';
+
+function isTextTemplate(item: QuoteSettingItem): item is QuoteTextTemplateItem {
+  return (
+    !isPolicyDocument(item) && item.type === QuoteSettingItemType.TEXT_TEMPLATE
+  );
+}
 
 const MAX_NOTES_LENGTH = 2000;
 
@@ -56,6 +72,7 @@ export function QuoteContentAndNotesSection({
   disabled,
 }: Readonly<QuoteContentAndNotesSectionProps>) {
   const queryClient = useQueryClient();
+  const [expandedId, setExpandedId] = useState<string | number | null>(null);
 
   const viewPolicyDocument = async (id: number) => {
     try {
@@ -118,8 +135,8 @@ export function QuoteContentAndNotesSection({
           <h3 className="font-semibold">T&amp;Cs &amp; Policy Documents</h3>
         </div>
         <p className="text-sm text-muted-foreground -mt-2">
-          Text templates, policy document, and external links from your
-          library — managed in System &rarr; Quote Settings.
+          Text templates, policy document, and external links from your library
+          — managed in System &rarr; Quote Settings.
         </p>
 
         <FormField
@@ -144,43 +161,69 @@ export function QuoteContentAndNotesSection({
                       ? typeIcons[QuoteSettingItemType.POLICY_DOCUMENT]
                       : typeIcons[item.type];
                     const checked = selectedIds.includes(item.id);
+                    const previewable = isTextTemplate(item);
+                    const expanded = previewable && expandedId === item.id;
                     return (
-                      <label
-                        key={item.id}
-                        className="flex items-center gap-3 px-3 py-3 cursor-pointer"
-                      >
-                        <Checkbox
-                          checked={checked}
-                          disabled={disabled}
-                          className="border-[#A1A1AA]"
-                          onCheckedChange={(value) =>
-                            toggle(item.id, value === true)
-                          }
-                        />
-                        <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-[#09090B]">
-                            {item.name}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {itemSubtitle(item)}
-                          </p>
+                      <div key={item.id}>
+                        <div
+                          className={`flex items-center gap-3 px-3 py-3 ${previewable ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+                          onClick={() => {
+                            if (previewable) {
+                              setExpandedId(expanded ? null : item.id);
+                            }
+                          }}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            disabled={disabled}
+                            className="border-[#A1A1AA]"
+                            onClick={(e) => e.stopPropagation()}
+                            onCheckedChange={(value) =>
+                              toggle(item.id, value === true)
+                            }
+                          />
+                          <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-[#09090B]">
+                              {item.name}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {itemSubtitle(item)}
+                            </p>
+                          </div>
+                          {isPolicyDocument(item) && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                viewPolicyDocument(item.id);
+                              }}
+                            >
+                              View
+                            </Button>
+                          )}
+                          {previewable && (
+                            <ChevronDown
+                              className={`h-4 w-4 text-muted-foreground shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`}
+                            />
+                          )}
                         </div>
-                        {isPolicyDocument(item) && (
-                          <Button
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              viewPolicyDocument(item.id);
-                            }}
-                          >
-                            View
-                          </Button>
+                        {expanded && (
+                          <div className="px-3 pb-3">
+                            <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                              <div
+                                className="rte-output text-sm text-gray-700"
+                                dangerouslySetInnerHTML={{
+                                  __html: item.contentHtml,
+                                }}
+                              />
+                            </div>
+                          </div>
                         )}
-                      </label>
+                      </div>
                     );
                   })}
                 </div>
