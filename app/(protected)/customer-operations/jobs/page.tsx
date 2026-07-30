@@ -37,6 +37,10 @@ export default function CustomersPage() {
   const router = useRouter();
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
+  const jobColumns = React.useMemo(
+    () => getJobColumns(currencyCode, taxLabel),
+    [currencyCode, taxLabel],
+  );
 
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
 
@@ -334,7 +338,7 @@ export default function CustomersPage() {
             <DataTableClient
               tableId="job_main_data_table"
               data={items ?? []}
-              columns={getJobColumns(currencyCode, taxLabel)}
+              columns={jobColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search jobs..."
               defaultSorting={[{ id: 'jobNumber', desc: true }]}

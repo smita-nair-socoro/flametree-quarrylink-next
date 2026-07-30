@@ -55,6 +55,10 @@ export default function DriversPage() {
     return map;
   }, [users]);
   // END TEMP
+  const memoizedDriverColumns = React.useMemo(
+    () => driverColumns(emailToSubMap),
+    [emailToSubMap],
+  );
 
   const haulierId = searchParams.get('haulierId');
 
@@ -222,7 +226,7 @@ export default function DriversPage() {
           }
           tableId="driver_main_data_table"
           data={items}
-          columns={driverColumns(emailToSubMap)}
+          columns={memoizedDriverColumns}
           facetDefinition={facetDefs}
           searchPlaceHolder="Search drivers..."
           defaultSorting={[{ id: 'driverName', desc: false }]}

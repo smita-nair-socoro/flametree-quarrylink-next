@@ -265,6 +265,11 @@ export default function CustomersPage() {
     actions.view(customer);
   };
 
+  const customerColumns = React.useMemo(
+    () => getCustomerColumns(currencyCode),
+    [currencyCode],
+  );
+
   const renderCustomerCard = React.useCallback(
     (customer: CustomerDTO) => {
       const formattedStatus = formatCustomerStatus(
@@ -369,7 +374,7 @@ export default function CustomersPage() {
       <DataTableClient
         tableId="customer_main_data_table"
         data={items ?? []}
-        columns={getCustomerColumns(currencyCode)}
+        columns={customerColumns}
         facetDefinition={facetDefs}
         searchPlaceHolder="Search customers..."
         onRowClick={handleRowClick}
