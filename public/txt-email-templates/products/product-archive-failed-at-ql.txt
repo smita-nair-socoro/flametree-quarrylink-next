@@ -1,0 +1,27 @@
+Hi {firstName},
+
+You archived {productName} ({productCode}) in your accounting software. QuarryLink attempted to archive the same product, but we couldn't complete the archive in QuarryLink.
+
+To avoid breaking existing work, {productName} remains active in QuarryLink, even though it is archived in your accounting software.
+
+WHY THIS CAN HAPPEN
+
+QuarryLink may block archiving a product when there are still active or required records linked to it, for example:
+
+- Active or pending dockets
+- Open jobs or orders
+- Other items that must remain accessible for operations, billing, or reporting
+
+WHAT YOU CAN DO NEXT
+
+1. In QuarryLink, open {productName} ({productCode}).
+2. Review and close/complete any active dockets, jobs, or other linked items.
+3. Once there are no blocking items, archive the product directly in QuarryLink.
+
+If you need help identifying what's blocking the archive, contact us at {supportEmail}.
+
+Thanks,
+The QuarryLink Team
+
+---
+You're receiving this email because an accounting software archive action could not be applied in QuarryLink.

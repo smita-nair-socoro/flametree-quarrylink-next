@@ -31,6 +31,10 @@ export default function HaulierPage() {
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
   const { actions, viewDialog } = useHaulierActions();
   const handleRowClick = (haulier: HaulierDTO) => actions.view(haulier);
+  const memoizedHaulierColumns = React.useMemo(
+    () => haulierColumns(tenantEmail),
+    [tenantEmail],
+  );
 
   const { data: statistics } = useQuery(HaulierStatisticsQueryOptions());
 
@@ -188,7 +192,7 @@ export default function HaulierPage() {
         <DataTableClient
           tableId="haulier_main_data_table"
           data={items}
-          columns={haulierColumns(tenantEmail)}
+          columns={memoizedHaulierColumns}
           onRowClick={handleRowClick}
           mobileCardRenderer={renderHaulierCard}
           mobileInfinite={{
