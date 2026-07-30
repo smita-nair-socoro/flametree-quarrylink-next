@@ -13,6 +13,7 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { ProductDetails } from '@/lib/types/product';
 import { useProductActions } from '@/hooks/use-product-actions';
 import { notifyWarning } from '@/lib/toast';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface ProductActionButtonsProps {
   product: ProductDetails | null | undefined;
@@ -60,6 +61,8 @@ export function ProductActionButtons({
     action?.();
   };
 
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
   // Early returns for null quotation or new quotation
   if (!product) {
     return null;
@@ -76,47 +79,49 @@ export function ProductActionButtons({
       <div>
         {confirmDialogs}
         {viewDialog}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {!isUnavailable && (
-              <>
-                <DropdownMenuItem
-                  onClick={() => runAction(actions.unavailable)}
-                  className="text-destructive focus:text-destructive"
-                >
-                  <Ban className="h-4 w-4 mr-2 text-red-600" />
-                  Mark as Unavailable
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            {isUnavailable && (
-              <>
-                <DropdownMenuItem
-                  onClick={() => runAction(actions.available)}
-                  className="text-green-600 focus:text-green-600"
-                >
-                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-                  Mark as Available
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem
-              onClick={() => runAction(actions.delete)}
-              className="text-destructive focus:text-destructive"
-            >
-              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+        {!readOnly && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {!isUnavailable && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => runAction(actions.unavailable)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <Ban className="h-4 w-4 mr-2 text-red-600" />
+                    Mark as Unavailable
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              {isUnavailable && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => runAction(actions.available)}
+                    className="text-green-600 focus:text-green-600"
+                  >
+                    <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                    Mark as Available
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+              <DropdownMenuItem
+                onClick={() => runAction(actions.delete)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div >
     );
   }
   // Desktop expanded version - toggle group layout
@@ -124,43 +129,45 @@ export function ProductActionButtons({
     <div>
       {confirmDialogs}
       {viewDialog}
-      <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            {!isUnavailable ? (
-              <DropdownMenuItem
-                onClick={() => runAction(actions.unavailable)}
-                className="text-destructive focus:text-destructive"
+      {!readOnly && (
+        <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="rounded-none bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
               >
-                <Ban className="h-4 w-4 mr-2 text-red-600" />
-                Mark as Unavailable
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {!isUnavailable ? (
+                <DropdownMenuItem
+                  onClick={() => runAction(actions.unavailable)}
+                  className="text-destructive focus:text-destructive"
+                >
+                  <Ban className="h-4 w-4 mr-2 text-red-600" />
+                  Mark as Unavailable
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem
+                  onClick={() => runAction(actions.available)}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
+                  Mark as Available
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => runAction(actions.delete)}>
+                <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                <span className="text-destructive">Delete</span>
               </DropdownMenuItem>
-            ) : (
-              <DropdownMenuItem
-                onClick={() => runAction(actions.available)}
-                className="text-green-600 focus:text-green-600"
-              >
-                <ArchiveRestore className="h-4 w-4 mr-2 text-green-600" />
-                Mark as Available
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => runAction(actions.delete)}>
-              <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-              <span className="text-destructive">Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      )}
+    </div >
   );
 }

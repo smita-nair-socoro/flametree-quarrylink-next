@@ -13,9 +13,10 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface TruckRatesTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;
+  readOnly?: boolean;
 }
 
-export function TruckRatesTable({ control }: TruckRatesTableProps) {
+export function TruckRatesTable({ control, readOnly = false }: TruckRatesTableProps) {
   const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
 
   // Headers configuration
@@ -118,6 +119,7 @@ export function TruckRatesTable({ control }: TruckRatesTableProps) {
       control={control}
       mobileHiddenCells={[2]}
       className="overflow-x-hidden"
+      readOnly={readOnly}
     />
   );
 }

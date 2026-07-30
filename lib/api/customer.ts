@@ -524,8 +524,7 @@ export const useDeleteAdditionalContact = () => {
     }: {
       customerId: number;
       contactId: number;
-    }) =>
-      APIClient.customers.deleteAdditionalContact(customerId, contactId),
+    }) => APIClient.customers.deleteAdditionalContact(customerId, contactId),
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
@@ -536,5 +535,16 @@ export const useDeleteAdditionalContact = () => {
         ],
       });
     },
+  });
+};
+
+export const usePullFromAccSoftware = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+    },
+    mutationFn: () => APIClient.customers.syncAllFromAccSoftware(),
   });
 };

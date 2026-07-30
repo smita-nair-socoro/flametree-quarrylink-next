@@ -319,14 +319,14 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
           return;
         }
 
-        const quarrySupplierName = selectedQuarrySupplier?.name?.trim();
+        const quarrySupplierName = quarrySupplierData?.name?.trim() ?? selectedQuarrySupplier?.name?.trim();
         const nameParam = quarrySupplierName
           ? `&linkedQuarrySupplierName=${encodeURIComponent(
             quarrySupplierName
           )}`
           : '';
 
-        const linkedProductsUrl = `/inventory/products?linkedProductIds=${encodeURIComponent(
+        const linkedProductsUrl = `/inventory/products/?linkedProductIds=${encodeURIComponent(
           productIds.join(',')
         )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`;
         window.open(linkedProductsUrl, '_blank', 'noopener,noreferrer');

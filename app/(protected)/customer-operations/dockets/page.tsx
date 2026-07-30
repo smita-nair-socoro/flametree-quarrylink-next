@@ -11,7 +11,9 @@ import {
   User,
   Calendar,
   Hash,
+  RefreshCw,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
@@ -34,14 +36,14 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
 import type { DocketsPage } from '@/lib/types/docket';
-import { Button } from '@/components/ui/button';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
+import { usePullFromAccSoftware } from '@/lib/api/invoices';
 
 import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
 import { useDocketActions } from '@/hooks/use-docket-actions';
@@ -51,7 +53,9 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { formatLocalDate } from '@/lib/utils/date';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 export default function DocketsPage() {
   const router = useRouter();
@@ -62,6 +66,43 @@ export default function DocketsPage() {
   const driverNameParam = searchParams.get('driverName');
   const truckIdParam = searchParams.get('truckId');
   const truckNameParam = searchParams.get('truckName');
+
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const showSyncInvoice = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncInvoice = usePullFromAccSoftware();
+
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncInvoiceFromAcumatica = React.useCallback(async () => {
+    if (syncInvoice.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      await syncInvoice.mutateAsync();
+      notifySuccess('Invoices synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }, [syncInvoice, isSyncDisabled]);
 
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
@@ -646,13 +687,28 @@ export default function DocketsPage() {
           <h1 className="text-2xl">Dockets</h1>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Add New Docket"
-            dialogDescription="Fill in the required fields to add a new docket."
-            buttonTitle="Add Docket"
-          >
-            <DocketForm />
-          </FormDialog>
+          {showSyncInvoice && (
+            <Button
+              onClick={handleSyncInvoiceFromAcumatica}
+              disabled={syncInvoice.isPending || isSyncDisabled}
+            >
+              <div className="flex items-center gap-2">
+                <RefreshCw
+                  className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
+                />
+                {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
+              </div>
+            </Button>
+          )}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog
+              dialogTitle="Add New Docket"
+              dialogDescription="Fill in the required fields to add a new docket."
+              buttonTitle="Add Docket"
+            >
+              <DocketForm />
+            </FormDialog>
+          </div>
         </div>
       </div>
 

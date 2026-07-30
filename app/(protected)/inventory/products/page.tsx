@@ -3,7 +3,7 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Gem, PackageX, TrendingUp, Package, Tag, Box } from 'lucide-react';
+import { Gem, PackageX, TrendingUp, Package, Tag, Box, RefreshCw } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
@@ -22,6 +22,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { usePullFromAccSoftware } from '@/lib/api/product';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 import {
@@ -33,12 +35,50 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncProductFromAcumatica = usePullFromAccSoftware();
+
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncProductFromAcumatica = React.useCallback(async () => {
+    if (syncProductFromAcumatica.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      await syncProductFromAcumatica.mutateAsync();
+      notifySuccess('Products synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }, [syncProductFromAcumatica, isSyncDisabled]);
   const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
@@ -58,7 +98,10 @@ export default function ProductsPage() {
     return new Set(ids);
   }, [linkedProductIdsParam]);
 
-  const isLinkedFilter = !!linkedProductIdsSet;
+  const linkedProductIds = React.useMemo(
+    () => (linkedProductIdsSet ? Array.from(linkedProductIdsSet) : undefined),
+    [linkedProductIdsSet],
+  );
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -80,6 +123,10 @@ export default function ProductsPage() {
     [facetFilters],
   );
 
+  React.useEffect(() => {
+    setPageIndex(0);
+  }, [linkedProductIdsParam]);
+
   const {
     data: productsData,
     isLoading,
@@ -88,9 +135,10 @@ export default function ProductsPage() {
     isError,
   } = useQuery(
     ProductsListQueryOptions({
-      page: isLinkedFilter ? 0 : pageIndex,
-      pageSize: isLinkedFilter ? 1000 : pageSize,
+      page: pageIndex,
+      pageSize,
       search: search.trim() || undefined,
+      ids: linkedProductIds,
       ...apiSortParams,
       ...apiFilterParams,
     }),
@@ -110,9 +158,10 @@ export default function ProductsPage() {
     ...ProductsInfiniteListQueryOptions({
       pageSize: 25,
       search: search.trim() || undefined,
+      ids: linkedProductIds,
       ...apiFilterParams,
     }),
-    enabled: isMobile && !isLinkedFilter,
+    enabled: isMobile,
   });
 
   const mobileItems = React.useMemo(
@@ -146,9 +195,8 @@ export default function ProductsPage() {
     {
       title: 'Unavailable Products',
       value: reportingData?.unavailableProductsCount || 0,
-      description: `${
-        reportingData?.unavailableProductsPercentOfInventory || 0
-      }% of inventory`,
+      description: `${reportingData?.unavailableProductsPercentOfInventory || 0
+        }% of inventory`,
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
       iconColor: 'text-[#9F0712]',
@@ -157,9 +205,8 @@ export default function ProductsPage() {
     {
       title: 'Average Product Margin',
       value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
-      description: `${
-        reportingData?.averageProductMarginChangeVsLastMonth || 0
-      }% last month`,
+      description: `${reportingData?.averageProductMarginChangeVsLastMonth || 0
+        }% last month`,
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
       iconColor: 'text-[#00A63E]',
@@ -168,9 +215,8 @@ export default function ProductsPage() {
     {
       title: 'Total Products',
       value: reportingData?.totalProducts || 0,
-      description: `+${
-        reportingData?.productsAddedThisMonth || 0
-      } added this month`,
+      description: `+${reportingData?.productsAddedThisMonth || 0
+        } added this month`,
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
       iconColor: 'text-[#0891B2]',
@@ -233,18 +279,9 @@ export default function ProductsPage() {
     [productPage],
   );
 
-  const filteredItems = React.useMemo(() => {
-    if (!linkedProductIdsSet) return items;
-    return items.filter((p) => linkedProductIdsSet.has(p.id));
-  }, [items, linkedProductIdsSet]);
-
-  const totalElements = isLinkedFilter
-    ? filteredItems.length
-    : (productPage?.totalElements ?? items.length);
-  const totalPages = isLinkedFilter
-    ? 1
-    : (productPage?.totalPages ??
-      Math.max(1, Math.ceil(totalElements / pageSize)));
+  const totalElements = productPage?.totalElements ?? items.length;
+  const totalPages =
+    productPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -295,18 +332,49 @@ export default function ProductsPage() {
     [facetOptions],
   );
 
+  let linkedFilterSuffix: React.ReactNode = null;
+  if (linkedQuarrySupplierNameParam) {
+    linkedFilterSuffix = (
+      <>
+        <span>{' for '}</span>
+        <span className="font-semibold text-foreground">
+          {linkedQuarrySupplierNameParam}
+        </span>
+      </>
+    );
+  } else if (linkedQuarrySupplierIdParam) {
+    linkedFilterSuffix = (
+      <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
+        {readOnly ? (
+          <Button
+            onClick={handleSyncProductFromAcumatica}
+            disabled={syncProductFromAcumatica.isPending || isSyncDisabled}
+          >
+            <div className="flex items-center gap-2">
+              <RefreshCw
+                className={`h-4 w-4 ${syncProductFromAcumatica.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncProductFromAcumatica.isPending ? 'Syncing' : 'Sync Product'}
+            </div>
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
+              <ProductForm />
+            </FormDialog>
+          </div>
+        )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product">
-            <ProductForm />
-          </FormDialog>
-        </div>
+
       </div>
       <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
@@ -327,16 +395,7 @@ export default function ProductsPage() {
               {linkedProductIdsSet && (
                 <div className="mt-1 text-sm text-muted-foreground">
                   <span>Showing linked products</span>
-                  {linkedQuarrySupplierNameParam ? (
-                    <>
-                      <span>{' for '}</span>
-                      <span className="font-semibold text-foreground">
-                        {linkedQuarrySupplierNameParam}
-                      </span>
-                    </>
-                  ) : linkedQuarrySupplierIdParam ? (
-                    <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
-                  ) : null}
+                  {linkedFilterSuffix}
                 </div>
               )}
               {linkedProductIdsSet && (
@@ -356,34 +415,26 @@ export default function ProductsPage() {
                   ? `product_linked_${linkedQuarrySupplierIdParam ?? 'unknown'}`
                   : 'product_main_data_table'
               }
-              data={filteredItems ?? []}
+              data={items ?? []}
               columns={productColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
-              mobileInfinite={
-                !isLinkedFilter
-                  ? {
-                      items: mobileItems as unknown as ProductDetails[],
-                      hasNextPage,
-                      isFetchingNextPage,
-                      isLoading: infiniteIsFetching,
-                      fetchNextPage,
-                    }
-                  : undefined
-              }
+              mobileInfinite={{
+                items: mobileItems as unknown as ProductDetails[],
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              }}
               totalElements={totalElements}
               totalPages={totalPages}
-              externalPageIndex={isLinkedFilter ? 0 : pageIndex}
-              externalPageSize={
-                isLinkedFilter ? filteredItems.length || 10 : pageSize
-              }
+              externalPageIndex={pageIndex}
+              externalPageSize={pageSize}
               externalSorting={sorting}
-              onPaginationChange={
-                isLinkedFilter ? undefined : handlePaginationChange
-              }
+              onPaginationChange={handlePaginationChange}
               onSearchChange={handleSearchChange}
               onFacetFiltersChange={handleFacetFiltersChange}
               onSortingChange={handleSortingChange}

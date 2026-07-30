@@ -16,11 +16,13 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 interface PricingConfigurationTableProps {
   control: Control<z.infer<typeof NewSupplierFormSchema>>;
   watch: UseFormWatch<z.infer<typeof NewSupplierFormSchema>>;
+  readOnly?: boolean;
 }
 
 export function PricingConfigurationTable({
   control,
   watch,
+  readOnly = false
 }: PricingConfigurationTableProps) {
   const { exTaxLabel } = useTenantCurrencyTax();
 
@@ -148,6 +150,7 @@ export function PricingConfigurationTable({
       mobileStackedLabel
       mobileHiddenCells={[0, 3]}
       className="overflow-x-hidden"
+      readOnly={readOnly}
       mobileStackedLabelRender={(row) => {
         const costPrice =
           (watch(

@@ -41,7 +41,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 import { useGetDepartments } from '@/lib/api/department';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
@@ -80,15 +80,20 @@ export default function SupplierForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const accountingSoftware = useAccountingSoftwareProvider();
-  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
-  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const { accountingSoftwareLabel, showAccountingMapping } =
+    useAccountingIntegrationConnection();
+  const showDepartmentMapping =
+    showAccountingMapping && accountingSoftware !== 'MYOB_ACUMATICA';
   const departmentsQuery = useGetDepartments({
-    enabled: showXeroMapping,
+    enabled: showDepartmentMapping,
   });
 
   const departments = React.useMemo(() => {
     return departmentsQuery.data ?? [];
   }, [departmentsQuery.data]);
+
+  const readOnly = accountingSoftware === 'MYOB_ACUMATICA';
+
 
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>
@@ -210,6 +215,7 @@ export default function SupplierForm({
               placeholder="Select a Supplier"
               formItemClassName="w-full"
               autoSelectForOnlyOneOption={!isEditing}
+              disabled={readOnly}
             />
             <FormField
               control={supplierForm.control}
@@ -222,6 +228,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Name"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -239,6 +246,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Code"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -260,6 +268,7 @@ export default function SupplierForm({
                       maxDecimals={2}
                       suffix="TN/m³"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -267,14 +276,17 @@ export default function SupplierForm({
               )}
             />
 
-            {showXeroMapping && (
+            {showDepartmentMapping && (
               <>
                 <Separator className="col-span-full my-2 mb-5" />
 
                 <div className="flex flex-col mb-3">
-                  <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                  <h2 className="text-sm font-semibold mb-1">
+                    {accountingSoftwareLabel} Mapping
+                  </h2>
                   <p className="text-xs text-muted-foreground">
-                    Optional fields pushed to Xero on invoice creation.
+                    Optional fields pushed to {accountingSoftwareLabel} on
+                    invoice creation.
                   </p>
                 </div>
                 <FormSelect
@@ -307,6 +319,7 @@ export default function SupplierForm({
           <PricingConfigurationTable
             control={supplierForm.control}
             watch={supplierForm.watch}
+            readOnly={readOnly}
           />
         </div>
       ),
@@ -323,7 +336,7 @@ export default function SupplierForm({
               Optional - can be overridden in quotes
             </p>
           </div>
-          <TruckRatesTable control={supplierForm.control} />
+          <TruckRatesTable control={supplierForm.control} readOnly={readOnly} />
         </div>
       ),
     },
@@ -419,7 +432,7 @@ export default function SupplierForm({
         supplierProductName: processedValues.supplierProductName,
         supplierProductCode: processedValues.supplierProductCode,
         densityTonnagePerM3: processedValues.densityTonnagePerM3,
-        ...(showXeroMapping && processedValues.departmentId != null
+        ...(showDepartmentMapping && processedValues.departmentId != null
           ? { departmentId: processedValues.departmentId }
           : {}),
         availableUnits: availableUnits,
@@ -597,7 +610,7 @@ export default function SupplierForm({
     }
   }
   useFormDialogFooter(
-    isDesktop ? (
+    isDesktop && !readOnly ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           <X className="w-4 h-4 mr-2" />
@@ -812,7 +825,6 @@ export default function SupplierForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>
