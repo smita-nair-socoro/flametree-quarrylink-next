@@ -196,6 +196,19 @@ export default function QuotationsPage() {
     setSelectedQuotationId(quotation.id);
     actions.view(quotation);
   };
+  // Stable wrapper so `quotationColumns` below doesn't get a new reference
+  // (and force the whole table to remount) on every render just because
+  // `handleRowClick` is a fresh closure each time.
+  const handleRowClickRef = React.useRef(handleRowClick);
+  handleRowClickRef.current = handleRowClick;
+  const stableHandleRowClick = React.useCallback(
+    (quotation: Quotation) => handleRowClickRef.current(quotation),
+    [],
+  );
+  const quotationColumns = React.useMemo(
+    () => getQuotationColumns(currencyCode, taxLabel, stableHandleRowClick),
+    [currencyCode, taxLabel, stableHandleRowClick],
+  );
 
   const handleRowSelectionChange = (selected: Quotation[]) => {
     setSelectedQuotations(selected);
@@ -329,11 +342,7 @@ export default function QuotationsPage() {
                   : 'quotation_main_data_table'
               }
               data={filteredItems ?? []}
-              columns={getQuotationColumns(
-                currencyCode,
-                taxLabel,
-                handleRowClick,
-              )}
+              columns={quotationColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search quotes..."
               onRowClick={handleRowClick}
