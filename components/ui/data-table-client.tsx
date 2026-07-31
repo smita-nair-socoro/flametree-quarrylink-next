@@ -74,6 +74,12 @@ import { InputIcon } from './input-icon';
 import { Input } from './input';
 import { Separator } from './separator';
 import { cn, getSessionStorage, setSessionStorage } from '@/lib/utils';
+import {
+  usePinnedRecordsStore,
+  usePinnedNewRecordIds,
+  usePinnedNewRecordsData,
+  usePinnedSyncErrorIds,
+} from '@/app/stores/pinned-records-store';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebounce } from '@/hooks/use-debounce';
 import Image from 'next/image';
@@ -236,42 +242,9 @@ export function DataTableClient<TData, TValue>({
     [tableId],
   );
 
-  // Read new record IDs from sessionStorage - use state with event listener
-  const [newRecordIds, setNewRecordIds] = useState<string[]>(() => {
-    try {
-      const stored = getSessionStorage<string[]>(
-        getStorageKey('newRecordIds'),
-        [],
-      );
-      const ids = Array.isArray(stored) ? stored : [];
-      return ids;
-    } catch {
-      return [];
-    }
-  });
-
-  // Listen for storage updates
-  useEffect(() => {
-    const handleStorageUpdate = () => {
-      try {
-        const stored = getSessionStorage<string[]>(
-          getStorageKey('newRecordIds'),
-          [],
-        );
-        const ids = Array.isArray(stored) ? stored : [];
-        setNewRecordIds(ids);
-      } catch {
-        setNewRecordIds([]);
-      }
-    };
-
-    // Custom event for same-tab updates (sessionStorage doesn't trigger 'storage' event in same tab)
-    window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
-
-    return () => {
-      window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
-    };
-  }, [getStorageKey]);
+  const newRecordIds = usePinnedNewRecordIds(tableId);
+  const newRecordsDataRaw = usePinnedNewRecordsData(tableId);
+  const newRecordsData = newRecordsDataRaw as unknown as TData[];
 
   // Convert to Set for fast lookup (only once per newRecordIds change)
   const newRecordIdsSet = useMemo(
@@ -279,48 +252,50 @@ export function DataTableClient<TData, TValue>({
     [newRecordIds],
   );
 
-  // Read sync error record IDs from sessionStorage
-  const [syncErrorRecordIds, setSyncErrorRecordIds] = useState<string[]>(() => {
-    try {
-      const stored = getSessionStorage<string[]>(
-        getStorageKey('syncErrorRecordIds'),
-        [],
-      );
-      return Array.isArray(stored) ? stored : [];
-    } catch {
-      return [];
-    }
-  });
+  const clearPinnedNewRecords = useCallback(() => {
+    usePinnedRecordsStore.getState().clearPinned(tableId);
+  }, [tableId]);
 
-  useEffect(() => {
-    const handleStorageUpdate = () => {
-      try {
-        const stored = getSessionStorage<string[]>(
-          getStorageKey('syncErrorRecordIds'),
-          [],
-        );
-        setSyncErrorRecordIds(Array.isArray(stored) ? stored : []);
-      } catch {
-        setSyncErrorRecordIds([]);
-      }
-    };
-    window.addEventListener('sessionStorageUpdated', handleStorageUpdate);
-    return () =>
-      window.removeEventListener('sessionStorageUpdated', handleStorageUpdate);
-  }, [getStorageKey]);
+  const syncErrorRecordIds = usePinnedSyncErrorIds(tableId);
 
   const syncErrorRecordIdsSet = useMemo(
     () => new Set<string>(syncErrorRecordIds),
     [syncErrorRecordIds],
   );
 
+  const getRowIdentity = useCallback(
+    (row: TData & { id?: number | string | null; sub?: string }) => {
+      if (row?.id != null) return String(row.id);
+      if (typeof row?.sub === 'string' && row.sub.length > 0) return row.sub;
+      return undefined;
+    },
+    [],
+  );
+
+  // Merge in any pinned new records that aren't present in the currently fetched
+  // page of `data`.
+  const tableData = useMemo(() => {
+    if (newRecordsData.length === 0) return data;
+
+    const presentIds = new Set(
+      (data as Array<TData & { id?: number | string; sub?: string }>)
+        .map(getRowIdentity)
+        .filter((v): v is string => v !== undefined),
+    );
+
+    const missing = newRecordsData.filter((record) => {
+      const id = getRowIdentity(record as TData & { id?: number | string });
+      return id !== undefined && newRecordIdsSet.has(id) && !presentIds.has(id);
+    });
+
+    return missing.length > 0 ? [...missing, ...data] : data;
+  }, [data, newRecordsData, newRecordIdsSet, getRowIdentity]);
+
   // Row pinning state (use TanStack Table row pinning instead of reordering data)
   const [rowPinning, setRowPinning] = useState<RowPinningState>(() => {
     const presentIds = new Set(
-      (data as Array<TData & { id?: number | string; sub?: string }>)
-        .map((r) =>
-          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined,
-        )
+      (tableData as Array<TData & { id?: number | string; sub?: string }>)
+        .map(getRowIdentity)
         .filter((v): v is string => v !== undefined),
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
@@ -330,15 +305,13 @@ export function DataTableClient<TData, TValue>({
   // Keep row pinning in sync with data and stored new IDs
   useEffect(() => {
     const presentIds = new Set(
-      (data as Array<TData & { id?: number | string; sub?: string }>)
-        .map((r) =>
-          r.id !== undefined ? String(r.id) : r.sub ? String(r.sub) : undefined,
-        )
+      (tableData as Array<TData & { id?: number | string; sub?: string }>)
+        .map(getRowIdentity)
         .filter((v): v is string => v !== undefined),
     );
     const top = newRecordIds.filter((id) => presentIds.has(id));
     setRowPinning((prev) => ({ ...prev, top }));
-  }, [data, newRecordIds]);
+  }, [tableData, newRecordIds, getRowIdentity]);
 
   const loadFromStorage = <T,>(key: string, fallback: T): T => {
     try {
@@ -429,10 +402,8 @@ export function DataTableClient<TData, TValue>({
     }
 
     setPagination((prev) => {
-      const nextPageIndex =
-        externalPageIndex !== undefined ? externalPageIndex : prev.pageIndex;
-      const nextPageSize =
-        externalPageSize !== undefined ? externalPageSize : prev.pageSize;
+      const nextPageIndex = externalPageIndex ?? prev.pageIndex;
+      const nextPageSize = externalPageSize ?? prev.pageSize;
 
       if (nextPageIndex === prev.pageIndex && nextPageSize === prev.pageSize) {
         return prev;
@@ -548,8 +519,8 @@ export function DataTableClient<TData, TValue>({
       );
       const selectedRows = selectedRowIds
         .map((id) => {
-          const index = parseInt(id);
-          return data[index];
+          const index = Number.parseInt(id);
+          return tableData[index];
         })
         .filter(Boolean);
       onRowSelectionChange(selectedRows);
@@ -568,7 +539,6 @@ export function DataTableClient<TData, TValue>({
         'globalFilter',
         'columnVisibility',
         'paginationSize',
-        'newRecordIds',
       ];
       keys.forEach((key) => {
         try {
@@ -577,6 +547,7 @@ export function DataTableClient<TData, TValue>({
           console.warn(`Failed to remove ${key} from sessionStorage:`, error);
         }
       });
+      usePinnedRecordsStore.getState().clearPinned(tableId);
 
       // Reset all state to defaults
       setPagination(defaultPagination);
@@ -598,6 +569,13 @@ export function DataTableClient<TData, TValue>({
       };
       const newValue =
         typeof updater === 'function' ? updater(currentState) : updater;
+
+      if (
+        newValue.pageIndex !== currentState.pageIndex ||
+        newValue.pageSize !== currentState.pageSize
+      ) {
+        clearPinnedNewRecords();
+      }
 
       // if (!isMobile) {
       //   saveToStorage('pagination', newValue);
@@ -662,6 +640,7 @@ export function DataTableClient<TData, TValue>({
   };
 
   const handlePaginationSizeChange = (value: string) => {
+    clearPinnedNewRecords();
     setPaginationSize(value);
     // if (!isMobile) {
     //   saveToStorage('paginationSize', value);
@@ -745,7 +724,7 @@ export function DataTableClient<TData, TValue>({
   };
 
   const table = useReactTable({
-    data,
+    data: tableData,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -829,21 +808,13 @@ export function DataTableClient<TData, TValue>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowSelection, table]);
 
-  // Clear temporary pinning on page unload or when table unmounts
+  // Clear temporary pinning when the table unmounts (e.g. navigating away).
+
   useEffect(() => {
-    const handler = () => {
-      try {
-        sessionStorage.removeItem(getStorageKey('newRecordIds'));
-      } catch {
-        // ignore
-      }
-    };
-    window.addEventListener('beforeunload', handler);
     return () => {
-      window.removeEventListener('beforeunload', handler);
-      handler();
+      usePinnedRecordsStore.getState().clearPinned(tableId);
     };
-  }, [getStorageKey]);
+  }, [tableId]);
 
   const facetedWithCounts = useFacets(table, facetDefinition);
 
@@ -854,9 +825,7 @@ export function DataTableClient<TData, TValue>({
     const calculate = () => {
       if (!rowRef.current || !filterMeasureRef.current) return;
       const containerWidth = rowRef.current.offsetWidth;
-      // Reserve only the search bar's minimum width (it can shrink further via
-      // flex-1/min-w) rather than its current stretched width, so filters
-      // aren't pushed to row 2 just because the search bar hasn't shrunk yet.
+
       const showHideWidth = showHideRef.current?.offsetWidth ?? 0;
       const filterWidth = filterMeasureRef.current.scrollWidth;
       const gap = 8; // gap-2 = 8px
@@ -904,7 +873,7 @@ export function DataTableClient<TData, TValue>({
 
   function handleTempFilterChange(columnId: string, values: string[]) {
     setTempColumnFilters((old) => {
-      const existingFilter = old.find((filter) => filter.id === columnId);
+      const existingFilter = old.some((filter) => filter.id === columnId);
       if (values.length === 0) {
         return old.filter((filter) => filter.id !== columnId);
       }
@@ -1154,7 +1123,7 @@ export function DataTableClient<TData, TValue>({
           )}
           {/* Row 1: Search bar + Show/Hide Columns */}
           <div ref={rowRef} className="flex flex-wrap items-center gap-2">
-            <div ref={searchRef} className="flex-1 min-w-0 max-w-[11rem]">
+            <div ref={searchRef} className="flex-1 min-w-0 max-w-44">
               <InputIcon
                 placeholder={searchPlaceHolder}
                 type="search"
@@ -1170,11 +1139,7 @@ export function DataTableClient<TData, TValue>({
             {isMobile && facetedWithCounts.length > 0 && (
               <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
                 <DrawerTrigger asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-11 flex-shrink-0"
-                  >
+                  <Button variant="outline" size="sm" className="h-11 shrink-0">
                     <Filter size={16} className="mr-2" />
                     Filters
                     {columnFilters.length > 0 && (
@@ -1235,9 +1200,11 @@ export function DataTableClient<TData, TValue>({
                                       : option.label;
 
                                     return (
-                                      <div
+                                      <button
                                         key={option.value}
-                                        className="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                                        type="button"
+                                        aria-pressed={isSelected}
+                                        className="flex w-full items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-left"
                                         onClick={() => {
                                           const newValues = isSelected
                                             ? currentFilterValues.filter(
@@ -1270,14 +1237,13 @@ export function DataTableClient<TData, TValue>({
                                             {displayLabel}
                                           </span>
                                         </div>
-                                        {filter.counts &&
-                                          filter.counts[option.value] !=
-                                            null && (
-                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                              {filter.counts[option.value]}
-                                            </span>
-                                          )}
-                                      </div>
+                                        {filter.counts?.[option.value] !=
+                                          null && (
+                                          <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                            {filter.counts[option.value]}
+                                          </span>
+                                        )}
+                                      </button>
                                     );
                                   })}
                               </div>
@@ -1341,7 +1307,7 @@ export function DataTableClient<TData, TValue>({
             )}
 
             {isShowHideColumns && !isMobile && (
-              <div ref={showHideRef} className="ml-auto flex-shrink-0">
+              <div ref={showHideRef} className="ml-auto shrink-0">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="h-8">
@@ -1506,12 +1472,12 @@ export function DataTableClient<TData, TValue>({
                               : 'bg-white hover:bg-gray-100',
                             !simpleTable && onRowClick && 'cursor-pointer',
                             row.getIsSelected() &&
-                              '!bg-[#EFF6FF] hover:!bg-blue-100',
+                              'bg-[#EFF6FF]! hover:bg-blue-100!',
                             isNewRecord &&
                               !isSyncError &&
-                              '!bg-yellow-50 hover:!bg-yellow-100 border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                              'bg-yellow-50! hover:bg-yellow-100! border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
                             isSyncError &&
-                              '!bg-[#FEF2F2] hover:!bg-[#FEE2E2] border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
+                              'bg-[#FEF2F2]! hover:bg-[#FEE2E2]! border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements
@@ -1626,7 +1592,7 @@ export function DataTableClient<TData, TValue>({
               <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
                 <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
                   <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                    Total Records:
+                    Total Records:{' '}
                     <span className="text-accent-foreground ml-2">
                       {formatNumberThousandSeparatorWithoutDecimal(
                         totalElements ??
@@ -1647,7 +1613,7 @@ export function DataTableClient<TData, TValue>({
                     value={paginationSize}
                     onValueChange={handlePaginationSizeChange}
                   >
-                    <SelectTrigger className="h-8 w-[80px]">
+                    <SelectTrigger className="h-8 w-20">
                       <SelectValue placeholder={pageSizeTriggerContent} />
                     </SelectTrigger>
                     <SelectContent>
@@ -1665,7 +1631,7 @@ export function DataTableClient<TData, TValue>({
                 {/* Page nav */}
                 {table.getPageCount() > 1 && (
                   <div className="flex items-center space-x-4">
-                    <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
+                    <div className="flex min-w-25 items-center justify-center whitespace-nowrap text-sm font-medium">
                       Page {effectivePagination.pageIndex + 1} of{' '}
                       {table.getPageCount()}
                     </div>

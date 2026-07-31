@@ -10,12 +10,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  cn,
-  splitReasonNote,
-  scrollToFirstError,
-  addNewRecordId,
-} from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import { addNewRecordId } from '@/lib/utils/pinned-records';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';

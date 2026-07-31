@@ -41,10 +41,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
-import { toAddressPayload } from '@/lib/utils/address-helper';
+import { addNewRecordId } from '@/lib/utils/pinned-records';
+import { toAddressPayload, useAddressSync } from '@/lib/utils/address-helper';
 import { AuditInformation } from '@/components/audit-information';
-import { useAddressSync } from '@/lib/utils/address-helper';
+
 import {
   useQuarrySupplierFormState,
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
@@ -70,7 +70,7 @@ export default function QuarrySupplierForm({
   className,
   onTypeChange,
   onDirtyChange,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
@@ -210,7 +210,6 @@ export default function QuarrySupplierForm({
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
         onSuccess?.();
-
       }
       onSaved?.();
     } catch (error) {
@@ -255,7 +254,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -572,7 +571,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter opening and closing information"
                     {...field}
                   />
@@ -593,7 +592,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter weighbridge details"
                     {...field}
                   />
@@ -612,7 +611,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter important FYI notes"
                     {...field}
                   />
@@ -630,17 +629,28 @@ export default function QuarrySupplierForm({
                   {accountingSoftwareLabel} Mapping
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Optional {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} pushed to {accountingSoftwareLabel} on
-                  invoice creation.
+                  Optional{' '}
+                  {accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'}{' '}
+                  pushed to {accountingSoftwareLabel} on invoice creation.
                 </p>
               </div>
               <FormSelect
                 control={quarrySupplierForm.control}
                 name="accountCodeId"
-                label={accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}
+                label={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'
+                }
                 options={accountCodeOptions}
                 placeholder={`Select ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} (optional)`}
-                searchLabel={accountingSoftwareLabel === 'MYOB Acumatica' ? 'warehouse ids' : 'account codes'}
+                searchLabel={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'warehouse ids'
+                    : 'account codes'
+                }
                 popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
                 formItemClassName="col-span-full"
                 className="w-full"
