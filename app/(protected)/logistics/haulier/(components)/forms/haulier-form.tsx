@@ -24,6 +24,7 @@ import {
   useUpdateHaulier,
 } from '@/lib/api/haulier';
 import { notifySuccess, notifyError } from '@/lib/toast';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { isInternalHaulier } from '@/lib/utils/haulier-helper';
@@ -42,7 +43,7 @@ export default function HaulierForm({
   onSuccess,
   onDirtyChange,
   onSaved,
-}: HaulierFormProps) {
+}: Readonly<HaulierFormProps>) {
   const isEditing = Boolean(id && id > 0);
   const createHaulier = useCreateHaulier();
   const updateHaulier = useUpdateHaulier();
@@ -93,11 +94,12 @@ export default function HaulierForm({
         notifySuccess('Haulier updated successfully.');
         form.reset(values);
       } else {
-        await createHaulier.mutateAsync({
+        const created = await createHaulier.mutateAsync({
           haulierName: values.name,
           haulierEmailAddress: values.email,
           haulierPhoneNumber: values.phone,
         });
+        addNewRecord('haulier_main_data_table', created);
         notifySuccess('Haulier created successfully.');
         onSuccess?.();
       }
@@ -125,7 +127,11 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Name*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter Haulier Name" disabled={isInternal} {...field} />
+                <Input
+                  placeholder="Enter Haulier Name"
+                  disabled={isInternal}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -139,7 +145,12 @@ export default function HaulierForm({
             <FormItem>
               <FormLabel>Haulier Email*</FormLabel>
               <FormControl>
-                <Input placeholder="Enter email" type="email" disabled={isInternal} {...field} />
+                <Input
+                  placeholder="Enter email"
+                  type="email"
+                  disabled={isInternal}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -172,7 +183,9 @@ export default function HaulierForm({
           <Button
             type="submit"
             variant="default"
-            disabled={isInternal || createHaulier.isPending || updateHaulier.isPending}
+            disabled={
+              isInternal || createHaulier.isPending || updateHaulier.isPending
+            }
           >
             {isEditing ? 'Update Haulier' : 'Add Haulier'}
           </Button>

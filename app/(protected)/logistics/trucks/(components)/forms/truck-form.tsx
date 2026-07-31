@@ -12,7 +12,8 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
-import { cn, addNewRecordId, scrollToFirstError } from '@/lib/utils';
+import { cn, scrollToFirstError } from '@/lib/utils';
+import { addNewRecordId } from '@/lib/utils/pinned-records';
 import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -99,7 +100,9 @@ export default function TruckForm({
     enabled: !isEditing,
   });
   const tenantEmail = useTenantStore((state) => state.tenantEmail);
-  const internalHaulier = hauliers.find((h) => isInternalHaulier(h.emailAddress, tenantEmail));
+  const internalHaulier = hauliers.find((h) =>
+    isInternalHaulier(h.emailAddress, tenantEmail),
+  );
 
   const haulierItems = React.useMemo(
     () =>
@@ -193,7 +196,10 @@ export default function TruckForm({
 
   React.useEffect(() => {
     if (isEditing && truckData) {
-      const isInternalTruck = isInternalHaulier(truckData.haulier?.emailAddress, tenantEmail);
+      const isInternalTruck = isInternalHaulier(
+        truckData.haulier?.emailAddress,
+        tenantEmail,
+      );
       setTruckOwnerType(
         isInternalTruck
           ? TRUCK_BUSINESS_TYPE.INTERNAL
@@ -275,7 +281,7 @@ export default function TruckForm({
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
-        `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'save'} truck. Please try again.`,
       );
     }
   }
@@ -291,7 +297,8 @@ export default function TruckForm({
   const inspectionSectionRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (scrollToSection !== 'inspection' || !isEditing || !truckData?.id) return;
+    if (scrollToSection !== 'inspection' || !isEditing || !truckData?.id)
+      return;
 
     const element = inspectionSectionRef.current;
     if (!element) return;
@@ -313,8 +320,12 @@ export default function TruckForm({
   const inspectionRecords = inspectionsData?.content ?? [];
 
   const truckButtonLabel = isSubmitting
-    ? isEditing ? 'Saving Changes...' : 'Adding Truck...'
-    : isEditing ? 'Update Truck' : 'Add Truck';
+    ? isEditing
+      ? 'Saving Changes...'
+      : 'Adding Truck...'
+    : isEditing
+      ? 'Update Truck'
+      : 'Add Truck';
 
   const assignedDrivers = (truckData?.drivers ?? []).map((driver) => ({
     id: driver.id!,
@@ -344,9 +355,7 @@ export default function TruckForm({
           disabled={isSubmitting}
           className="cursor-pointer"
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {truckButtonLabel}
         </Button>
       </div>
@@ -359,7 +368,7 @@ export default function TruckForm({
       {isSubmitting && (
         <div
           className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-9999 flex items-center justify-center',
             isDesktop ? '' : 'pt-10',
           )}
         >
@@ -447,8 +456,7 @@ export default function TruckForm({
                     <FormLabel>Haulier*</FormLabel>
                     <Input
                       value={
-                        internalHaulier?.haulierName ??
-                        'My Company Haulier'
+                        internalHaulier?.haulierName ?? 'My Company Haulier'
                       }
                       disabled
                     />
@@ -762,7 +770,6 @@ export default function TruckForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>

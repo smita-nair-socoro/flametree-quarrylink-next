@@ -30,7 +30,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
+import { addNewRecordId } from '@/lib/utils/pinned-records';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -39,12 +39,17 @@ interface InviteUserFormProps {
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
+function onError(errors: unknown) {
+  console.error('Invite User validation errors:', errors);
+  notifyError('Invitation Failed');
+}
+
 export default function InviteUserForm({
   onCancel,
   onSuccess,
   roleOptions,
   onDirtyChange,
-}: InviteUserFormProps) {
+}: Readonly<InviteUserFormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   // Use the create user mutation
@@ -140,22 +145,12 @@ export default function InviteUserForm({
     }
   };
 
-  // Handle form validation errors
-  function onError(errors: unknown) {
-    console.error('Invite User validation errors:', errors);
-    notifyError('Invitation Failed');
-  }
-
   const isSubmitting = createUserMutation.isPending;
 
   useFormDialogFooter(
     isDesktop ? (
       <div className="flex justify-end gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
         <Button
@@ -164,9 +159,7 @@ export default function InviteUserForm({
           className="bg-[#8E51FF] hover:bg-[#7a42e6] text-white cursor-pointer"
           disabled={isSubmitting}
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
         </Button>
       </div>
@@ -179,7 +172,7 @@ export default function InviteUserForm({
       {isSubmitting && (
         <div
           className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-9999 flex items-center justify-center',
             isDesktop ? '' : 'pt-10',
           )}
         >
@@ -277,7 +270,7 @@ export default function InviteUserForm({
           <div className="flex flex-col gap-5">
             <div className="rounded-lg border border-[#0284C7] bg-[#F0F9FF] p-4">
               <div className="flex gap-3">
-                <UserPlus className="h-5 w-5 text-[#0284C7] flex-shrink-0 mt-0.5" />
+                <UserPlus className="h-5 w-5 text-[#0284C7] shrink-0 mt-0.5" />
                 <div>
                   <h4 className="font-medium text-[#0284C7]">
                     Invitation Details
@@ -305,16 +298,11 @@ export default function InviteUserForm({
                 )}
                 {isSubmitting ? 'Sending Invitation...' : 'Send Invitation'}
               </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-              >
+              <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>
