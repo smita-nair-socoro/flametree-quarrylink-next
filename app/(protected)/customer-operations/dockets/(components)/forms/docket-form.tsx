@@ -807,9 +807,8 @@ export default function DocketForm({
       } else {
         const newDocket = await createDocket.mutateAsync(payload);
         if (newDocket && typeof newDocket.id === 'number') {
-          // The create response doesn't reliably embed the job/job-item the
-          // table needs (e.g. Job Reference, Product columns) — use what the
-          // form already knows from the job the user selected instead.
+          // The create response doesn't reliably embed the job/job-item, so
+          // fall back to what the form already knows.
           const selectedLineItem = jobLineItems.find(
             (lineItem) => lineItem.id === values.jobLineItemId,
           );

@@ -562,33 +562,32 @@ export function DataTableClient<TData, TValue>({
 
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
-    setPagination((old) => {
-      const currentState = {
-        pageIndex: externalPageIndex ?? old.pageIndex,
-        pageSize: externalPageSize ?? old.pageSize,
-      };
-      const newValue =
-        typeof updater === 'function' ? updater(currentState) : updater;
+    const currentState = {
+      pageIndex: externalPageIndex ?? pagination.pageIndex,
+      pageSize: externalPageSize ?? pagination.pageSize,
+    };
+    const newValue =
+      typeof updater === 'function' ? updater(currentState) : updater;
 
-      if (
-        newValue.pageIndex !== currentState.pageIndex ||
-        newValue.pageSize !== currentState.pageSize
-      ) {
-        clearPinnedNewRecords();
-      }
+    if (
+      newValue.pageIndex !== currentState.pageIndex ||
+      newValue.pageSize !== currentState.pageSize
+    ) {
+      clearPinnedNewRecords();
+    }
 
-      // if (!isMobile) {
-      //   saveToStorage('pagination', newValue);
-      // }
-      if (onPaginationChange) {
-        // Schedule it so we don't cause React state updates during render phase
-        setTimeout(
-          () => onPaginationChange(newValue.pageIndex, newValue.pageSize),
-          0,
-        );
-      }
-      return newValue;
-    });
+    setPagination(newValue);
+
+    // if (!isMobile) {
+    //   saveToStorage('pagination', newValue);
+    // }
+    if (onPaginationChange) {
+      // Schedule it so we don't cause React state updates during render phase
+      setTimeout(
+        () => onPaginationChange(newValue.pageIndex, newValue.pageSize),
+        0,
+      );
+    }
   };
 
   const handleSortingChange = (updater: Updater<SortingState>) => {

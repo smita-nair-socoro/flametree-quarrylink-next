@@ -528,9 +528,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           deliveryCollectionDate: `${getCalendarDateString(duplicateDeliveryDate)}T00:00:00.000`,
         },
       });
-      // Duplicates share the same job/job-item as the docket being duplicated;
-      // the duplicate response doesn't reliably embed them, so fall back to
-      // what's already loaded for `effectiveDocket`.
+      // Duplicate response doesn't reliably embed job/job-item, so fall back
+      // to `effectiveDocket`.
       result.dockets.forEach((d) =>
         addNewRecord('docket_main_data_table', {
           ...d,
