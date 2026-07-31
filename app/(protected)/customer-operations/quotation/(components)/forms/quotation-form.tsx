@@ -260,6 +260,7 @@ export default function QuotationForm({
 
         notifySuccess('Quote duplicated successfully');
         onSaved?.();
+        onSuccess?.();
       } catch (error) {
         console.error('Error duplicating quotation:', error);
 
