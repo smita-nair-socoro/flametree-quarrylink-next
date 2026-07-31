@@ -163,8 +163,8 @@ interface UseCustomerFormStateOptions {
   isEditing: boolean;
   customerForm: UseFormReturn<CustomerFormValues>;
   onDirtyChange?: (isDirty: boolean) => void;
-  onSuccess?: () => void;
   onSaved?: () => void;
+  onSuccess?: () => void;
 }
 
 /**
@@ -175,8 +175,8 @@ export function useCustomerFormState({
   isEditing,
   customerForm,
   onDirtyChange,
-  onSuccess,
   onSaved,
+  onSuccess,
 }: UseCustomerFormStateOptions) {
   const createCustomer = useCreateCustomer();
   const isRetrySyncRef = React.useRef(false);
@@ -452,6 +452,7 @@ export function useCustomerFormState({
 
         if (isEditing && !isRetrySyncRef.current) {
           notifySuccess('Customer Updated Successfully!');
+          customerForm.reset(customerForm.getValues());
         } else {
           notifySuccess('Customer Added Successfully!');
 
@@ -465,8 +466,10 @@ export function useCustomerFormState({
           handleSyncNote(result.accSoftwareNotes);
         }
 
-        onSuccess?.();
         onSaved?.();
+        if (!isEditing) {
+          onSuccess?.();
+        }
       } catch (error) {
         console.error(
           `Error ${isEditing ? 'updating' : 'creating'} customer:`,

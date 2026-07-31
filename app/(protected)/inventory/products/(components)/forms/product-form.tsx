@@ -200,6 +200,7 @@ export default function ProductForm({
           id,
           data: { ...buildProductPayload(values, needDensityOverride), id },
         });
+        productForm.reset(values);
         onSaved?.();
       } catch (error) {
         notifyError(extractErrorMessage(error));
@@ -208,7 +209,7 @@ export default function ProductForm({
         setIsSubmitting(false);
       }
     },
-    [id, updateProduct, buildProductPayload, onSaved],
+    [id, updateProduct, buildProductPayload, onSaved, productForm],
   );
 
   const handleDensityModalConfirm = React.useCallback(() => {

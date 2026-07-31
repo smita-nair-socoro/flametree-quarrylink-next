@@ -32,6 +32,7 @@ interface HaulierFormProps {
   id?: number;
   onCancel?: () => void;
   onSuccess?: () => void;
+  onSaved?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
@@ -40,6 +41,7 @@ export default function HaulierForm({
   onCancel,
   onSuccess,
   onDirtyChange,
+  onSaved,
 }: HaulierFormProps) {
   const isEditing = Boolean(id && id > 0);
   const createHaulier = useCreateHaulier();
@@ -89,6 +91,7 @@ export default function HaulierForm({
           },
         });
         notifySuccess('Haulier updated successfully.');
+        form.reset(values);
       } else {
         await createHaulier.mutateAsync({
           haulierName: values.name,
@@ -96,8 +99,9 @@ export default function HaulierForm({
           haulierPhoneNumber: values.phone,
         });
         notifySuccess('Haulier created successfully.');
+        onSuccess?.();
       }
-      onSuccess?.();
+      onSaved?.();
     } catch (error: unknown) {
       notifyError(extractErrorMessage(error));
     }

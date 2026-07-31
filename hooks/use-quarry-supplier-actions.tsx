@@ -243,6 +243,7 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
     (s) => s.selectedQuarrySupplier
   );
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
@@ -459,9 +460,11 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
       onOpenChangeAction={(open) => {
         setViewOpen(open);
         if (!open) {
+          setIsFormDirty(false);
           setTimeout(() => setViewOpen(false), 100);
         }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       headerInfo={{
         useSelectedQuarrySupplier: true,
@@ -471,6 +474,7 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
           quarrySupplier={selectedQuarrySupplier ?? undefined}
           actionsOverride={actions}
           suppressDialogs
+          hasUnsavedChanges={isFormDirty}
         />
       }
     >

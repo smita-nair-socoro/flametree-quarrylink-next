@@ -67,13 +67,13 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
   onDirtyChange?: (isDirty: boolean) => void;
   onSaved?: () => void;
+  onSuccess?: () => void;
 }
 
 export default function QuotationForm({
@@ -83,8 +83,8 @@ export default function QuotationForm({
   canEdit,
   isDuplicate,
   onDirtyChange,
-  onSuccess,
   onSaved,
+  onSuccess,
 }: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -330,8 +330,8 @@ export default function QuotationForm({
           ...transformed,
         });
         notifySuccess('Quote updated successfully');
+        quotationForm.reset(quotationForm.getValues());
         onSaved?.();
-        onSuccess?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 

@@ -26,20 +26,31 @@ import {
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
+import { notifyWarning } from '@/lib/toast';
 
 interface QuotationActionButtonsProps {
   quotation: Quotation | null | undefined;
   layout?: 'compact' | 'expanded';
+  hasUnsavedChanges?: boolean;
 }
 
 export function QuotationActionButtons({
   quotation,
   layout = 'expanded',
+  hasUnsavedChanges = false,
 }: QuotationActionButtonsProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
+
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
 
   // Early returns for null quotation or new quotation
   if (!quotation) {
@@ -68,7 +79,7 @@ export function QuotationActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             {/* Preview Quote - available for all statuses */}
-            <DropdownMenuItem onSelect={actions.preview}>
+            <DropdownMenuItem onSelect={() => runAction(actions.preview)}>
               <FileSearch className="h-4 w-4 mr-2" />
               Preview Quote
             </DropdownMenuItem>
@@ -76,7 +87,7 @@ export function QuotationActionButtons({
             {/* Status-specific actions */}
             {quotation.quoteStatus === 'DRAFT' && (
               <>
-                <DropdownMenuItem onSelect={actions.sendToCustomer}>
+                <DropdownMenuItem onSelect={() => runAction(actions.sendToCustomer)}>
                   <Send className="h-4 w-4 mr-2" />
                   Send to Customer
                 </DropdownMenuItem>
@@ -85,22 +96,22 @@ export function QuotationActionButtons({
 
             {quotation.quoteStatus === 'PENDING' && (
               <>
-                <DropdownMenuItem onSelect={actions.sendToCustomer}>
+                <DropdownMenuItem onSelect={() => runAction(actions.sendToCustomer)}>
                   <Send className="h-4 w-4 mr-2" />
                   Re-Send To Customer
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={actions.approve}>
+                <DropdownMenuItem onSelect={() => runAction(actions.approve)}>
                   <BadgeCheck className="h-4 w-4 mr-2" />
                   Approve Quote
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={actions.decline}>
+                <DropdownMenuItem onSelect={() => runAction(actions.decline)}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
               </>
             )}
             {quotation.quoteStatus === 'DECLINED' && (
-              <DropdownMenuItem onSelect={actions.convertToDraft}>
+              <DropdownMenuItem onSelect={() => runAction(actions.convertToDraft)}>
                 <Pencil className="h-4 w-4 mr-2" />
                 Convert to Draft
               </DropdownMenuItem>
@@ -108,11 +119,11 @@ export function QuotationActionButtons({
 
             {quotation.quoteStatus === 'APPROVED' && (
               <>
-                <DropdownMenuItem onSelect={actions.decline}>
+                <DropdownMenuItem onSelect={() => runAction(actions.decline)}>
                   <ThumbsDown className="h-4 w-4 mr-2" />
                   Decline
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={actions.convertToJob}>
+                <DropdownMenuItem onSelect={() => runAction(actions.convertToJob)}>
                   <Briefcase className="h-4 w-4 mr-2" />
                   Convert to Job
                 </DropdownMenuItem>
@@ -121,14 +132,14 @@ export function QuotationActionButtons({
 
             {quotation.quoteStatus === 'EXPIRED' && (
               <>
-                <DropdownMenuItem onSelect={actions.extendExpiry}>
+                <DropdownMenuItem onSelect={() => runAction(actions.extendExpiry)}>
                   <Calendar className="h-4 w-4 mr-2" />
                   Extend Expiry Date
                 </DropdownMenuItem>
               </>
             )}
 
-            <DropdownMenuItem onSelect={() => actions.duplicate()}>
+            <DropdownMenuItem onSelect={() => runAction(() => actions.duplicate())}>
               <Copy className="h-4 w-4 mr-2" />
               Duplicate Quote
             </DropdownMenuItem>
@@ -140,7 +151,7 @@ export function QuotationActionButtons({
                 <>
                   {/* <DropdownMenuSeparator /> */}
                   <DropdownMenuItem
-                    onSelect={actions.archive}
+                    onSelect={() => runAction(actions.archive)}
                     className="text-destructive focus:text-destructive"
                   >
                     <Archive className="h-4 w-4 mr-2 text-destructive" />
@@ -166,7 +177,7 @@ export function QuotationActionButtons({
         <Button
           variant="ghost"
           size="sm"
-          onClick={actions.preview}
+          onClick={() => runAction(actions.preview)}
           className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
         >
           <FileSearch className="h-4 w-4 mr-2" />
@@ -177,7 +188,7 @@ export function QuotationActionButtons({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => actions.duplicate()}
+          onClick={() => runAction(() => actions.duplicate())}
           className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
         >
           <Copy className="h-4 w-4 mr-2" />
@@ -189,7 +200,7 @@ export function QuotationActionButtons({
           <Button
             variant="ghost"
             size="sm"
-            onClick={actions.sendToCustomer}
+            onClick={() => runAction(actions.sendToCustomer)}
             className="rounded-none border-r border-gray-200 bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900"
           >
             <Send className="h-4 w-4 mr-2" />
@@ -202,7 +213,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.sendToCustomer}
+              onClick={() => runAction(actions.sendToCustomer)}
               className="rounded-none border-r border-gray-200 bg-purple-50 hover:bg-purple-100 text-purple-900 hover:text-purple-800"
             >
               <Send className="h-4 w-4 mr-2" />
@@ -211,7 +222,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.decline}
+              onClick={() => runAction(actions.decline)}
               className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-200 text-red-900 hover:text-red-800"
             >
               <ThumbsDown className="h-4 w-4 mr-2" />
@@ -220,7 +231,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.approve}
+              onClick={() => runAction(actions.approve)}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
             >
               <BadgeCheck className="h-4 w-4 mr-2" />
@@ -233,7 +244,7 @@ export function QuotationActionButtons({
           <Button
             variant="ghost"
             size="sm"
-            onClick={actions.convertToDraft}
+            onClick={() => runAction(actions.convertToDraft)}
             className="rounded-none border-r border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-700 hover:text-gray-900"
           >
             <Pencil className="h-4 w-4 mr-2" />
@@ -246,7 +257,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.decline}
+              onClick={() => runAction(actions.decline)}
               className="rounded-none border-r border-gray-200 bg-red-100 hover:bg-red-150 text-red-900 hover:text-red-800"
             >
               <ThumbsDown className="h-4 w-4 mr-2" />
@@ -255,7 +266,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.convertToJob}
+              onClick={() => runAction(actions.convertToJob)}
               className="rounded-none border-r border-gray-200 bg-blue-50 hover:bg-blue-100 text-blue-900 hover:text-blue-800"
             >
               <Briefcase className="h-4 w-4 mr-2" />
@@ -269,7 +280,7 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={actions.extendExpiry}
+              onClick={() => runAction(actions.extendExpiry)}
               className="rounded-none border-r border-gray-200 bg-green-100 hover:bg-green-150 text-green-900 hover:text-green-800"
             >
               <Timer className="h-4 w-4 mr-2" />
@@ -301,7 +312,7 @@ export function QuotationActionButtons({
                   )}
                   {quotation.quoteStatus !== 'CONVERTED_TO_JOB' && (
                     <DropdownMenuItem
-                      onSelect={actions.archive}
+                      onSelect={() => runAction(actions.archive)}
                       className="text-destructive focus:text-destructive"
                     >
                       <Archive className="h-4 w-4 mr-2 text-destructive" />

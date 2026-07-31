@@ -199,6 +199,7 @@ export default function QuarrySupplierForm({
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
+        quarrySupplierForm.reset(values);
       } else {
         const newQuarrySupplier =
           await createQuarryMutation.mutateAsync(quarrySupplierData);
@@ -208,9 +209,10 @@ export default function QuarrySupplierForm({
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
+        onSuccess?.();
+
       }
       onSaved?.();
-      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}:`,
