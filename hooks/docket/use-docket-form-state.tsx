@@ -701,6 +701,8 @@ export function useDocketFormState({
     jobLineItemSelectProps: lineItemSelectProps,
     selectedJobId: effectiveJobId,
     selectedJob,
+    selectedJobDetails,
+    jobLineItems,
     selectedJobLineItemDetails,
     pricingBreakdown,
     mapMarkers,

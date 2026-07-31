@@ -23,11 +23,8 @@ import { UsersListQueryOptions } from '@/lib/api/user';
 import { NewCustomerFormSchema } from '@/app/(protected)/customer-operations/customers/(components)/forms/schemas/customer-form-schema';
 import { getCustomerFormBlockState } from '@/app/(protected)/customer-operations/customers/(components)/forms/customer-form-blocker';
 import { toAddressPayload } from '@/lib/utils/address-helper';
-import {
-  addNewRecordId,
-  addSyncErrorRecordId,
-  scrollToFirstError,
-} from '@/lib/utils';
+import { scrollToFirstError } from '@/lib/utils';
+import { addNewRecord, addSyncErrorRecordId } from '@/lib/utils/pinned-records';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   extractErrorMessage,
@@ -457,7 +454,7 @@ export function useCustomerFormState({
           notifySuccess('Customer Added Successfully!');
 
           if (result && typeof result.id === 'number') {
-            addNewRecordId('customer_main_data_table', result.id);
+            addNewRecord('customer_main_data_table', { ...result, id: result.id });
             if (!result.accSoftwareContactId) {
               addSyncErrorRecordId('customer_main_data_table', result.id);
             }
