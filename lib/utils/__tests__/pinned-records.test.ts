@@ -1,5 +1,5 @@
-import { afterEach, describe, expect, test, vi } from 'vitest';
-import { getSessionStorage } from '../index';
+import { afterEach, describe, expect, test } from 'vitest';
+import { usePinnedRecordsStore } from '@/app/stores/pinned-records-store';
 import {
   addNewRecord,
   addNewRecordId,
@@ -8,15 +8,14 @@ import {
 } from '../pinned-records';
 
 afterEach(() => {
-  window.localStorage.clear();
-  window.sessionStorage.clear();
+  usePinnedRecordsStore.setState({ byTableId: {} });
 });
 
 describe('addNewRecordId / removeNewRecordId', () => {
   test('adds a record id to the front of the list', () => {
     addNewRecordId('table', 1);
     addNewRecordId('table', 2);
-    expect(getSessionStorage<string[]>('table_newRecordIds', [])).toEqual([
+    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
       '2',
       '1',
     ]);
@@ -26,7 +25,7 @@ describe('addNewRecordId / removeNewRecordId', () => {
     addNewRecordId('table', 1);
     addNewRecordId('table', 2);
     addNewRecordId('table', 1);
-    expect(getSessionStorage<string[]>('table_newRecordIds', [])).toEqual([
+    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
       '1',
       '2',
     ]);
@@ -36,44 +35,28 @@ describe('addNewRecordId / removeNewRecordId', () => {
     addNewRecordId('table', 1);
     addNewRecordId('table', 2);
     removeNewRecordId('table', 1);
-    expect(getSessionStorage<string[]>('table_newRecordIds', [])).toEqual([
+    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
       '2',
     ]);
-  });
-
-  test('dispatches a sessionStorageUpdated event', () => {
-    const handler = vi.fn();
-    window.addEventListener('sessionStorageUpdated', handler);
-    addNewRecordId('table', 1);
-    expect(handler).toHaveBeenCalledTimes(1);
-    window.removeEventListener('sessionStorageUpdated', handler);
   });
 });
 
 describe('addNewRecord', () => {
   test('stores the full record and pins its id', () => {
     addNewRecord('table', { id: 1, name: 'First' });
-    expect(getSessionStorage<string[]>('table_newRecordIds', [])).toEqual([
+    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
       '1',
     ]);
-    expect(
-      getSessionStorage<{ id: number; name: string }[]>(
-        'table_newRecordsData',
-        [],
-      ),
-    ).toEqual([{ id: 1, name: 'First' }]);
+    expect(usePinnedRecordsStore.getState().byTableId.table.records).toEqual([
+      { id: 1, name: 'First' },
+    ]);
   });
 
   test('moves an existing record to the front instead of duplicating it', () => {
     addNewRecord('table', { id: 1, name: 'First' });
     addNewRecord('table', { id: 2, name: 'Second' });
     addNewRecord('table', { id: 1, name: 'First (updated)' });
-    expect(
-      getSessionStorage<{ id: number; name: string }[]>(
-        'table_newRecordsData',
-        [],
-      ),
-    ).toEqual([
+    expect(usePinnedRecordsStore.getState().byTableId.table.records).toEqual([
       { id: 1, name: 'First (updated)' },
       { id: 2, name: 'Second' },
     ]);
@@ -82,12 +65,9 @@ describe('addNewRecord', () => {
   test('removeNewRecordId also clears the stored full record', () => {
     addNewRecord('table', { id: 1, name: 'First' });
     removeNewRecordId('table', 1);
-    expect(
-      getSessionStorage<{ id: number; name: string }[]>(
-        'table_newRecordsData',
-        [],
-      ),
-    ).toEqual([]);
+    expect(usePinnedRecordsStore.getState().byTableId.table.records).toEqual(
+      [],
+    );
   });
 });
 
@@ -96,7 +76,7 @@ describe('addSyncErrorRecordId', () => {
     addSyncErrorRecordId('table', 1);
     addSyncErrorRecordId('table', 1);
     expect(
-      getSessionStorage<string[]>('table_syncErrorRecordIds', []),
+      usePinnedRecordsStore.getState().byTableId.table.syncErrorIds,
     ).toEqual(['1']);
   });
 });
