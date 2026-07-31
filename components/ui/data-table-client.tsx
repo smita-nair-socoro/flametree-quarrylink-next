@@ -578,9 +578,6 @@ export function DataTableClient<TData, TValue>({
 
     setPagination(newValue);
 
-    // if (!isMobile) {
-    //   saveToStorage('pagination', newValue);
-    // }
     if (onPaginationChange) {
       // Schedule it so we don't cause React state updates during render phase
       setTimeout(
