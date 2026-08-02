@@ -608,9 +608,6 @@ export function DataTableClient<TData, TValue>({
   const handleColumnFiltersChange = (updater: Updater<ColumnFiltersState>) => {
     setColumnFilters((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      // if (!isMobile) {
-      //   saveToStorage('columnFilters', newValue);
-      // }
       return newValue;
     });
   };
@@ -618,9 +615,6 @@ export function DataTableClient<TData, TValue>({
   const handleGlobalFilterChange = (updater: Updater<string>) => {
     setGlobalFilter((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      // if (!isMobile) {
-      //   saveToStorage('globalFilter', newValue);
-      // }
       return newValue;
     });
   };
@@ -628,9 +622,6 @@ export function DataTableClient<TData, TValue>({
   const handleColumnVisibilityChange = (updater: Updater<VisibilityState>) => {
     setColumnVisibility((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
-      // if (!isMobile) {
-      //   saveToStorage('columnVisibility', newValue);
-      // }
       return newValue;
     });
   };
@@ -638,9 +629,6 @@ export function DataTableClient<TData, TValue>({
   const handlePaginationSizeChange = (value: string) => {
     clearPinnedNewRecords();
     setPaginationSize(value);
-    // if (!isMobile) {
-    //   saveToStorage('paginationSize', value);
-    // }
     table.setPageSize(Number(value));
     if (onPaginationChange) {
       onPaginationChange(
