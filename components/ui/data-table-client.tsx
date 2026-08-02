@@ -1180,7 +1180,7 @@ export function DataTableClient<TData, TValue>({
                                     const displayLabel = option.label.includes(
                                       '_',
                                     )
-                                      ? option.label.replace(/_/g, ' ')
+                                      ? option.label.replaceAll('_', ' ')
                                       : option.label;
 
                                     return (
