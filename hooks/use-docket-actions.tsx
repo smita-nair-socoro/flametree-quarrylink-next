@@ -126,10 +126,7 @@ interface DialogConfig {
   buttonContainerClass?: string;
 }
 
-export function useDocketActions(
-  docketData?: DocketDTO | null,
-  tableId: string = 'docket_main_data_table',
-) {
+export function useDocketActions(docketData?: DocketDTO | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [isFormDirty, setIsFormDirty] = React.useState(false);
@@ -534,7 +531,7 @@ export function useDocketActions(
       // Duplicate response doesn't reliably embed job/job-item, so fall back
       // to `effectiveDocket`.
       addNewRecords(
-        tableId,
+        'docket_main_data_table',
         result.dockets.map((d) => ({
           ...d,
           job: d.job ?? effectiveDocket?.job,
@@ -1005,18 +1002,13 @@ export function useDocketActions(
         <DocketActionButtons
           docket={effectiveDocket}
           hasUnsavedChanges={isFormDirty}
-          tableId={tableId}
         />
       }
       headerInfo={{
         useSelectedDocket: true,
       }}
     >
-      <DocketForm
-        canEdit={canEdit}
-        initialDocket={effectiveDocket}
-        tableId={tableId}
-      />
+      <DocketForm canEdit={canEdit} initialDocket={effectiveDocket} />
     </FormDialog>
   ) : null;
 
