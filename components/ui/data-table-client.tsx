@@ -373,6 +373,14 @@ export function DataTableClient<TData, TValue>({
     });
   const debouncedColumnFilters = useDebounce(activeColumnFilters, 300);
 
+  // Filtering drops pinned "new record" highlighting entirely — same
+  // idempotent clearPinned() used below for pagination changes.
+  useEffect(() => {
+    if (columnFilters.length > 0 || globalFilter.trim().length > 0) {
+      clearPinnedNewRecords();
+    }
+  }, [columnFilters, globalFilter, clearPinnedNewRecords]);
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     () => {
       if (isMobile) return defaultColumnVisibility;

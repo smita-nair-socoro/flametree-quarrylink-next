@@ -266,7 +266,6 @@ export default function ProductForm({
         addNewRecord('product_main_data_table', {
           ...createdProduct,
           material: createdProduct.material ?? selectedMaterial,
-          quarrySupplierProducts: [],
         });
         setCreatedProductId(createdProduct.id as number);
         setProductJustCreated(true);
