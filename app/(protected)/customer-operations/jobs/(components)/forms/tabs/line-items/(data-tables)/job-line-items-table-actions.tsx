@@ -57,9 +57,9 @@ export function JobLineItemTableActions({
 				<DropdownMenuContent align="end" className="w-48">
 					<DropdownMenuItem onClick={handleView}>
 						<Eye className="h-4 w-4 mr-2" />
-						View Products
+						View Product
 					</DropdownMenuItem>
-					{jobStatus !== JOB_STATUS.CANCELLED && (
+					{(jobStatus !== JOB_STATUS.CANCELLED && jobStatus !== JOB_STATUS.SETTLED) && (
 						<>
 							<DropdownMenuSeparator />
 							<DropdownMenuItem

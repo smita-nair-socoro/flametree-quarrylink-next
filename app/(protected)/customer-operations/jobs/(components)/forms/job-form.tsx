@@ -43,6 +43,7 @@ interface FormProps {
 export default function JobForm({
   id,
   className,
+  canEdit,
   onDirtyChange,
   onSaved,
   onCancel,
@@ -258,6 +259,7 @@ export default function JobForm({
                       className="w-full"
                       placeholder="Enter Project Name"
                       {...field}
+                      disabled={!canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -282,6 +284,7 @@ export default function JobForm({
                         placeholder="Enter Customer Name"
                         {...field}
                         value={field.value || ''}
+                        disabled={!canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -307,6 +310,7 @@ export default function JobForm({
                         placeholder="Enter Phone"
                         defaultCountry="AU"
                         {...field}
+                        disabled={!canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -338,6 +342,7 @@ export default function JobForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
+                        disabled={!canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -358,6 +363,7 @@ export default function JobForm({
                         relation="start"
                         siblingValue={deliveryWindowEnd}
                         aria-invalid={!!fieldState.error}
+                        disabled={!canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -378,6 +384,7 @@ export default function JobForm({
                         relation="end"
                         siblingValue={deliveryWindowStart}
                         aria-invalid={!!fieldState.error}
+                        disabled={!canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -410,7 +417,7 @@ export default function JobForm({
                         }
                         fixedValues={fixedValues}
                         label="Press Enter or comma to add email addresses for delivery receipts"
-                        disabled={jobForm.watch('customerId') === 0}
+                        disabled={jobForm.watch('customerId') === 0 || !canEdit}
                         {...field}
                       />
                     </FormControl>
@@ -424,7 +431,7 @@ export default function JobForm({
           {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
-            <div className="w-full flex min-w-0 mb-10">
+            <div className="w-full flex min-w-0 mb-11">
               <Tab
                 tabs={tabs}
                 className="w-full min-w-0"

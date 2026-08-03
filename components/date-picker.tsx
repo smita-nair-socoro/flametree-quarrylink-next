@@ -55,7 +55,7 @@ export function DatePicker({
         <Button
           type="button"
           variant="outline"
-          disabled={readOnly}
+          disabled={!!disabled || readOnly}
           aria-invalid={ariaInvalid}
           className={cn(
             'w-full  sm:w-auto pl-3 text-left font-normal',
