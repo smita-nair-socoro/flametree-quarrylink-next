@@ -1088,7 +1088,6 @@ export default function DocketForm({
                       <FormControl>
                         <Input
                           className="w-full mb-7"
-                          // readOnly={isEditing}
                           disabled
                           value={selectedJobLineItemDetails().quarryName ?? ''}
                         />
@@ -1216,7 +1215,6 @@ export default function DocketForm({
                                 <FormControl>
                                   <Input
                                     className="w-full"
-                                    // readOnly={isEditing}
                                     disabled
                                     value={
                                       field.value ??

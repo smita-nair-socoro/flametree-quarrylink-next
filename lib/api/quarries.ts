@@ -1,10 +1,16 @@
 import {
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
+import {
+  getProductsPageFromListResponse,
+  ProductsListParams,
+  toApiPage,
+} from './product';
 import { QuarryKeys } from './keys';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
@@ -112,7 +118,7 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
           queryKey: QuarryKeys.detail(variables.id),
         });
         queryClient.invalidateQueries({ queryKey: QuarryKeys.all });
-        
+
         // Remove the deleted quarry/supplier ID from sessionStorage
         removeNewRecordId('quarry_suppliers_table', variables.id);
       }
@@ -120,10 +126,46 @@ export const useDeleteQuarryAfterEligibilityCheck = () => {
   });
 };
 
-export const LinkedProductsQueryOptions = (quarryId: number) =>
+export type LinkedProductsListParams = Omit<ProductsListParams, 'ids'>;
+
+export const LinkedProductsListQueryOptions = (
+  quarryId: number,
+  params?: LinkedProductsListParams,
+) =>
   queryOptions({
-    queryKey: QuarryKeys.linkedProducts(quarryId),
-    queryFn: () => APIClient.quarries.linkedProducts(quarryId),
+    queryKey: [...QuarryKeys.linkedProducts(quarryId), params],
+    queryFn: () =>
+      APIClient.quarries.linkedProducts(quarryId, {
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
+    enabled: !!quarryId && quarryId > 0,
+  });
+
+export const LinkedProductsInfiniteListQueryOptions = (
+  quarryId: number,
+  params: Omit<LinkedProductsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...QuarryKeys.linkedProducts(quarryId), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.quarries.linkedProducts(quarryId, {
+        ...params,
+        page: pageParam as number,
+        pageSize: params.pageSize ?? 25,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getProductsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      const content = page.content ?? [];
+      if (content.length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+    enabled: !!quarryId && quarryId > 0,
   });

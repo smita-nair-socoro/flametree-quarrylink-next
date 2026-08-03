@@ -1,7 +1,6 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
 // import { handleLogout } from '../auth/authManager';
 import {
-  LinkedProduct,
   Product,
   ProductDetails,
   ProductListItem,
@@ -624,10 +623,38 @@ export const APIClient = {
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
       ),
-    linkedProducts: (quarryId: number) =>
-      appClient.Get<LinkedProduct>(
+    linkedProducts: (
+      quarryId: number,
+      params?: {
+        materialIds?: number[];
+        isActive?: boolean[];
+        page?: number;
+        pageSize?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+
+      return appClient.Get<ProductsListResponse>(
         `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`,
-      ),
+        {
+          queryString: {
+            materialIds: params?.materialIds?.map(String),
+            isActive: params?.isActive?.map(String),
+            page: params?.page?.toString(),
+            pageSize: isPaginated
+              ? (params?.pageSize?.toString() ?? '10')
+              : (params?.pageSize?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+          },
+        },
+      );
+    },
   },
 
   materials: {
