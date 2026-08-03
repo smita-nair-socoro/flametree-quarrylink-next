@@ -14,9 +14,11 @@ import {
 } from 'lucide-react';
 import { useQuarrySupplierActions } from '@/hooks/use-quarry-supplier-actions';
 import { Quarry } from '@/lib/types/quarry';
+import { notifyWarning } from '@/lib/toast';
 
 interface QuarrySupplierActionButtonsProps {
   quarrySupplier: Quarry | null | undefined;
+  hasUnsavedChanges?: boolean;
   /**
    * When provided, these actions will be used instead of creating a new
    * `useQuarrySupplierActions` instance. This lets the header buttons operate on
@@ -37,12 +39,21 @@ interface QuarrySupplierActionButtonsProps {
 
 export function QuarrySupplierActionButtons({
   quarrySupplier,
+  hasUnsavedChanges = false,
   actionsOverride,
   suppressDialogs = false,
 }: QuarrySupplierActionButtonsProps) {
   const internal = useQuarrySupplierActions(quarrySupplier);
   const actions = actionsOverride ?? internal.actions;
   const confirmDialogs = suppressDialogs ? null : internal.confirmDialogs;
+
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
 
   // Early returns for null quarry/supplier or new quarry/supplier
   if (!quarrySupplier) {
@@ -62,7 +73,7 @@ export function QuarrySupplierActionButtons({
         {/* Linked Products - standalone button, always visible */}
         <Button
           variant="outline"
-          onClick={actions.linkedProducts}
+          onClick={() => runAction(actions.linkedProducts)}
           className="h-9 gap-2 rounded-r-none border-r-0"
         >
           <ScanBarcode className="h-4 w-4" />
@@ -82,7 +93,7 @@ export function QuarrySupplierActionButtons({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem
-              onClick={actions.delete}
+              onClick={() => runAction(actions.delete)}
               className="text-destructive focus:text-destructive"
             >
               <Trash2 className="h-4 w-4 mr-2 text-destructive" />

@@ -10,12 +10,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  cn,
-  splitReasonNote,
-  scrollToFirstError,
-  addNewRecordId,
-} from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -70,13 +66,13 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   className?: string;
   onCancel?: () => void;
   canEdit?: boolean;
   isDuplicate?: boolean;
   onDirtyChange?: (isDirty: boolean) => void;
   onSaved?: () => void;
+  onSuccess?: () => void;
 }
 
 export default function QuotationForm({
@@ -86,8 +82,8 @@ export default function QuotationForm({
   canEdit,
   isDuplicate,
   onDirtyChange,
-  onSuccess,
   onSaved,
+  onSuccess,
 }: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const {
@@ -291,7 +287,7 @@ export default function QuotationForm({
 
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
-          addNewRecordId('quotation_main_data_table', newQuotation.id);
+          addNewRecord('quotation_main_data_table', newQuotation);
           await saveQuoteContent(newQuotation.id, values);
         }
 
@@ -330,7 +326,7 @@ export default function QuotationForm({
         // Note: the Quote content panel isn't shown during plain creation
         // (only when editing/duplicating), so there's no content to save here.
         if (newQuotation && typeof newQuotation.id === 'number') {
-          addNewRecordId('quotation_main_data_table', newQuotation.id);
+          addNewRecord('quotation_main_data_table', newQuotation);
         }
 
         notifySuccess('Quote created successfully');
@@ -370,8 +366,6 @@ export default function QuotationForm({
         });
         await saveQuoteContent(id!, values);
         notifySuccess('Quote updated successfully');
-        // Keep the dialog open on update (unlike create/duplicate) so staff
-        // can keep reviewing/editing - just clear the dirty/unsaved state.
         onSaved?.();
       } catch (error) {
         console.error('Error updating quotation:', error);

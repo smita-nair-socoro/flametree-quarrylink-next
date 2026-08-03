@@ -54,7 +54,9 @@ export function formatPhoneNumber(phone: string | undefined | null): string {
   if (!trimmed.startsWith('+')) return trimmed;
 
   try {
-    return formatPhoneNumberIntl(trimmed);
+    // formatPhoneNumberIntl returns '' (rather than throwing) for E.164-shaped
+    // numbers it can't parse, so fall back to the original value in that case too.
+    return formatPhoneNumberIntl(trimmed) || trimmed;
   } catch {
     // If parsing/formatting fails, fall back to the original value
     return trimmed;

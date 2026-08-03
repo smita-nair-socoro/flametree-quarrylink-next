@@ -57,14 +57,37 @@ export default function CustomersPage() {
 
   const syncCustomerFromAcumatica = usePullFromAccSoftware();
 
-  const handleSyncCustomerFromAcumatica = async () => {
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncCustomerFromAcumatica = React.useCallback(async () => {
+    if (syncCustomerFromAcumatica.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
     try {
       await syncCustomerFromAcumatica.mutateAsync();
       notifySuccess('Customers synced from Acumatica successfully');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
-  }
+  }, [syncCustomerFromAcumatica, isSyncDisabled]);
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -242,6 +265,11 @@ export default function CustomersPage() {
     actions.view(customer);
   };
 
+  const customerColumns = React.useMemo(
+    () => getCustomerColumns(currencyCode),
+    [currencyCode],
+  );
+
   const renderCustomerCard = React.useCallback(
     (customer: CustomerDTO) => {
       const formattedStatus = formatCustomerStatus(
@@ -346,7 +374,7 @@ export default function CustomersPage() {
       <DataTableClient
         tableId="customer_main_data_table"
         data={items ?? []}
-        columns={getCustomerColumns(currencyCode)}
+        columns={customerColumns}
         facetDefinition={facetDefs}
         searchPlaceHolder="Search customers..."
         onRowClick={handleRowClick}
@@ -384,8 +412,10 @@ export default function CustomersPage() {
         </div>
         {readOnly ? (
           <Button
-            onClick={() => handleSyncCustomerFromAcumatica()}
-            disabled={syncCustomerFromAcumatica.isPending}
+            onClick={handleSyncCustomerFromAcumatica}
+            disabled={
+              syncCustomerFromAcumatica.isPending || isSyncDisabled
+            }
           >
             <div className="flex items-center gap-2">
               <RefreshCw

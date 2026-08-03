@@ -73,6 +73,7 @@ export function useTruckActions(truckData?: TruckDTO | null) {
   const router = useRouter();
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const setSelectedTruck = useTruckStore((state) => state.setSelectedTruck);
   const selectedTruck = useTruckStore((state) => state.selectedTruck);
   const [cannotDeactivateDocketIds, setCannotDeactivateDocketIds] =
@@ -455,8 +456,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
-        if (!open) setScrollToSection(undefined);
+        if (!open) {
+          setIsFormDirty(false);
+          setScrollToSection(undefined);
+        }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       dialogTitle="View / Edit Truck"
       headerSubtitle={selectedTruck?.haulier?.haulierName}
@@ -472,7 +477,12 @@ export function useTruckActions(truckData?: TruckDTO | null) {
           </div>
         ) : undefined
       }
-      headerButtons={<TruckActionButtons truck={truckData ?? selectedTruck} />}
+      headerButtons={
+        <TruckActionButtons
+          truck={truckData ?? selectedTruck}
+          hasUnsavedChanges={isFormDirty}
+        />
+      }
       headerInfo={{ useSelectedTruck: true }}
     >
       <TruckForm id={selectedTruck?.id} scrollToSection={scrollToSection} />

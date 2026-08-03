@@ -25,6 +25,7 @@ export function useHaulierActions(
   { onDeleteSuccess }: { onDeleteSuccess?: () => void } = {},
 ) {
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [haulierData, setHaulierData] = React.useState<HaulierDTO | null | undefined>(initialData);
   const [deleteState, setDeleteState] = React.useState<DeleteDialogState>({ mode: 'idle' });
 
@@ -111,7 +112,13 @@ export function useHaulierActions(
       id={haulierData?.id}
       dialogTitle={haulierData?.haulierName}
       open={viewOpen}
-      onOpenChangeAction={(open) => setViewOpen(open)}
+      onOpenChangeAction={(open) => {
+        setViewOpen(open);
+        if (!open) {
+          setIsFormDirty(false);
+        }
+      }}
+      onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       dialogWidth="800px"
       headerButtonsAlign="center"
@@ -119,6 +126,7 @@ export function useHaulierActions(
         <HaulierActionButtons
           haulier={haulierData}
           onDelete={() => setViewOpen(false)}
+          hasUnsavedChanges={isFormDirty}
         />
       }
     >

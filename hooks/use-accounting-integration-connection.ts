@@ -26,7 +26,7 @@ export function useAccountingIntegrationConnection() {
       case 'MYOB_BUSINESS':
         return myobBusinessStatus?.connected ?? false;
       case 'MYOB_ACUMATICA':
-        return myobAcumaticaStatus?.connected ?? false;
+        return true;
       default:
         return false;
     }

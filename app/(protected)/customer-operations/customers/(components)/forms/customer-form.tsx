@@ -116,8 +116,8 @@ export default function CustomerForm({
     isEditing,
     customerForm,
     onDirtyChange,
-    onSuccess,
     onSaved,
+    onSuccess,
   });
 
   const handleAddressChange = useAddressSync(

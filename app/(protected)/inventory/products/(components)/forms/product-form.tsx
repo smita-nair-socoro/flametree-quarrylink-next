@@ -22,7 +22,10 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
-import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';
@@ -34,10 +37,8 @@ import { ActionDialog } from '@/components/action-dialog';
 import { CompareSupplierTable } from '../(data-tables)/supplier-comparison/compare-supplier-table';
 import { useQuery } from '@tanstack/react-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  extractErrorMessage,
-} from '@/lib/utils/error-message-helper';
-// import { addNewRecordId } from '@/lib/utils';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -141,10 +142,12 @@ export default function ProductForm({
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
     return sortByLabel(
-      materialsData.filter((material) => material.name !== 'UNKNOWN').map((material) => ({
-        label: material.name,
-        value: material.id,
-      })),
+      materialsData
+        .filter((material) => material.name !== 'UNKNOWN')
+        .map((material) => ({
+          label: material.name,
+          value: material.id,
+        })),
       (option) => option.label,
     );
   }, [materialsData]);
@@ -170,7 +173,10 @@ export default function ProductForm({
   const updateProduct = useUpdateProduct();
 
   const buildProductPayload = React.useCallback(
-    (values: ProductFormValues, needDensityOverride?: boolean): Partial<Product> => {
+    (
+      values: ProductFormValues,
+      needDensityOverride?: boolean,
+    ): Partial<Product> => {
       const payload: Partial<Product> = {
         productName: values.productName,
         productCode: values.productCode,
@@ -200,6 +206,7 @@ export default function ProductForm({
           id,
           data: { ...buildProductPayload(values, needDensityOverride), id },
         });
+        productForm.reset(values);
         onSaved?.();
       } catch (error) {
         notifyError(extractErrorMessage(error));
@@ -208,7 +215,7 @@ export default function ProductForm({
         setIsSubmitting(false);
       }
     },
-    [id, updateProduct, buildProductPayload, onSaved],
+    [id, updateProduct, buildProductPayload, onSaved, productForm],
   );
 
   const handleDensityModalConfirm = React.useCallback(() => {
@@ -216,10 +223,7 @@ export default function ProductForm({
     if (!values) return;
 
     pendingSubmitValuesRef.current = null;
-    void submitProductUpdate(
-      values,
-      densityOverrideChoice === 'override',
-    );
+    void submitProductUpdate(values, densityOverrideChoice === 'override');
   }, [densityOverrideChoice, submitProductUpdate]);
 
   async function onSubmit(values: ProductFormValues) {
@@ -248,17 +252,21 @@ export default function ProductForm({
       const createdProduct = await createProduct.mutateAsync(payload);
       console.log('Product created successfully!', createdProduct);
 
-      // Add the new record ID to sessionStorage for highlighting
-      // if (createdProduct && typeof createdProduct.id === 'number') {
-      //   addNewRecordId('product_main_data_table', createdProduct.id);
-      // }
-
       // Store the created product ID and mark as just created
       if (
         createdProduct &&
         typeof createdProduct === 'object' &&
         'id' in createdProduct
       ) {
+        // The create response doesn't reliably embed the material relation,
+        // so fall back to the one selected in the form.
+        const selectedMaterial = materialsData?.find(
+          (material) => material.id === values.materialId,
+        );
+        addNewRecord('product_main_data_table', {
+          ...createdProduct,
+          material: createdProduct.material ?? selectedMaterial,
+        });
         setCreatedProductId(createdProduct.id as number);
         setProductJustCreated(true);
         notifySuccess(
@@ -279,8 +287,8 @@ export default function ProductForm({
   }
 
   useFormDialogFooter(
-    !readOnly && (
-      isDesktop && isEditing ? (
+    !readOnly &&
+      (isDesktop && isEditing ? (
         <div className="flex justify-end gap-2">
           <Button variant="outline" type="button" onClick={onCancel}>
             Cancel
@@ -311,11 +319,7 @@ export default function ProductForm({
           )}
           {productJustCreated && (
             <>
-              <Button
-                variant="outline"
-                disabled
-                className="cursor-not-allowed"
-              >
+              <Button variant="outline" disabled className="cursor-not-allowed">
                 ✓ Product Created
               </Button>
               <Button type="button" onClick={() => setCreateStep(2)}>
@@ -387,19 +391,19 @@ export default function ProductForm({
     title: string;
     description: string;
   }[] = [
-      {
-        value: 'keep',
-        title: 'Keep Original Density Figures',
-        description:
-          'Existing product supplier records will retain their current density values',
-      },
-      {
-        value: 'override',
-        title: 'Override Product Supplier Density Figures',
-        description:
-          'Update all attached product supplier records with the new density value',
-      },
-    ];
+    {
+      value: 'keep',
+      title: 'Keep Original Density Figures',
+      description:
+        'Existing product supplier records will retain their current density values',
+    },
+    {
+      value: 'override',
+      title: 'Override Product Supplier Density Figures',
+      description:
+        'Update all attached product supplier records with the new density value',
+    },
+  ];
 
   return (
     <div className="w-full relative">
@@ -477,7 +481,7 @@ export default function ProductForm({
       {isSubmitting && (
         <div
           className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-9999 flex items-center justify-center',
             isDesktop ? '' : 'pt-10',
           )}
         >
@@ -566,7 +570,6 @@ export default function ProductForm({
                           disabled={productJustCreated}
                           readOnly={readOnly}
                           {...field}
-
                         />
                       </FormControl>
                       <FormMessage />
@@ -658,7 +661,6 @@ export default function ProductForm({
                   )}
                 />
               </div>
-
             </>
           )}
 
@@ -754,14 +756,19 @@ export default function ProductForm({
                 }
                 cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
-                cancelActionNeeded={isDesktop ? false : true}
+                cancelActionNeeded={!isDesktop}
               />
 
               {/* Supplier Table / Cards */}
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                 {isDesktop ? (
                   <DataTableClient
-                    columns={supplierColumns(selectedProduct?.id, currencyCode, taxLabel)}
+                    columns={supplierColumns(
+                      selectedProduct?.id,
+                      currencyCode,
+                      taxLabel,
+                      readOnly,
+                    )}
                     data={
                       isEditing || productJustCreated
                         ? (selectedProduct?.quarrySupplierProducts ?? [])
@@ -776,8 +783,12 @@ export default function ProductForm({
                       ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
                     ).map((supplier) => {
-                      const cost = supplier.perTnCostPrice || 0;
-                      const sell = supplier.perTnSellPrice || 0;
+                      const cost = !readOnly
+                        ? supplier.perTnCostPrice
+                        : supplier.perM3CostPrice || 0;
+                      const sell = !readOnly
+                        ? supplier.perTnSellPrice
+                        : supplier.perM3SellPrice || 0;
                       const margin =
                         sell === 0 ? 0 : ((sell - cost) / sell) * 100;
                       return (
@@ -787,8 +798,8 @@ export default function ProductForm({
                           subtitle={supplier.supplierProductName || 'N/A'}
                           costPrice={cost}
                           sellPrice={sell}
-                          costLabel="Cost (TN)"
-                          sellLabel="Sell (TN)"
+                          costLabel={!readOnly ? 'Cost (TN)' : 'Cost (m³)'}
+                          sellLabel={!readOnly ? 'Sell (TN)' : 'Sell (m³)'}
                           profitLabel="Margin"
                           profitValue={margin}
                           actions={
@@ -805,7 +816,6 @@ export default function ProductForm({
                   </div>
                 )}
               </div>
-
             </div>
           )}
 

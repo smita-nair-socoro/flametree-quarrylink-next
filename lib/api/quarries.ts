@@ -9,7 +9,7 @@ import { QuarryKeys } from './keys';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
 import { Quarry } from '../types/quarry';
-import { removeNewRecordId } from '../utils';
+import { removeNewRecordId } from '../utils/pinned-records';
 
 export const QuarryListQueryOptions = () =>
   queryOptions({

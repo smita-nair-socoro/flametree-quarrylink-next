@@ -41,10 +41,10 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
-import { toAddressPayload } from '@/lib/utils/address-helper';
+import { addNewRecord } from '@/lib/utils/pinned-records';
+import { toAddressPayload, useAddressSync } from '@/lib/utils/address-helper';
 import { AuditInformation } from '@/components/audit-information';
-import { useAddressSync } from '@/lib/utils/address-helper';
+
 import {
   useQuarrySupplierFormState,
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
@@ -70,7 +70,7 @@ export default function QuarrySupplierForm({
   className,
   onTypeChange,
   onDirtyChange,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
@@ -199,18 +199,19 @@ export default function QuarrySupplierForm({
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
+        quarrySupplierForm.reset(values);
       } else {
         const newQuarrySupplier =
           await createQuarryMutation.mutateAsync(quarrySupplierData);
         if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
-          addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
+          addNewRecord('quarry_suppliers_table', newQuarrySupplier);
         }
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
+        onSuccess?.();
       }
       onSaved?.();
-      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}:`,
@@ -253,7 +254,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -570,7 +571,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter opening and closing information"
                     {...field}
                   />
@@ -591,7 +592,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter weighbridge details"
                     {...field}
                   />
@@ -610,7 +611,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter important FYI notes"
                     {...field}
                   />
@@ -628,17 +629,28 @@ export default function QuarrySupplierForm({
                   {accountingSoftwareLabel} Mapping
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Optional account code pushed to {accountingSoftwareLabel} on
-                  invoice creation.
+                  Optional{' '}
+                  {accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'}{' '}
+                  pushed to {accountingSoftwareLabel} on invoice creation.
                 </p>
               </div>
               <FormSelect
                 control={quarrySupplierForm.control}
                 name="accountCodeId"
-                label="Account Code"
+                label={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'
+                }
                 options={accountCodeOptions}
-                placeholder="Select account code (optional)"
-                searchLabel="account codes"
+                placeholder={`Select ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} (optional)`}
+                searchLabel={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'warehouse ids'
+                    : 'account codes'
+                }
                 popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
                 formItemClassName="col-span-full"
                 className="w-full"

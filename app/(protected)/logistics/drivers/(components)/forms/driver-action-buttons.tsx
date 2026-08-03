@@ -23,16 +23,18 @@ import { useDriverActions } from '@/hooks/use-driver-actions';
 import { DriverDTO } from '@/lib/types/driver';
 import { DRIVER_STATUS } from '@/lib/types/driver-enums';
 import { UsersListQueryOptions, useResendUserInvitation } from '@/lib/api/user';
-import { notifySuccess, notifyError } from '@/lib/toast';
+import { notifySuccess, notifyError, notifyWarning } from '@/lib/toast';
 
 interface DriverActionButtonsProps {
   driver: DriverDTO | null | undefined;
   onDelete?: () => void;
+  hasUnsavedChanges?: boolean;
 }
 
 export function DriverActionButtons({
   driver,
   onDelete,
+  hasUnsavedChanges = false,
 }: DriverActionButtonsProps) {
   const { actions, confirmDialogs } = useDriverActions(driver, {
     onDeleteSuccess: onDelete,
@@ -58,7 +60,19 @@ export function DriverActionButtons({
   const resendInvitationMutation = useResendUserInvitation();
   // END TEMP
 
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
+
   const handleResendInvitation = async () => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
     if (!userSub) {
       notifyError('Could not find user account for this driver.');
       return;
@@ -77,7 +91,7 @@ export function DriverActionButtons({
 
   const status = driver.driverStatus;
   const handleAssignedDockets = () => {
-    actions.viewDockets(driver.id);
+    runAction(() => actions.viewDockets(driver.id));
   };
 
   return (
@@ -118,7 +132,7 @@ export function DriverActionButtons({
 
               {status === DRIVER_STATUS.DEACTIVATED && (
                 <>
-                  <DropdownMenuItem onClick={actions.reactivate}>
+                  <DropdownMenuItem onClick={() => runAction(actions.reactivate)}>
                     <Power className="h-4 w-4 mr-2 text-green-600" />
                     <span className="text-green-600">Reactivate Driver</span>
                   </DropdownMenuItem>
@@ -129,7 +143,7 @@ export function DriverActionButtons({
               {(status === DRIVER_STATUS.ACTIVE ||
                 status === DRIVER_STATUS.PENDING_INVITATION) && (
                 <>
-                  <DropdownMenuItem onClick={actions.deactivate}>
+                  <DropdownMenuItem onClick={() => runAction(actions.deactivate)}>
                     <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                     <span className="text-orange-900">Deactivate Driver</span>
                   </DropdownMenuItem>
@@ -137,7 +151,7 @@ export function DriverActionButtons({
                 </>
               )}
 
-              <DropdownMenuItem onClick={actions.delete}>
+              <DropdownMenuItem onClick={() => runAction(actions.delete)}>
                 <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                 <span className="text-red-600">Delete Driver</span>
               </DropdownMenuItem>
