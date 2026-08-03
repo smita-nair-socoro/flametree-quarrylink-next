@@ -88,7 +88,7 @@ function getBrowserTimeZoneId(): string | null {
  */
 export function TimezoneBanner({ standalone }: { standalone?: boolean } = {}) {
   const tenantTimeZoneId = useTenantStore((s) => s.tenantDetails?.timeZoneId);
-  const userSub = useUserStore((s) => s.user.sub);
+  const userSub = useUserStore((s) => s.user?.sub);
   const pathname = usePathname();
 
   const dismissStorageKey = userSub
