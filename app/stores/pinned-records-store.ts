@@ -24,22 +24,15 @@ interface PinnedRecordsStore {
 
   addNewRecordId: (tableId: string, recordId: number | string) => void;
   addNewRecord: (tableId: string, record: PinnedRecord) => void;
+  addNewRecords: (tableId: string, records: PinnedRecord[]) => void;
   removeNewRecordId: (tableId: string, recordId: number | string) => void;
   addSyncErrorRecordId: (tableId: string, recordId: number | string) => void;
   /** Drop all pinned state for a table (page/sort change, refresh, navigating away). */
   clearPinned: (tableId: string) => void;
 }
 
-/**
- * Tracks "just created" records per table so DataTableClient can pin them to
- * the top and highlight them — even when a record isn't part of the
- * currently fetched (possibly server-paginated) page of data.
- *
- * State is in-memory only (no persistence), which matches the desired
- * lifetime: pins should disappear on refresh or when the user navigates away
- * from the table, and DataTableClient explicitly clears them on page/sort
- * changes too.
- */
+// Tracks "just created" records per table so DataTableClient can pin them to
+// the top and highlight them, even before they're in the fetched page of data.
 export const usePinnedRecordsStore = create<PinnedRecordsStore>()(
   devtools(
     (set) => ({
@@ -81,6 +74,32 @@ export const usePinnedRecordsStore = create<PinnedRecordsStore>()(
                   record,
                   ...current.records.filter(
                     (r) => String(r.id) !== recordKey,
+                  ),
+                ],
+              },
+            },
+          };
+        });
+      },
+
+      addNewRecords: (tableId, records) => {
+        if (records.length === 0) return;
+        const newKeys = new Set(records.map((r) => String(r.id)));
+        set((state) => {
+          const current = state.byTableId[tableId] ?? EMPTY_TABLE_STATE;
+          return {
+            byTableId: {
+              ...state.byTableId,
+              [tableId]: {
+                ...current,
+                ids: [
+                  ...records.map((r) => String(r.id)),
+                  ...current.ids.filter((id) => !newKeys.has(id)),
+                ],
+                records: [
+                  ...records,
+                  ...current.records.filter(
+                    (r) => !newKeys.has(String(r.id)),
                   ),
                 ],
               },

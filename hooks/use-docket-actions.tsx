@@ -73,7 +73,7 @@ import {
 } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { addNewRecord } from '@/lib/utils/pinned-records';
+import { addNewRecords } from '@/lib/utils/pinned-records';
 import { getCalendarDateString } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
@@ -126,7 +126,10 @@ interface DialogConfig {
   buttonContainerClass?: string;
 }
 
-export function useDocketActions(docketData?: DocketDTO | null) {
+export function useDocketActions(
+  docketData?: DocketDTO | null,
+  tableId: string = 'docket_main_data_table',
+) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [isFormDirty, setIsFormDirty] = React.useState(false);
@@ -530,12 +533,13 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       });
       // Duplicate response doesn't reliably embed job/job-item, so fall back
       // to `effectiveDocket`.
-      result.dockets.forEach((d) =>
-        addNewRecord('docket_main_data_table', {
+      addNewRecords(
+        tableId,
+        result.dockets.map((d) => ({
           ...d,
           job: d.job ?? effectiveDocket?.job,
           jobItem: d.jobItem ?? effectiveDocket?.jobItem,
-        }),
+        })),
       );
       notifySuccess(
         `${result.dockets.length} docket${result.dockets.length === 1 ? '' : 's'} duplicated successfully`,
@@ -1001,13 +1005,18 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         <DocketActionButtons
           docket={effectiveDocket}
           hasUnsavedChanges={isFormDirty}
+          tableId={tableId}
         />
       }
       headerInfo={{
         useSelectedDocket: true,
       }}
     >
-      <DocketForm canEdit={canEdit} initialDocket={effectiveDocket} />
+      <DocketForm
+        canEdit={canEdit}
+        initialDocket={effectiveDocket}
+        tableId={tableId}
+      />
     </FormDialog>
   ) : null;
 
