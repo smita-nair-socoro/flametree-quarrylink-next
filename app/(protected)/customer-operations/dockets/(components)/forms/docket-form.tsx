@@ -1088,8 +1088,8 @@ export default function DocketForm({
                       <FormControl>
                         <Input
                           className="w-full mb-7"
-                          readOnly={isEditing}
-                          disabled={isReadOnly}
+                          // readOnly={isEditing}
+                          disabled
                           value={selectedJobLineItemDetails().quarryName ?? ''}
                         />
                       </FormControl>
@@ -1100,8 +1100,7 @@ export default function DocketForm({
                       <FormControl>
                         <Input
                           className="w-full"
-                          readOnly={isEditing}
-                          disabled={isReadOnly}
+                          disabled
                           isNumber
                           allowDecimal
                           minDecimals={2}
@@ -1217,8 +1216,8 @@ export default function DocketForm({
                                 <FormControl>
                                   <Input
                                     className="w-full"
-                                    readOnly={isEditing}
-                                    disabled={isReadOnly}
+                                    // readOnly={isEditing}
+                                    disabled
                                     value={
                                       field.value ??
                                       details.productUomLabel ??
@@ -1592,8 +1591,8 @@ export default function DocketForm({
                               value={field.value}
                               onChangeAction={field.onChange}
                               placeholder="Pick a date"
-                              disabled={{ before: today }}
-                              readOnly={isReadOnly && !canEditCollectionDate}
+                              disabledDates={{ before: today }}
+                              disabled={isReadOnly}
                             />
                           </FormControl>
                           <FormMessage />

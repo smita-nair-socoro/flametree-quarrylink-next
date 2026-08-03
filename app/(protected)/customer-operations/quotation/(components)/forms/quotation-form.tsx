@@ -738,8 +738,8 @@ export default function QuotationForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
-                        disabled={{ before: today }}
-                        readOnly={isEditing && !canEdit}
+                        disabled={isEditing && !canEdit}
+                        disabledDates={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -809,8 +809,8 @@ export default function QuotationForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
-                        disabled={{ before: today }}
-                        readOnly={isEditing && !canEdit}
+                        disabled={isEditing && !canEdit}
+                        disabledDates={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />

@@ -36,7 +36,7 @@ export default function DashboardPage() {
             <DatePicker
               value={date}
               onChangeAction={setDate}
-              disabled={{ before: addDays(startOfToday(), 0) }}
+              disabledDates={{ before: addDays(startOfToday(), 0) }}
               placeholder="Pick a date"
             />
 

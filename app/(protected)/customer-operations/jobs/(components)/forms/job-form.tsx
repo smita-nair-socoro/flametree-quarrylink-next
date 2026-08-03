@@ -29,6 +29,7 @@ import { AuditInformation } from '@/components/audit-information';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
+import { startOfDay } from 'date-fns';
 
 interface FormProps {
   id?: number;
@@ -51,6 +52,7 @@ export default function JobForm({
 }: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
+  const today = startOfDay(new Date());
 
   const {
     jobForm,
@@ -189,6 +191,7 @@ export default function JobForm({
                       className="w-full"
                       placeholder="Enter PO Number"
                       {...field}
+                      disabled={!canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -343,6 +346,7 @@ export default function JobForm({
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
                         disabled={!canEdit}
+                        disabledDates={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />
