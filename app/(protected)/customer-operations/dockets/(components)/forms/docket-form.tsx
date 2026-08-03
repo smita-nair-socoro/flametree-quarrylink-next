@@ -159,7 +159,7 @@ export default function DocketForm({
     jobLineItemOptions,
     jobLineItemSelectProps,
     selectedJobId,
-    selectedJob,
+    selectedJobEmail,
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,
@@ -568,7 +568,7 @@ export default function DocketForm({
       ? values.docketEmail.split(',').map((e) => e.trim())
       : [];
     const docketEmailRecipients = Array.from(
-      new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+      new Set([selectedJobEmail, ...additionalEmails].filter(Boolean)),
     );
 
     const lineItemDetails = selectedJobLineItemDetails();
@@ -678,11 +678,7 @@ export default function DocketForm({
             .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
-        new Set(
-          [selectedJob.customerEmail, ...additionalDocketEmails].filter(
-            Boolean,
-          ),
-        ),
+        new Set([selectedJobEmail, ...additionalDocketEmails].filter(Boolean)),
       );
 
       if (
@@ -1775,8 +1771,8 @@ export default function DocketForm({
                     control={docketForm.control}
                     name="docketEmail"
                     render={({ field }) => {
-                      const fixedValues = selectedJob.customerEmail
-                        ? [selectedJob.customerEmail]
+                      const fixedValues = selectedJobEmail
+                        ? [selectedJobEmail]
                         : [];
                       return (
                         <FormItem className={'col-span-2 col-start-1'}>

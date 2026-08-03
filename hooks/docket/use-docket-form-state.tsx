@@ -83,10 +83,6 @@ type SelectedJobPrefill = {
   contactPhone: string;
   customerEmail: string;
   additionalDocketEmails: string;
-  createdBy: string;
-  lastModifiedBy: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
 const TRUCK_TYPE_MAP: Record<string, string> = {
@@ -341,11 +337,6 @@ export function useDocketFormState({
           jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
         return recipients.filter((e) => e !== customerEmail).join(', ');
       })(),
-
-      createdBy: '',
-      lastModifiedBy: '',
-      createdAt: '',
-      updatedAt: '',
     };
   }, [effectiveJobId, jobsList, selectedJobDetails, selectedDocket]);
 
@@ -700,7 +691,7 @@ export function useDocketFormState({
     jobLineItemOptions,
     jobLineItemSelectProps: lineItemSelectProps,
     selectedJobId: effectiveJobId,
-    selectedJob,
+    selectedJobEmail: selectedJob.customerEmail,
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,
