@@ -263,9 +263,11 @@ export function DataTableClient<TData, TValue>({
     [syncErrorRecordIds],
   );
 
+  // Matches the `id !== 0` fallback in getRowId below, so pinned-row lookups
+  // agree with TanStack's actual row identity.
   const getRowIdentity = useCallback(
     (row: TData & { id?: number | string | null; sub?: string }) => {
-      if (row?.id != null) return String(row.id);
+      if (row?.id != null && row.id !== 0) return String(row.id);
       if (typeof row?.sub === 'string' && row.sub.length > 0) return row.sub;
       return undefined;
     },
@@ -562,29 +564,33 @@ export function DataTableClient<TData, TValue>({
 
   // Enhanced state setters that save to localStorage (only when not mobile)
   const handlePaginationChange = (updater: Updater<PaginationState>) => {
-    const currentState = {
-      pageIndex: externalPageIndex ?? pagination.pageIndex,
-      pageSize: externalPageSize ?? pagination.pageSize,
-    };
-    const newValue =
-      typeof updater === 'function' ? updater(currentState) : updater;
+    setPagination((old) => {
+      const currentState = {
+        pageIndex: externalPageIndex ?? old.pageIndex,
+        pageSize: externalPageSize ?? old.pageSize,
+      };
+      const newValue =
+        typeof updater === 'function' ? updater(currentState) : updater;
 
-    if (
-      newValue.pageIndex !== currentState.pageIndex ||
-      newValue.pageSize !== currentState.pageSize
-    ) {
-      clearPinnedNewRecords();
-    }
+      // clearPinned() is idempotent (no-op once already cleared), so it's
+      // safe here even if React re-invokes this updater for the same commit.
+      if (
+        newValue.pageIndex !== currentState.pageIndex ||
+        newValue.pageSize !== currentState.pageSize
+      ) {
+        clearPinnedNewRecords();
+      }
 
-    setPagination(newValue);
+      if (onPaginationChange) {
+        // Schedule it so we don't cause React state updates during render phase
+        setTimeout(
+          () => onPaginationChange(newValue.pageIndex, newValue.pageSize),
+          0,
+        );
+      }
 
-    if (onPaginationChange) {
-      // Schedule it so we don't cause React state updates during render phase
-      setTimeout(
-        () => onPaginationChange(newValue.pageIndex, newValue.pageSize),
-        0,
-      );
-    }
+      return newValue;
+    });
   };
 
   const handleSortingChange = (updater: Updater<SortingState>) => {

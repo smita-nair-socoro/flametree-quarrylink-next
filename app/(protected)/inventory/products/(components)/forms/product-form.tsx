@@ -258,7 +258,10 @@ export default function ProductForm({
         typeof createdProduct === 'object' &&
         'id' in createdProduct
       ) {
-        addNewRecord('product_main_data_table', createdProduct as Product);
+        addNewRecord('product_main_data_table', {
+          ...createdProduct,
+          quarrySupplierProducts: [],
+        });
         setCreatedProductId(createdProduct.id as number);
         setProductJustCreated(true);
         notifySuccess(
