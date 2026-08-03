@@ -15,6 +15,7 @@ import {
   QuoteContentLibraryItem,
 } from '@/lib/types/terms-conditions';
 import { APIClient } from '@/lib/api/APIClient';
+import { sortQuoteContentLibraryItems } from '@/lib/utils/quotation-form-helpers';
 import {
   QuoteContentLibraryListQueryOptions,
   PolicyDocumentQueryOptions,
@@ -41,7 +42,10 @@ export function useQuoteSettingsActions() {
   const { data: libraryData } = useQuery(QuoteContentLibraryListQueryOptions());
   const { data: documentItem } = useQuery(PolicyDocumentQueryOptions());
 
-  const items: QuoteContentLibraryItem[] = libraryData?.items ?? [];
+  const items: QuoteContentLibraryItem[] = React.useMemo(
+    () => sortQuoteContentLibraryItems(libraryData?.items ?? []),
+    [libraryData],
+  );
 
   const updateTextTemplate = useUpdateTextTemplate();
   const deleteTextTemplate = useDeleteTextTemplate();

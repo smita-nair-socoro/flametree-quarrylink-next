@@ -130,11 +130,6 @@ export default function QuotationForm({
 
   const updateQuoteEditorContent = useUpdateQuoteEditorContent();
 
-  // Update form values when API data loads.
-  // customerNotes/attachedItemIds are owned by the separate quote-content sync
-  // effect (in useQuotationFormState) - carry forward whatever it already set
-  // instead of overwriting with blanks, since that effect can resolve before
-  // or after this one (two independent queries).
   React.useEffect(() => {
     if (isEditing && currentQuotation) {
       quotationForm.reset({

@@ -85,7 +85,6 @@ export default function QuoteSettingsTab() {
           data={items}
           columns={columns}
           onRowClick={actions.view}
-          defaultSorting={[{ id: 'name', desc: false }]}
         />
       </div>
 

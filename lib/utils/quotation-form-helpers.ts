@@ -12,6 +12,7 @@ import type {
   QuoteExternalLinkItem,
   QuoteTextTemplateItem,
   PolicyDocumentItem,
+  QuoteContentLibraryItem,
   QuoteContentSelectionItemRequestDto,
 } from '../types/terms-conditions';
 import { sortByLabel } from './sort-options';
@@ -167,6 +168,46 @@ export function sortQuoteContentItems(
     ...remainingExternalLinks,
     ...remainingTextTemplates,
   ].filter((item): item is QuoteSettingItem => Boolean(item));
+}
+
+/**
+ * Same category order as `sortQuoteContentItems` (Policy Document, then
+ * External Link, then Text Template - default first within each type),
+ * for the flat `QuoteContentLibraryItem` shape used by the Quote Settings
+ * library list, so the two views stay visually consistent.
+ */
+export function sortQuoteContentLibraryItems(
+  items: QuoteContentLibraryItem[],
+): QuoteContentLibraryItem[] {
+  const policyDocs = items.filter(
+    (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
+  );
+  const externalLinks = items.filter(
+    (item) => item.type === QuoteSettingItemType.EXTERNAL_LINK,
+  );
+  const textTemplates = items.filter(
+    (item) => item.type === QuoteSettingItemType.TEXT_TEMPLATE,
+  );
+
+  const defaultExternalLink = externalLinks.find((item) => item.defaultItem);
+  const defaultTextTemplate = textTemplates.find((item) => item.defaultItem);
+
+  const remainingExternalLinks = sortByLabel(
+    externalLinks.filter((item) => item !== defaultExternalLink),
+    (item) => item.name,
+  );
+  const remainingTextTemplates = sortByLabel(
+    textTemplates.filter((item) => item !== defaultTextTemplate),
+    (item) => item.name,
+  );
+
+  return [
+    ...policyDocs,
+    defaultExternalLink,
+    defaultTextTemplate,
+    ...remainingExternalLinks,
+    ...remainingTextTemplates,
+  ].filter((item): item is QuoteContentLibraryItem => Boolean(item));
 }
 
 /**
