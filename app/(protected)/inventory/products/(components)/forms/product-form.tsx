@@ -258,8 +258,14 @@ export default function ProductForm({
         typeof createdProduct === 'object' &&
         'id' in createdProduct
       ) {
+        // The create response doesn't reliably embed the material relation,
+        // so fall back to the one selected in the form.
+        const selectedMaterial = materialsData?.find(
+          (material) => material.id === values.materialId,
+        );
         addNewRecord('product_main_data_table', {
           ...createdProduct,
+          material: createdProduct.material ?? selectedMaterial,
           quarrySupplierProducts: [],
         });
         setCreatedProductId(createdProduct.id as number);
