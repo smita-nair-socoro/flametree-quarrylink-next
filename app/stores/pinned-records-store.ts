@@ -22,7 +22,6 @@ const EMPTY_TABLE_STATE: TablePinnedState = {
 interface PinnedRecordsStore {
   byTableId: Record<string, TablePinnedState>;
 
-  addNewRecordId: (tableId: string, recordId: number | string) => void;
   addNewRecord: (tableId: string, record: PinnedRecord) => void;
   addNewRecords: (tableId: string, records: PinnedRecord[]) => void;
   removeNewRecordId: (tableId: string, recordId: number | string) => void;
@@ -37,25 +36,6 @@ export const usePinnedRecordsStore = create<PinnedRecordsStore>()(
   devtools(
     (set) => ({
       byTableId: {},
-
-      addNewRecordId: (tableId, recordId) => {
-        const recordKey = String(recordId);
-        set((state) => {
-          const current = state.byTableId[tableId] ?? EMPTY_TABLE_STATE;
-          return {
-            byTableId: {
-              ...state.byTableId,
-              [tableId]: {
-                ...current,
-                ids: [
-                  recordKey,
-                  ...current.ids.filter((id) => id !== recordKey),
-                ],
-              },
-            },
-          };
-        });
-      },
 
       addNewRecord: (tableId, record) => {
         const recordKey = String(record.id);

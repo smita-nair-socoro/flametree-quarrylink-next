@@ -2,7 +2,6 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { usePinnedRecordsStore } from '@/app/stores/pinned-records-store';
 import {
   addNewRecord,
-  addNewRecordId,
   removeNewRecordId,
   addSyncErrorRecordId,
 } from '../pinned-records';
@@ -11,37 +10,16 @@ afterEach(() => {
   usePinnedRecordsStore.setState({ byTableId: {} });
 });
 
-describe('addNewRecordId / removeNewRecordId', () => {
-  test('adds a record id to the front of the list', () => {
-    addNewRecordId('table', 1);
-    addNewRecordId('table', 2);
-    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
-      '2',
-      '1',
-    ]);
-  });
-
-  test('moves an existing id to the front instead of duplicating it', () => {
-    addNewRecordId('table', 1);
-    addNewRecordId('table', 2);
-    addNewRecordId('table', 1);
-    expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
-      '1',
-      '2',
-    ]);
-  });
-
+describe('addNewRecord', () => {
   test('removes a record id from the list', () => {
-    addNewRecordId('table', 1);
-    addNewRecordId('table', 2);
+    addNewRecord('table', { id: 1, name: 'First' });
+    addNewRecord('table', { id: 2, name: 'Second' });
     removeNewRecordId('table', 1);
     expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([
       '2',
     ]);
   });
-});
 
-describe('addNewRecord', () => {
   test('stores the full record and pins its id', () => {
     addNewRecord('table', { id: 1, name: 'First' });
     expect(usePinnedRecordsStore.getState().byTableId.table.ids).toEqual([

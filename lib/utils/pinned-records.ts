@@ -17,11 +17,6 @@ export function addNewRecords<T extends { id: number | string }>(
   usePinnedRecordsStore.getState().addNewRecords(tableId, records);
 }
 
-// Highlight and pin an existing record id at the top of its table.
-export function addNewRecordId(tableId: string, recordId: number | string) {
-  usePinnedRecordsStore.getState().addNewRecordId(tableId, recordId);
-}
-
 // Remove a record id from the table's pinned "new records" list.
 export function removeNewRecordId(tableId: string, recordId: number | string) {
   usePinnedRecordsStore.getState().removeNewRecordId(tableId, recordId);
