@@ -73,7 +73,7 @@ import {
 } from '@/lib/api/docket';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
+import { addNewRecords } from '@/lib/utils/pinned-records';
 import { getCalendarDateString } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
@@ -109,11 +109,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmDisabled?: boolean;
   confirmCustomClass?: string;
   cancelText?: string;
@@ -124,10 +124,6 @@ interface DialogConfig {
   subtitle?: string;
   hideSeparator?: boolean;
   buttonContainerClass?: string;
-}
-
-interface SelectedAction {
-  key: string;
 }
 
 export function useDocketActions(docketData?: DocketDTO | null) {
@@ -155,7 +151,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   });
   const [cancelReason, setCancelReason] = React.useState('');
   const [cancelNotes, setCancelNotes] = React.useState('');
-  const [, setSelectedAction] = React.useState<SelectedAction | null>(null);
 
   // Duplicate state
   const [duplicateCopies, setDuplicateCopies] = React.useState(0);
@@ -168,7 +163,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   );
 
   React.useEffect(() => {
-    if (duplicateRetainPo) setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
+    if (duplicateRetainPo)
+      setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
   }, [duplicateRetainPo, docketData?.purchaseOrder]);
 
   const resetDuplicateState = React.useCallback(() => {
@@ -177,7 +173,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     setDuplicateDeliveryDate(undefined);
     setDuplicatePurchaseOrder(docketData?.purchaseOrder ?? '');
   }, [docketData?.purchaseOrder]);
-  const { actions: invoiceActions } = useInvoiceActions((docketData ?? selectedDocket)?.invoiceId);
+  const { actions: invoiceActions } = useInvoiceActions(
+    (docketData ?? selectedDocket)?.invoiceId,
+  );
   const retrySyncMutation = useRetrySync();
   const queryClient = useQueryClient();
   const updateDocketStatusMutation = useUpdateDocketStatus();
@@ -196,7 +194,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   const [assignDriver, setAssignDriver] = React.useState<number | undefined>(
     undefined,
   );
-  const [assignExceedsCapacity, setAssignExceedsCapacity] = React.useState(false);
+  const [assignExceedsCapacity, setAssignExceedsCapacity] =
+    React.useState(false);
 
   const resetAssignState = React.useCallback(() => {
     setAssignHauler(undefined);
@@ -405,7 +404,9 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     if (!docketData?.id) return;
     try {
       await retrySyncMutation.mutateAsync(docketData.jobId);
-      const freshDocket = await queryClient.fetchQuery(DocketByIdQueryOptions(docketData.id));
+      const freshDocket = await queryClient.fetchQuery(
+        DocketByIdQueryOptions(docketData.id),
+      );
       if (freshDocket) setSelectedDocket(freshDocket);
     } catch (error) {
       notifyError(extractErrorMessage(error));
@@ -527,8 +528,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           deliveryCollectionDate: `${getCalendarDateString(duplicateDeliveryDate)}T00:00:00.000`,
         },
       });
-      result.dockets.forEach((d) =>
-        addNewRecordId('docket_main_data_table', d.id),
+      // Duplicate response doesn't reliably embed job/job-item, so fall back
+      // to `effectiveDocket`.
+      addNewRecords(
+        'docket_main_data_table',
+        result.dockets.map((d) => ({
+          ...d,
+          job: d.job ?? effectiveDocket?.job,
+          jobItem: d.jobItem ?? effectiveDocket?.jobItem,
+        })),
       );
       notifySuccess(
         `${result.dockets.length} docket${result.dockets.length === 1 ? '' : 's'} duplicated successfully`,
@@ -541,9 +549,15 @@ export function useDocketActions(docketData?: DocketDTO | null) {
   };
 
   const duplicateLoadSize =
-    docketData?.plannedLoadSize || docketData?.actualLoadSize || docketData?.loadSize || 0;
+    docketData?.plannedLoadSize ||
+    docketData?.actualLoadSize ||
+    docketData?.loadSize ||
+    0;
   const duplicateRemaining = docketData?.jobItem?.remainingQuantity ?? 0;
-  const duplicateMaxCopies = duplicateLoadSize > 0 ? Math.floor(duplicateRemaining / duplicateLoadSize) : 99;
+  const duplicateMaxCopies =
+    duplicateLoadSize > 0
+      ? Math.floor(duplicateRemaining / duplicateLoadSize)
+      : 99;
   const isDuplicateFormValid =
     duplicateCopies >= 1 &&
     duplicateCopies <= duplicateMaxCopies &&
@@ -567,7 +581,8 @@ export function useDocketActions(docketData?: DocketDTO | null) {
     receiverSignature,
   ]);
 
-  const isAssignFormValid = Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
+  const isAssignFormValid =
+    Boolean(assignTruck && assignDriver) && !assignExceedsCapacity;
 
   const loadSizeDiffersFromPlanned = React.useMemo(() => {
     if (!effectiveDocket) return false;
@@ -591,7 +606,10 @@ export function useDocketActions(docketData?: DocketDTO | null) {
             onHaulerChange={setAssignHauler}
             onTruckChange={setAssignTruck}
             onDriverChange={setAssignDriver}
-            onClose={() => { setActiveDialog(null); setViewOpen(false); }}
+            onClose={() => {
+              setActiveDialog(null);
+              setViewOpen(false);
+            }}
             onExceedsCapacity={setAssignExceedsCapacity}
           />
         ),
@@ -730,9 +748,12 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         title: 'Duplicate Docket',
         subtitle: `Create a copy of docket ${effectiveDocket?.docketNumber ?? ''}`,
         description: (
-          <div className="-mt-[18px] flex flex-col gap-6">
-            <div className="-mx-[25px] border-t border-[#F3F4F6]" />
-            <DuplicateDocketDescription docket={effectiveDocket} copies={duplicateCopies} />
+          <div className="-mt-4.5 flex flex-col gap-6">
+            <div className="-mx-6.25 border-t border-[#F3F4F6]" />
+            <DuplicateDocketDescription
+              docket={effectiveDocket}
+              copies={duplicateCopies}
+            />
           </div>
         ),
         content: (
@@ -750,14 +771,17 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         ),
         confirmText: 'Create Copy',
         confirmCustomColor: '#99A1AF',
-        confirmCustomClass: 'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px] cursor-pointer hover:opacity-80 transition-opacity',
+        confirmCustomClass:
+          'h-[37px] w-[114px] rounded-[10px] pt-[9px] pr-[15px] pb-[8px] pl-[16px] cursor-pointer hover:opacity-80 transition-opacity',
         confirmDisabled: !isDuplicateFormValid,
         cancelText: 'Cancel',
-        cancelButtonClass: 'h-[37px] w-[79px] rounded-[10px] border border-[#E5E7EB] pt-[9px] pr-[16px] pb-[8px] pl-[17px] text-[#364153]',
-        customWidth: "w-full !max-w-[672px]",
+        cancelButtonClass:
+          'h-[37px] w-[79px] rounded-[10px] border border-[#E5E7EB] pt-[9px] pr-[16px] pb-[8px] pl-[17px] text-[#364153]',
+        customWidth: 'w-full !max-w-[672px]',
         titleClassName: 'text-2xl',
         hideSeparator: true,
-        buttonContainerClass: '-mt-[19px] -mx-[25px] px-[25px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
+        buttonContainerClass:
+          '-mt-[19px] -mx-[25px] px-[25px] border-t border-[#F3F4F6] flex justify-end items-center gap-3 pt-6',
       },
       unassign: {
         title: 'Confirm unassign',
@@ -797,7 +821,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       assignHauler,
       assignTruck,
       assignDriver,
-      assignExceedsCapacity,
     ],
   );
 
@@ -897,7 +920,6 @@ export function useDocketActions(docketData?: DocketDTO | null) {
         subtitle={config.subtitle}
         hideSeparator={config.hideSeparator}
         buttonContainerClass={config.buttonContainerClass}
-
         onConfirmAction={async () => {
           switch (key) {
             case 'assign':
@@ -977,16 +999,16 @@ export function useDocketActions(docketData?: DocketDTO | null) {
       onUnsavedChangesChange={setIsFormDirty}
       hideTrigger
       headerButtons={
-        <DocketActionButtons docket={effectiveDocket} hasUnsavedChanges={isFormDirty} />
+        <DocketActionButtons
+          docket={effectiveDocket}
+          hasUnsavedChanges={isFormDirty}
+        />
       }
       headerInfo={{
         useSelectedDocket: true,
       }}
     >
-      <DocketForm
-        canEdit={canEdit}
-        initialDocket={effectiveDocket}
-      />
+      <DocketForm canEdit={canEdit} initialDocket={effectiveDocket} />
     </FormDialog>
   ) : null;
 
@@ -1001,7 +1023,7 @@ export function useDocketActions(docketData?: DocketDTO | null) {
           if (!open) setActiveDialog(null);
         }}
         docket={docketData}
-      />
+      />,
     ],
     viewDialog,
     isDialogOpen: activeDialog !== null,

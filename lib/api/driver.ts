@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DriverKeys, UserKeys } from './keys';
-import { removeNewRecordId } from '../utils';
+import { removeNewRecordId } from '../utils/pinned-records';
 import type {
   DriverDTO,
   PutDriverDTO,

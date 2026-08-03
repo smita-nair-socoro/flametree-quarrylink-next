@@ -15,7 +15,7 @@ import {
   ProductsPage,
 } from '../types/product';
 import { extractEligibilityBlockingDependencies } from '../utils/error-message-helper';
-import { removeNewRecordId } from '../utils';
+import { removeNewRecordId } from '../utils/pinned-records';
 
 export type ProductsListParams = {
   /** 0-based page index from UI tables (converted to 1-based for the API). */

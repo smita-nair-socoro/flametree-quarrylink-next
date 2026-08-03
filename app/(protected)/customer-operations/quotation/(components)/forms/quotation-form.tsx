@@ -10,12 +10,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  cn,
-  splitReasonNote,
-  scrollToFirstError,
-  addNewRecordId,
-} from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import React from 'react';
@@ -255,7 +251,7 @@ export default function QuotationForm({
 
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
-          addNewRecordId('quotation_main_data_table', newQuotation.id);
+          addNewRecord('quotation_main_data_table', newQuotation);
         }
 
         notifySuccess('Quote duplicated successfully');
@@ -291,7 +287,7 @@ export default function QuotationForm({
 
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
-          addNewRecordId('quotation_main_data_table', newQuotation.id);
+          addNewRecord('quotation_main_data_table', newQuotation);
         }
 
         notifySuccess('Quote created successfully');
