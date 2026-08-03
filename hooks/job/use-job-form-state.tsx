@@ -334,7 +334,12 @@ export function useJobFormState({
           const createdJob = await createJob.mutateAsync(payload);
 
           if (createdJob?.id) {
-            addNewRecord('job_main_data_table', createdJob);
+            // The create response doesn't reliably embed customerDto, so
+            // fall back to the customer already selected in the form.
+            addNewRecord('job_main_data_table', {
+              ...createdJob,
+              customerDto: createdJob.customerDto ?? selectedCustomer,
+            });
           }
 
           notifySuccess('Job created successfully');
