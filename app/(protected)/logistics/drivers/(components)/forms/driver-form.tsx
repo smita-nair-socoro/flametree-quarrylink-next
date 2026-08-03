@@ -13,7 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { cn, scrollToFirstError } from '@/lib/utils';
-import { addNewRecordId } from '@/lib/utils/pinned-records';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -183,7 +183,10 @@ export default function DriverForm({
         });
 
         if (newDriver && typeof newDriver.id === 'number') {
-          addNewRecordId('driver_main_data_table', newDriver.id);
+          addNewRecord('driver_main_data_table', {
+            ...newDriver,
+            id: newDriver.id,
+          });
         }
         onSuccess?.();
       }

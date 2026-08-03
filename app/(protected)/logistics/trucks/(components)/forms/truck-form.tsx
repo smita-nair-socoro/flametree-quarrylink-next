@@ -13,7 +13,7 @@ import {
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { cn, scrollToFirstError } from '@/lib/utils';
-import { addNewRecordId } from '@/lib/utils/pinned-records';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -266,7 +266,10 @@ export default function TruckForm({
           driverIds: values.driverIds?.map(Number) ?? [],
         });
         if (newTruck && typeof newTruck.id === 'number') {
-          addNewRecordId('truck_main_data_table', newTruck.id);
+          addNewRecord('truck_main_data_table', {
+            ...newTruck,
+            id: newTruck.id,
+          });
         }
         onSuccess?.();
       }

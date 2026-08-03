@@ -30,7 +30,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils/pinned-records';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 
 interface InviteUserFormProps {
   onCancel?: () => void;
@@ -98,10 +98,10 @@ export default function InviteUserForm({
       if (newUser) {
         const u = newUser as User;
         if (typeof u.id === 'number') {
-          addNewRecordId('team_member_data_table', u.id);
+          addNewRecord('team_member_data_table', { ...u, id: u.id });
         }
         if (typeof u.sub === 'string') {
-          addNewRecordId('team_member_data_table', u.sub);
+          addNewRecord('team_member_data_table', { ...u, id: u.sub });
         }
       }
 

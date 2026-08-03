@@ -41,7 +41,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils/pinned-records';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import { toAddressPayload, useAddressSync } from '@/lib/utils/address-helper';
 import { AuditInformation } from '@/components/audit-information';
 
@@ -204,7 +204,7 @@ export default function QuarrySupplierForm({
         const newQuarrySupplier =
           await createQuarryMutation.mutateAsync(quarrySupplierData);
         if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
-          addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
+          addNewRecord('quarry_suppliers_table', newQuarrySupplier);
         }
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
