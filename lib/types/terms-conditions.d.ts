@@ -47,6 +47,18 @@ export type QuoteSettingItem =
   | QuoteExternalLinkItem
   | PolicyDocumentItem;
 
+export interface QuoteContentLibraryItem {
+  id: number;
+  name: string;
+  type: QuoteSettingItemType;
+  defaultItem: boolean;
+  lastUpdated: string;
+}
+
+export interface QuoteContentLibraryResponseDto {
+  items: QuoteContentLibraryItem[];
+}
+
 export interface PolicyDocumentItem {
   id: number;
   name: string;

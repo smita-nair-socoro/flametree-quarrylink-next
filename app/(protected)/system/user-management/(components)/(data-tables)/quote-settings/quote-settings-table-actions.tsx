@@ -10,14 +10,14 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { QuoteSettingItem } from '@/lib/types/terms-conditions';
-import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
+import { QuoteContentLibraryItem } from '@/lib/types/terms-conditions';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 interface QuoteSettingsTableActionsProps {
-  item: QuoteSettingItem;
-  onEdit: (item: QuoteSettingItem) => void;
-  onSetDefault: (item: QuoteSettingItem) => void;
-  onDelete: (item: QuoteSettingItem) => void;
+  item: QuoteContentLibraryItem;
+  onEdit: (item: QuoteContentLibraryItem) => void;
+  onSetDefault: (item: QuoteContentLibraryItem) => void;
+  onDelete: (item: QuoteContentLibraryItem) => void;
 }
 
 export function QuoteSettingsTableActions({
@@ -27,7 +27,7 @@ export function QuoteSettingsTableActions({
   onDelete,
 }: Readonly<QuoteSettingsTableActionsProps>) {
   const [open, setOpen] = React.useState(false);
-  const isDocument = isPolicyDocument(item);
+  const isDocument = item.type === QuoteSettingItemType.POLICY_DOCUMENT;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>

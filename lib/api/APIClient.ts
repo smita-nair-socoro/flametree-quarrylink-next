@@ -129,6 +129,7 @@ import {
   QuoteExternalLinkRequestDto,
   QuoteEditorContentResponseDto,
   QuoteContentSelectionRequestDto,
+  QuoteContentLibraryResponseDto,
 } from '../types/terms-conditions';
 
 type RequestBody =
@@ -1878,6 +1879,10 @@ export const APIClient = {
       appClient.Get<QuoteTextTemplateResponseDto[]>(
         `/socoro/quarrylink/api/quote-content-library/text-template`,
       ),
+    getById: (id: number) =>
+      appClient.Get<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
     create: (data: QuoteTextTemplateRequestDto) =>
       appClient.Post<QuoteTextTemplateResponseDto>(
         `/socoro/quarrylink/api/quote-content-library/text-template`,
@@ -1898,6 +1903,10 @@ export const APIClient = {
     getAll: () =>
       appClient.Get<QuoteExternalLinkResponseDto[]>(
         `/socoro/quarrylink/api/quote-content-library/external-link`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
       ),
     create: (data: QuoteExternalLinkRequestDto) =>
       appClient.Post<QuoteExternalLinkResponseDto>(
@@ -1924,6 +1933,19 @@ export const APIClient = {
       appClient.Put<QuoteEditorContentResponseDto>(
         `/socoro/quarrylink/api/quote/${quoteId}/content`,
         { body: data },
+      ),
+  },
+
+  quoteContentLibrary: {
+    getAll: (params?: { sortBy?: string; direction?: string }) =>
+      appClient.Get<QuoteContentLibraryResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            direction: params?.direction,
+          },
+        },
       ),
   },
 };

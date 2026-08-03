@@ -4,9 +4,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Link2, Paperclip } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
-import { QuoteSettingItem } from '@/lib/types/terms-conditions';
+import { QuoteContentLibraryItem } from '@/lib/types/terms-conditions';
 import { QUOTE_SETTING_TYPE_BADGE_CLASSES } from '@/lib/utils';
-import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingsTableActions } from './quote-settings-table-actions';
 
 const typeLabels: Record<QuoteSettingItemType, string> = {
@@ -22,24 +21,22 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
 };
 
 interface CreateQuoteSettingsColumnsArgs {
-  onEdit: (item: QuoteSettingItem) => void;
-  onSetDefault: (item: QuoteSettingItem) => void;
-  onDelete: (item: QuoteSettingItem) => void;
+  onEdit: (item: QuoteContentLibraryItem) => void;
+  onSetDefault: (item: QuoteContentLibraryItem) => void;
+  onDelete: (item: QuoteContentLibraryItem) => void;
 }
 
 export const createQuoteSettingsColumns = ({
   onEdit,
   onSetDefault,
   onDelete,
-}: CreateQuoteSettingsColumnsArgs): ColumnDef<QuoteSettingItem>[] => [
+}: CreateQuoteSettingsColumnsArgs): ColumnDef<QuoteContentLibraryItem>[] => [
   {
     id: 'name',
     accessorFn: (row) => row.name,
     header: 'Name',
     cell: ({ row }) => {
-      const Icon = isPolicyDocument(row.original)
-        ? Paperclip
-        : typeIcons[row.original.type];
+      const Icon = typeIcons[row.original.type];
       return (
         <div className="flex items-center gap-2 py-2">
           <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -53,19 +50,14 @@ export const createQuoteSettingsColumns = ({
   {
     id: 'type',
     header: 'Type',
-    cell: ({ row }) => {
-      const type = isPolicyDocument(row.original)
-        ? QuoteSettingItemType.POLICY_DOCUMENT
-        : row.original.type;
-      return (
-        <Badge
-          variant="outline"
-          className={QUOTE_SETTING_TYPE_BADGE_CLASSES[type]}
-        >
-          {typeLabels[type]}
-        </Badge>
-      );
-    },
+    cell: ({ row }) => (
+      <Badge
+        variant="outline"
+        className={QUOTE_SETTING_TYPE_BADGE_CLASSES[row.original.type]}
+      >
+        {typeLabels[row.original.type]}
+      </Badge>
+    ),
   },
   {
     id: 'default',

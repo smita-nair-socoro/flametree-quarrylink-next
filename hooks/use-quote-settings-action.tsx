@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FormDialog } from '@/components/form-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
@@ -11,13 +12,16 @@ import {
   QuoteSettingItem,
   PolicyDocumentItem,
   QuoteTextTemplateItem,
+  QuoteContentLibraryItem,
 } from '@/lib/types/terms-conditions';
+import { APIClient } from '@/lib/api/APIClient';
 import {
+  QuoteContentLibraryListQueryOptions,
   PolicyDocumentQueryOptions,
-  TextTemplateListQueryOptions,
+  TextTemplateDetailQueryOptions,
   useUpdateTextTemplate,
   useDeleteTextTemplate,
-  ExternalLinkListQueryOptions,
+  ExternalLinkDetailQueryOptions,
   useUpdateExternalLink,
   useDeleteExternalLink,
   useDeletePolicyDocument,
@@ -26,14 +30,18 @@ import TextTemplateForm from '@/app/(protected)/system/user-management/(componen
 import ExternalLinkForm from '@/app/(protected)/system/user-management/(components)/forms/external-link-form';
 import PolicyDocumentForm from '@/app/(protected)/system/user-management/(components)/forms/policy-document-form';
 
+// Used by the quote editor's "Quote content" panel, which still deals in the
+// full `QuoteSettingItem` union (its data comes from GET /quote/{id}/content,
+// which returns full content per item, unlike the settings library list).
 export function isPolicyDocument(item: QuoteSettingItem): item is PolicyDocumentItem {
   return 'mimeType' in item && (item as PolicyDocumentItem).mimeType === 'application/pdf';
 }
 
 export function useQuoteSettingsActions() {
+  const { data: libraryData } = useQuery(QuoteContentLibraryListQueryOptions());
   const { data: documentItem } = useQuery(PolicyDocumentQueryOptions());
-  const { data: textTemplateList } = useQuery(TextTemplateListQueryOptions());
-  const { data: externalLinkList } = useQuery(ExternalLinkListQueryOptions());
+
+  const items: QuoteContentLibraryItem[] = libraryData?.items ?? [];
 
   const updateTextTemplate = useUpdateTextTemplate();
   const deleteTextTemplate = useDeleteTextTemplate();
@@ -45,43 +53,46 @@ export function useQuoteSettingsActions() {
 
   const [textTemplateDialogOpen, setTextTemplateDialogOpen] =
     React.useState(false);
-  const [editingTextTemplate, setEditingTextTemplate] =
-    React.useState<QuoteTextTemplateItem | null>(null);
+  const [editingTextTemplateId, setEditingTextTemplateId] =
+    React.useState<number | null>(null);
 
   const [externalLinkDialogOpen, setExternalLinkDialogOpen] =
     React.useState(false);
-  const [editingExternalLink, setEditingExternalLink] =
-    React.useState<QuoteExternalLinkItem | null>(null);
+  const [editingExternalLinkId, setEditingExternalLinkId] =
+    React.useState<number | null>(null);
 
   const [policyDocumentDialogOpen, setPolicyDocumentDialogOpen] =
     React.useState(false);
 
-  const textTemplates: QuoteTextTemplateItem[] = React.useMemo(
-    () =>
-      (textTemplateList ?? []).map((item) => ({
-        ...item,
-        type: QuoteSettingItemType.TEXT_TEMPLATE as const,
-      })),
-    [textTemplateList],
+  // Full item detail is fetched on demand, only while its edit dialog is open.
+  const textTemplateDetailQuery = useQuery(
+    TextTemplateDetailQueryOptions(
+      editingTextTemplateId ?? 0,
+      textTemplateDialogOpen && editingTextTemplateId !== null,
+    ),
+  );
+  const externalLinkDetailQuery = useQuery(
+    ExternalLinkDetailQueryOptions(
+      editingExternalLinkId ?? 0,
+      externalLinkDialogOpen && editingExternalLinkId !== null,
+    ),
   );
 
-  const externalLinks: QuoteExternalLinkItem[] = React.useMemo(
-    () =>
-      (externalLinkList ?? []).map((item) => ({
-        ...item,
-        type: QuoteSettingItemType.EXTERNAL_LINK as const,
-      })),
-    [externalLinkList],
-  );
+  const editingTextTemplate: QuoteTextTemplateItem | null =
+    editingTextTemplateId !== null && textTemplateDetailQuery.data
+      ? {
+          ...textTemplateDetailQuery.data,
+          type: QuoteSettingItemType.TEXT_TEMPLATE as const,
+        }
+      : null;
 
-  const items: QuoteSettingItem[] = React.useMemo(
-    () => [
-      ...textTemplates,
-      ...externalLinks,
-      ...(documentItem ? [documentItem] : []),
-    ],
-    [textTemplates, externalLinks, documentItem],
-  );
+  const editingExternalLink: QuoteExternalLinkItem | null =
+    editingExternalLinkId !== null && externalLinkDetailQuery.data
+      ? {
+          ...externalLinkDetailQuery.data,
+          type: QuoteSettingItemType.EXTERNAL_LINK as const,
+        }
+      : null;
 
   // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
   const openDialogDeferred = React.useCallback((openFn: () => void) => {
@@ -89,20 +100,20 @@ export function useQuoteSettingsActions() {
   }, []);
 
   const edit = React.useCallback(
-    (item: QuoteSettingItem) => {
-      if (isPolicyDocument(item)) {
+    (item: QuoteContentLibraryItem) => {
+      if (item.type === QuoteSettingItemType.POLICY_DOCUMENT) {
         openDialogDeferred(() => setPolicyDocumentDialogOpen(true));
         return;
       }
       if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
         openDialogDeferred(() => {
-          setEditingTextTemplate(item);
+          setEditingTextTemplateId(item.id);
           setTextTemplateDialogOpen(true);
         });
         return;
       }
       openDialogDeferred(() => {
-        setEditingExternalLink(item);
+        setEditingExternalLinkId(item.id);
         setExternalLinkDialogOpen(true);
       });
     },
@@ -110,53 +121,50 @@ export function useQuoteSettingsActions() {
   );
 
   const setDefault = React.useCallback(
-    (item: QuoteSettingItem) => {
-      if (isPolicyDocument(item)) {
+    async (item: QuoteContentLibraryItem) => {
+      if (item.type === QuoteSettingItemType.POLICY_DOCUMENT) {
         // Cannot set default without re-uploading the file; open the replace dialog
         openDialogDeferred(() => setPolicyDocumentDialogOpen(true));
         return;
       }
-      const onSettled = {
-        onSuccess: () => notifySuccess(`"${item.name}" set as default.`),
-        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-      };
-      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
-        updateTextTemplate.mutate(
-          {
+      try {
+        if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+          const detail = await APIClient.textTemplates.getById(item.id);
+          await updateTextTemplate.mutateAsync({
             id: item.id,
             data: {
-              name: item.name,
-              contentHtml: item.contentHtml,
+              name: detail.name,
+              contentHtml: detail.contentHtml,
               defaultItem: true,
             },
-          },
-          onSettled,
-        );
-        return;
+          });
+        } else {
+          const detail = await APIClient.externalLinks.getById(item.id);
+          await updateExternalLink.mutateAsync({
+            id: item.id,
+            data: {
+              name: detail.name,
+              externalUrl: detail.externalUrl,
+              externalLinkText: detail.externalLinkText,
+              defaultItem: true,
+            },
+          });
+        }
+        notifySuccess(`"${item.name}" set as default.`);
+      } catch (err) {
+        notifyError(extractErrorMessage(err));
       }
-      updateExternalLink.mutate(
-        {
-          id: item.id,
-          data: {
-            name: item.name,
-            externalUrl: item.externalUrl,
-            externalLinkText: item.externalLinkText,
-            defaultItem: true,
-          },
-        },
-        onSettled,
-      );
     },
     [openDialogDeferred, updateTextTemplate, updateExternalLink],
   );
 
   const remove = React.useCallback(
-    (item: QuoteSettingItem) => {
+    (item: QuoteContentLibraryItem) => {
       const onSettled = {
         onSuccess: () => notifySuccess(`"${item.name}" deleted.`),
         onError: (err: unknown) => notifyError(extractErrorMessage(err)),
       };
-      if (isPolicyDocument(item)) {
+      if (item.type === QuoteSettingItemType.POLICY_DOCUMENT) {
         deletePolicyDocument.mutate(item.id, onSettled);
         return;
       }
@@ -173,10 +181,10 @@ export function useQuoteSettingsActions() {
     (type: QuoteSettingItemType) => {
       openDialogDeferred(() => {
         if (type === QuoteSettingItemType.TEXT_TEMPLATE) {
-          setEditingTextTemplate(null);
+          setEditingTextTemplateId(null);
           setTextTemplateDialogOpen(true);
         } else if (type === QuoteSettingItemType.EXTERNAL_LINK) {
-          setEditingExternalLink(null);
+          setEditingExternalLinkId(null);
           setExternalLinkDialogOpen(true);
         } else {
           setPolicyDocumentDialogOpen(true);
@@ -194,40 +202,52 @@ export function useQuoteSettingsActions() {
   const textTemplateDialog = textTemplateDialogOpen ? (
     <FormDialog
       dialogTitle={
-        editingTextTemplate ? 'Edit Text Template' : 'Add Text Template'
+        editingTextTemplateId !== null ? 'Edit Text Template' : 'Add Text Template'
       }
       dialogDescription="Text templates are available when staff compose quotes under Notes & Terms."
       open={textTemplateDialogOpen}
       onOpenChangeAction={(open) => {
         setTextTemplateDialogOpen(open);
         if (!open) {
-          setTimeout(() => setEditingTextTemplate(null), 100);
+          setTimeout(() => setEditingTextTemplateId(null), 100);
         }
       }}
       hideTrigger
       dialogWidth="700px"
     >
-      <TextTemplateForm editingItem={editingTextTemplate} />
+      {editingTextTemplateId !== null && textTemplateDetailQuery.isPending ? (
+        <div className="flex justify-center py-8">
+          <Spinner className="h-5 w-5" />
+        </div>
+      ) : (
+        <TextTemplateForm editingItem={editingTextTemplate} />
+      )}
     </FormDialog>
   ) : null;
 
   const externalLinkDialog = externalLinkDialogOpen ? (
     <FormDialog
       dialogTitle={
-        editingExternalLink ? 'Edit External Link' : 'Add External Link'
+        editingExternalLinkId !== null ? 'Edit External Link' : 'Add External Link'
       }
       dialogDescription="Link to policies hosted on SharePoint, Google Drive, or any external URL. Customers will see a clickable link on their quote."
       open={externalLinkDialogOpen}
       onOpenChangeAction={(open) => {
         setExternalLinkDialogOpen(open);
         if (!open) {
-          setTimeout(() => setEditingExternalLink(null), 100);
+          setTimeout(() => setEditingExternalLinkId(null), 100);
         }
       }}
       hideTrigger
       dialogWidth="500px"
     >
-      <ExternalLinkForm editingItem={editingExternalLink} />
+      {editingExternalLinkId !== null && externalLinkDetailQuery.isPending ? (
+        <div className="flex justify-center py-8">
+          <Spinner className="h-5 w-5" />
+        </div>
+      ) : (
+        <ExternalLinkForm editingItem={editingExternalLink} />
+      )}
     </FormDialog>
   ) : null;
 

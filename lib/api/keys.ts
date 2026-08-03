@@ -211,12 +211,18 @@ export const PolicyDocumentKeys = {
 
 export const TextTemplateKeys = {
   all: ['text-templates'] as const,
-  list: () => [...TextTemplateKeys.all, 'list'] as const,
+  detail: (id: number) => [...TextTemplateKeys.all, 'detail', id] as const,
 };
 
 export const ExternalLinkKeys = {
   all: ['external-links'] as const,
-  list: () => [...ExternalLinkKeys.all, 'list'] as const,
+  detail: (id: number) => [...ExternalLinkKeys.all, 'detail', id] as const,
+};
+
+export const QuoteContentLibraryKeys = {
+  all: ['quote-content-library'] as const,
+  list: (params?: { sortBy?: string; direction?: string }) =>
+    [...QuoteContentLibraryKeys.all, 'list', params] as const,
 };
 
 export const QuoteEditorContentKeys = {
