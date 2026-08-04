@@ -18,83 +18,41 @@ import {
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { usePolicyDocumentFormState } from '@/hooks/quote-settings/use-quote-settings-form-state';
 import { PolicyDocumentFormSchema } from './schemas/policy-document-form-schema';
-import { PolicyDocumentItem } from '@/lib/types/terms-conditions';
-import {
-  useCreatePolicyDocument,
-  useUpdatePolicyDocument,
-} from '@/lib/api/quote-profile-content';
 
 type PolicyDocumentFormValues = z.infer<typeof PolicyDocumentFormSchema>;
 
 interface PolicyDocumentFormProps {
-  currentDocument?: PolicyDocumentItem;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function PolicyDocumentForm({
-  currentDocument,
   onCancel,
   onSuccess,
   onDirtyChange,
 }: Readonly<PolicyDocumentFormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isReplacing = Boolean(currentDocument);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
-
-  const createPolicyDocument = useCreatePolicyDocument();
-  const updatePolicyDocument = useUpdatePolicyDocument();
-  const isSubmitting =
-    createPolicyDocument.isPending || updatePolicyDocument.isPending;
 
   const form = useForm<PolicyDocumentFormValues>({
     resolver: zodResolver(PolicyDocumentFormSchema),
     defaultValues: {
-      name: currentDocument?.name ?? '',
+      name: '',
       file: undefined,
     },
   });
 
+  const { currentDocument, isReplacing, isLoadingDetail, isSubmitting, onSubmit } =
+    usePolicyDocumentFormState({
+      form,
+      onDirtyChange,
+      onSuccess,
+    });
+
   const selectedFile = form.watch('file');
-
-  React.useEffect(() => {
-    onDirtyChange?.(form.formState.isDirty);
-  }, [form.formState.isDirty, onDirtyChange]);
-
-  const onSubmit = (values: PolicyDocumentFormValues) => {
-    if (!values.file) return;
-
-    const metadata = { name: values.name, defaultItem: true };
-    const file = values.file;
-
-    if (currentDocument) {
-      updatePolicyDocument.mutate(
-        { id: currentDocument.id, metadata, file },
-        {
-          onSuccess: () => {
-            notifySuccess(`"${values.name}" updated.`);
-            onSuccess?.();
-          },
-          onError: (err) => notifyError(extractErrorMessage(err)),
-        },
-      );
-    } else {
-      createPolicyDocument.mutate(
-        { metadata, file },
-        {
-          onSuccess: () => {
-            notifySuccess(`"${values.name}" uploaded.`);
-            onSuccess?.();
-          },
-          onError: (err) => notifyError(extractErrorMessage(err)),
-        },
-      );
-    }
-  };
 
   const submitLabel = isReplacing ? 'Replace Document' : 'Upload Document';
   const submittingLabel = isReplacing ? 'Replacing...' : 'Uploading...';
@@ -113,7 +71,7 @@ export default function PolicyDocumentForm({
         <Button
           form="policy-document-form"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoadingDetail}
         >
           {isSubmitting ? (
             <>
@@ -127,6 +85,15 @@ export default function PolicyDocumentForm({
       </div>
     ) : null,
   );
+
+  // Show loading while the current document (if any) is still being fetched
+  if (isLoadingDetail) {
+    return (
+      <div className="flex justify-center py-8">
+        <Spinner className="h-5 w-5" />
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

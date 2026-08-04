@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -20,14 +19,8 @@ import { RichTextEditor } from '@/components/ui/rich-text-editor';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Spinner } from '@/components/ui/spinner';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { notifyError, notifySuccess } from '@/lib/toast';
-import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useTextTemplateFormState } from '@/hooks/quote-settings/use-quote-settings-form-state';
 import { TextTemplateFormSchema } from './schemas/text-template-form-schema';
-import {
-  TextTemplateDetailQueryOptions,
-  useCreateTextTemplate,
-  useUpdateTextTemplate,
-} from '@/lib/api/quote-profile-content';
 
 type TextTemplateFormValues = z.infer<typeof TextTemplateFormSchema>;
 
@@ -47,15 +40,6 @@ export default function TextTemplateForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
 
-  const { data: editingItem, isPending: isLoadingDetail } = useQuery(
-    TextTemplateDetailQueryOptions(id ?? 0, isEditing),
-  );
-
-  const createTextTemplate = useCreateTextTemplate();
-  const updateTextTemplate = useUpdateTextTemplate();
-  const isSubmitting =
-    createTextTemplate.isPending || updateTextTemplate.isPending;
-
   const form = useForm<TextTemplateFormValues>({
     resolver: zodResolver(TextTemplateFormSchema),
     defaultValues: {
@@ -65,44 +49,15 @@ export default function TextTemplateForm({
     },
   });
 
-  React.useEffect(() => {
-    if (isEditing && editingItem) {
-      form.reset({
-        name: editingItem.name,
-        content: editingItem.contentHtml,
-        defaultItem: editingItem.defaultItem,
-      });
-    }
-  }, [isEditing, editingItem, form]);
-
-  React.useEffect(() => {
-    onDirtyChange?.(form.formState.isDirty);
-  }, [form.formState.isDirty, onDirtyChange]);
-
-  const onSubmit = (values: TextTemplateFormValues) => {
-    const data = {
-      name: values.name,
-      contentHtml: values.content,
-      defaultItem: values.defaultItem,
-    };
-    const onSettled = {
-      onSuccess: () => {
-        notifySuccess(
-          isEditing ? `"${values.name}" updated.` : `"${values.name}" added.`,
-        );
-        onSuccess?.();
-      },
-      onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-    };
-    if (isEditing && id) {
-      updateTextTemplate.mutate({ id, data }, onSettled);
-    } else {
-      createTextTemplate.mutate(data, onSettled);
-    }
-  };
+  const { isLoadingDetail, isSubmitting, onSubmit } = useTextTemplateFormState({
+    id,
+    isEditing,
+    form,
+    onDirtyChange,
+    onSuccess,
+  });
 
   const submitLabel = isEditing ? 'Save Changes' : 'Add Template';
-  const isLoading = isEditing && isLoadingDetail;
 
   useFormDialogFooter(
     isDesktop ? (
@@ -118,7 +73,7 @@ export default function TextTemplateForm({
         <Button
           form="text-template-form"
           type="submit"
-          disabled={isSubmitting || isLoading}
+          disabled={isSubmitting || isLoadingDetail}
         >
           {isSubmitting ? (
             <>
@@ -133,7 +88,8 @@ export default function TextTemplateForm({
     ) : null,
   );
 
-  if (isLoading) {
+  // Show loading while the existing template is still being fetched by id
+  if (isLoadingDetail) {
     return (
       <div className="flex justify-center py-8">
         <Spinner className="h-5 w-5" />

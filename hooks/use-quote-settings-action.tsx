@@ -225,7 +225,7 @@ export function useQuoteSettingsActions() {
       hideTrigger
       dialogWidth="500px"
     >
-      <PolicyDocumentForm currentDocument={documentItem ?? undefined} />
+      <PolicyDocumentForm />
     </FormDialog>
   ) : null;
 
