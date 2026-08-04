@@ -11,27 +11,19 @@ import {
 } from '@/lib/utils/quotation-form-helpers';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
+import type { QuotationFormValues } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/quotation-form-schema';
 
-/**
- * Consolidated hook for managing all quotation form state and data
- *
- * Combines:
- * - Fetching quotation details from API
- * - Dynamic labels based on quote type
- * - Pricing calculations with GST
- * - Customer phone/email auto-fill
- * - Quote content panel data (text templates / external links / policy
- *   document + customer notes), via the single GET /quote/{quoteId}/content
- *   endpoint - only relevant once the quote exists (isEditing)
- */
+const DATE_LABEL = 'Estimated Start Date';
+const TIME_WINDOW_LABEL = 'Estimated Time Window';
+
+/** Consolidated hook for quotation form data: detail fetch, pricing, and the Quote content panel. */
 export function useQuotationFormState(
   selectedQuotation: Quotation | null,
   isEditing: boolean,
-  quotationForm: UseFormReturn<any>,
+  quotationForm: UseFormReturn<QuotationFormValues>,
   taxPercentage?: number,
   currencyCode?: string,
 ) {
-  // ===== DATA FETCHING =====
   const {
     data: quotationDetailData,
     isLoading: isLoadingDetail,
@@ -40,21 +32,14 @@ export function useQuotationFormState(
 
   React.useEffect(() => {
     if (detailError) {
-      console.error('❌ Error fetching quotation details:', detailError);
+      console.error('Error fetching quotation details:', detailError);
     }
-  }, [detailError, quotationDetailData]);
+  }, [detailError]);
 
-  const getDetailedQuotation = React.useMemo(() => {
-    if (isEditing && quotationDetailData) {
-      return quotationDetailData;
-    }
-    return null;
-  }, [isEditing, quotationDetailData]);
+  // Only use fetched data when editing; keep the create-new form empty otherwise.
+  const currentQuotation = isEditing ? (quotationDetailData ?? null) : null;
 
-  // Only use selected quotation data when editing; keep new form empty otherwise
-  const currentQuotation = isEditing ? getDetailedQuotation : null;
-
-  // The store's selectedQuotation (used by FormDialog's header/links)
+  // FormDialog's header/links read the selected quotation from the store.
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation,
   );
@@ -64,16 +49,6 @@ export function useQuotationFormState(
     }
   }, [currentQuotation, setSelectedQuotation]);
 
-  // ===== DYNAMIC LABELS =====
-  const dateLabel = React.useMemo(() => {
-    return 'Estimated Start Date';
-  }, []);
-
-  const timeWindowLabel = React.useMemo(() => {
-    return 'Estimated Time Window';
-  }, []);
-
-  // ===== PRICING CALCULATIONS =====
   const pricingBreakdown = React.useMemo(() => {
     if (!isEditing || !currentQuotation) {
       return calculateQuotationPricing(null, currencyCode, taxPercentage);
@@ -85,9 +60,7 @@ export function useQuotationFormState(
     );
   }, [isEditing, currentQuotation, taxPercentage, currencyCode]);
 
-  // ===== QUOTE CONTENT PANEL =====
-  // The create-new-quote flow doesn't render the Quote content panel at all,
-  // so this is only enabled once we have a real quote id (isEditing).
+  // QuoteEditorContentQueryOptions is only enabled once a real quote id exists.
   const { data: quoteContent } = useQuery(
     QuoteEditorContentQueryOptions(selectedQuotation?.id ?? 0),
   );
@@ -116,19 +89,12 @@ export function useQuotationFormState(
   }, [isEditing, quoteContent, quotationForm]);
 
   return {
-    // Data
     currentQuotation,
     isLoadingDetail,
-    detailError: detailError,
-
-    // Labels
-    dateLabel,
-    timeWindowLabel,
-
-    // Pricing (includes gst and totalInvoiceIncGST)
+    detailError,
+    dateLabel: DATE_LABEL,
+    timeWindowLabel: TIME_WINDOW_LABEL,
     pricingBreakdown,
-
-    // Quote content panel
     contentItems,
   };
 }
