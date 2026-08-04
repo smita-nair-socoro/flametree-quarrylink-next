@@ -100,21 +100,16 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
         {/* Top Row: Logo and Quote Number */}
         <View style={styles.headerTop}>
           <View style={styles.headerLeft}>
-            {isQuarryLink ? (
-              <>
-                {/* react-pdf/renderer's Image component doesn't support alt attribute */}
-                {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                <Image
-                  src="/quarrylink-logo.png"
-                  style={styles.logo}
-                />
-              </>
-            ) : logoUrl && !logoError ? (
-              /* eslint-disable-next-line jsx-a11y/alt-text */
-              <Image
-                src={logoUrl}
-                style={styles.tenantLogo}
-              />
+            {logoUrl && !logoError ? (
+              isQuarryLink ? (
+                /* eslint-disable-next-line jsx-a11y/alt-text */
+                <Image src={logoUrl} style={styles.logo} />
+              ) : (
+                <View style={styles.tenantLogoWrapper}>
+                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
+                  <Image src={logoUrl} style={styles.tenantLogo} />
+                </View>
+              )
             ) : (
               <View style={styles.initialsLogo}>
                 <Text style={styles.initialsText}>{initials}</Text>

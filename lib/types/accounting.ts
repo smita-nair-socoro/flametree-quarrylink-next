@@ -1,3 +1,19 @@
+// Xero, Acumatica, MYOB Connect
+
+export interface ConnectRequestDTO {
+  tenantId: string;
+  userEmail: string;
+}
+
+export interface StatusResponseDTO {
+  tenantId: string;
+  connected: boolean;
+}
+
+export interface ConnectResponseDTO {
+  authorizeUrl: string;
+}
+
 export interface TrackingCategory {
   id: number;
   trackingCategoryName: string;

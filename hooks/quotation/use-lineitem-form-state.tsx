@@ -45,11 +45,22 @@ import {
   CustomerDeliveryAddress,
 } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
-import { DEFAULT_TAX_PERCENTAGE } from '@/lib/utils/tenant-config-helper';
+import { DEFAULT_TAX_PERCENTAGE, useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
 
 export type SelectOption = { label: string; value: number | string };
+
+const ALL_TRUCK_UNIT_OPTIONS: SelectOption[] = [
+  { label: 'TN', value: 'TN' },
+  { label: 'm³', value: 'M3' },
+  { label: 'Hourly', value: 'HOURLY' },
+  { label: 'Load', value: 'LOAD' },
+  { label: 'km', value: 'KM' },
+  { label: '20kg', value: 'KG_20' },
+  { label: 'Bulka', value: 'BULKA' },
+];
 
 type Props = {
   id?: number;
@@ -95,6 +106,8 @@ export function useLineItemFormState({
     enabled: isEditing && quoteItemId > 0,
   });
   const selectedQuotationFromStore = useSelectedQuotation();
+  const accountingSoftware = useAccountingSoftwareProvider();
+  const isMyobAcumatica = accountingSoftware === 'MYOB_ACUMATICA';
   const quotationId =
     selectedLineItem?.quoteId ?? selectedQuotationFromStore?.id ?? 0;
   const { data: selectedQuotation } = useQuery(
@@ -331,9 +344,7 @@ export function useLineItemFormState({
       const name = qsp?.quarrySupplier?.name || '';
       byId.set(quarrySupplierId, { id: quarrySupplierId, name });
     }
-    return Array.from(byId.values()).sort((a, b) =>
-      a.name.localeCompare(b.name),
-    );
+    return sortByLabel(Array.from(byId.values()), (supplier) => supplier.name);
   }, [productDetailsQuery.data, selectedProductId]);
 
   const quarryOptions: SelectOption[] = React.useMemo(
@@ -518,19 +529,23 @@ export function useLineItemFormState({
 
   // Static options
   const truckTypeOptions: SelectOption[] = React.useMemo(
-    () => [
-      { label: 'Truck', value: 'TRUCK' },
-      { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
-      { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
-      { label: 'Rigid truck', value: 'RIGID_TRUCK' },
-      { label: 'Flatbed', value: 'FLATBED' },
-      { label: 'Tipper', value: 'TIPPER' },
-      { label: 'Tandem', value: 'TANDEM' },
-      { label: 'Quad', value: 'QUAD' },
-      { label: 'Tri-Axle', value: 'TRI_AXLE' },
-      { label: 'Tautliner', value: 'TAUTLINER' },
-      { label: 'Crane Truck', value: 'CRANE_TRUCK' },
-    ],
+    () =>
+      sortByLabel(
+        [
+          { label: 'Truck', value: 'TRUCK' },
+          { label: 'Semi-Trailer', value: 'SEMI_TRAILER' },
+          { label: 'Truck + Trailer', value: 'TRUCK_AND_TRAILER' },
+          { label: 'Rigid truck', value: 'RIGID_TRUCK' },
+          { label: 'Flatbed', value: 'FLATBED' },
+          { label: 'Tipper', value: 'TIPPER' },
+          { label: 'Tandem', value: 'TANDEM' },
+          { label: 'Quad', value: 'QUAD' },
+          { label: 'Tri-Axle', value: 'TRI_AXLE' },
+          { label: 'Tautliner', value: 'TAUTLINER' },
+          { label: 'Crane Truck', value: 'CRANE_TRUCK' },
+        ],
+        (option) => option.label,
+      ),
     [],
   );
 
@@ -549,6 +564,10 @@ export function useLineItemFormState({
   }, [selectedQuarrySupplierProduct]);
 
   const truckUnitOptions: SelectOption[] = React.useMemo(() => {
+    if (isMyobAcumatica) {
+      return ALL_TRUCK_UNIT_OPTIONS;
+    }
+
     const opts: SelectOption[] = [];
     const qsp = selectedQuarrySupplierProduct as
       | QuarrySupplierProduct
@@ -565,7 +584,7 @@ export function useLineItemFormState({
     if (qsp?.availableForTruckRateBulka)
       opts.push({ label: 'Bulka', value: 'BULKA' });
     return opts;
-  }, [selectedQuarrySupplierProduct]);
+  }, [isMyobAcumatica, selectedQuarrySupplierProduct]);
 
   // Auto-fill product pricing on UOM changes
   const productCostUom = form.watch('productCostUom');

@@ -8,7 +8,7 @@ import {
   Unplug,
   CircleUser,
 } from 'lucide-react';
-import { useConnectXero, useXeroStatus } from '@/lib/api/xero';
+import { useConnectXero, useXeroStatus } from '@/lib/api/accounting';
 import { useAuth } from '@/hooks/use-auth';
 
 export function useXeroIntegrationActions() {

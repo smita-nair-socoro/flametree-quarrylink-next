@@ -76,6 +76,7 @@ export function useJobActions(jobData?: JobDetails | null) {
   const selectedJob = useJobStore((s) => s.selectedJob);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [addDocketOpen, setAddDocketOpen] = React.useState(false);
   const [addInvoiceOpen, setAddInvoiceOpen] = React.useState(false);
   const [pauseDeliveryDocketAction, setPauseDeliveryDocketAction] =
@@ -458,12 +459,19 @@ export function useJobActions(jobData?: JobDetails | null) {
       onOpenChangeAction={(open) => {
         setViewOpen(open);
         if (!open) {
+          setIsFormDirty(false);
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
         }
       }}
-      headerButtons={<JobActionButtons job={selectedJob ?? null} />}
+      onUnsavedChangesChange={setIsFormDirty}
+      headerButtons={
+        <JobActionButtons
+          job={selectedJob ?? null}
+          hasUnsavedChanges={isFormDirty}
+        />
+      }
       hideTrigger
       headerInfo={{
         useSelectedJob: true,

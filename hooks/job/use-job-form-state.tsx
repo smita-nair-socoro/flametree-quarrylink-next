@@ -30,7 +30,7 @@ import {
 } from '@/lib/utils/time';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import { addNewRecordId } from '@/lib/utils';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import LineItemsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/line-items/line-items-tab';
 import DocketsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/dockets/dockets-tab';
 import InvoicesTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/invoices/invoices-tab';
@@ -278,9 +278,9 @@ export function useJobFormState({
 
         const receiptEmails = values.receiptEmail
           ? values.receiptEmail
-              .split(',')
-              .map((email) => email.trim())
-              .filter(Boolean)
+            .split(',')
+            .map((email) => email.trim())
+            .filter(Boolean)
           : [];
 
         const customerEmail = selectedCustomer?.contactPersonEmail;
@@ -329,11 +329,17 @@ export function useJobFormState({
           }
 
           notifySuccess('Job updated successfully');
+          jobForm.reset(jobForm.getValues());
         } else {
           const createdJob = await createJob.mutateAsync(payload);
 
           if (createdJob?.id) {
-            addNewRecordId('job_main_data_table', createdJob.id);
+            // The create response doesn't reliably embed customerDto, so
+            // fall back to the customer already selected in the form.
+            addNewRecord('job_main_data_table', {
+              ...createdJob,
+              customerDto: createdJob.customerDto ?? selectedCustomer,
+            });
           }
 
           notifySuccess('Job created successfully');
@@ -344,7 +350,7 @@ export function useJobFormState({
       } catch (error) {
         notifyError(
           extractErrorMessage(error) ||
-            `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} job. Please try again.`,
         );
       }
     },

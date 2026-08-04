@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { TableBadges } from '@/components/table-badges';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 
@@ -14,6 +14,7 @@ export interface QuoteNavbarProps {
   accountManager: string;
   status: QuoteStatus;
   onDownloadPDF?: () => void;
+  isPdfDownloading?: boolean;
   tenantDetails?: StripeTenantDetailsSnapshot;
   logoUrl?: string;
   logoError?: boolean;
@@ -42,6 +43,7 @@ export function QuoteNavbar({
   accountManager,
   status,
   onDownloadPDF,
+  isPdfDownloading = false,
   tenantDetails,
   logoUrl,
   logoError = false,
@@ -100,9 +102,14 @@ export function QuoteNavbar({
             variant="secondary"
             className={`${downloadBtnClass} whitespace-nowrap justify-self-start w-fit`}
             size="default"
+            disabled={isPdfDownloading}
           >
-            <Download className="w-4 h-4" />
-            Download PDF
+            {isPdfDownloading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Download className="w-4 h-4" />
+            )}
+            {isPdfDownloading ? 'Generating PDF...' : 'Download PDF'}
           </Button>
 
           <div className="text-left md:text-right">

@@ -298,6 +298,7 @@ const getDialogConfigs = (
 export function useProductActions(productData?: ProductDetails | null) {
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
 
@@ -526,17 +527,20 @@ export function useProductActions(productData?: ProductDetails | null) {
         setViewOpen(open);
         // Ensure dropdown menu state is reset when dialog closes
         if (!open) {
+          setIsFormDirty(false);
           // Small delay to ensure proper cleanup
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
         }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       headerButtons={
         <ProductActionButtons
           product={selectedProduct ?? productData}
           actionsOverride={actions}
           suppressDialogs
+          hasUnsavedChanges={isFormDirty}
         />
       }
       hideTrigger

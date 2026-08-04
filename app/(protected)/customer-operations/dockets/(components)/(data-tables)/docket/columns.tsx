@@ -36,7 +36,7 @@ export const getDocketColumns = (
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">{value}</div>
+            <div className="truncate block max-w-30">{value}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{value}</p>
@@ -64,18 +64,18 @@ export const getDocketColumns = (
   },
   {
     id: 'jobReference',
-    accessorFn: (row) => row.job.jobNumber,
+    accessorFn: (row) => row.job?.jobNumber,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Job Reference" />
       );
     },
     cell: ({ row }) => {
-      const jobNumber = row.original.job.jobNumber;
+      const jobNumber = row.original.job?.jobNumber;
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">{jobNumber}</div>
+            <div className="truncate block max-w-30">{jobNumber}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{jobNumber}</p>
@@ -134,7 +134,7 @@ export const getDocketColumns = (
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">{customerName}</div>
+            <div className="truncate block max-w-30">{customerName}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{customerName}</p>
@@ -156,11 +156,11 @@ export const getDocketColumns = (
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.jobItem.product?.productName || 'N/A';
+      const productName = row.original.jobItem?.product?.productName || 'N/A';
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">{productName}</div>
+            <div className="truncate block max-w-30">{productName}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{productName}</p>
@@ -209,9 +209,7 @@ export const getDocketColumns = (
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>
-            <div className="truncate block max-w-[120px]">
-              {formattedLoadSize}
-            </div>
+            <div className="truncate block max-w-30">{formattedLoadSize}</div>
           </TooltipTrigger>
           <TooltipContent variant="white">
             <p>{formattedLoadSize}</p>

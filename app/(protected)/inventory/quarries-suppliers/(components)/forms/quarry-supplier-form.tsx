@@ -14,6 +14,7 @@ import {
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 
 import { cn, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -40,17 +41,16 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { addNewRecordId } from '@/lib/utils';
-import { toAddressPayload } from '@/lib/utils/address-helper';
+import { addNewRecord } from '@/lib/utils/pinned-records';
+import { toAddressPayload, useAddressSync } from '@/lib/utils/address-helper';
 import { AuditInformation } from '@/components/audit-information';
-import { useAddressSync } from '@/lib/utils/address-helper';
+
 import {
   useQuarrySupplierFormState,
   EMPTY_QUARRY_SUPPLIER_FORM_VALUES,
 } from '@/hooks/quarry-supplier/use-quarry-supplier-form-state';
 import { useGetAccountCodes } from '@/lib/api/accounting';
-import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 
 interface FormProps {
   id?: number;
@@ -70,16 +70,15 @@ export default function QuarrySupplierForm({
   className,
   onTypeChange,
   onDirtyChange,
-}: FormProps) {
+}: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = Boolean(id);
   const quarryId = id ?? 0;
 
-  const accountingSoftware = useAccountingSoftwareProvider();
-  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
-  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const { accountingSoftwareLabel, showAccountingMapping } =
+    useAccountingIntegrationConnection();
   const accountCodesQuery = useGetAccountCodes({
-    enabled: showXeroMapping,
+    enabled: showAccountingMapping,
   });
   const accountCodes = React.useMemo(
     () => accountCodesQuery.data ?? [],
@@ -96,12 +95,15 @@ export default function QuarrySupplierForm({
 
   const accountCodeOptions = React.useMemo<FormSelectOption[]>(
     () =>
-      accountCodes
-        .filter((accountCode) => accountCode.id !== undefined)
-        .map((accountCode) => ({
-          value: accountCode.id as number,
-          label: `${accountCode.code} - ${accountCode.name}`,
-        })),
+      sortByLabel(
+        accountCodes
+          .filter((accountCode) => accountCode.id !== undefined)
+          .map((accountCode) => ({
+            value: accountCode.id as number,
+            label: `${accountCode.code} - ${accountCode.name}`,
+          })),
+        (option) => option.label,
+      ),
     [accountCodes],
   );
 
@@ -178,7 +180,7 @@ export default function QuarrySupplierForm({
         contactPersonName: values.contactPersonName || '',
         contactPersonPhone: formatPhoneNumber(values.contactPersonPhone),
         contactPersonEmail: values.contactPersonEmail || '',
-        ...(showXeroMapping && values.accountCodeId != null
+        ...(showAccountingMapping && values.accountCodeId != null
           ? { accountingSoftwareAccountingCodeId: values.accountCodeId }
           : {}),
         ...(websiteValue ? { website: websiteValue } : {}),
@@ -197,18 +199,19 @@ export default function QuarrySupplierForm({
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} updated successfully!`,
         );
+        quarrySupplierForm.reset(values);
       } else {
         const newQuarrySupplier =
           await createQuarryMutation.mutateAsync(quarrySupplierData);
         if (newQuarrySupplier && typeof newQuarrySupplier.id === 'number') {
-          addNewRecordId('quarry_suppliers_table', newQuarrySupplier.id);
+          addNewRecord('quarry_suppliers_table', newQuarrySupplier);
         }
         notifySuccess(
           `${values.quarrySupplierType === 'QUARRY' ? 'Quarry' : 'Supplier'} created successfully!`,
         );
+        onSuccess?.();
       }
       onSaved?.();
-      onSuccess?.();
     } catch (error) {
       console.error(
         `Error ${isEditing ? 'updating' : 'creating'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}:`,
@@ -251,7 +254,7 @@ export default function QuarrySupplierForm({
 
       notifyError(
         messageFromErr ||
-        `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
+          `Failed to ${isEditing ? 'update' : 'create'} ${values.quarrySupplierType === 'QUARRY' ? 'quarry' : 'supplier'}. Please try again.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -568,7 +571,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Opening & Closing Times</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter opening and closing information"
                     {...field}
                   />
@@ -589,7 +592,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Weighbridge Info</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter weighbridge details"
                     {...field}
                   />
@@ -608,7 +611,7 @@ export default function QuarrySupplierForm({
                 <FormLabel>Notes</FormLabel>
                 <FormControl>
                   <Textarea
-                    className="w-full min-h-[80px]"
+                    className="w-full min-h-20"
                     placeholder="Enter important FYI notes"
                     {...field}
                   />
@@ -617,23 +620,37 @@ export default function QuarrySupplierForm({
               </FormItem>
             )}
           />
-          {showXeroMapping && (
+          {showAccountingMapping && (
             <>
               <Separator className="col-span-full my-2 mb-5" />
 
               <div className="flex flex-col mb-3">
-                <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                <h2 className="text-sm font-semibold mb-1">
+                  {accountingSoftwareLabel} Mapping
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  Optional account code pushed to Xero on invoice creation.
+                  Optional{' '}
+                  {accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'}{' '}
+                  pushed to {accountingSoftwareLabel} on invoice creation.
                 </p>
               </div>
               <FormSelect
                 control={quarrySupplierForm.control}
                 name="accountCodeId"
-                label="Account Code"
+                label={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'Warehouse Id'
+                    : 'Account Code'
+                }
                 options={accountCodeOptions}
-                placeholder="Select account code (optional)"
-                searchLabel="account codes"
+                placeholder={`Select ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} (optional)`}
+                searchLabel={
+                  accountingSoftwareLabel === 'MYOB Acumatica'
+                    ? 'warehouse ids'
+                    : 'account codes'
+                }
                 popoverWidthClass="w-[var(--radix-popover-trigger-width)]"
                 formItemClassName="col-span-full"
                 className="w-full"

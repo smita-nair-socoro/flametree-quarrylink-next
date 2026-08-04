@@ -127,6 +127,7 @@ export interface FormTableProps<T extends FieldValues = FieldValues> {
   mobileHiddenCells?: number[];
   /** Custom renderer for the mobile stacked label row content */
   mobileStackedLabelRender?: (row: FormTableRow) => React.ReactNode;
+  readOnly?: boolean;
 }
 
 export function FormTable<T extends FieldValues = FieldValues>({
@@ -141,6 +142,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
   mobileStackedLabel = false,
   mobileHiddenCells = [],
   mobileStackedLabelRender,
+  readOnly = false,
 }: FormTableProps<T>) {
   const renderCell = (cell: CellConfig<T>, row: FormTableRow) => {
     const fieldName = buildFormTableFieldName(
@@ -161,6 +163,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     placeholder={cell.placeholder || ''}
                     className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
+                    readOnly={readOnly}
                   />
                 </FormControl>
               </FormItem>
@@ -186,6 +189,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                       field.onChange(value);
                     }}
                     value={field.value as number}
+                    readOnly={readOnly}
                   />
                 </FormControl>
               </FormItem>
@@ -208,6 +212,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     max={cell.max}
                     className={cn('h-11 md:h-9 w-full', cell.className)}
                     {...field}
+                    readOnly={readOnly}
                   />
                 </FormControl>
               </FormItem>
@@ -229,7 +234,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                     <Switch
                       checked={field.value as boolean}
                       onCheckedChange={field.onChange}
-                      disabled={isDisabled}
+                      disabled={isDisabled || readOnly}
                       className="hidden md:flex"
                     />
                     {/* Mobile: optional content above + radio toggle */}
@@ -238,7 +243,7 @@ export function FormTable<T extends FieldValues = FieldValues>({
                       <button
                         type="button"
                         onClick={() => !isDisabled && field.onChange(!field.value)}
-                        disabled={isDisabled}
+                        disabled={isDisabled || readOnly}
                         className={cn(
                           'flex items-center justify-center w-7 h-7 rounded-full border-2 transition-colors shrink-0',
                           field.value ? 'border-primary' : 'border-input',

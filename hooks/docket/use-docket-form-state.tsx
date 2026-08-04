@@ -4,6 +4,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { AddressType } from '@/lib/types/address';
 import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
@@ -82,10 +83,6 @@ type SelectedJobPrefill = {
   contactPhone: string;
   customerEmail: string;
   additionalDocketEmails: string;
-  createdBy: string;
-  lastModifiedBy: string;
-  createdAt: string;
-  updatedAt: string;
 };
 
 const TRUCK_TYPE_MAP: Record<string, string> = {
@@ -292,12 +289,15 @@ export function useDocketFormState({
         : [];
     }
 
-    return jobLineItems
-      .filter((lineItem) => lineItem.id !== undefined)
-      .map((lineItem) => ({
-        label: lineItem.product?.productName ?? 'Unknown Product',
-        value: lineItem.id as number,
-      }));
+    return sortByLabel(
+      jobLineItems
+        .filter((lineItem) => lineItem.id !== undefined)
+        .map((lineItem) => ({
+          label: lineItem.product?.productName ?? 'Unknown Product',
+          value: lineItem.id as number,
+        })),
+      (option) => option.label,
+    );
   }, [isEditing, selectedDocket?.jobItem, jobLineItems]);
 
   const selectedJob = React.useMemo<SelectedJobPrefill>(() => {
@@ -337,11 +337,6 @@ export function useDocketFormState({
           jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
         return recipients.filter((e) => e !== customerEmail).join(', ');
       })(),
-
-      createdBy: '',
-      lastModifiedBy: '',
-      createdAt: '',
-      updatedAt: '',
     };
   }, [effectiveJobId, jobsList, selectedJobDetails, selectedDocket]);
 
@@ -696,7 +691,9 @@ export function useDocketFormState({
     jobLineItemOptions,
     jobLineItemSelectProps: lineItemSelectProps,
     selectedJobId: effectiveJobId,
-    selectedJob,
+    selectedJobEmail: selectedJob.customerEmail,
+    selectedJobDetails,
+    jobLineItems,
     selectedJobLineItemDetails,
     pricingBreakdown,
     mapMarkers,

@@ -41,6 +41,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 export interface AssignDocketFormState {
   haulerSelection: number | undefined;
@@ -354,9 +355,12 @@ export function AssignDocketContent({
   const driverOptions = React.useMemo(
     () =>
       truckSelection
-        ? availableDrivers
-          .filter((d) => d.truckIds.includes(truckSelection))
-          .map((d) => ({ label: d.driverName, value: d.id }))
+        ? sortByLabel(
+            availableDrivers
+              .filter((d) => d.truckIds.includes(truckSelection))
+              .map((d) => ({ label: d.driverName, value: d.id })),
+            (option) => option.label,
+          )
         : [],
     [availableDrivers, truckSelection],
   );

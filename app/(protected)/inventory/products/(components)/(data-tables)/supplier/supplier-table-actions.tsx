@@ -12,6 +12,7 @@ import { useSupplierActions } from '@/hooks/use-supplier-actions';
 import { QuarrySupplierProduct } from '@/lib/types/quarry';
 import { useSupplierStore } from '@/app/stores/supplier-store';
 import { Separator } from '@/components/ui/separator';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface SupplierTableActionProps {
   quarry: QuarrySupplierProduct;
@@ -23,6 +24,8 @@ export function SupplierTableActions({
   productId,
 }: SupplierTableActionProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   // Add productId to quarry data for the actions
   const quarryWithProductId = React.useMemo(
@@ -67,11 +70,15 @@ export function SupplierTableActions({
             <Eye className="h-4 w-4 mr-2" />
             View Details
           </DropdownMenuItem>
-          <Separator />
-          <DropdownMenuItem onClick={handleDeleteSupplier}>
-            <Trash2 className="h-4 w-4 mr-2 text-destructive" />
-            <span className="text-destructive">Delete</span>
-          </DropdownMenuItem>
+          {!readOnly && (
+            <>
+              <Separator />
+              <DropdownMenuItem onClick={handleDeleteSupplier}>
+                <Trash2 className="h-4 w-4 mr-2 text-destructive" />
+                <span className="text-destructive">Delete</span>
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

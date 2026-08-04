@@ -32,9 +32,10 @@ interface ActionDialogProps {
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
-  onConfirmAction?: () => void;
+  onConfirmAction?: () => void | Promise<void>;
   confirmActionNeeded?: boolean;
   confirmDisabled?: boolean;
+  closeOnConfirm?: boolean;
   textbelowbutton?: React.ReactNode;
   hideSeparator?: boolean;
   buttonContainerClass?: string;
@@ -64,6 +65,7 @@ export function ActionDialog({
   onConfirmAction,
   confirmActionNeeded = true,
   confirmDisabled = false,
+  closeOnConfirm = true,
   textbelowbutton,
   hideSeparator = false,
   buttonContainerClass,
@@ -163,7 +165,9 @@ export function ActionDialog({
               disabled={confirmDisabled}
               onClick={() => {
                 onConfirmAction?.();
-                onOpenChangeAction(false);
+                if (closeOnConfirm) {
+                  onOpenChangeAction(false);
+                }
               }}
             >
               {confirmIcon && (

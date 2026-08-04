@@ -1,6 +1,7 @@
 import z from 'zod';
 import { CUSTOMER_ATTACHMENT_CATEGORY } from '@/lib/types/customer-enums';
 import { FormSelectOption } from '@/components/ui/form-select';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -27,44 +28,47 @@ const ACCEPTED_FILE_EXTENSIONS = [
 ];
 
 export const CUSTOMER_ATTACHMENT_CATEGORY_OPTIONS: readonly FormSelectOption[] =
-  [
-    {
-      label: 'Credit Application',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.CREDIT_APPLICATION,
-    },
-    {
-      label: 'Signed Terms & Conditions',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.SIGNED_TERMS_AND_CONDITIONS,
-    },
-    {
-      label: 'ABN / GST Registration',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.ABN_GST_REGISTRATION,
-    },
-    {
-      label: 'Insurance Certificate',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.INSURANCE_CERTIFICATE,
-    },
-    {
-      label: 'Purchase Order',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.PURCHASE_ORDER,
-    },
-    {
-      label: 'Quote / Quotation',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.QUOTE_QUOTATION,
-    },
-    {
-      label: 'Contract / Agreement',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.CONTRACT_AGREEMENT,
-    },
-    {
-      label: 'Identification',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.IDENTIFICATION,
-    },
-    {
-      label: 'Correspondence',
-      value: CUSTOMER_ATTACHMENT_CATEGORY.CORRESPONDENCE,
-    },
-  ];
+  sortByLabel(
+    [
+      {
+        label: 'Credit Application',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.CREDIT_APPLICATION,
+      },
+      {
+        label: 'Signed Terms & Conditions',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.SIGNED_TERMS_AND_CONDITIONS,
+      },
+      {
+        label: 'ABN / GST Registration',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.ABN_GST_REGISTRATION,
+      },
+      {
+        label: 'Insurance Certificate',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.INSURANCE_CERTIFICATE,
+      },
+      {
+        label: 'Purchase Order',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.PURCHASE_ORDER,
+      },
+      {
+        label: 'Quote / Quotation',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.QUOTE_QUOTATION,
+      },
+      {
+        label: 'Contract / Agreement',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.CONTRACT_AGREEMENT,
+      },
+      {
+        label: 'Identification',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.IDENTIFICATION,
+      },
+      {
+        label: 'Correspondence',
+        value: CUSTOMER_ATTACHMENT_CATEGORY.CORRESPONDENCE,
+      },
+    ],
+    (option) => option.label,
+  );
 
 export const CUSTOMER_ATTACHMENT_CATEGORY_LABELS: Record<string, string> =
   Object.fromEntries(
@@ -83,9 +87,10 @@ function hasAcceptedExtension(fileName: string) {
 }
 
 export const customerAttachmentFormSchema = z.object({
-  category: z.nativeEnum(CUSTOMER_ATTACHMENT_CATEGORY, {
-    required_error: 'Category is required',
-  }),
+  category: z
+    .string()
+    .min(1, 'Category is required')
+    .pipe(z.nativeEnum(CUSTOMER_ATTACHMENT_CATEGORY)),
   fileName: z
     .string()
     .trim()

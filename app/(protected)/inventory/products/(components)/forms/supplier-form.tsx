@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -40,7 +41,7 @@ import {
   extractErrorMessage,
   extractErrorResponse,
 } from '@/lib/utils/error-message-helper';
-import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 import { useGetDepartments } from '@/lib/api/department';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
@@ -79,24 +80,32 @@ export default function SupplierForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const accountingSoftware = useAccountingSoftwareProvider();
-  const { isConnected: isXeroConnected } = useXeroIntegrationActions();
-  const showXeroMapping = accountingSoftware === 'XERO' && isXeroConnected;
+  const { accountingSoftwareLabel, showAccountingMapping } =
+    useAccountingIntegrationConnection();
+  const showDepartmentMapping =
+    showAccountingMapping && accountingSoftware !== 'MYOB_ACUMATICA';
   const departmentsQuery = useGetDepartments({
-    enabled: showXeroMapping,
+    enabled: showDepartmentMapping,
   });
 
   const departments = React.useMemo(() => {
     return departmentsQuery.data ?? [];
   }, [departmentsQuery.data]);
 
+  const readOnly = accountingSoftware === 'MYOB_ACUMATICA';
+
+
   const departmentOptions = React.useMemo<FormSelectOption[]>(
     () =>
-      departments
-        .filter((department) => department.id !== undefined)
-        .map((department) => ({
-          value: department.id as number,
-          label: `${department.departmentName}`,
-        })),
+      sortByLabel(
+        departments
+          .filter((department) => department.id !== undefined)
+          .map((department) => ({
+            value: department.id as number,
+            label: `${department.departmentName}`,
+          })),
+        (option) => option.label,
+      ),
     [departments],
   );
 
@@ -136,16 +145,19 @@ export default function SupplierForm({
   const supplierOptions = React.useMemo(() => {
     if (!quarriesData) return [];
 
-    return quarriesData
-      .filter(
-        (quarry) =>
-          !existingQuarryIds.includes(quarry.id) ||
-          quarry.id === quarrySupplierId,
-      )
-      .map((quarry) => ({
-        label: quarry.name,
-        value: quarry.id,
-      }));
+    return sortByLabel(
+      quarriesData
+        .filter(
+          (quarry) =>
+            !existingQuarryIds.includes(quarry.id) ||
+            quarry.id === quarrySupplierId,
+        )
+        .map((quarry) => ({
+          label: quarry.name,
+          value: quarry.id,
+        })),
+      (option) => option.label,
+    );
   }, [quarriesData, existingQuarryIds, quarrySupplierId]);
 
   // TODO: Zod Validation
@@ -198,11 +210,12 @@ export default function SupplierForm({
               control={supplierForm.control}
               name="quarrySupplierId"
               label="Quarry / Supplier Name*"
-              searchLabel="Suppliers"
+              searchLabel="quarries and suppliers"
               options={supplierOptions}
               placeholder="Select a Supplier"
               formItemClassName="w-full"
               autoSelectForOnlyOneOption={!isEditing}
+              disabled={readOnly}
             />
             <FormField
               control={supplierForm.control}
@@ -215,6 +228,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Name"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -232,6 +246,7 @@ export default function SupplierForm({
                       className="w-full"
                       placeholder="Enter Product Code"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -253,6 +268,7 @@ export default function SupplierForm({
                       maxDecimals={2}
                       suffix="TN/m³"
                       {...field}
+                      readOnly={readOnly}
                     />
                   </FormControl>
                   <FormMessage />
@@ -260,14 +276,17 @@ export default function SupplierForm({
               )}
             />
 
-            {showXeroMapping && (
+            {showDepartmentMapping && (
               <>
                 <Separator className="col-span-full my-2 mb-5" />
 
                 <div className="flex flex-col mb-3">
-                  <h2 className="text-sm font-semibold mb-1">Xero Mapping</h2>
+                  <h2 className="text-sm font-semibold mb-1">
+                    {accountingSoftwareLabel} Mapping
+                  </h2>
                   <p className="text-xs text-muted-foreground">
-                    Optional fields pushed to Xero on invoice creation.
+                    Optional fields pushed to {accountingSoftwareLabel} on
+                    invoice creation.
                   </p>
                 </div>
                 <FormSelect
@@ -300,6 +319,7 @@ export default function SupplierForm({
           <PricingConfigurationTable
             control={supplierForm.control}
             watch={supplierForm.watch}
+            readOnly={readOnly}
           />
         </div>
       ),
@@ -316,7 +336,7 @@ export default function SupplierForm({
               Optional - can be overridden in quotes
             </p>
           </div>
-          <TruckRatesTable control={supplierForm.control} />
+          <TruckRatesTable control={supplierForm.control} readOnly={readOnly} />
         </div>
       ),
     },
@@ -412,7 +432,7 @@ export default function SupplierForm({
         supplierProductName: processedValues.supplierProductName,
         supplierProductCode: processedValues.supplierProductCode,
         densityTonnagePerM3: processedValues.densityTonnagePerM3,
-        ...(showXeroMapping && processedValues.departmentId != null
+        ...(showDepartmentMapping && processedValues.departmentId != null
           ? { departmentId: processedValues.departmentId }
           : {}),
         availableUnits: availableUnits,
@@ -590,7 +610,7 @@ export default function SupplierForm({
     }
   }
   useFormDialogFooter(
-    isDesktop ? (
+    isDesktop && !readOnly ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           <X className="w-4 h-4 mr-2" />
@@ -805,7 +825,6 @@ export default function SupplierForm({
               </Button>
             </div>
           )}
-
         </form>
       </Form>
     </div>

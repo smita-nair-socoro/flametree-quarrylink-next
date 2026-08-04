@@ -128,7 +128,8 @@ export function AddCustomerAttachmentDialog({
       confirmCustomColor="#8E51FF"
       cancelText="Cancel"
       confirmDisabled={uploadAttachmentMutation.isPending}
-      onConfirmAction={() => void handleConfirmAdd()}
+      closeOnConfirm={false}
+      onConfirmAction={() => handleConfirmAdd()}
       customWidth="600px"
     />
   );

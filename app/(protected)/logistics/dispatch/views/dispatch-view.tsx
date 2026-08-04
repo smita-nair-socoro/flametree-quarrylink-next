@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import UnassignedDockets from '../cards/unassigned-dockets';
+import UnassignedDockets, {
+  DocketCardOverlay,
+} from '../cards/unassigned-dockets';
 import AssignedDockets from '../cards/assigned-dockets';
 import { DocketDetailsPanel } from '@/components/ui/schedular/docket-details-panel';
 import { format, startOfDay, isBefore } from 'date-fns';
@@ -14,7 +16,6 @@ import {
 } from '@dnd-kit/core';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { useQuery } from '@tanstack/react-query';
-import { DocketCardOverlay } from '../cards/unassigned-dockets';
 import { ConfirmUnassignDialog } from '@/components/ui/schedular/unassign-modal';
 import { AssignTruckDriverModal } from '@/components/ui/schedular/assign-truck-driver-modal';
 import type {
@@ -56,6 +57,7 @@ import {
   formatLocalDate,
   formatLocalISO,
   isDocketOnSelectedLocalDay,
+  sortDispatchBoardDriverColumns,
 } from '@/lib/utils/dispatch-helper';
 
 function countTrucksWithAssignedBookingsOnSelectedDay(
@@ -264,7 +266,7 @@ export function DispatchView({
       });
     }
     if (viewType === 'drivers' && driversData) {
-      return (driversData.resources || []).map((r) => {
+      const mapped = (driversData.resources || []).map((r) => {
         if ('driverName' in r) {
           return {
             id: String(r.id),
@@ -289,6 +291,7 @@ export function DispatchView({
           businessType: TRUCK_BUSINESS_TYPE.INTERNAL,
         };
       });
+      return sortDispatchBoardDriverColumns(mapped);
     }
     return [];
   }, [trucksData, driversData, viewType]);
@@ -535,7 +538,7 @@ export function DispatchView({
       return;
     }
 
-    const match = overId.match(/^truck-(.+)-time-(.+)$/);
+    const match = new RegExp(/^truck-(.+)-time-(.+)$/).exec(overId);
     if (match) {
       const [, targetId, time] = match;
 

@@ -307,3 +307,12 @@ export interface JobsListResponse {
   customers?: JobsFacetOption[];
   accountManagers?: JobsFacetOption[];
 }
+
+export interface PullFromAccSoftwareResponse {
+  pendingCount: number;
+  accountingInvoiceCount: number;
+  matchedCount: number;
+  updatedCount: number;
+  skippedCount: number;
+  failedCount: number;
+}

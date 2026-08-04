@@ -344,7 +344,7 @@ export function FormSelect<TFieldValues extends FieldValues>({
                   <Command shouldFilter={!useServerSideSearch}>
                     {showSearch && (
                       <CommandInput
-                        placeholder={`Search ${searchLabel}...`}
+                        placeholder={`Search ${searchLabel ?? 'options'}...`}
                         className="h-9"
                         value={searchValue}
                         onValueChange={onSearchChange}
@@ -355,7 +355,9 @@ export function FormSelect<TFieldValues extends FieldValues>({
                       onWheel={(event) => event.stopPropagation()}
                     >
                       <CommandEmpty>
-                        {isSearchingOptions ? 'Searching...' : `No ${label} found.`}
+                        {isSearchingOptions
+                          ? 'Searching...'
+                          : `No ${label ?? 'options'} found.`}
                       </CommandEmpty>
                       <CommandGroup>
                         {options.map((opt) => (

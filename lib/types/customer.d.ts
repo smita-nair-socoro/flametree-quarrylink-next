@@ -50,6 +50,8 @@ export interface CustomerDTO {
   isDeleted?: boolean;
 
   accSoftwareContactId?: string | null;
+  customerLocationId?: string;
+  customerClassification?: string;
   accSoftwareNotes?: string;
   lastAccSoftwareSyncDirection?: string | null;
   lastAccSoftwareSyncStatus?: string | null;
@@ -275,6 +277,16 @@ export interface CustomerAttachmentDTO {
   fileSizeBytes: number;
 }
 
-export interface customerAttachmentResponseDTO {
-  string;
+interface syncResult {
+  success: boolean;
+  accSoftwareContactId: string;
+  externalStatus: string;
+  reason: string;
+}
+
+export interface SyncAllFromAccSoftwareResponse {
+  totalAttempted: number;
+  successCount: number;
+  failureCount: number;
+  result: syncResult[];
 }

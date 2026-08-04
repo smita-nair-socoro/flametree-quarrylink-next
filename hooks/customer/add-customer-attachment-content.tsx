@@ -85,7 +85,7 @@ export function AddCustomerAttachmentContent({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4 overflow-hidden">
       <div className="flex flex-col gap-2">
         <Label htmlFor="attachment-category">Category*</Label>
         <Select
@@ -134,8 +134,13 @@ export function AddCustomerAttachmentContent({
         />
 
         {file ? (
-          <div className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
-            <span className="truncate text-sm text-[#364153]">{file.name}</span>
+          <div className="flex min-w-0 items-center gap-2 rounded-md border border-gray-200 px-3 py-2">
+            <span
+              className="min-w-0 flex-1 truncate text-sm text-[#364153]"
+              title={file.name}
+            >
+              {file.name}
+            </span>
             <Button
               type="button"
               variant="ghost"
