@@ -3,15 +3,12 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FormDialog } from '@/components/form-dialog';
-import { Spinner } from '@/components/ui/spinner';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
-  QuoteExternalLinkItem,
   QuoteSettingItem,
   PolicyDocumentItem,
-  QuoteTextTemplateItem,
   QuoteContentLibraryItem,
 } from '@/lib/types/terms-conditions';
 import { APIClient } from '@/lib/api/APIClient';
@@ -19,10 +16,8 @@ import { sortQuoteContentLibraryItems } from '@/lib/utils/quotation-form-helpers
 import {
   QuoteContentLibraryListQueryOptions,
   PolicyDocumentQueryOptions,
-  TextTemplateDetailQueryOptions,
   useUpdateTextTemplate,
   useDeleteTextTemplate,
-  ExternalLinkDetailQueryOptions,
   useUpdateExternalLink,
   useDeleteExternalLink,
   useDeletePolicyDocument,
@@ -67,36 +62,6 @@ export function useQuoteSettingsActions() {
 
   const [policyDocumentDialogOpen, setPolicyDocumentDialogOpen] =
     React.useState(false);
-
-  // Full item detail is fetched on demand, only while its edit dialog is open.
-  const textTemplateDetailQuery = useQuery(
-    TextTemplateDetailQueryOptions(
-      editingTextTemplateId ?? 0,
-      textTemplateDialogOpen && editingTextTemplateId !== null,
-    ),
-  );
-  const externalLinkDetailQuery = useQuery(
-    ExternalLinkDetailQueryOptions(
-      editingExternalLinkId ?? 0,
-      externalLinkDialogOpen && editingExternalLinkId !== null,
-    ),
-  );
-
-  const editingTextTemplate: QuoteTextTemplateItem | null =
-    editingTextTemplateId !== null && textTemplateDetailQuery.data
-      ? {
-          ...textTemplateDetailQuery.data,
-          type: QuoteSettingItemType.TEXT_TEMPLATE as const,
-        }
-      : null;
-
-  const editingExternalLink: QuoteExternalLinkItem | null =
-    editingExternalLinkId !== null && externalLinkDetailQuery.data
-      ? {
-          ...externalLinkDetailQuery.data,
-          type: QuoteSettingItemType.EXTERNAL_LINK as const,
-        }
-      : null;
 
   // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
   const openDialogDeferred = React.useCallback((openFn: () => void) => {
@@ -205,6 +170,7 @@ export function useQuoteSettingsActions() {
 
   const textTemplateDialog = textTemplateDialogOpen ? (
     <FormDialog
+      id={editingTextTemplateId ?? undefined}
       dialogTitle={
         editingTextTemplateId !== null ? 'Edit Text Template' : 'Add Text Template'
       }
@@ -219,18 +185,13 @@ export function useQuoteSettingsActions() {
       hideTrigger
       dialogWidth="700px"
     >
-      {editingTextTemplateId !== null && textTemplateDetailQuery.isPending ? (
-        <div className="flex justify-center py-8">
-          <Spinner className="h-5 w-5" />
-        </div>
-      ) : (
-        <TextTemplateForm editingItem={editingTextTemplate} />
-      )}
+      <TextTemplateForm />
     </FormDialog>
   ) : null;
 
   const externalLinkDialog = externalLinkDialogOpen ? (
     <FormDialog
+      id={editingExternalLinkId ?? undefined}
       dialogTitle={
         editingExternalLinkId !== null ? 'Edit External Link' : 'Add External Link'
       }
@@ -245,13 +206,7 @@ export function useQuoteSettingsActions() {
       hideTrigger
       dialogWidth="500px"
     >
-      {editingExternalLinkId !== null && externalLinkDetailQuery.isPending ? (
-        <div className="flex justify-center py-8">
-          <Spinner className="h-5 w-5" />
-        </div>
-      ) : (
-        <ExternalLinkForm editingItem={editingExternalLink} />
-      )}
+      <ExternalLinkForm />
     </FormDialog>
   ) : null;
 

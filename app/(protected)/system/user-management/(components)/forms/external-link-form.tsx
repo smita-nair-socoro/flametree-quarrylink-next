@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -21,8 +22,8 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { ExternalLinkFormSchema } from './schemas/external-link-form-schema';
-import { QuoteExternalLinkItem } from '@/lib/types/terms-conditions';
 import {
+  ExternalLinkDetailQueryOptions,
   useCreateExternalLink,
   useUpdateExternalLink,
 } from '@/lib/api/quote-profile-content';
@@ -30,20 +31,24 @@ import {
 type ExternalLinkFormValues = z.infer<typeof ExternalLinkFormSchema>;
 
 interface ExternalLinkFormProps {
-  editingItem?: QuoteExternalLinkItem | null;
+  id?: number;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function ExternalLinkForm({
-  editingItem,
+  id,
   onCancel,
   onSuccess,
   onDirtyChange,
 }: Readonly<ExternalLinkFormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isEditing = Boolean(editingItem);
+  const isEditing = Boolean(id);
+
+  const { data: editingItem, isPending: isLoadingDetail } = useQuery(
+    ExternalLinkDetailQueryOptions(id ?? 0, isEditing),
+  );
 
   const createExternalLink = useCreateExternalLink();
   const updateExternalLink = useUpdateExternalLink();
@@ -53,11 +58,21 @@ export default function ExternalLinkForm({
   const form = useForm<ExternalLinkFormValues>({
     resolver: zodResolver(ExternalLinkFormSchema),
     defaultValues: {
-      name: editingItem?.name ?? '',
-      url: editingItem?.externalUrl ?? '',
-      defaultItem: editingItem?.defaultItem ?? false,
+      name: '',
+      url: '',
+      defaultItem: false,
     },
   });
+
+  React.useEffect(() => {
+    if (isEditing && editingItem) {
+      form.reset({
+        name: editingItem.name,
+        url: editingItem.externalUrl,
+        defaultItem: editingItem.defaultItem,
+      });
+    }
+  }, [isEditing, editingItem, form]);
 
   React.useEffect(() => {
     onDirtyChange?.(form.formState.isDirty);
@@ -79,14 +94,15 @@ export default function ExternalLinkForm({
       },
       onError: (err: unknown) => notifyError(extractErrorMessage(err)),
     };
-    if (editingItem) {
-      updateExternalLink.mutate({ id: editingItem.id, data }, onSettled);
+    if (isEditing && id) {
+      updateExternalLink.mutate({ id, data }, onSettled);
     } else {
       createExternalLink.mutate(data, onSettled);
     }
   };
 
   const submitLabel = isEditing ? 'Save Changes' : 'Add Link';
+  const isLoading = isEditing && isLoadingDetail;
 
   useFormDialogFooter(
     isDesktop ? (
@@ -99,7 +115,11 @@ export default function ExternalLinkForm({
         >
           Cancel
         </Button>
-        <Button form="external-link-form" type="submit" disabled={isSubmitting}>
+        <Button
+          form="external-link-form"
+          type="submit"
+          disabled={isSubmitting || isLoading}
+        >
           {isSubmitting ? (
             <>
               <Spinner className="mr-2 h-4 w-4" />
@@ -112,6 +132,14 @@ export default function ExternalLinkForm({
       </div>
     ) : null,
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Spinner className="h-5 w-5" />
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>

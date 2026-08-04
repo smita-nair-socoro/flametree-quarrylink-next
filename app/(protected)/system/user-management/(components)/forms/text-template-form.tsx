@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
+import { useQuery } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,8 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { TextTemplateFormSchema } from './schemas/text-template-form-schema';
-import { QuoteTextTemplateItem } from '@/lib/types/terms-conditions';
 import {
+  TextTemplateDetailQueryOptions,
   useCreateTextTemplate,
   useUpdateTextTemplate,
 } from '@/lib/api/quote-profile-content';
@@ -31,20 +32,24 @@ import {
 type TextTemplateFormValues = z.infer<typeof TextTemplateFormSchema>;
 
 interface TextTemplateFormProps {
-  editingItem?: QuoteTextTemplateItem | null;
+  id?: number;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function TextTemplateForm({
-  editingItem,
+  id,
   onCancel,
   onSuccess,
   onDirtyChange,
 }: Readonly<TextTemplateFormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isEditing = Boolean(editingItem);
+  const isEditing = Boolean(id);
+
+  const { data: editingItem, isPending: isLoadingDetail } = useQuery(
+    TextTemplateDetailQueryOptions(id ?? 0, isEditing),
+  );
 
   const createTextTemplate = useCreateTextTemplate();
   const updateTextTemplate = useUpdateTextTemplate();
@@ -54,11 +59,21 @@ export default function TextTemplateForm({
   const form = useForm<TextTemplateFormValues>({
     resolver: zodResolver(TextTemplateFormSchema),
     defaultValues: {
-      name: editingItem?.name ?? '',
-      content: editingItem?.contentHtml ?? '',
-      defaultItem: editingItem?.defaultItem ?? false,
+      name: '',
+      content: '',
+      defaultItem: false,
     },
   });
+
+  React.useEffect(() => {
+    if (isEditing && editingItem) {
+      form.reset({
+        name: editingItem.name,
+        content: editingItem.contentHtml,
+        defaultItem: editingItem.defaultItem,
+      });
+    }
+  }, [isEditing, editingItem, form]);
 
   React.useEffect(() => {
     onDirtyChange?.(form.formState.isDirty);
@@ -79,14 +94,15 @@ export default function TextTemplateForm({
       },
       onError: (err: unknown) => notifyError(extractErrorMessage(err)),
     };
-    if (editingItem) {
-      updateTextTemplate.mutate({ id: editingItem.id, data }, onSettled);
+    if (isEditing && id) {
+      updateTextTemplate.mutate({ id, data }, onSettled);
     } else {
       createTextTemplate.mutate(data, onSettled);
     }
   };
 
   const submitLabel = isEditing ? 'Save Changes' : 'Add Template';
+  const isLoading = isEditing && isLoadingDetail;
 
   useFormDialogFooter(
     isDesktop ? (
@@ -102,7 +118,7 @@ export default function TextTemplateForm({
         <Button
           form="text-template-form"
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || isLoading}
         >
           {isSubmitting ? (
             <>
@@ -116,6 +132,14 @@ export default function TextTemplateForm({
       </div>
     ) : null,
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Spinner className="h-5 w-5" />
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
