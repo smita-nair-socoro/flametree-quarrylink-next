@@ -110,6 +110,7 @@ export function mapQuoteEditorContentItems(
       defaultItem: item.defaultItem,
       archived: item.archived,
       archivedAt: '',
+      type: QuoteSettingItemType.POLICY_DOCUMENT,
     };
   });
 }
@@ -122,7 +123,8 @@ export function selectedItemIdsFromContent(
 
 const isPolicyDocumentItem = (
   item: QuoteSettingItem,
-): item is PolicyDocumentItem => 'mimeType' in item;
+): item is PolicyDocumentItem =>
+  item.type === QuoteSettingItemType.POLICY_DOCUMENT;
 
 /**
  * Orders the Quote content panel's items: the (at most 3) category defaults

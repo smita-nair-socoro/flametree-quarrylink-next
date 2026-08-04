@@ -25,17 +25,22 @@ function tokenize(html: string): Token[] {
       const end = html.indexOf('<', i);
       const raw = end === -1 ? html.slice(i) : html.slice(i, end);
       i = end === -1 ? html.length : end;
+      // &amp; must decode last, otherwise literal text like "&lt;" (serialized
+      // as "&amp;lt;") gets decoded twice: &amp;->& first, then &lt;->< second.
       const v = raw
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&nbsp;/g, ' ');
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&nbsp;', ' ')
+        .replaceAll('&amp;', '&');
       if (v) tokens.push({ kind: 'text', tag: '', attrs: {}, value: v });
     } else {
       const end = html.indexOf('>', i);
-      if (end === -1) { i = html.length; break; }
+      if (end === -1) {
+        i = html.length;
+        break;
+      }
       const inner = html.slice(i + 1, end);
       i = end + 1;
 
@@ -46,7 +51,9 @@ function tokenize(html: string): Token[] {
         const selfClose = inner.endsWith('/');
         const content = selfClose ? inner.slice(0, -1).trim() : inner.trim();
         const spaceIdx = content.search(/\s/);
-        const tag = (spaceIdx === -1 ? content : content.slice(0, spaceIdx)).toLowerCase();
+        const tag = (
+          spaceIdx === -1 ? content : content.slice(0, spaceIdx)
+        ).toLowerCase();
         const attrStr = spaceIdx === -1 ? '' : content.slice(spaceIdx + 1);
 
         // Extract only href and style — both patterns are O(n) on a short attr string
@@ -57,7 +64,12 @@ function tokenize(html: string): Token[] {
         if (styleM) attrs.style = styleM[1];
 
         const isSC = selfClose || tag === 'br';
-        tokens.push({ kind: isSC ? 'selfclose' : 'open', tag, attrs, value: '' });
+        tokens.push({
+          kind: isSC ? 'selfclose' : 'open',
+          tag,
+          attrs,
+          value: '',
+        });
       }
     }
   }
@@ -100,25 +112,41 @@ function renderInline(
       switch (t.tag) {
         case 'strong': {
           const r = renderInline(tokens, i + 1, 'strong');
-          nodes.push(<Text key={k} style={{ fontWeight: 'bold' }}>{r.nodes}</Text>);
+          nodes.push(
+            <Text key={k} style={{ fontWeight: 'bold' }}>
+              {r.nodes}
+            </Text>,
+          );
           i = r.next;
           break;
         }
         case 'em': {
           const r = renderInline(tokens, i + 1, 'em');
-          nodes.push(<Text key={k} style={{ fontStyle: 'italic' }}>{r.nodes}</Text>);
+          nodes.push(
+            <Text key={k} style={{ fontStyle: 'italic' }}>
+              {r.nodes}
+            </Text>,
+          );
           i = r.next;
           break;
         }
         case 'u': {
           const r = renderInline(tokens, i + 1, 'u');
-          nodes.push(<Text key={k} style={{ textDecoration: 'underline' }}>{r.nodes}</Text>);
+          nodes.push(
+            <Text key={k} style={{ textDecoration: 'underline' }}>
+              {r.nodes}
+            </Text>,
+          );
           i = r.next;
           break;
         }
         case 's': {
           const r = renderInline(tokens, i + 1, 's');
-          nodes.push(<Text key={k} style={{ textDecoration: 'line-through' }}>{r.nodes}</Text>);
+          nodes.push(
+            <Text key={k} style={{ textDecoration: 'line-through' }}>
+              {r.nodes}
+            </Text>,
+          );
           i = r.next;
           break;
         }
@@ -128,7 +156,7 @@ function renderInline(
           nodes.push(
             <Link key={k} src={href} style={styles.rteLink}>
               {r.nodes}
-            </Link>
+            </Link>,
           );
           i = r.next;
           break;
@@ -148,67 +176,131 @@ function renderInline(
 // ---- Block renderer ----
 
 /**
+ * Renders a ul/ol starting just after its opening tag, recursing into any
+ * list nested inside an li so the nested list's own `</li>` doesn't get
+ * mistaken for the outer item's close.
+ */
+function renderList(
+  tokens: Token[],
+  start: number,
+  ordered: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  baseStyle: any,
+  depth: number,
+): { node: React.ReactNode; next: number } {
+  const items: React.ReactNode[] = [];
+  let i = start;
+  let count = 0;
+
+  while (i < tokens.length) {
+    const t = tokens[i];
+
+    if (t.kind === 'close' && (t.tag === 'ul' || t.tag === 'ol')) {
+      i++;
+      break;
+    }
+
+    if (t.kind === 'open' && t.tag === 'li') {
+      const k = i;
+      count++;
+      const marker = ordered ? `${count}.` : depth > 0 ? '◦' : '•';
+      i++;
+      const liNodes: React.ReactNode[] = [];
+      const nestedLists: React.ReactNode[] = [];
+      while (i < tokens.length) {
+        const lt = tokens[i];
+        if (lt.kind === 'close' && lt.tag === 'li') {
+          i++;
+          break;
+        }
+        if (lt.kind === 'open' && lt.tag === 'p') {
+          const r = renderInline(tokens, i + 1, 'p');
+          liNodes.push(...r.nodes);
+          i = r.next;
+        } else if (lt.kind === 'text') {
+          liNodes.push(lt.value);
+          i++;
+        } else if (lt.kind === 'open' && (lt.tag === 'ul' || lt.tag === 'ol')) {
+          const r = renderList(
+            tokens,
+            i + 1,
+            lt.tag === 'ol',
+            baseStyle,
+            depth + 1,
+          );
+          nestedLists.push(r.node);
+          i = r.next;
+        } else {
+          i++;
+        }
+      }
+      items.push(
+        <View key={k}>
+          <View style={styles.rteListItem}>
+            <Text style={[baseStyle, styles.rteListMarker]}>{marker}</Text>
+            <Text style={[baseStyle, { flex: 1 }]}>{liNodes}</Text>
+          </View>
+          {nestedLists.length > 0 && (
+            <View style={{ marginLeft: 18 }}>{nestedLists}</View>
+          )}
+        </View>,
+      );
+      continue;
+    }
+
+    i++;
+  }
+
+  return {
+    node: <React.Fragment key={`list-${start}`}>{items}</React.Fragment>,
+    next: i,
+  };
+}
+
+/**
  * Converts sanitised Tiptap HTML to a react-pdf node array.
- * Handles: p (with text-align), ul, ol, li, strong, em, u, s, a, br.
+ * Handles: p (with text-align), ul, ol, li (with nesting), strong, em, u, s, a, br.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function renderRteHtml(html: string, baseStyle: any): React.ReactNode[] {
   const tokens = tokenize(html);
   const blocks: React.ReactNode[] = [];
   let i = 0;
-  let isOl = false;
-  let olCount = 0;
 
   while (i < tokens.length) {
     const t = tokens[i];
 
-    if (t.kind !== 'open') { i++; continue; }
+    if (t.kind !== 'open') {
+      i++;
+      continue;
+    }
 
     const k = i;
     switch (t.tag) {
       case 'p': {
-        const alignM = (t.attrs.style ?? '').match(/text-align:\s*(left|center|right)/);
-        const textAlign = alignM ? (alignM[1] as 'left' | 'center' | 'right') : undefined;
+        const alignM = (t.attrs.style ?? '').match(
+          /text-align:\s*(left|center|right)/,
+        );
+        const textAlign = alignM
+          ? (alignM[1] as 'left' | 'center' | 'right')
+          : undefined;
         const r = renderInline(tokens, i + 1, 'p');
-        const extra = textAlign ? { textAlign, marginBottom: 2 } : { marginBottom: 2 };
-        blocks.push(<Text key={k} style={[baseStyle, extra]}>{r.nodes}</Text>);
+        const extra = textAlign
+          ? { textAlign, marginBottom: 2 }
+          : { marginBottom: 2 };
+        blocks.push(
+          <Text key={k} style={[baseStyle, extra]}>
+            {r.nodes}
+          </Text>,
+        );
         i = r.next;
         break;
       }
       case 'ul':
-        isOl = false;
-        i++;
-        break;
-      case 'ol':
-        isOl = true;
-        olCount = 0;
-        i++;
-        break;
-      case 'li': {
-        if (isOl) olCount++;
-        const marker = isOl ? `${olCount}.` : '•';
-        i++;
-        const liNodes: React.ReactNode[] = [];
-        while (i < tokens.length) {
-          const lt = tokens[i];
-          if (lt.kind === 'close' && lt.tag === 'li') { i++; break; }
-          if (lt.kind === 'open' && lt.tag === 'p') {
-            const r = renderInline(tokens, i + 1, 'p');
-            liNodes.push(...r.nodes);
-            i = r.next;
-          } else if (lt.kind === 'text') {
-            liNodes.push(lt.value);
-            i++;
-          } else {
-            i++;
-          }
-        }
-        blocks.push(
-          <View key={k} style={styles.rteListItem}>
-            <Text style={[baseStyle, styles.rteListMarker]}>{marker}</Text>
-            <Text style={[baseStyle, { flex: 1 }]}>{liNodes}</Text>
-          </View>
-        );
+      case 'ol': {
+        const r = renderList(tokens, i + 1, t.tag === 'ol', baseStyle, 0);
+        blocks.push(<View key={k}>{r.node}</View>);
+        i = r.next;
         break;
       }
       default:
@@ -270,8 +362,8 @@ export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
             </View>
           ))}
           <Text style={styles.disclaimerText}>
-            By approving this quote, the customer acknowledges these terms
-            and conditions.
+            By approving this quote, the customer acknowledges these terms and
+            conditions.
           </Text>
         </View>
       )}
@@ -300,8 +392,7 @@ export const TermsAndConditionsPdf: React.FC<TermsAndConditionsPdfProps> = ({
             </View>
           ))}
           <Text style={styles.disclaimerText}>
-            By approving this quote, the customer acknowledges these
-            documents.
+            By approving this quote, the customer acknowledges these documents.
           </Text>
         </View>
       )}

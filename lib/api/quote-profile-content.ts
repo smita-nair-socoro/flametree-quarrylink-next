@@ -43,6 +43,7 @@ export const useCreateExternalLink = () => {
       APIClient.externalLinks.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -60,6 +61,7 @@ export const useUpdateExternalLink = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
       queryClient.invalidateQueries({ queryKey: ExternalLinkKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -70,6 +72,7 @@ export const useDeleteExternalLink = () => {
     mutationFn: (id: number) => APIClient.externalLinks.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -89,6 +92,7 @@ export const useCreateTextTemplate = () => {
       APIClient.textTemplates.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -106,6 +110,7 @@ export const useUpdateTextTemplate = () => {
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
       queryClient.invalidateQueries({ queryKey: TextTemplateKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -116,6 +121,7 @@ export const useDeleteTextTemplate = () => {
     mutationFn: (id: number) => APIClient.textTemplates.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -150,6 +156,7 @@ export const useCreatePolicyDocument = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PolicyDocumentKeys.list() });
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -169,6 +176,7 @@ export const useUpdatePolicyDocument = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PolicyDocumentKeys.list() });
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };
@@ -180,6 +188,7 @@ export const useDeletePolicyDocument = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: PolicyDocumentKeys.list() });
       queryClient.invalidateQueries({ queryKey: QuoteContentLibraryKeys.all });
+      queryClient.invalidateQueries({ queryKey: QuoteEditorContentKeys.all });
     },
   });
 };

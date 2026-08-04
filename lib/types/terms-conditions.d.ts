@@ -62,6 +62,7 @@ export interface QuoteContentLibraryResponseDto {
 export interface PolicyDocumentItem {
   id: number;
   name: string;
+  type: QuoteSettingItemType.POLICY_DOCUMENT;
   originalFileName: string;
   mimeType: string;
   fileSizeBytes: number;

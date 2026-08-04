@@ -534,7 +534,9 @@ export default function QuoteReviewDocument({
             currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
           />
-          <Separator />
+          {(quotationData.notes?.length > 0 ||
+            quotationData.terms?.length > 0 ||
+            quotationData.documents?.length > 0) && <Separator />}
           {/* Notes & Terms */}
           <TermsAndConditions
             notes={quotationData.notes}

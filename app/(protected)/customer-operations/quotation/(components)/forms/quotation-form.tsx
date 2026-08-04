@@ -218,7 +218,7 @@ export default function QuotationForm({
   const saveQuoteContent = async (
     quoteIdToSave: number,
     values: QuotationFormValues,
-  ) => {
+  ): Promise<boolean> => {
     try {
       await updateQuoteEditorContent.mutateAsync({
         quoteId: quoteIdToSave,
@@ -230,9 +230,11 @@ export default function QuotationForm({
           ),
         },
       });
+      return true;
     } catch (error) {
       console.error('Error saving quote content selections:', error);
       notifyError('Quote saved, but failed to save quote content selections.');
+      return false;
     }
   };
 
@@ -359,9 +361,14 @@ export default function QuotationForm({
           id: id!,
           ...transformed,
         });
-        await saveQuoteContent(id!, values);
+        const contentSaved = await saveQuoteContent(id!, values);
+        if (contentSaved) {
+          // Both the quotation and its content/notes saved - clear isDirty for the
+          // whole form (quotation fields + customerNotes + attachedItemIds).
+          quotationForm.reset(values);
+          onSaved?.();
+        }
         notifySuccess('Quote updated successfully');
-        onSaved?.();
       } catch (error) {
         console.error('Error updating quotation:', error);
 
