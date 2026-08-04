@@ -140,7 +140,7 @@ input:-webkit-autofill:active {
   }
 
   /* Increased touch target size for buttons */
-  button,
+  button:not([data-slot="switch"]),
   .btn,
   input[type="button"],
   input[type="submit"] {

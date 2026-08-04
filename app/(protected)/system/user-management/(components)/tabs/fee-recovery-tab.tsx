@@ -17,6 +17,7 @@ import { CustomerOverridesTable } from '../(data-tables)/fee-recovery/customer-o
 import { MOCK_CUSTOMER_OVERRIDES } from '../(data-tables)/fee-recovery/columns';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { SaveFeeDefaultsDialog } from './roles/fee-recovery-alert-dialogs';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ChargeMode = 'charge' | 'absorb';
 
@@ -28,6 +29,7 @@ const CUSTOM_OVERRIDE_COUNT = MOCK_CUSTOMER_OVERRIDES.filter(
 ).length;
 
 export default function FeeRecoveryTab() {
+  const isMobile = useIsMobile();
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
   const [chargeMode, setChargeMode] = React.useState<ChargeMode>('charge');
   const [savedChargeMode, setSavedChargeMode] = React.useState<ChargeMode>('charge');
@@ -83,7 +85,7 @@ export default function FeeRecoveryTab() {
       <div className="py-3 space-y-4">
         {/* Header */}
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-2xl font-semibold">Fee Recovery</h2>
             <Badge
               variant="outline"
@@ -145,7 +147,9 @@ export default function FeeRecoveryTab() {
                     Charge customers
                   </p>
                   <p className="text-xs text-[#71717B]">
-                    Add the fee line to their invoice.
+                    {isMobile
+                      ? 'Add the fee line to their invoice (dynamic until Delivered/Collected).'
+                      : 'Add the fee line to their invoice.'}
                   </p>
                 </div>
               </button>
@@ -194,6 +198,7 @@ export default function FeeRecoveryTab() {
                       variant="outline"
                       size="sm"
                       className="shrink-0 h-9 text-xs px-3"
+                      onClick={() => setInvoiceAmount('2.40')}
                     >
                       Match subscription rate
                     </Button>
@@ -211,8 +216,14 @@ export default function FeeRecoveryTab() {
             )}
 
             {/* Summary */}
-            <div className="rounded-lg bg-[#8E51FF]/5 px-4 py-2.5 text-sm text-[#8E51FF]">
-              {summaryText}
+            <div className="rounded-lg bg-[#8E51FF]/5 px-4 py-2.5 text-sm text-[#8E51FF] space-y-1">
+              <p>{summaryText}</p>
+              {isMobile && (
+                <p className="text-xs text-[#8E51FF]/80">
+                  Preview below reflects these unsaved global settings for
+                  customers without a custom override.
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2">
