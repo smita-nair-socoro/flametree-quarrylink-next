@@ -274,7 +274,7 @@ export default function ProductForm({
     } catch (error) {
       notifyError(extractErrorMessage(error));
     } finally {
-      notifySuccess('Product created successfully.');
+      // notifySuccess('Product created successfully.');
       setIsSubmitting(false);
     }
   }

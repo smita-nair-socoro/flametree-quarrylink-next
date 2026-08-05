@@ -533,7 +533,7 @@ export default function SupplierForm({
       // Show success notification with warning if negative margins exist
       if (negativeMarginUnits.length > 0) {
         notifySuccess(
-          `Supplier ${isEditing ? 'updated' : 'added'} successfully!`,
+          `Quarry / Supplier ${isEditing ? 'updated' : 'added'} successfully!`,
           {
             description: `Note: Negative margin on ${negativeMarginUnits.join(
               ', ',
