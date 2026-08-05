@@ -270,10 +270,7 @@ export default function AdditionalContactForm({
               Contact Methods
             </FormLabel>
             <Button
-              type="button"
               variant="outline"
-              size="sm"
-              className="cursor-pointer"
               onClick={() => append({ ...EMPTY_CONTACT_METHOD })}
               disabled={isSubmitting}
             >
@@ -283,12 +280,6 @@ export default function AdditionalContactForm({
           </div>
 
           {fields.map((field, index) => {
-            const methodType = form.watch(`contactMethods.${index}.type`);
-            const valuePlaceholder =
-              methodType === ADDITIONAL_CONTACT_METHOD_TYPE.EMAIL
-                ? 'email@example.com'
-                : 'Enter phone number';
-
             return (
               <div
                 key={field.id}
@@ -330,7 +321,6 @@ export default function AdditionalContactForm({
                         <FormLabel>Value*</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder={valuePlaceholder}
                             {...valueField}
                           />
                         </FormControl>
@@ -342,14 +332,6 @@ export default function AdditionalContactForm({
               </div>
             );
           })}
-
-          {form.formState.errors.contactMethods?.root?.message ||
-            form.formState.errors.contactMethods?.message ? (
-            <p className="text-destructive text-sm">
-              {form.formState.errors.contactMethods.root?.message ||
-                form.formState.errors.contactMethods.message}
-            </p>
-          ) : null}
         </div>
 
         {!isDesktop && (

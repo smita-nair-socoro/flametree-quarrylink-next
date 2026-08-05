@@ -47,7 +47,7 @@ export function mapAdditionalContactToApiPayload(
   };
 }
 
-export function getPrimaryContactMethodValue(
+export function getContactMethodValue(
   contact?: AdditionalContactDTO | null,
   type?: ADDITIONAL_CONTACT_METHOD_TYPE,
 ): string {

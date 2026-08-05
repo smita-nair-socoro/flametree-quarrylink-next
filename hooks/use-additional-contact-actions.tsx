@@ -9,7 +9,7 @@ import { Trash2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import {
-  getPrimaryContactMethodValue,
+  getContactMethodValue,
 } from '@/lib/utils/additional-contact-helper';
 import {
   ADDITIONAL_CONTACT_METHOD_TYPE,
@@ -26,7 +26,7 @@ function RemoveAdditionalContactDescription({
 }: {
   contact?: AdditionalContactDTO | null;
 }) {
-  const email = getPrimaryContactMethodValue(
+  const email = getContactMethodValue(
     contact,
     ADDITIONAL_CONTACT_METHOD_TYPE.EMAIL,
   );

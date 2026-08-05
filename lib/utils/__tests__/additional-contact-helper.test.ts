@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest';
 import {
   mapAdditionalContactFromApi,
   mapAdditionalContactToApiPayload,
-  getPrimaryContactMethodValue,
+  getContactMethodValue,
 } from '../additional-contact-helper';
 import type { AdditionalContactApiDTO } from '@/lib/types/customer';
 import { ADDITIONAL_CONTACT_METHOD_TYPE } from '@/lib/types/customer-enums';
@@ -93,10 +93,10 @@ describe('mapAdditionalContactToApiPayload', () => {
   });
 });
 
-describe('getPrimaryContactMethodValue', () => {
+describe('getContactMethodValue', () => {
   test('returns the first matching method value by type', () => {
     expect(
-      getPrimaryContactMethodValue(
+      getContactMethodValue(
         {
           contactMethods: [
             {
