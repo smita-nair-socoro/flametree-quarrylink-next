@@ -29,6 +29,7 @@ export function QuoteSettingsTableActions({
     textTemplateDialog,
     externalLinkDialog,
     policyDocumentDialog,
+    removeDialog,
   } = useQuoteSettingsActions();
 
   return (
@@ -36,6 +37,7 @@ export function QuoteSettingsTableActions({
       {textTemplateDialog}
       {externalLinkDialog}
       {policyDocumentDialog}
+      {removeDialog}
       <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
           <Button

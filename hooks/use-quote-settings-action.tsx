@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FormDialog } from '@/components/form-dialog';
+import { ActionDialog } from '@/components/action-dialog';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
@@ -15,6 +16,8 @@ import { APIClient } from '@/lib/api/APIClient';
 import { sortQuoteContentLibraryItems } from '@/lib/utils/quotation-form-helpers';
 import {
   QuoteContentLibraryListQueryOptions,
+  ExternalLinkDetailQueryOptions,
+  PolicyDocumentQueryOptions,
   useUpdateTextTemplate,
   useDeleteTextTemplate,
   useUpdateExternalLink,
@@ -24,6 +27,14 @@ import {
 import TextTemplateForm from '@/app/(protected)/system/user-management/(components)/forms/text-template-form';
 import ExternalLinkForm from '@/app/(protected)/system/user-management/(components)/forms/external-link-form';
 import PolicyDocumentForm from '@/app/(protected)/system/user-management/(components)/forms/policy-document-form';
+import {
+  RemoveTextTemplateDescription,
+  RemoveTextTemplateContent,
+  RemoveExternalLinkDescription,
+  RemoveExternalLinkContent,
+  RemoveDocumentDescription,
+  RemoveDocumentContent,
+} from '@/hooks/quote-settings/remove-quote-settings-content';
 
 // Used by the quote editor's "Quote content" panel, which still deals in the
 // full `QuoteSettingItem` union (its data comes from GET /quote/{id}/content,
@@ -73,6 +84,22 @@ export function useQuoteSettingsActions() {
 
   const [policyDocumentDialogOpen, setPolicyDocumentDialogOpen] =
     React.useState(false);
+
+  const [removeTarget, setRemoveTarget] =
+    React.useState<QuoteContentLibraryItem | null>(null);
+
+  // These only fetch once a remove confirmation is actually open for that
+  // type, to show the URL / file details in the confirm dialog.
+  const { data: removeTargetLink } = useQuery(
+    ExternalLinkDetailQueryOptions(
+      removeTarget?.id ?? 0,
+      removeTarget?.type === QuoteSettingItemType.EXTERNAL_LINK,
+    ),
+  );
+  const { data: removeTargetDocument } = useQuery({
+    ...PolicyDocumentQueryOptions(),
+    enabled: removeTarget?.type === QuoteSettingItemType.POLICY_DOCUMENT,
+  });
 
   // Deferred so the triggering DropdownMenuItem finishes closing first, avoiding a stuck pointerEvents:none on body.
   const openDialogDeferred = React.useCallback((openFn: () => void) => {
@@ -140,22 +167,32 @@ export function useQuoteSettingsActions() {
 
   const remove = React.useCallback(
     (item: QuoteContentLibraryItem) => {
-      const onSettled = {
-        onSuccess: () => notifySuccess(`"${item.name}" deleted.`),
-        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-      };
-      if (item.type === QuoteSettingItemType.POLICY_DOCUMENT) {
-        deletePolicyDocument.mutate(item.id, onSettled);
-        return;
-      }
-      if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
-        deleteTextTemplate.mutate(item.id, onSettled);
-        return;
-      }
-      deleteExternalLink.mutate(item.id, onSettled);
+      openDialogDeferred(() => setRemoveTarget(item));
     },
-    [deletePolicyDocument, deleteTextTemplate, deleteExternalLink],
+    [openDialogDeferred],
   );
+
+  const handleConfirmRemove = React.useCallback(() => {
+    if (!removeTarget) return;
+    const item = removeTarget;
+    const onSettled = {
+      onSuccess: () => notifySuccess(`"${item.name}" removed.`),
+      onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+    };
+    if (item.type === QuoteSettingItemType.POLICY_DOCUMENT) {
+      deletePolicyDocument.mutate(item.id, onSettled);
+    } else if (item.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+      deleteTextTemplate.mutate(item.id, onSettled);
+    } else {
+      deleteExternalLink.mutate(item.id, onSettled);
+    }
+    setRemoveTarget(null);
+  }, [
+    removeTarget,
+    deletePolicyDocument,
+    deleteTextTemplate,
+    deleteExternalLink,
+  ]);
 
   const openAddDialog = React.useCallback(
     (type: QuoteSettingItemType) => {
@@ -244,6 +281,51 @@ export function useQuoteSettingsActions() {
     </FormDialog>
   ) : null;
 
+  const removeDialogContent = (() => {
+    if (!removeTarget) return null;
+    if (removeTarget.type === QuoteSettingItemType.TEXT_TEMPLATE) {
+      return {
+        title: 'Remove Text Template',
+        description: <RemoveTextTemplateDescription item={removeTarget} />,
+        content: <RemoveTextTemplateContent />,
+      };
+    }
+    if (removeTarget.type === QuoteSettingItemType.EXTERNAL_LINK) {
+      return {
+        title: 'Remove External Link',
+        description: <RemoveExternalLinkDescription item={removeTarget} />,
+        content: (
+          <RemoveExternalLinkContent url={removeTargetLink?.externalUrl} />
+        ),
+      };
+    }
+    return {
+      title: 'Remove Document',
+      description: <RemoveDocumentDescription item={removeTarget} />,
+      content: (
+        <RemoveDocumentContent
+          fileName={removeTargetDocument?.originalFileName}
+          fileSizeBytes={removeTargetDocument?.fileSizeBytes}
+        />
+      ),
+    };
+  })();
+
+  const removeDialog = (
+    <ActionDialog
+      open={removeTarget !== null}
+      onOpenChangeAction={(open) => {
+        if (!open) setRemoveTarget(null);
+      }}
+      title={removeDialogContent?.title}
+      description={removeDialogContent?.description}
+      content={removeDialogContent?.content}
+      confirmText="Remove"
+      confirmVariant="destructive"
+      onConfirmAction={handleConfirmRemove}
+    />
+  );
+
   return {
     items,
     actions,
@@ -251,5 +333,6 @@ export function useQuoteSettingsActions() {
     textTemplateDialog,
     externalLinkDialog,
     policyDocumentDialog,
+    removeDialog,
   };
 }
