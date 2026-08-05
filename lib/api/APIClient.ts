@@ -119,13 +119,16 @@ import {
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  FeeRecoverySettingsDto,
+  CustomerFeeRecoverySettingsDto,
+  FeeRecoveryScreenResponseDto,
+  CustomerEffectiveFeeRecoveryDto,
+  CustomerFeeRecoveryOverridePage,
+} from '../types/fee-recovery';
 
 type RequestBody =
-  | BodyInit
-  | FormData
-  | object
-  | Record<string, unknown>
-  | null;
+  BodyInit | FormData | object | Record<string, unknown> | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
 export interface HttpConfig {
@@ -1367,8 +1370,7 @@ export const APIClient = {
     pause: (
       id: number,
       deliveryPauseStrategy:
-        | 'STOP_ALL_DELIVERY_DOCKETS'
-        | 'ALLOW_DRIVERS_TO_COMPLETE',
+        'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
       collectionPauseStrategy:
         | 'STOP_ACTIVE_COLLECTION_DOCKETS'
         | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
@@ -1827,5 +1829,63 @@ export const APIClient = {
       }),
     deleteDepartment: (id: number) =>
       appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
+  },
+  feeRecovery: {
+    getCustomerOverrides: (params?: {
+      page?: number;
+      size?: number;
+      sort?: string[];
+    }) =>
+      appClient.Get<CustomerFeeRecoveryOverridePage>(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            size: params?.size?.toString(),
+            sort: params?.sort?.join(','),
+          },
+        },
+      ),
+    getScreen: () =>
+      appClient.Get<FeeRecoveryScreenResponseDto>(
+        `/socoro/quarrylink/api/fee-recovery`,
+      ),
+    getSettings: () =>
+      appClient.Get<FeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/settings`,
+      ),
+    updateSettings: (
+      data: Pick<
+        FeeRecoverySettingsDto,
+        'recoveryMode' | 'feeAmount' | 'invoiceLineDescription'
+      >,
+    ) =>
+      appClient.Put<FeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/settings`,
+        { body: data },
+      ),
+    getCustomerOverride: (customerId: number) =>
+      appClient.Get<CustomerFeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+      ),
+    updateCustomerOverride: (
+      customerId: number,
+      data: Pick<
+        FeeRecoverySettingsDto,
+        'recoveryMode' | 'feeAmount' | 'invoiceLineDescription'
+      >,
+    ) =>
+      appClient.Put<CustomerFeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+        { body: data },
+      ),
+    deleteCustomerOverride: (customerId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+      ),
+    getCustomerEffective: (customerId: number) =>
+      appClient.Get<CustomerEffectiveFeeRecoveryDto>(
+        `/socoro/quarrylink/api/fee-recovery/customers/${customerId}/effective`,
+      ),
   },
 };

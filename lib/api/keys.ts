@@ -202,3 +202,18 @@ export const DepartmentKeys = {
   all: ['departments'] as const,
   list: () => [...DepartmentKeys.all, 'list'] as const,
 };
+
+export const FeeRecoveryKeys = {
+  all: ['fee-recovery'] as const,
+  screen: () => [...FeeRecoveryKeys.all, 'screen'] as const,
+  settings: () => [...FeeRecoveryKeys.all, 'settings'] as const,
+  customerOverrides: (params?: {
+    page?: number;
+    size?: number;
+    sort?: string[];
+  }) => [...FeeRecoveryKeys.all, 'customer-overrides', 'list', params] as const,
+  customerOverride: (customerId: number) =>
+    [...FeeRecoveryKeys.all, 'customer-overrides', customerId] as const,
+  customerEffective: (customerId: number) =>
+    [...FeeRecoveryKeys.all, 'customers', customerId, 'effective'] as const,
+};
