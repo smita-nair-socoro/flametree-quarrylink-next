@@ -9,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { DataTableClientBasic } from '@/components/ui/data-table-client-basic';
+import { DataTableClient } from '@/components/ui/data-table-client';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
 import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
@@ -41,8 +41,8 @@ export default function QuoteSettingsTab() {
           <h2 className="text-2xl font-semibold">Quote Settings</h2>
           <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
             Manage text templates, a policy document, and external links for
-            customer quotes. Staff attach these in the quote editor under
-            Notes &amp; Terms.
+            customer quotes. Staff attach these in the quote editor under Notes
+            &amp; Terms.
           </p>
         </div>
 
@@ -62,9 +62,7 @@ export default function QuoteSettingsTab() {
               Text template
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() =>
-                actions.add(QuoteSettingItemType.POLICY_DOCUMENT)
-              }
+              onClick={() => actions.add(QuoteSettingItemType.POLICY_DOCUMENT)}
             >
               <Upload className="h-4 w-4 mr-2" />
               {documentItem ? 'Replace PDF document' : 'Add PDF document'}
@@ -80,7 +78,8 @@ export default function QuoteSettingsTab() {
       </div>
 
       <div className="border border-[#E4E4E7] rounded-lg bg-white p-4">
-        <DataTableClientBasic
+        <DataTableClient
+          simpleTable
           tableId="quote_settings_data_table"
           data={items}
           columns={columns}
