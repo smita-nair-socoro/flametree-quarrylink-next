@@ -41,7 +41,10 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { FeeRecoveryScreenQueryOptions } from '@/lib/api/fee-recovery';
 import type { FeeRecoveryScreenCustomerDto } from '@/lib/types/fee-recovery';
-import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
+import {
+  EFFECTIVE_SOURCE,
+  RECOVERY_MODE,
+} from '@/lib/types/fee-recovery-enums';
 import { useCustomerFeeOverrides } from './use-customer-fee-overrides';
 
 const MOBILE_PAGE_SIZE = 10;
@@ -52,11 +55,8 @@ const PAGE_SIZE_OPTIONS = [
   { value: '50', label: '50' },
 ];
 
-type RuleType = 'global_default' | 'custom_rule';
-type StatusType = 'absorbed' | 'charging';
-
 interface CustomerOverridesTableProps {
-  globalMode: 'charge' | 'absorb';
+  globalMode: RECOVERY_MODE;
   globalAmount: string;
 }
 
@@ -84,8 +84,12 @@ export function CustomerOverridesTable({
   } = useCustomerFeeOverrides(customers, globalFeeLabel);
 
   const [search, setSearch] = useState('');
-  const [ruleFilter, setRuleFilter] = useState<'all' | RuleType>('all');
-  const [statusFilter, setStatusFilter] = useState<'all' | StatusType>('all');
+  const [ruleFilter, setRuleFilter] = useState<'all' | EFFECTIVE_SOURCE>(
+    'all',
+  );
+  const [statusFilter, setStatusFilter] = useState<'all' | RECOVERY_MODE>(
+    'all',
+  );
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(10);
 
@@ -94,27 +98,30 @@ export function CustomerOverridesTable({
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const sentinelRef = React.useRef<HTMLDivElement | null>(null);
 
-  const getEffectiveStatus = (customer: FeeRecoveryScreenCustomerDto) => {
-    const on = isOn(customer.customerId);
-    const form = overrideForms[customer.customerId];
-    const mode = on
-      ? (form?.overrideRule ?? customer.overrideMode)
-      : globalMode === 'charge'
-        ? RECOVERY_MODE.RECOVER
-        : RECOVERY_MODE.ABSORB;
-    return mode === RECOVERY_MODE.RECOVER ? 'charging' : 'absorbed';
-  };
+  const getEffectiveStatus = useCallback(
+    (customer: FeeRecoveryScreenCustomerDto): RECOVERY_MODE => {
+      const on = isOn(customer.customerId);
+      const form = overrideForms[customer.customerId];
+      return on ? (form?.overrideRule ?? customer.overrideMode) : globalMode;
+    },
+    [isOn, overrideForms, globalMode],
+  );
 
-  const getEffectiveFee = (customer: FeeRecoveryScreenCustomerDto) => {
-    const on = isOn(customer.customerId);
-    const form = overrideForms[customer.customerId];
-    if (on) {
-      return form?.overrideRule === RECOVERY_MODE.RECOVER
-        ? Number.parseFloat(form?.fee ?? '0') || 0
+  const getEffectiveFee = useCallback(
+    (customer: FeeRecoveryScreenCustomerDto) => {
+      const on = isOn(customer.customerId);
+      const form = overrideForms[customer.customerId];
+      if (on) {
+        return form?.overrideRule === RECOVERY_MODE.RECOVER
+          ? Number.parseFloat(form?.fee ?? '0') || 0
+          : 0;
+      }
+      return globalMode === RECOVERY_MODE.RECOVER
+        ? Number.parseFloat(globalAmount) || 0
         : 0;
-    }
-    return globalMode === 'charge' ? Number.parseFloat(globalAmount) || 0 : 0;
-  };
+    },
+    [isOn, overrideForms, globalMode, globalAmount],
+  );
 
   const filtered = useMemo(() => {
     return customers.filter((customer) => {
@@ -122,9 +129,9 @@ export function CustomerOverridesTable({
         .toLowerCase()
         .includes(search.toLowerCase());
 
-      const effectiveRule: RuleType = isOn(customer.customerId)
-        ? 'custom_rule'
-        : 'global_default';
+      const effectiveRule: EFFECTIVE_SOURCE = isOn(customer.customerId)
+        ? EFFECTIVE_SOURCE.CUSTOMER_OVERRIDE
+        : EFFECTIVE_SOURCE.GLOBAL_DEFAULT;
       const effectiveStatus = getEffectiveStatus(customer);
 
       const matchesRule = ruleFilter === 'all' || effectiveRule === ruleFilter;
@@ -214,8 +221,12 @@ export function CustomerOverridesTable({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All rules</SelectItem>
-                  <SelectItem value="global_default">Global default</SelectItem>
-                  <SelectItem value="custom_rule">Custom rule</SelectItem>
+                  <SelectItem value={EFFECTIVE_SOURCE.GLOBAL_DEFAULT}>
+                    Global default
+                  </SelectItem>
+                  <SelectItem value={EFFECTIVE_SOURCE.CUSTOMER_OVERRIDE}>
+                    Custom rule
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <Select
@@ -232,18 +243,21 @@ export function CustomerOverridesTable({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All status</SelectItem>
-                  <SelectItem value="absorbed">Absorbed</SelectItem>
-                  <SelectItem value="charging">Charging</SelectItem>
+                  <SelectItem value={RECOVERY_MODE.ABSORB}>Absorbed</SelectItem>
+                  <SelectItem value={RECOVERY_MODE.RECOVER}>
+                    Charging
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {isLoading ? (
+          {isLoading && (
             <div className="flex items-center justify-center py-10">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
             </div>
-          ) : isMobile ? (
+          )}
+          {!isLoading && isMobile && (
             /* Mobile card list */
             <div className="space-y-3">
               {mobileRows.length === 0 ? (
@@ -281,7 +295,7 @@ export function CustomerOverridesTable({
                             Custom rule
                           </Badge>
                         )}
-                        {effectiveStatus === 'charging' ? (
+                        {effectiveStatus === RECOVERY_MODE.RECOVER ? (
                           <Badge
                             variant="outline"
                             className="text-green-600 border-green-300 bg-green-50"
@@ -406,7 +420,8 @@ export function CustomerOverridesTable({
                 </p>
               )}
             </div>
-          ) : (
+          )}
+          {!isLoading && !isMobile && (
             <>
               {/* Table */}
               <div className="rounded-md border overflow-x-auto">
@@ -471,7 +486,7 @@ export function CustomerOverridesTable({
                               </TableCell>
 
                               <TableCell>
-                                {effectiveStatus === 'charging' ? (
+                                {effectiveStatus === RECOVERY_MODE.RECOVER ? (
                                   <Badge
                                     variant="outline"
                                     className="text-green-600 border-green-300 bg-green-50"
@@ -702,7 +717,7 @@ export function CustomerOverridesTable({
         }}
         onConfirm={handleConfirmRevert}
         customerName={revertTarget?.customerName ?? ''}
-        globalMode={globalMode}
+        globalMode={globalMode === RECOVERY_MODE.RECOVER ? 'charge' : 'absorb'}
         amount={globalAmount}
         currencySymbol={currencySymbol}
       />

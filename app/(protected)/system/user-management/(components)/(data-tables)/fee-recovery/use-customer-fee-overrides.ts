@@ -67,6 +67,12 @@ export function useCustomerFeeOverrides(
     checked: boolean,
   ) => {
     if (!checked) {
+      // Nothing saved on the server yet (override was only just turned on
+      // locally) — turn it off directly, no confirmation or delete call needed.
+      if (!row.hasOverride) {
+        setCustomToggles((prev) => ({ ...prev, [row.customerId]: false }));
+        return;
+      }
       setRevertTarget(row);
       return;
     }

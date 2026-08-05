@@ -348,7 +348,9 @@ export default function FeeRecoveryTab() {
 
         {/* Customer overrides table */}
         <CustomerOverridesTable
-          globalMode={chargeMode}
+          globalMode={
+            chargeMode === 'charge' ? RECOVERY_MODE.RECOVER : RECOVERY_MODE.ABSORB
+          }
           globalAmount={invoiceAmount}
         />
       </div>
