@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,30 +15,53 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { CustomerOverridesTable } from '../(data-tables)/fee-recovery/customer-overrides-table';
-import { MOCK_CUSTOMER_OVERRIDES } from '../(data-tables)/fee-recovery/columns';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { SaveFeeDefaultsDialog } from './roles/fee-recovery-alert-dialogs';
 import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  FeeRecoveryScreenQueryOptions,
+  useUpdateFeeRecoverySettings,
+} from '@/lib/api/fee-recovery';
+import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
+import { Spinner } from '@/components/ui/spinner';
 
 type ChargeMode = 'charge' | 'absorb';
 
-const GLOBAL_DEFAULT_CUSTOMER_COUNT = MOCK_CUSTOMER_OVERRIDES.filter(
-  (row) => row.rule === 'global_default',
-).length;
-const CUSTOM_OVERRIDE_COUNT = MOCK_CUSTOMER_OVERRIDES.filter(
-  (row) => row.rule === 'custom_rule',
-).length;
-
 export default function FeeRecoveryTab() {
   const isMobile = useIsMobile();
-  const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
+  const { currencySymbol } = useTenantCurrencyTax();
+  const { data, isLoading } = useQuery(FeeRecoveryScreenQueryOptions());
+  const updateSettings = useUpdateFeeRecoverySettings();
+
   const [chargeMode, setChargeMode] = React.useState<ChargeMode>('charge');
-  const [savedChargeMode, setSavedChargeMode] = React.useState<ChargeMode>('charge');
-  const [invoiceAmount, setInvoiceAmount] = React.useState('2.40');
-  const [savedAmount, setSavedAmount] = React.useState('2.40');
-  const [feeLabel, setFeeLabel] = React.useState('Digital Platform Fee');
-  const [savedLabel, setSavedLabel] = React.useState('Digital Platform Fee');
+  const [savedChargeMode, setSavedChargeMode] =
+    React.useState<ChargeMode>('charge');
+  const [invoiceAmount, setInvoiceAmount] = React.useState('0');
+  const [savedAmount, setSavedAmount] = React.useState('0');
+  const [feeLabel, setFeeLabel] = React.useState('');
+  const [savedLabel, setSavedLabel] = React.useState('');
   const [saveDialogOpen, setSaveDialogOpen] = React.useState(false);
+  const hasHydrated = React.useRef(false);
+
+  // Hydrate local draft state from the server once, on first load.
+  // Subsequent background refetches shouldn't clobber an in-progress draft.
+  React.useEffect(() => {
+    if (hasHydrated.current || !data?.settings) return;
+    const mode: ChargeMode =
+      data.settings.recoveryMode === RECOVERY_MODE.RECOVER
+        ? 'charge'
+        : 'absorb';
+    const amount = String(data.settings.feeAmount ?? 0);
+    const label = data.settings.invoiceLineDescription ?? '';
+
+    setChargeMode(mode);
+    setSavedChargeMode(mode);
+    setInvoiceAmount(amount);
+    setSavedAmount(amount);
+    setFeeLabel(label);
+    setSavedLabel(label);
+    hasHydrated.current = true;
+  }, [data?.settings]);
 
   const isDraft =
     chargeMode !== savedChargeMode ||
@@ -49,9 +73,23 @@ export default function FeeRecoveryTab() {
   };
 
   const handleConfirmSaveDefaults = () => {
-    setSavedChargeMode(chargeMode);
-    setSavedAmount(invoiceAmount);
-    setSavedLabel(feeLabel);
+    updateSettings.mutate(
+      {
+        recoveryMode:
+          chargeMode === 'charge'
+            ? RECOVERY_MODE.RECOVER
+            : RECOVERY_MODE.ABSORB,
+        feeAmount: Number.parseFloat(invoiceAmount) || 0,
+        invoiceLineDescription: feeLabel,
+      },
+      {
+        onSuccess: () => {
+          setSavedChargeMode(chargeMode);
+          setSavedAmount(invoiceAmount);
+          setSavedLabel(feeLabel);
+        },
+      },
+    );
   };
 
   const handleDiscard = () => {
@@ -60,25 +98,49 @@ export default function FeeRecoveryTab() {
     setFeeLabel(savedLabel);
   };
 
+  const summary = data?.summary;
+  const globalDefaultCustomerCount =
+    (summary?.totalCustomers ?? 0) - (summary?.customersWithOverrides ?? 0);
+  const customOverrideCount = summary?.customersWithOverrides ?? 0;
+
   const feeStats = [
-    { title: 'Customers', value: '6', description: 'in your account' },
-    { title: 'Overrides', value: '3', description: 'custom charge / absorb' },
+    {
+      title: 'Customers',
+      value: String(summary?.totalCustomers ?? 0),
+      description: 'in your account',
+    },
+    {
+      title: 'Overrides',
+      value: String(customOverrideCount),
+      description: 'custom charge / absorb',
+    },
     {
       title: 'Absorbed',
-      value: '1',
+      value: String(summary?.customersAbsorbingFee ?? 0),
       description: 'following global or custom absorb',
     },
     {
-      title: 'Actual past month recovery',
-      value: formatCurrency(3051),
-      description: 'Recovered from customers (invoiced dockets)',
+      title: 'Recovering fee',
+      value: String(summary?.customersRecoveringFee ?? 0),
+      description: 'charging customers per docket',
     },
   ];
 
   const summaryText =
     chargeMode === 'charge'
-      ? `Default: Charging ${currencySymbol}${invoiceAmount} per docket. Customer overrides: ${CUSTOM_OVERRIDE_COUNT}.`
-      : `Default: Absorbing platform cost — no fee line on invoices. Customer overrides: ${CUSTOM_OVERRIDE_COUNT}.`;
+      ? `Default: Charging ${currencySymbol}${invoiceAmount} per docket. Customer overrides: ${customOverrideCount}.`
+      : `Default: Absorbing platform cost — no fee line on invoices. Customer overrides: ${customOverrideCount}.`;
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 space-y-4">
+        <Spinner size="medium" />
+        <p className="text-lg text-muted-foreground">
+          Loading fee recovery settings...
+        </p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -235,9 +297,9 @@ export default function FeeRecoveryTab() {
               <Button
                 className="bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
                 onClick={handleSaveDefaultsClick}
-                disabled={!isDraft}
+                disabled={!isDraft || updateSettings.isPending}
               >
-                Save defaults
+                {updateSettings.isPending ? 'Saving...' : 'Save defaults'}
               </Button>
             </div>
           </CardContent>
@@ -298,8 +360,8 @@ export default function FeeRecoveryTab() {
         mode={chargeMode}
         amount={invoiceAmount}
         currencySymbol={currencySymbol}
-        customerCount={GLOBAL_DEFAULT_CUSTOMER_COUNT}
-        overrideCount={CUSTOM_OVERRIDE_COUNT}
+        customerCount={globalDefaultCustomerCount}
+        overrideCount={customOverrideCount}
       />
     </>
   );

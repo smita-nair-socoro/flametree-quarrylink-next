@@ -108,7 +108,7 @@ export function splitReasonNote(raw: string | null | undefined): {
   if (!trimmed) return { reason: '', note: undefined };
 
   const formatReason = (reason: string) =>
-    reason.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+    reason.replaceAll('_', ' ').replace(/^\w/, (c) => c.toUpperCase());
 
   const hyphenIndex = trimmed.indexOf('-');
   if (hyphenIndex === -1) {
@@ -237,4 +237,9 @@ export const BADGE_COLORS: Record<string, string> = {
   'READY FOR COLLECTION': 'bg-green-100 text-green-800 border-green-900',
   READY_FOR_COLLECTION: 'bg-green-100 text-green-800 border-green-900',
   UNKNOWN: 'bg-gray-100 text-gray-800 border-gray-900',
+  // Fee Recovery Badge Colors
+  'GLOBAL DEFAULT': 'bg-gray-100 text-gray-600 border-gray-400',
+  'CUSTOM RULE': 'bg-violet-100 text-violet-800 border-violet-800',
+  CHARGING: 'bg-green-100 text-green-800 border-green-300',
+  ABSORBED: 'bg-gray-100 text-gray-600 border-gray-400',
 };

@@ -48,7 +48,7 @@ export const useUpdateFeeRecoverySettings = () => {
     ) => APIClient.feeRecovery.updateSettings(data),
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.settings() });
+      queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
   });
 };
@@ -81,6 +81,7 @@ export const useUpdateCustomerFeeRecoveryOverride = () => {
       queryClient.invalidateQueries({
         queryKey: FeeRecoveryKeys.customerOverride(variables.customerId),
       });
+      queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
   });
 };
@@ -105,6 +106,7 @@ export const useDeleteCustomerFeeRecoveryOverride = () => {
       queryClient.invalidateQueries({
         queryKey: FeeRecoveryKeys.customerOverride(customerId),
       });
+      queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
   });
 };
