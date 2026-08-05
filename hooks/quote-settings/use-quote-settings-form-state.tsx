@@ -68,30 +68,27 @@ export function useTextTemplateFormState({
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
 
-  const onSubmit = React.useCallback(
-    (values: TextTemplateFormValues) => {
-      const data = {
-        name: values.name,
-        contentHtml: values.content,
-        defaultItem: values.defaultItem,
-      };
-      const onSettled = {
-        onSuccess: () => {
-          notifySuccess(
-            isEditing ? `"${values.name}" updated.` : `"${values.name}" added.`,
-          );
-          onSuccess?.();
-        },
-        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-      };
-      if (isEditing && id) {
-        updateTextTemplate.mutate({ id, data }, onSettled);
-      } else {
-        createTextTemplate.mutate(data, onSettled);
-      }
-    },
-    [isEditing, id, updateTextTemplate, createTextTemplate, onSuccess],
-  );
+  const onSubmit = (values: TextTemplateFormValues) => {
+    const data = {
+      name: values.name,
+      contentHtml: values.content,
+      defaultItem: values.defaultItem,
+    };
+    const onSettled = {
+      onSuccess: () => {
+        notifySuccess(
+          isEditing ? `"${values.name}" updated.` : `"${values.name}" added.`,
+        );
+        onSuccess?.();
+      },
+      onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+    };
+    if (isEditing && id) {
+      updateTextTemplate.mutate({ id, data }, onSettled);
+    } else {
+      createTextTemplate.mutate(data, onSettled);
+    }
+  };
 
   return {
     isLoadingDetail: isEditing && isLoadingDetail,
@@ -141,31 +138,28 @@ export function useExternalLinkFormState({
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
 
-  const onSubmit = React.useCallback(
-    (values: ExternalLinkFormValues) => {
-      const data = {
-        name: values.name,
-        externalUrl: values.url,
-        externalLinkText: values.name,
-        defaultItem: values.defaultItem,
-      };
-      const onSettled = {
-        onSuccess: () => {
-          notifySuccess(
-            isEditing ? `"${values.name}" updated.` : `"${values.name}" added.`,
-          );
-          onSuccess?.();
-        },
-        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-      };
-      if (isEditing && id) {
-        updateExternalLink.mutate({ id, data }, onSettled);
-      } else {
-        createExternalLink.mutate(data, onSettled);
-      }
-    },
-    [isEditing, id, updateExternalLink, createExternalLink, onSuccess],
-  );
+  const onSubmit = (values: ExternalLinkFormValues) => {
+    const data = {
+      name: values.name,
+      externalUrl: values.url,
+      externalLinkText: values.name,
+      defaultItem: values.defaultItem,
+    };
+    const onSettled = {
+      onSuccess: () => {
+        notifySuccess(
+          isEditing ? `"${values.name}" updated.` : `"${values.name}" added.`,
+        );
+        onSuccess?.();
+      },
+      onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+    };
+    if (isEditing && id) {
+      updateExternalLink.mutate({ id, data }, onSettled);
+    } else {
+      createExternalLink.mutate(data, onSettled);
+    }
+  };
 
   return {
     isLoadingDetail: isEditing && isLoadingDetail,
@@ -219,39 +213,30 @@ export function usePolicyDocumentFormState({
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
 
-  const onSubmit = React.useCallback(
-    (values: PolicyDocumentFormValues) => {
-      if (!values.file) return;
+  const onSubmit = (values: PolicyDocumentFormValues) => {
+    if (!values.file) return;
 
-      const metadata = { name: values.name, defaultItem: true };
-      const file = values.file;
-      const onSettled = {
-        onSuccess: () => {
-          notifySuccess(
-            `"${values.name}" ${isReplacing ? 'updated' : 'uploaded'}.`,
-          );
-          onSuccess?.();
-        },
-        onError: (err: unknown) => notifyError(extractErrorMessage(err)),
-      };
-
-      if (currentDocument) {
-        updatePolicyDocument.mutate(
-          { id: currentDocument.id, metadata, file },
-          onSettled,
+    const metadata = { name: values.name, defaultItem: true };
+    const file = values.file;
+    const onSettled = {
+      onSuccess: () => {
+        notifySuccess(
+          `"${values.name}" ${isReplacing ? 'updated' : 'uploaded'}.`,
         );
-      } else {
-        createPolicyDocument.mutate({ metadata, file }, onSettled);
-      }
-    },
-    [
-      currentDocument,
-      isReplacing,
-      updatePolicyDocument,
-      createPolicyDocument,
-      onSuccess,
-    ],
-  );
+        onSuccess?.();
+      },
+      onError: (err: unknown) => notifyError(extractErrorMessage(err)),
+    };
+
+    if (currentDocument) {
+      updatePolicyDocument.mutate(
+        { id: currentDocument.id, metadata, file },
+        onSettled,
+      );
+    } else {
+      createPolicyDocument.mutate({ metadata, file }, onSettled);
+    }
+  };
 
   return {
     currentDocument,
