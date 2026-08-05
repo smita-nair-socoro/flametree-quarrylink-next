@@ -8,7 +8,6 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AdditionalContactTableActions } from './additional-contacat-table-actions';
-import { formatPhoneNumber, normalizePhoneNumber } from '@/lib/utils/phone-helper';
 
 export const getAdditionalContactColumns = (
   customerId: number,
@@ -39,49 +38,8 @@ export const getAdditionalContactColumns = (
     },
 
     {
-      id: 'email',
-      accessorFn: (row) => row.email,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Email" />;
-      },
-      cell: (info) => {
-        const value = (info.getValue() as string) || 'N/A';
-        return (
-          <Tooltip delayDuration={300}>
-            <TooltipTrigger asChild>
-              <div className="truncate block w-[105px] sm:w-[125px] md:w-[145px] lg:w-[165px] xl:w-[185px]">
-                {value}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent variant="white">
-              <p>{value}</p>
-            </TooltipContent>
-          </Tooltip>
-        );
-      },
-      meta: 'Email',
-    },
-
-    {
-      id: 'phone',
-      accessorFn: (row) => row.phone,
-      header: ({ column }) => {
-        return <TableClientSortableHeader column={column} title="Phone" />;
-      },
-      cell: ({ row }) => {
-        const phone = formatPhoneNumber(
-          normalizePhoneNumber(row.original.phone),
-        );
-        return (
-          <div className="py-2">{phone || 'N/A'}</div>
-        );
-      },
-      meta: 'Phone',
-    },
-
-    {
-      id: 'position',
-      accessorFn: (row) => row.position,
+      id: 'positionRole',
+      accessorFn: (row) => row.positionRole,
       header: ({ column }) => {
         return (
           <TableClientSortableHeader column={column} title="Position / Role" />
