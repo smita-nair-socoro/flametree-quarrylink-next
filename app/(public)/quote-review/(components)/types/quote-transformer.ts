@@ -199,10 +199,17 @@ export function transformQuoteData(
   // Determine customer display name based on customer type
   let customerDisplayName: string;
   if (customerWithAddressResponseDto?.customerType === 'BUSINESS') {
-    // For business: use businessName, fallback to individualContactName
+    // For business: use businessName, fallback to the contact person's name
+    // (business customers don't have individualContactName).
+    const contactPersonName = [
+      customerWithAddressResponseDto.contactPersonFirstName,
+      customerWithAddressResponseDto.contactPersonLastName,
+    ]
+      .filter(Boolean)
+      .join(' ');
     customerDisplayName =
       customerWithAddressResponseDto.businessName ||
-      customerWithAddressResponseDto.individualContactName ||
+      contactPersonName ||
       customerName ||
       'N/A';
   } else if (customerWithAddressResponseDto?.customerType === 'INDIVIDUAL') {
@@ -240,9 +247,15 @@ export function transformQuoteData(
     },
     project: {
       type: (() => {
-        if (products.length > 0 && products.every((item) => item.type === QuoteItemType.COLLECTION))
+        if (
+          products.length > 0 &&
+          products.every((item) => item.type === QuoteItemType.COLLECTION)
+        )
           return QuoteItemType.COLLECTION;
-        if (products.length > 0 && products.every((item) => item.type === QuoteItemType.DELIVERY))
+        if (
+          products.length > 0 &&
+          products.every((item) => item.type === QuoteItemType.DELIVERY)
+        )
           return QuoteItemType.DELIVERY;
         return undefined;
       })(),

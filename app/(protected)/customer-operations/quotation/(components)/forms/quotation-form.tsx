@@ -233,7 +233,7 @@ export default function QuotationForm({
       return true;
     } catch (error) {
       console.error('Error saving quote content selections:', error);
-      notifyError('Quote saved, but failed to save quote content selections.');
+      notifyError(extractErrorMessage(error));
       return false;
     }
   };
