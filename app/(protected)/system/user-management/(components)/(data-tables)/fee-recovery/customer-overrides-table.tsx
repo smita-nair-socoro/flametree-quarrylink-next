@@ -494,6 +494,7 @@ export function CustomerOverridesTable({
                       pageRows.map((row) => {
                         const isOn = customToggles[row.id] ?? false;
                         const form = overrideForms[row.id];
+                        const savedForm = savedOverrideForms[row.id];
 
                         const isDirty = isRowDirty(row.id, form);
 
