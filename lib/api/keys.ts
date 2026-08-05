@@ -44,6 +44,14 @@ export const CustomerKeys = {
     params?: { page?: number; pageSize?: number },
   ) =>
     [...CustomerKeys.all, 'additional-contacts', customerId, params] as const,
+  additionalContactDetail: (customerId: number, contactId: number) =>
+    [
+      ...CustomerKeys.all,
+      'additional-contacts',
+      customerId,
+      'detail',
+      contactId,
+    ] as const,
 };
 
 export const QuotationKeys = {

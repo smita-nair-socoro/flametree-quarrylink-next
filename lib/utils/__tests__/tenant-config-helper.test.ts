@@ -17,7 +17,9 @@ describe('getAccountingSoftwareProvider', () => {
   test('detects XERO and MYOB (case-insensitive, substring match)', () => {
     expect(getAccountingSoftwareProvider('XERO')).toBe('XERO');
     expect(getAccountingSoftwareProvider('xero')).toBe('XERO');
-    expect(getAccountingSoftwareProvider('MYOB_BUSINESS')).toBe('MYOB');
+    expect(getAccountingSoftwareProvider('MYOB_BUSINESS')).toBe(
+      'MYOB_BUSINESS',
+    );
   });
 
   test('returns null for unknown/missing values', () => {
@@ -29,7 +31,8 @@ describe('getAccountingSoftwareProvider', () => {
 describe('getAccountingSoftwareLabel', () => {
   test('returns display labels for known providers', () => {
     expect(getAccountingSoftwareLabel('XERO')).toBe('Xero');
-    expect(getAccountingSoftwareLabel('MYOB_BUSINESS')).toBe('MYOB');
+    expect(getAccountingSoftwareLabel('MYOB_BUSINESS')).toBe('MYOB Business');
+    expect(getAccountingSoftwareLabel('MYOB_ACUMATICA')).toBe('MYOB Acumatica');
   });
 
   test('falls back to the default label', () => {

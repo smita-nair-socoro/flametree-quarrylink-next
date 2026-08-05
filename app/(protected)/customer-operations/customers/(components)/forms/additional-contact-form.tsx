@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import z from 'zod';
+import { Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -14,89 +15,123 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { PhoneInput } from '@/components/ui/phone-input';
+import { FormSelect } from '@/components/ui/form-select';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { additionalContactFormSchema } from './schemas/additional-contact-form-schema';
-import { AdditionalContactDTO } from '@/lib/types/customer';
 import {
+  ADDITIONAL_CONTACT_METHOD_TYPE_OPTIONS,
+  additionalContactFormSchema,
+} from './schemas/additional-contact-form-schema';
+import { ADDITIONAL_CONTACT_METHOD_TYPE } from '@/lib/types/customer-enums';
+import {
+  AdditionalContactDetailQueryOptions,
   useCreateAdditionalContact,
   useUpdateAdditionalContact,
 } from '@/lib/api/customer';
 import { Spinner } from '@/components/ui/spinner';
+import { useQuery } from '@tanstack/react-query';
+
+type FormValues = z.infer<typeof additionalContactFormSchema>;
+
+const EMPTY_CONTACT_METHOD: FormValues['contactMethods'][number] = {
+  type: ADDITIONAL_CONTACT_METHOD_TYPE.BUSINESS_PHONE,
+  value: '',
+};
 
 interface AdditionalContactFormProps {
+  contactId?: number;
   customerId: number;
-  contact?: AdditionalContactDTO | null;
   onCancel?: () => void;
   onSuccess?: () => void;
   onDirtyChange?: (isDirty: boolean) => void;
 }
 
 export default function AdditionalContactForm({
+  contactId,
   customerId,
-  contact,
   onCancel,
   onSuccess,
   onDirtyChange,
 }: AdditionalContactFormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const isEditing = Boolean(contact?.id);
+  const isEditing = Boolean(contactId);
   const createAdditionalContact = useCreateAdditionalContact();
   const updateAdditionalContact = useUpdateAdditionalContact();
   const isSubmitting =
     createAdditionalContact.isPending || updateAdditionalContact.isPending;
 
-  const form = useForm<z.infer<typeof additionalContactFormSchema>>({
+  const { data: contactDetail, isPending: isLoadingDetail } = useQuery(
+    AdditionalContactDetailQueryOptions(
+      customerId,
+      contactId ?? 0,
+      isEditing,
+    ),
+  );
+
+  const form = useForm<FormValues>({
     resolver: zodResolver(additionalContactFormSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
-      email: '',
-      phone: '',
-      position: '',
+      positionRole: '',
+      contactMethods: [{ ...EMPTY_CONTACT_METHOD }],
     },
   });
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'contactMethods',
+  });
+
   React.useEffect(() => {
-    if (!contact) {
+    if (!isEditing) {
       form.reset({
         firstName: '',
         lastName: '',
-        email: '',
-        phone: '',
-        position: '',
+        positionRole: '',
+        contactMethods: [{ ...EMPTY_CONTACT_METHOD }],
       });
       return;
     }
 
+    if (!contactDetail) return;
+
+    const methods = (contactDetail.contactMethods ?? []).filter(
+      (method) => method.type && method.value,
+    );
+
     form.reset({
-      firstName: contact.firstName ?? '',
-      lastName: contact.lastName ?? '',
-      email: contact.email ?? '',
-      phone: contact.phone ?? '',
-      position: contact.position ?? '',
+      firstName: contactDetail.firstName ?? '',
+      lastName: contactDetail.lastName ?? '',
+      positionRole: contactDetail.positionRole ?? '',
+      contactMethods:
+        methods.length > 0
+          ? methods.map((method) => ({
+            type: method.type as ADDITIONAL_CONTACT_METHOD_TYPE,
+            value: method.value,
+          }))
+          : [{ ...EMPTY_CONTACT_METHOD }],
     });
-  }, [contact, form]);
+  }, [contactDetail, form, isEditing]);
 
   React.useEffect(() => {
     onDirtyChange?.(form.formState.isDirty);
   }, [form.formState.isDirty, onDirtyChange]);
 
-  async function onSubmit(values: z.infer<typeof additionalContactFormSchema>) {
+  async function onSubmit(values: FormValues) {
     if (!customerId) {
       notifyError('Customer ID is required');
       return;
     }
 
     try {
-      if (isEditing && contact?.id) {
+      if (isEditing && contactId) {
         await updateAdditionalContact.mutateAsync({
           customerId,
-          contactId: contact.id,
+          contactId,
           data: values,
         });
         notifySuccess('Contact updated successfully');
@@ -114,7 +149,7 @@ export default function AdditionalContactForm({
       console.error('Error saving additional contact:', error);
       notifyError(
         extractErrorMessage(error) ||
-          `Failed to ${isEditing ? 'update' : 'add'} contact`,
+        `Failed to ${isEditing ? 'update' : 'add'} contact`,
       );
     }
   }
@@ -144,7 +179,7 @@ export default function AdditionalContactForm({
           form="additional-contact-form"
           type="submit"
           className="cursor-pointer"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (isEditing && isLoadingDetail)}
         >
           {isSubmitting ? (
             <>
@@ -158,6 +193,14 @@ export default function AdditionalContactForm({
       </div>
     ) : null,
   );
+
+  if (isEditing && isLoadingDetail) {
+    return (
+      <div className="flex justify-center py-8">
+        <Spinner className="h-5 w-5" />
+      </div>
+    );
+  }
 
   return (
     <Form {...form}>
@@ -206,44 +249,7 @@ export default function AdditionalContactForm({
 
         <FormField
           control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email*</FormLabel>
-              <FormControl>
-                <Input
-                  type="email"
-                  placeholder="email@example.com"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone*</FormLabel>
-              <FormControl>
-                <PhoneInput
-                  className="w-full"
-                  defaultCountry="AU"
-                  placeholder="Enter phone number"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="position"
+          name="positionRole"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Position / Role</FormLabel>
@@ -258,13 +264,101 @@ export default function AdditionalContactForm({
           )}
         />
 
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <FormLabel className="text-md font-semibold">
+              Contact Methods
+            </FormLabel>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="cursor-pointer"
+              onClick={() => append({ ...EMPTY_CONTACT_METHOD })}
+              disabled={isSubmitting}
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
+          </div>
+
+          {fields.map((field, index) => {
+            const methodType = form.watch(`contactMethods.${index}.type`);
+            const valuePlaceholder =
+              methodType === ADDITIONAL_CONTACT_METHOD_TYPE.EMAIL
+                ? 'email@example.com'
+                : 'Enter phone number';
+
+            return (
+              <div
+                key={field.id}
+                className="rounded-md border border-[#E4E4E7] bg-white p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-[#364153]">
+                    Contact Method {index + 1}
+                  </span>
+                  {fields.length > 1 && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-destructive"
+                      onClick={() => remove(index)}
+                      disabled={isSubmitting}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormSelect
+                    control={form.control}
+                    name={`contactMethods.${index}.type`}
+                    label="Type*"
+                    searchLabel="Type"
+                    showSearch={false}
+                    options={ADDITIONAL_CONTACT_METHOD_TYPE_OPTIONS}
+                    placeholder="Select type"
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name={`contactMethods.${index}.value`}
+                    render={({ field: valueField }) => (
+                      <FormItem>
+                        <FormLabel>Value*</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder={valuePlaceholder}
+                            {...valueField}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            );
+          })}
+
+          {form.formState.errors.contactMethods?.root?.message ||
+            form.formState.errors.contactMethods?.message ? (
+            <p className="text-destructive text-sm">
+              {form.formState.errors.contactMethods.root?.message ||
+                form.formState.errors.contactMethods.message}
+            </p>
+          ) : null}
+        </div>
+
         {!isDesktop && (
           <div className="flex flex-col gap-3 pt-2">
             <Button
               form="additional-contact-form"
               type="submit"
               className="cursor-pointer"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoadingDetail}
             >
               {isSubmitting ? (
                 <>
