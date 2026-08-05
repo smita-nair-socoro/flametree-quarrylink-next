@@ -1,3 +1,8 @@
+import type {
+  EFFECTIVE_SOURCE,
+  RECOVERY_MODE,
+} from '../types/fee-recovery-enums';
+
 export const ProductKeys = {
   all: ['products'] as const,
   list: (filters?: { page?: number; perPage?: number; search?: string }) =>
@@ -211,6 +216,9 @@ export const FeeRecoveryKeys = {
     page?: number;
     size?: number;
     sort?: string[];
+    search?: string;
+    effectiveSource?: EFFECTIVE_SOURCE;
+    recoveryMode?: RECOVERY_MODE;
   }) => [...FeeRecoveryKeys.all, 'customer-overrides', 'list', params] as const,
   customerOverride: (customerId: number) =>
     [...FeeRecoveryKeys.all, 'customer-overrides', customerId] as const,

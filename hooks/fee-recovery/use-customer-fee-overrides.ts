@@ -5,16 +5,19 @@ import {
   useDeleteCustomerFeeRecoveryOverride,
   useUpdateCustomerFeeRecoveryOverride,
 } from '@/lib/api/fee-recovery';
-import type { FeeRecoveryScreenCustomerDto } from '@/lib/types/fee-recovery';
-import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
+import type { CustomerFeeRecoverySettingsDto } from '@/lib/types/fee-recovery';
+import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
 
 export type OverrideFormState = {
   overrideRule: RECOVERY_MODE;
   fee: string;
 };
 
+const hasOverride = (customer: CustomerFeeRecoverySettingsDto) =>
+  customer.effectiveSource === EFFECTIVE_SOURCE.CUSTOMER_OVERRIDE;
+
 function buildOverrideForms(
-  customers: FeeRecoveryScreenCustomerDto[],
+  customers: CustomerFeeRecoverySettingsDto[],
 ): Record<number, OverrideFormState> {
   return Object.fromEntries(
     customers.map((c) => [
@@ -30,7 +33,7 @@ function buildOverrideForms(
 // Owns the Custom-override toggle, form state, and save/revert mutations for
 // the fee-recovery customer overrides table (desktop table + mobile cards).
 export function useCustomerFeeOverrides(
-  customers: FeeRecoveryScreenCustomerDto[],
+  customers: CustomerFeeRecoverySettingsDto[],
   globalFeeLabel: string,
 ) {
   const updateOverride = useUpdateCustomerFeeRecoveryOverride();
@@ -47,13 +50,13 @@ export function useCustomerFeeOverrides(
     Record<number, OverrideFormState>
   >({});
   const [revertTarget, setRevertTarget] =
-    useState<FeeRecoveryScreenCustomerDto | null>(null);
+    useState<CustomerFeeRecoverySettingsDto | null>(null);
 
   // Sync local per-row state whenever the customer list loads or refetches
   // (e.g. after a save/revert round-trips to the server).
   useEffect(() => {
     setCustomToggles(
-      Object.fromEntries(customers.map((c) => [c.customerId, c.hasOverride])),
+      Object.fromEntries(customers.map((c) => [c.customerId, hasOverride(c)])),
     );
     const forms = buildOverrideForms(customers);
     setOverrideForms(forms);
@@ -63,13 +66,13 @@ export function useCustomerFeeOverrides(
   const isOn = (customerId: number) => customToggles[customerId] ?? false;
 
   const handleToggle = (
-    row: FeeRecoveryScreenCustomerDto,
+    row: CustomerFeeRecoverySettingsDto,
     checked: boolean,
   ) => {
     if (!checked) {
       // Nothing saved on the server yet (override was only just turned on
       // locally) — turn it off directly, no confirmation or delete call needed.
-      if (!row.hasOverride) {
+      if (!hasOverride(row)) {
         setCustomToggles((prev) => ({ ...prev, [row.customerId]: false }));
         return;
       }

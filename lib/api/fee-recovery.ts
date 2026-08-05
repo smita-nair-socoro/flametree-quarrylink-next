@@ -7,11 +7,15 @@ import {
 import { APIClient } from './APIClient';
 import { FeeRecoveryKeys } from './keys';
 import { FeeRecoverySettingsDto } from '../types/fee-recovery';
+import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
 
 export const CustomerFeeRecoveryOverridesQueryOptions = (params?: {
   page?: number;
   size?: number;
   sort?: string[];
+  search?: string;
+  effectiveSource?: EFFECTIVE_SOURCE;
+  recoveryMode?: RECOVERY_MODE;
 }) =>
   queryOptions({
     queryKey: FeeRecoveryKeys.customerOverrides(params),

@@ -126,6 +126,7 @@ import {
   CustomerEffectiveFeeRecoveryDto,
   CustomerFeeRecoveryOverridePage,
 } from '../types/fee-recovery';
+import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
 
 type RequestBody =
   BodyInit | FormData | object | Record<string, unknown> | null;
@@ -1835,6 +1836,9 @@ export const APIClient = {
       page?: number;
       size?: number;
       sort?: string[];
+      search?: string;
+      effectiveSource?: EFFECTIVE_SOURCE;
+      recoveryMode?: RECOVERY_MODE;
     }) =>
       appClient.Get<CustomerFeeRecoveryOverridePage>(
         `/socoro/quarrylink/api/fee-recovery/customer-overrides`,
@@ -1843,6 +1847,9 @@ export const APIClient = {
             page: params?.page?.toString(),
             size: params?.size?.toString(),
             sort: params?.sort?.join(','),
+            search: params?.search?.trim() || undefined,
+            effectiveSource: params?.effectiveSource,
+            recoveryMode: params?.recoveryMode,
           },
         },
       ),

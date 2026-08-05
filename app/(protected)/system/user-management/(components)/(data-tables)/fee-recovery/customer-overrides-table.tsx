@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from 'react';
 import { RemoveCustomOverrideDialog } from '../../tabs/roles/fee-recovery-alert-dialogs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,19 +34,14 @@ import {
   Loader2,
   Search,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { formatNumberThousandSeparatorWithoutDecimal } from '@/lib/utils/number';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { FeeRecoveryScreenQueryOptions } from '@/lib/api/fee-recovery';
-import type { FeeRecoveryScreenCustomerDto } from '@/lib/types/fee-recovery';
+import { useCustomerOverridesTable } from '@/hooks/fee-recovery/use-customer-overrides-table';
 import {
   EFFECTIVE_SOURCE,
   RECOVERY_MODE,
 } from '@/lib/types/fee-recovery-enums';
-import { useCustomerFeeOverrides } from './use-customer-fee-overrides';
-
-const MOBILE_PAGE_SIZE = 10;
 
 const PAGE_SIZE_OPTIONS = [
   { value: '10', label: '10' },
@@ -63,14 +57,26 @@ interface CustomerOverridesTableProps {
 export function CustomerOverridesTable({
   globalMode,
   globalAmount,
-}: CustomerOverridesTableProps) {
+}: Readonly<CustomerOverridesTableProps>) {
   const isMobile = useIsMobile();
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
-  const { data, isLoading } = useQuery(FeeRecoveryScreenQueryOptions());
-  const customers = useMemo(() => data?.customers ?? [], [data?.customers]);
-  const globalFeeLabel = data?.settings?.invoiceLineDescription ?? '';
 
   const {
+    search,
+    setSearch,
+    ruleFilter,
+    setRuleFilter,
+    statusFilter,
+    setStatusFilter,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    rows,
+    totalElements,
+    totalPages,
+    isLoading,
+    isFetching,
     isOn,
     overrideForms,
     handleToggle,
@@ -81,98 +87,9 @@ export function CustomerOverridesTable({
     revertTarget,
     clearRevertTarget,
     handleConfirmRevert,
-  } = useCustomerFeeOverrides(customers, globalFeeLabel);
-
-  const [search, setSearch] = useState('');
-  const [ruleFilter, setRuleFilter] = useState<'all' | EFFECTIVE_SOURCE>(
-    'all',
-  );
-  const [statusFilter, setStatusFilter] = useState<'all' | RECOVERY_MODE>(
-    'all',
-  );
-  const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-
-  // Mobile infinite scroll: how many rows are currently revealed.
-  const [visibleCount, setVisibleCount] = useState(MOBILE_PAGE_SIZE);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const sentinelRef = React.useRef<HTMLDivElement | null>(null);
-
-  const getEffectiveStatus = useCallback(
-    (customer: FeeRecoveryScreenCustomerDto): RECOVERY_MODE => {
-      const on = isOn(customer.customerId);
-      const form = overrideForms[customer.customerId];
-      return on ? (form?.overrideRule ?? customer.overrideMode) : globalMode;
-    },
-    [isOn, overrideForms, globalMode],
-  );
-
-  const getEffectiveFee = useCallback(
-    (customer: FeeRecoveryScreenCustomerDto) => {
-      const on = isOn(customer.customerId);
-      const form = overrideForms[customer.customerId];
-      if (on) {
-        return form?.overrideRule === RECOVERY_MODE.RECOVER
-          ? Number.parseFloat(form?.fee ?? '0') || 0
-          : 0;
-      }
-      return globalMode === RECOVERY_MODE.RECOVER
-        ? Number.parseFloat(globalAmount) || 0
-        : 0;
-    },
-    [isOn, overrideForms, globalMode, globalAmount],
-  );
-
-  const filtered = useMemo(() => {
-    return customers.filter((customer) => {
-      const matchesSearch = customer.customerName
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      const effectiveRule: EFFECTIVE_SOURCE = isOn(customer.customerId)
-        ? EFFECTIVE_SOURCE.CUSTOMER_OVERRIDE
-        : EFFECTIVE_SOURCE.GLOBAL_DEFAULT;
-      const effectiveStatus = getEffectiveStatus(customer);
-
-      const matchesRule = ruleFilter === 'all' || effectiveRule === ruleFilter;
-      const matchesStatus =
-        statusFilter === 'all' || effectiveStatus === statusFilter;
-      return matchesSearch && matchesRule && matchesStatus;
-    });
-  }, [customers, search, ruleFilter, statusFilter, isOn, getEffectiveStatus]);
-
-  const totalPages = Math.ceil(filtered.length / pageSize);
-  const pageRows = filtered.slice(page * pageSize, (page + 1) * pageSize);
-
-  // Mobile infinite scroll: reset the reveal count whenever the filtered set changes.
-  React.useEffect(() => {
-    setVisibleCount(MOBILE_PAGE_SIZE);
-  }, [search, ruleFilter, statusFilter]);
-
-  const mobileRows = filtered.slice(0, visibleCount);
-  const hasMoreMobileRows = visibleCount < filtered.length;
-
-  React.useEffect(() => {
-    if (!isMobile) return;
-    const target = sentinelRef.current;
-    if (!target || !hasMoreMobileRows) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (!entries[0]?.isIntersecting || isLoadingMore) return;
-        setIsLoadingMore(true);
-        setTimeout(() => {
-          setVisibleCount((prev) =>
-            Math.min(prev + MOBILE_PAGE_SIZE, filtered.length),
-          );
-          setIsLoadingMore(false);
-        }, 300);
-      },
-      { rootMargin: '120px', threshold: 0 },
-    );
-    observer.observe(target);
-    return () => observer.disconnect();
-  }, [isMobile, hasMoreMobileRows, isLoadingMore, filtered.length]);
+    getEffectiveStatus,
+    getEffectiveFee,
+  } = useCustomerOverridesTable({ globalMode, globalAmount });
 
   const formatFee = (amount: number) => formatCurrency(amount);
 
@@ -191,31 +108,24 @@ export function CustomerOverridesTable({
 
           {/* Search + filters */}
           <div
-            className={cn(
-              'flex flex-wrap items-center gap-2',
-              isMobile && 'flex-col items-stretch',
-            )}
+            className={`flex flex-wrap items-center gap-2 ${isMobile ? 'flex-col items-stretch' : ''}`}
           >
             <InputIcon
               placeholder="Search customers..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => setSearch(e.target.value)}
               startIcon={<Search size={16} />}
               wrapperClassName={isMobile ? 'w-full' : 'w-64'}
             />
-            <div className={cn(isMobile && 'grid grid-cols-2 gap-2 w-full')}>
+            <div
+              className={isMobile ? 'grid grid-cols-2 gap-2 w-full' : ''}
+            >
               <Select
                 value={ruleFilter}
-                onValueChange={(val) => {
-                  setRuleFilter(val as typeof ruleFilter);
-                  setPage(0);
-                }}
+                onValueChange={(val) => setRuleFilter(val as typeof ruleFilter)}
               >
                 <SelectTrigger
-                  className={cn('shrink-0', isMobile ? 'w-full' : 'w-40')}
+                  className={`shrink-0 ${isMobile ? 'w-full' : 'w-40'}`}
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -231,13 +141,12 @@ export function CustomerOverridesTable({
               </Select>
               <Select
                 value={statusFilter}
-                onValueChange={(val) => {
-                  setStatusFilter(val as typeof statusFilter);
-                  setPage(0);
-                }}
+                onValueChange={(val) =>
+                  setStatusFilter(val as typeof statusFilter)
+                }
               >
                 <SelectTrigger
-                  className={cn('shrink-0', isMobile ? 'w-full' : 'w-36')}
+                  className={`shrink-0 ${isMobile ? 'w-full' : 'w-36'}`}
                 >
                   <SelectValue />
                 </SelectTrigger>
@@ -259,13 +168,15 @@ export function CustomerOverridesTable({
           )}
           {!isLoading && isMobile && (
             /* Mobile card list */
-            <div className="space-y-3">
-              {mobileRows.length === 0 ? (
+            <div
+              className={`space-y-3 ${isFetching ? 'opacity-60' : ''}`}
+            >
+              {rows.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground text-sm">
                   No customers found
                 </div>
               ) : (
-                mobileRows.map((customer) => {
+                rows.map((customer) => {
                   const isCustom = isOn(customer.customerId);
                   const form = overrideForms[customer.customerId];
                   const isDirty = isRowDirty(customer.customerId);
@@ -406,306 +317,282 @@ export function CustomerOverridesTable({
                   );
                 })
               )}
-
-              {hasMoreMobileRows && (
-                <div ref={sentinelRef} className="flex justify-center py-3">
-                  {isLoadingMore && (
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                  )}
-                </div>
-              )}
-              {!hasMoreMobileRows && filtered.length > 0 && (
-                <p className="text-center text-xs text-muted-foreground py-2">
-                  All customers loaded
-                </p>
-              )}
             </div>
           )}
           {!isLoading && !isMobile && (
-            <>
-              {/* Table */}
-              <div className="rounded-md border overflow-x-auto">
-                <Table>
-                  <TableHeader>
+            <div
+              className={`rounded-md border overflow-x-auto ${isFetching ? 'opacity-60' : ''}`}
+            >
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="pl-4 w-[40%]">Customer</TableHead>
+                    <TableHead>Rule</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Fee / docket</TableHead>
+                    <TableHead className="text-right pr-4">Override</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.length === 0 ? (
                     <TableRow>
-                      <TableHead className="pl-4 w-[40%]">Customer</TableHead>
-                      <TableHead>Rule</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Fee / docket</TableHead>
-                      <TableHead className="text-right pr-4">
-                        Override
-                      </TableHead>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-10 text-muted-foreground"
+                      >
+                        No customers found
+                      </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {pageRows.length === 0 ? (
-                      <TableRow>
-                        <TableCell
-                          colSpan={5}
-                          className="text-center py-10 text-muted-foreground"
-                        >
-                          No customers found
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      pageRows.map((customer) => {
-                        const isCustom = isOn(customer.customerId);
-                        const form = overrideForms[customer.customerId];
-                        const isDirty = isRowDirty(customer.customerId);
-                        const effectiveStatus = getEffectiveStatus(customer);
-                        const effectiveFee = getEffectiveFee(customer);
+                  ) : (
+                    rows.map((customer) => {
+                      const isCustom = isOn(customer.customerId);
+                      const form = overrideForms[customer.customerId];
+                      const isDirty = isRowDirty(customer.customerId);
+                      const effectiveStatus = getEffectiveStatus(customer);
+                      const effectiveFee = getEffectiveFee(customer);
 
-                        return (
-                          <React.Fragment key={customer.customerId}>
-                            <TableRow
-                              className={cn(
-                                'bg-white hover:bg-gray-50',
-                                isCustom && 'border-b-0',
+                      return (
+                        <React.Fragment key={customer.customerId}>
+                          <TableRow
+                            className={`bg-white hover:bg-gray-50 ${isCustom ? 'border-b-0' : ''}`}
+                          >
+                            <TableCell className="pl-4 font-medium">
+                              {customer.customerName}
+                            </TableCell>
+
+                            <TableCell>
+                              {!isCustom ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-muted-foreground"
+                                >
+                                  Global default
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[#8E51FF] border-[#8E51FF]/40 bg-[#8E51FF]/5"
+                                >
+                                  Custom rule
+                                </Badge>
                               )}
-                            >
-                              <TableCell className="pl-4 font-medium">
-                                {customer.customerName}
-                              </TableCell>
+                            </TableCell>
 
-                              <TableCell>
-                                {!isCustom ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-muted-foreground"
-                                  >
-                                    Global default
-                                  </Badge>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-[#8E51FF] border-[#8E51FF]/40 bg-[#8E51FF]/5"
-                                  >
-                                    Custom rule
-                                  </Badge>
-                                )}
-                              </TableCell>
+                            <TableCell>
+                              {effectiveStatus === RECOVERY_MODE.RECOVER ? (
+                                <Badge
+                                  variant="outline"
+                                  className="text-green-600 border-green-300 bg-green-50"
+                                >
+                                  Charging
+                                </Badge>
+                              ) : (
+                                <Badge
+                                  variant="outline"
+                                  className="text-muted-foreground"
+                                >
+                                  Absorbed
+                                </Badge>
+                              )}
+                            </TableCell>
 
-                              <TableCell>
-                                {effectiveStatus === RECOVERY_MODE.RECOVER ? (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-green-600 border-green-300 bg-green-50"
-                                  >
-                                    Charging
-                                  </Badge>
-                                ) : (
-                                  <Badge
-                                    variant="outline"
-                                    className="text-muted-foreground"
-                                  >
-                                    Absorbed
-                                  </Badge>
-                                )}
-                              </TableCell>
+                            <TableCell className="text-right">
+                              {formatFee(effectiveFee)}
+                            </TableCell>
 
-                              <TableCell className="text-right">
-                                {formatFee(effectiveFee)}
-                              </TableCell>
+                            <TableCell className="text-right pr-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="text-sm text-muted-foreground">
+                                  Custom
+                                </span>
+                                <Switch
+                                  checked={isCustom}
+                                  onCheckedChange={(checked) =>
+                                    handleToggle(customer, checked)
+                                  }
+                                  className="data-[state=checked]:bg-[#8E51FF]"
+                                />
+                              </div>
+                            </TableCell>
+                          </TableRow>
 
-                              <TableCell className="text-right pr-4">
-                                <div className="flex items-center justify-end gap-2">
-                                  <span className="text-sm text-muted-foreground">
-                                    Custom
-                                  </span>
-                                  <Switch
-                                    checked={isCustom}
-                                    onCheckedChange={(checked) =>
-                                      handleToggle(customer, checked)
-                                    }
-                                    className="data-[state=checked]:bg-[#8E51FF]"
-                                  />
+                          {/* Expanded override form */}
+                          {isCustom && form && (
+                            <TableRow className="bg-gray-50 hover:bg-gray-50">
+                              <TableCell colSpan={5} className="pl-4 py-3">
+                                <div className="flex items-end gap-3">
+                                  <div className="space-y-1.5">
+                                    <Label className="text-xs text-muted-foreground">
+                                      Override rule
+                                    </Label>
+                                    <Select
+                                      value={form.overrideRule}
+                                      onValueChange={(val) =>
+                                        handleFormChange(
+                                          customer.customerId,
+                                          'overrideRule',
+                                          val,
+                                        )
+                                      }
+                                    >
+                                      <SelectTrigger className="w-44 h-9 text-sm">
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value={RECOVERY_MODE.RECOVER}>
+                                          Charge customer
+                                        </SelectItem>
+                                        <SelectItem value={RECOVERY_MODE.ABSORB}>
+                                          Absorb cost
+                                        </SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+
+                                  {form.overrideRule === RECOVERY_MODE.RECOVER && (
+                                    <div className="space-y-1.5">
+                                      <Label className="text-xs text-muted-foreground">
+                                        Fee per docket
+                                      </Label>
+                                      <div className="relative">
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                          {currencySymbol}
+                                        </span>
+                                        <Input
+                                          className="pl-6 h-9 w-28 text-sm"
+                                          value={form.fee}
+                                          onChange={(e) =>
+                                            handleFormChange(
+                                              customer.customerId,
+                                              'fee',
+                                              e.target.value,
+                                            )
+                                          }
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {isDirty && (
+                                    <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1 self-end mb-1.5">
+                                      Unsaved
+                                    </span>
+                                  )}
+
+                                  <Button
+                                    size="sm"
+                                    className="h-9 bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
+                                    onClick={() => handleSave(customer.customerId)}
+                                    disabled={!isDirty || isSaving}
+                                  >
+                                    {isSaving ? 'Saving...' : 'Save'}
+                                  </Button>
                                 </div>
                               </TableCell>
                             </TableRow>
-
-                            {/* Expanded override form */}
-                            {isCustom && form && (
-                              <TableRow className="bg-gray-50 hover:bg-gray-50">
-                                <TableCell colSpan={5} className="pl-4 py-3">
-                                  <div className="flex items-end gap-3">
-                                    <div className="space-y-1.5">
-                                      <Label className="text-xs text-muted-foreground">
-                                        Override rule
-                                      </Label>
-                                      <Select
-                                        value={form.overrideRule}
-                                        onValueChange={(val) =>
-                                          handleFormChange(
-                                            customer.customerId,
-                                            'overrideRule',
-                                            val,
-                                          )
-                                        }
-                                      >
-                                        <SelectTrigger className="w-44 h-9 text-sm">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem
-                                            value={RECOVERY_MODE.RECOVER}
-                                          >
-                                            Charge customer
-                                          </SelectItem>
-                                          <SelectItem
-                                            value={RECOVERY_MODE.ABSORB}
-                                          >
-                                            Absorb cost
-                                          </SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-
-                                    {form.overrideRule ===
-                                      RECOVERY_MODE.RECOVER && (
-                                      <div className="space-y-1.5">
-                                        <Label className="text-xs text-muted-foreground">
-                                          Fee per docket
-                                        </Label>
-                                        <div className="relative">
-                                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                                            {currencySymbol}
-                                          </span>
-                                          <Input
-                                            className="pl-6 h-9 w-28 text-sm"
-                                            value={form.fee}
-                                            onChange={(e) =>
-                                              handleFormChange(
-                                                customer.customerId,
-                                                'fee',
-                                                e.target.value,
-                                              )
-                                            }
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {isDirty && (
-                                      <span className="text-xs font-medium text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1 self-end mb-1.5">
-                                        Unsaved
-                                      </span>
-                                    )}
-
-                                    <Button
-                                      size="sm"
-                                      className="h-9 bg-[#8E51FF] hover:bg-[#7C3FEF] text-white"
-                                      onClick={() =>
-                                        handleSave(customer.customerId)
-                                      }
-                                      disabled={!isDirty || isSaving}
-                                    >
-                                      {isSaving ? 'Saving...' : 'Save'}
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                              </TableRow>
-                            )}
-                          </React.Fragment>
-                        );
-                      })
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              <div className="overflow-x-auto">
-                <div className="min-w-full py-2">
-                  <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-                    <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                      <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                        Total Records:
-                        <span className="text-accent-foreground ml-2">
-                          {formatNumberThousandSeparatorWithoutDecimal(
-                            filtered.length,
                           )}
-                        </span>
-                      </p>
+                        </React.Fragment>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
 
-                      <Separator
-                        orientation="vertical"
-                        className="text-accent-foreground"
-                      />
+          {/* Pagination */}
+          {!isLoading && (
+            <div className="overflow-x-auto">
+              <div className="min-w-full py-2">
+                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
+                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Total Records:
+                      <span className="text-accent-foreground ml-2">
+                        {formatNumberThousandSeparatorWithoutDecimal(
+                          totalElements,
+                        )}
+                      </span>
+                    </p>
 
-                      <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                        Rows per page
-                      </p>
-                      <Select
-                        value={String(pageSize)}
-                        onValueChange={(val) => {
-                          setPageSize(Number(val));
-                          setPage(0);
-                        }}
-                      >
-                        <SelectTrigger className="h-8 w-[80px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            {PAGE_SIZE_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                    <Separator
+                      orientation="vertical"
+                      className="text-accent-foreground"
+                    />
+
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Rows per page
+                    </p>
+                    <Select
+                      value={String(pageSize)}
+                      onValueChange={(val) => {
+                        setPageSize(Number(val));
+                        setPage(0);
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-[80px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {PAGE_SIZE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center space-x-4">
+                    <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
+                      Page {page + 1} of {Math.max(1, totalPages)}
                     </div>
-
-                    <div className="flex items-center space-x-4">
-                      <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
-                        Page {page + 1} of {Math.max(1, totalPages)}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setPage(0)}
-                          disabled={page === 0}
-                        >
-                          <span className="sr-only">First page</span>
-                          <ChevronsLeft size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setPage((p) => p - 1)}
-                          disabled={page === 0}
-                        >
-                          <span className="sr-only">Previous page</span>
-                          <ChevronLeft size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setPage((p) => p + 1)}
-                          disabled={page >= totalPages - 1}
-                        >
-                          <span className="sr-only">Next page</span>
-                          <ChevronRight size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                          onClick={() => setPage(totalPages - 1)}
-                          disabled={page >= totalPages - 1}
-                        >
-                          <span className="sr-only">Last page</span>
-                          <ChevronsRight size={15} />
-                        </Button>
-                      </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPage(0)}
+                        disabled={page === 0}
+                      >
+                        <span className="sr-only">First page</span>
+                        <ChevronsLeft size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPage((p) => p - 1)}
+                        disabled={page === 0}
+                      >
+                        <span className="sr-only">Previous page</span>
+                        <ChevronLeft size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPage((p) => p + 1)}
+                        disabled={page >= totalPages - 1}
+                      >
+                        <span className="sr-only">Next page</span>
+                        <ChevronRight size={15} />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="h-8 w-8 p-0"
+                        onClick={() => setPage(totalPages - 1)}
+                        disabled={page >= totalPages - 1}
+                      >
+                        <span className="sr-only">Last page</span>
+                        <ChevronsRight size={15} />
+                      </Button>
                     </div>
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )}
         </CardContent>
       </Card>
