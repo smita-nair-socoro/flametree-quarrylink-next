@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import z from 'zod';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { TextTemplateFormSchema } from '@/app/(protected)/system/user-management/(components)/forms/schemas/text-template-form-schema';
 import { ExternalLinkFormSchema } from '@/app/(protected)/system/user-management/(components)/forms/schemas/external-link-form-schema';
 import { PolicyDocumentFormSchema } from '@/app/(protected)/system/user-management/(components)/forms/schemas/policy-document-form-schema';
@@ -16,6 +17,7 @@ import {
   ExternalLinkDetailQueryOptions,
   useCreateExternalLink,
   useUpdateExternalLink,
+  QuoteContentLibraryListQueryOptions,
   PolicyDocumentQueryOptions,
   useCreatePolicyDocument,
   useUpdatePolicyDocument,
@@ -187,10 +189,20 @@ export function usePolicyDocumentFormState({
   onDirtyChange,
   onSuccess,
 }: UsePolicyDocumentFormStateOptions) {
-  const { data: currentDocument, isPending: isLoadingDetail } = useQuery(
-    PolicyDocumentQueryOptions(),
+  const { data: libraryData, isPending: isLoadingList } = useQuery(
+    QuoteContentLibraryListQueryOptions(),
   );
-  const isReplacing = Boolean(currentDocument);
+  const isReplacing = (libraryData?.items ?? []).some(
+    (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
+  );
+
+  // Only fetch full detail once we know one exists — this endpoint 500s
+  // instead of returning null when there's no active document.
+  const { data: currentDocument, isPending: isLoadingDocument } = useQuery({
+    ...PolicyDocumentQueryOptions(),
+    enabled: isReplacing,
+  });
+  const isLoadingDetail = isLoadingList || (isReplacing && isLoadingDocument);
 
   const createPolicyDocument = useCreatePolicyDocument();
   const updatePolicyDocument = useUpdatePolicyDocument();
@@ -215,7 +227,9 @@ export function usePolicyDocumentFormState({
       const file = values.file;
       const onSettled = {
         onSuccess: () => {
-          notifySuccess(`"${values.name}" ${isReplacing ? 'updated' : 'uploaded'}.`);
+          notifySuccess(
+            `"${values.name}" ${isReplacing ? 'updated' : 'uploaded'}.`,
+          );
           onSuccess?.();
         },
         onError: (err: unknown) => notifyError(extractErrorMessage(err)),
@@ -230,7 +244,13 @@ export function usePolicyDocumentFormState({
         createPolicyDocument.mutate({ metadata, file }, onSettled);
       }
     },
-    [currentDocument, isReplacing, updatePolicyDocument, createPolicyDocument, onSuccess],
+    [
+      currentDocument,
+      isReplacing,
+      updatePolicyDocument,
+      createPolicyDocument,
+      onSuccess,
+    ],
   );
 
   return {
