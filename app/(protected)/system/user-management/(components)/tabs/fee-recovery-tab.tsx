@@ -14,7 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { CustomerOverridesTable } from '@/components/fee-recovery/customer-overrides-table';
+import { CustomerOverridesTable } from '../(data-tables)/fee-recovery/customer-overrides-table';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { SaveFeeDefaultsDialog } from './roles/fee-recovery-alert-dialogs';
 import { useIsMobile } from '@/hooks/use-mobile';
