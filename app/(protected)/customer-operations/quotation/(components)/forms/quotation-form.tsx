@@ -110,14 +110,12 @@ export default function QuotationForm({
   const updateQuotation = useUpdateQuotation();
   const duplicateQuotation = useDuplicateQuotation();
 
-  // All form state management: data fetching, labels, pricing, customer
-  // auto-fill, and Quote content panel data (via GET /quote/{quoteId}/content)
+  // All form state management: data fetching, pricing, customer auto-fill,
+  // and Quote content panel data (via GET /quote/{quoteId}/content)
   const {
     currentQuotation,
     isLoadingDetail,
     detailError,
-    dateLabel,
-    timeWindowLabel,
     pricingBreakdown,
     contentItems,
   } = useQuotationFormState(
@@ -762,14 +760,14 @@ export default function QuotationForm({
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
-                {timeWindowLabel}
+                Estimated Time Window
               </h3>
               <FormField
                 control={quotationForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>{dateLabel}*</FormLabel>
+                    <FormLabel>Estimated Start Date*</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}

@@ -2,10 +2,9 @@
 
 import { ColumnDef } from '@tanstack/react-table';
 import { FileText, Link2, Paperclip } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { TableBadges } from '@/components/table-badges';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import { QuoteContentLibraryItem } from '@/lib/types/terms-conditions';
-import { QUOTE_SETTING_TYPE_BADGE_CLASSES } from '@/lib/utils';
 import { QuoteSettingsTableActions } from './quote-settings-table-actions';
 
 const typeLabels: Record<QuoteSettingItemType, string> = {
@@ -41,12 +40,7 @@ export const quoteSettingsColumns: ColumnDef<QuoteContentLibraryItem>[] = [
     id: 'type',
     header: 'Type',
     cell: ({ row }) => (
-      <Badge
-        variant="outline"
-        className={QUOTE_SETTING_TYPE_BADGE_CLASSES[row.original.type]}
-      >
-        {typeLabels[row.original.type]}
-      </Badge>
+      <TableBadges names={[typeLabels[row.original.type]]} visibleCount={1} />
     ),
   },
   {
@@ -55,7 +49,7 @@ export const quoteSettingsColumns: ColumnDef<QuoteContentLibraryItem>[] = [
     accessorFn: (row) => row.defaultItem,
     cell: ({ row }) =>
       row.original.defaultItem ? (
-        <Badge>Default</Badge>
+        <TableBadges names={['Default']} visibleCount={1} />
       ) : (
         <span className="text-muted-foreground">—</span>
       ),

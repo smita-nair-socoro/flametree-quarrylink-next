@@ -13,9 +13,6 @@ import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
 import type { QuotationFormValues } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/quotation-form-schema';
 
-const DATE_LABEL = 'Estimated Start Date';
-const TIME_WINDOW_LABEL = 'Estimated Time Window';
-
 /** Consolidated hook for quotation form data: detail fetch, pricing, and the Quote content panel. */
 export function useQuotationFormState(
   selectedQuotation: Quotation | null,
@@ -92,8 +89,6 @@ export function useQuotationFormState(
     currentQuotation,
     isLoadingDetail,
     detailError,
-    dateLabel: DATE_LABEL,
-    timeWindowLabel: TIME_WINDOW_LABEL,
     pricingBreakdown,
     contentItems,
   };

@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from 'clsx';
-import { QuoteSettingItemType } from '../types/term-conditions-enums';
 import { compareAsc } from 'date-fns';
 import { parseBackendDateTime } from './date';
 import { twMerge } from 'tailwind-merge';
@@ -141,12 +140,6 @@ export function dateSortingFn(
   return compareAsc(da, db);
 }
 
-export const QUOTE_SETTING_TYPE_BADGE_CLASSES: Record<QuoteSettingItemType, string> = {
-  [QuoteSettingItemType.TEXT_TEMPLATE]: 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
-  [QuoteSettingItemType.EXTERNAL_LINK]: 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
-  [QuoteSettingItemType.POLICY_DOCUMENT]: 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
-};
-
 // Material Type Badge Colors
 export const MATERIAL_TYPE_COLORS: Record<string, string> = {
   AGGREGATE: 'bg-orange-100 text-orange-900 border-orange-900',
@@ -244,4 +237,9 @@ export const BADGE_COLORS: Record<string, string> = {
   'READY FOR COLLECTION': 'bg-green-100 text-green-800 border-green-900',
   READY_FOR_COLLECTION: 'bg-green-100 text-green-800 border-green-900',
   UNKNOWN: 'bg-gray-100 text-gray-800 border-gray-900',
+  // Quote Settings Badge Colors
+  'TEXT TEMPLATE': 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
+  'EXTERNAL LINK': 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
+  'POLICY DOCUMENT': 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
+  DEFAULT: 'border-transparent bg-primary text-primary-foreground',
 };
