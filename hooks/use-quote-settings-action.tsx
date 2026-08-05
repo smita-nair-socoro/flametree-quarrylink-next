@@ -15,7 +15,6 @@ import { APIClient } from '@/lib/api/APIClient';
 import { sortQuoteContentLibraryItems } from '@/lib/utils/quotation-form-helpers';
 import {
   QuoteContentLibraryListQueryOptions,
-  PolicyDocumentQueryOptions,
   useUpdateTextTemplate,
   useDeleteTextTemplate,
   useUpdateExternalLink,
@@ -29,17 +28,27 @@ import PolicyDocumentForm from '@/app/(protected)/system/user-management/(compon
 // Used by the quote editor's "Quote content" panel, which still deals in the
 // full `QuoteSettingItem` union (its data comes from GET /quote/{id}/content,
 // which returns full content per item, unlike the settings library list).
-export function isPolicyDocument(item: QuoteSettingItem): item is PolicyDocumentItem {
-  return 'mimeType' in item && (item as PolicyDocumentItem).mimeType === 'application/pdf';
+export function isPolicyDocument(
+  item: QuoteSettingItem,
+): item is PolicyDocumentItem {
+  return (
+    'mimeType' in item &&
+    (item as PolicyDocumentItem).mimeType === 'application/pdf'
+  );
 }
 
 export function useQuoteSettingsActions() {
   const { data: libraryData } = useQuery(QuoteContentLibraryListQueryOptions());
-  const { data: documentItem } = useQuery(PolicyDocumentQueryOptions());
 
   const items: QuoteContentLibraryItem[] = React.useMemo(
     () => sortQuoteContentLibraryItems(libraryData?.items ?? []),
     [libraryData],
+  );
+
+  // Existence check only — derive from the already-fetched library list
+  // instead of a separate request.
+  const documentItem = items.find(
+    (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
   );
 
   const updateTextTemplate = useUpdateTextTemplate();
@@ -52,13 +61,15 @@ export function useQuoteSettingsActions() {
 
   const [textTemplateDialogOpen, setTextTemplateDialogOpen] =
     React.useState(false);
-  const [editingTextTemplateId, setEditingTextTemplateId] =
-    React.useState<number | null>(null);
+  const [editingTextTemplateId, setEditingTextTemplateId] = React.useState<
+    number | null
+  >(null);
 
   const [externalLinkDialogOpen, setExternalLinkDialogOpen] =
     React.useState(false);
-  const [editingExternalLinkId, setEditingExternalLinkId] =
-    React.useState<number | null>(null);
+  const [editingExternalLinkId, setEditingExternalLinkId] = React.useState<
+    number | null
+  >(null);
 
   const [policyDocumentDialogOpen, setPolicyDocumentDialogOpen] =
     React.useState(false);
@@ -172,7 +183,9 @@ export function useQuoteSettingsActions() {
     <FormDialog
       id={editingTextTemplateId ?? undefined}
       dialogTitle={
-        editingTextTemplateId !== null ? 'Edit Text Template' : 'Add Text Template'
+        editingTextTemplateId !== null
+          ? 'Edit Text Template'
+          : 'Add Text Template'
       }
       dialogDescription="Text templates are available when staff compose quotes under Notes & Terms."
       open={textTemplateDialogOpen}
@@ -193,7 +206,9 @@ export function useQuoteSettingsActions() {
     <FormDialog
       id={editingExternalLinkId ?? undefined}
       dialogTitle={
-        editingExternalLinkId !== null ? 'Edit External Link' : 'Add External Link'
+        editingExternalLinkId !== null
+          ? 'Edit External Link'
+          : 'Add External Link'
       }
       dialogDescription="Link to policies hosted on SharePoint, Google Drive, or any external URL. Customers will see a clickable link on their quote."
       open={externalLinkDialogOpen}
@@ -232,7 +247,7 @@ export function useQuoteSettingsActions() {
   return {
     items,
     actions,
-    documentItem: documentItem ?? undefined,
+    documentItem,
     textTemplateDialog,
     externalLinkDialog,
     policyDocumentDialog,

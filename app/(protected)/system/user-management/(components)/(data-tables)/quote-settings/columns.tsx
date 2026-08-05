@@ -20,17 +20,7 @@ const typeIcons: Record<QuoteSettingItemType, typeof FileText> = {
   [QuoteSettingItemType.POLICY_DOCUMENT]: Paperclip,
 };
 
-interface CreateQuoteSettingsColumnsArgs {
-  onEdit: (item: QuoteContentLibraryItem) => void;
-  onSetDefault: (item: QuoteContentLibraryItem) => void;
-  onDelete: (item: QuoteContentLibraryItem) => void;
-}
-
-export const createQuoteSettingsColumns = ({
-  onEdit,
-  onSetDefault,
-  onDelete,
-}: CreateQuoteSettingsColumnsArgs): ColumnDef<QuoteContentLibraryItem>[] => [
+export const quoteSettingsColumns: ColumnDef<QuoteContentLibraryItem>[] = [
   {
     id: 'name',
     accessorFn: (row) => row.name,
@@ -73,13 +63,6 @@ export const createQuoteSettingsColumns = ({
   {
     id: 'actions',
     header: 'Actions',
-    cell: ({ row }) => (
-      <QuoteSettingsTableActions
-        item={row.original}
-        onEdit={onEdit}
-        onSetDefault={onSetDefault}
-        onDelete={onDelete}
-      />
-    ),
+    cell: ({ row }) => <QuoteSettingsTableActions item={row.original} />,
   },
 ];

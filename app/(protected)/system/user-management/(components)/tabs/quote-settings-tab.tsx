@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { useQuoteSettingsActions } from '@/hooks/use-quote-settings-action';
-import { createQuoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
+import { quoteSettingsColumns } from '../(data-tables)/quote-settings/columns';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 
 export default function QuoteSettingsTab() {
@@ -23,16 +23,6 @@ export default function QuoteSettingsTab() {
     externalLinkDialog,
     policyDocumentDialog,
   } = useQuoteSettingsActions();
-
-  const columns = React.useMemo(
-    () =>
-      createQuoteSettingsColumns({
-        onEdit: actions.edit,
-        onSetDefault: actions.setDefault,
-        onDelete: actions.remove,
-      }),
-    [actions],
-  );
 
   return (
     <div className="py-3 space-y-3">
@@ -82,7 +72,7 @@ export default function QuoteSettingsTab() {
           simpleTable
           tableId="quote_settings_data_table"
           data={items}
-          columns={columns}
+          columns={quoteSettingsColumns}
           onRowClick={actions.view}
         />
       </div>
