@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button';
 import { isPolicyDocument } from '@/hooks/use-quote-settings-action';
 import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
 import {
+  QuoteExternalLinkItem,
   QuoteSettingItem,
   QuoteTextTemplateItem,
 } from '@/lib/types/terms-conditions';
@@ -36,6 +37,12 @@ import { QuotationFormSchema } from './schemas/quotation-form-schema';
 function isTextTemplate(item: QuoteSettingItem): item is QuoteTextTemplateItem {
   return (
     !isPolicyDocument(item) && item.type === QuoteSettingItemType.TEXT_TEMPLATE
+  );
+}
+
+function isExternalLink(item: QuoteSettingItem): item is QuoteExternalLinkItem {
+  return (
+    !isPolicyDocument(item) && item.type === QuoteSettingItemType.EXTERNAL_LINK
   );
 }
 
@@ -83,6 +90,10 @@ export function QuoteContentAndNotesSection({
     } catch (err) {
       notifyError(extractErrorMessage(err));
     }
+  };
+
+  const openExternalLink = (url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -200,6 +211,20 @@ export function QuoteContentAndNotesSection({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 viewPolicyDocument(item.id);
+                              }}
+                            >
+                              View
+                            </Button>
+                          )}
+                          {isExternalLink(item) && (
+                            <Button
+                              type="button"
+                              variant="link"
+                              size="sm"
+                              className="h-auto p-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openExternalLink(item.externalUrl);
                               }}
                             >
                               View
