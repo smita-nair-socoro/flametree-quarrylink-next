@@ -2,18 +2,12 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
-import {
-  QuoteEditorContentQueryOptions,
-  QuoteContentLibraryListQueryOptions,
-} from '@/lib/api/quote-profile-content';
-import { QuoteSettingItemType } from '@/lib/types/term-conditions-enums';
+import { QuoteEditorContentQueryOptions } from '@/lib/api/quote-profile-content';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
 import {
   mapQuoteEditorContentItems,
   selectedItemIdsFromContent,
   sortQuoteContentItems,
-  partitionDuplicateContentItems,
-  getDuplicateContentWarningMessages,
 } from '@/lib/utils/quotation-form-helpers';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
@@ -26,7 +20,6 @@ export function useQuotationFormState(
   quotationForm: UseFormReturn<QuotationFormValues>,
   taxPercentage?: number,
   currencyCode?: string,
-  isDuplicate?: boolean,
 ) {
   const {
     data: quotationDetailData,
@@ -69,80 +62,28 @@ export function useQuotationFormState(
     QuoteEditorContentQueryOptions(selectedQuotation?.id ?? 0),
   );
 
-  // Only needed to resolve a Policy Document substitute while duplicating.
-  const { data: contentLibrary } = useQuery({
-    ...QuoteContentLibraryListQueryOptions(),
-    enabled: Boolean(isDuplicate),
-  });
-  const currentPolicyDocument = React.useMemo(
-    () =>
-      contentLibrary?.items.find(
-        (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
-      ) ?? null,
-    [contentLibrary],
-  );
-
-  // Archived items are never valid live selections - filtering them.
   const contentItems = React.useMemo(
     () =>
       sortQuoteContentItems(
-        mapQuoteEditorContentItems(
-          quoteContent?.availableItems?.filter((item) => !item.archived),
-        ),
+        mapQuoteEditorContentItems(quoteContent?.availableItems),
       ),
     [quoteContent],
   );
 
-  // Carry-across rules applied to the source's .
-  const duplicatePartition = React.useMemo(() => {
-    if (!isDuplicate || !quoteContent) return null;
-    return partitionDuplicateContentItems(
-      quoteContent.availableItems,
-      currentPolicyDocument,
-    );
-  }, [isDuplicate, quoteContent, currentPolicyDocument]);
-
-  // Hidden marker ids to keep re-sending on every save so it doesn't wipe the
-  // banner - freshly derived from the source on create, existing ones on edit.
-  const duplicateContentMarkerIds = React.useMemo(() => {
-    if (!quoteContent) return [];
-    if (isDuplicate) return duplicatePartition?.markerItemIds ?? [];
-    return quoteContent.availableItems
-      .filter((item) => item.archived && item.selected)
-      .map((item) => item.id);
-  }, [isDuplicate, quoteContent, duplicatePartition]);
-
-  // Archived items still linked to an existing quote are markers left by a
-  // duplicate - read straight off the response, no dismissed-state needed.
-  const duplicateContentWarningMessages = React.useMemo(() => {
-    if (!isEditing || isDuplicate || !quoteContent) return [];
-    return getDuplicateContentWarningMessages(quoteContent.availableItems);
-  }, [isEditing, isDuplicate, quoteContent]);
-
   // Seed customer notes / attached item selections once the quote's content loads.
   React.useEffect(() => {
     if (!isEditing || !quoteContent) return;
-
-    // Customer Notes are per-quote free text and frequently quote-specific -
-    // they must not carry across to a duplicate.
-    if (!isDuplicate) {
-      quotationForm.setValue(
-        'customerNotes',
-        quoteContent.customerNotesHtml ?? '',
-        { shouldDirty: false },
-      );
-    }
-
     quotationForm.setValue(
-      'attachedItemIds',
-      isDuplicate
-        ? (duplicatePartition?.keptItemIds ?? [])
-        : selectedItemIdsFromContent(
-            quoteContent.availableItems.filter((item) => !item.archived),
-          ),
+      'customerNotes',
+      quoteContent.customerNotesHtml ?? '',
       { shouldDirty: false },
     );
-  }, [isEditing, isDuplicate, quoteContent, quotationForm, duplicatePartition]);
+    quotationForm.setValue(
+      'attachedItemIds',
+      selectedItemIdsFromContent(quoteContent.availableItems),
+      { shouldDirty: false },
+    );
+  }, [isEditing, quoteContent, quotationForm]);
 
   return {
     currentQuotation,
@@ -150,7 +91,5 @@ export function useQuotationFormState(
     detailError,
     pricingBreakdown,
     contentItems,
-    duplicateContentMarkerIds,
-    duplicateContentWarningMessages,
   };
 }

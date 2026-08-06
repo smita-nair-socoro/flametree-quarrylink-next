@@ -40,18 +40,10 @@ import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
 import {
   quotationToFormValues,
   buildQuoteContentSelectionItems,
-  buildQuoteContentMarkerItems,
 } from '@/lib/utils/quotation-form-helpers';
 import { useUpdateQuoteEditorContent } from '@/lib/api/quote-profile-content';
 import { notifySuccess, notifyError } from '@/lib/toast';
-import {
-  Info,
-  HelpCircle,
-  TrendingUp,
-  TrendingDown,
-  TriangleAlert,
-  X,
-} from 'lucide-react';
+import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
 import {
   Tooltip,
@@ -126,15 +118,12 @@ export default function QuotationForm({
     detailError,
     pricingBreakdown,
     contentItems,
-    duplicateContentMarkerIds,
-    duplicateContentWarningMessages,
   } = useQuotationFormState(
     selectedQuotation,
     isEditing,
     quotationForm,
     taxPercentage,
     currencyCode,
-    isDuplicate,
   );
 
   const updateQuoteEditorContent = useUpdateQuoteEditorContent();
@@ -227,23 +216,16 @@ export default function QuotationForm({
   const saveQuoteContent = async (
     quoteIdToSave: number,
     values: QuotationFormValues,
-    // Markers to keep re-sending so a save doesn't clear the banner;
-    // pass [] explicitly to dismiss it.
-    markerIds: number[] = duplicateContentMarkerIds,
   ): Promise<boolean> => {
     try {
-      const realItems = buildQuoteContentSelectionItems(
-        values.attachedItemIds ?? [],
-        contentItems,
-      );
       await updateQuoteEditorContent.mutateAsync({
         quoteId: quoteIdToSave,
         data: {
           customerNotesHtml: values.customerNotes || '',
-          items: [
-            ...realItems,
-            ...buildQuoteContentMarkerItems(markerIds, realItems.length),
-          ],
+          items: buildQuoteContentSelectionItems(
+            values.attachedItemIds ?? [],
+            contentItems,
+          ),
         },
       });
       return true;
@@ -253,43 +235,6 @@ export default function QuotationForm({
       return false;
     }
   };
-
-  const [isDismissingWarning, setIsDismissingWarning] = React.useState(false);
-
-  const dismissDuplicateContentWarning = async () => {
-    if (!id) return;
-    setIsDismissingWarning(true);
-    try {
-      await saveQuoteContent(id, quotationForm.getValues(), []);
-    } finally {
-      setIsDismissingWarning(false);
-    }
-  };
-
-  const duplicateContentBanner =
-    isEditing && !isDuplicate && duplicateContentWarningMessages.length > 0 ? (
-      <div className="border border-[#FDE68A] bg-[#FFFBEB] p-4 rounded-md mb-4 flex items-start gap-2">
-        <TriangleAlert className="h-4 w-4 mt-0.5 shrink-0 text-[#92400E]" />
-        <div className="flex-1 flex flex-col text-[#7B3306E5]">
-          <span className="font-medium text-sm text-[#92400E]">
-            Some items didn&apos;t carry across
-          </span>
-          {duplicateContentWarningMessages.map((message, index) => (
-            <span key={`${index}-${message}`}>{message}</span>
-          ))}
-          <span>Review the Quote content panel before sending.</span>
-        </div>
-        <button
-          type="button"
-          onClick={dismissDuplicateContentWarning}
-          disabled={isDismissingWarning}
-          aria-label="Dismiss notice"
-          className="shrink-0 rounded p-0.5 text-[#92400E] hover:text-[#78350F] disabled:opacity-50"
-        >
-          <X className="h-4 w-4" />
-        </button>
-      </div>
-    ) : null;
 
   async function onSubmit(values: QuotationFormValues) {
     console.log('[QuotationForm] Validation passed, submitting:', values);
@@ -543,8 +488,6 @@ export default function QuotationForm({
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
-          {duplicateContentBanner}
-
           {isEditing &&
             !isDuplicate &&
             currentQuotation?.quoteStatus === 'PENDING' && (
