@@ -448,8 +448,9 @@ export function useJobActions(jobData?: JobDetails | null) {
     );
   });
 
-  // Customer field is only editable when the job is Active
-  const canEdit = jobData?.jobStatus === JOB_STATUS.ACTIVE;
+  // Job fields are not editable once settled
+  const effectiveJobStatus = jobData?.jobStatus ?? selectedJob?.jobStatus;
+  const canEdit = effectiveJobStatus !== JOB_STATUS.SETTLED;
 
   const viewDialog = viewOpen ? (
     <FormDialog

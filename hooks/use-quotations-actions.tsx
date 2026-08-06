@@ -51,6 +51,7 @@ import { useTenantStore } from '@/app/stores/tenant-store';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { useQuery } from '@tanstack/react-query';
 import { CustomerDetailQueryOptions } from '@/lib/api/customer';
+import { startOfDay } from 'date-fns';
 
 interface DialogConfig {
   title?: string;
@@ -105,6 +106,7 @@ const getDialogConfigs = (
   const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
   const lineItemsCount = quotationData?.lineItemsCount;
   const expiryDate = quotationData?.expiryDate;
+  const today = startOfDay(new Date());
 
   if (selectedAction?.key === 'sendToCustomer') {
     return {
@@ -736,8 +738,7 @@ const getDialogConfigs = (
                     setNewExpiryDate(date);
                   }
                 }}
-                // Original: disabled={{ before: new Date(expiryDate ?? '') }}, update for test
-                disabled={{ before: new Date() }}
+                disabledDates={{ before: today }}
               />
             </div>
 
