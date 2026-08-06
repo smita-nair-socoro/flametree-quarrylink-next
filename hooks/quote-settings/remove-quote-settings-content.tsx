@@ -105,13 +105,14 @@ export function RemoveExternalLinkDescription({
 export function RemoveExternalLinkContent({ url }: { url?: string }) {
   return (
     <div className="flex flex-col gap-5">
-      <RemovalWarning />
-      {url && (
-        <div className="rounded-md border border-[#E5E7EB] bg-[#F9FAFB] px-4 py-3 flex items-center justify-between gap-3">
-          <span className="text-[14px] text-[#6A7282]">URL:</span>
-          <span className="text-[14px] text-[#101828] truncate">{url}</span>
-        </div>
-      )}
+      <RemovalWarning>
+        {url && (
+          <div className="rounded-md border border-[#E5E7EB] bg-[#E5E5E5] px-4 py-3 flex items-center justify-between gap-3">
+            <span className="text-[14px] text-[#6A7282]">URL:</span>
+            <span className="text-[14px] text-[#101828] truncate">{url}</span>
+          </div>
+        )}
+      </RemovalWarning>
     </div>
   );
 }
