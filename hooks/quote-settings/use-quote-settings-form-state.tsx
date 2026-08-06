@@ -192,10 +192,14 @@ export function usePolicyDocumentFormState({
 
   // Only fetch full detail once we know one exists — this endpoint 500s
   // instead of returning null when there's no active document.
-  const { data: currentDocument, isPending: isLoadingDocument } = useQuery({
-    ...PolicyDocumentQueryOptions(),
-    enabled: isReplacing,
-  });
+  const { data: currentDocumentData, isPending: isLoadingDocument } =
+    useQuery({
+      ...PolicyDocumentQueryOptions(),
+      enabled: isReplacing,
+    });
+  // Disabling the query above doesn't clear its cached data, so once the
+  // document is deleted and isReplacing flips to false, ignore the stale value.
+  const currentDocument = isReplacing ? currentDocumentData : undefined;
   const isLoadingDetail = isLoadingList || (isReplacing && isLoadingDocument);
 
   const createPolicyDocument = useCreatePolicyDocument();
