@@ -363,10 +363,10 @@ export default function QuotationForm({
         if (contentSaved) {
           // Both the quotation and its content/notes saved - clear isDirty for the
           // whole form (quotation fields + customerNotes + attachedItemIds).
+          notifySuccess('Quote updated successfully');
           quotationForm.reset(values);
           onSaved?.();
         }
-        notifySuccess('Quote updated successfully');
       } catch (error) {
         console.error('Error updating quotation:', error);
 
