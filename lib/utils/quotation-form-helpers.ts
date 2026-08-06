@@ -121,6 +121,73 @@ export function selectedItemIdsFromContent(
   return items.filter((item) => item.selected).map((item) => item.id);
 }
 
+export interface DuplicateContentPartition {
+  /** Ids to actually attach to the duplicate (active items, plus any Policy Document substitute). */
+  keptItemIds: number[];
+  /** Archived-and-dropped ids, persisted as hidden (visible: false) markers so the
+   * "didn't carry across" banner can reconstruct itself later. */
+  markerItemIds: number[];
+}
+
+/** Applies the duplicate-quote carry-across rules: active items carry across,
+ * archived Text Templates/External Links drop, archived Policy Document substitutes.
+ * `currentPolicyDocument` is the tenant's live Policy Document (from the
+ * content library list), not inferred from the source quote's items. */
+export function partitionDuplicateContentItems(
+  items: QuoteEditorContentItemResponseDto[] = [],
+  currentPolicyDocument?: QuoteContentLibraryItem | null,
+): DuplicateContentPartition {
+  const keptItemIds: number[] = [];
+  const markerItemIds: number[] = [];
+
+  for (const item of items) {
+    if (!item.selected) continue;
+
+    if (!item.archived) {
+      keptItemIds.push(item.id);
+      continue;
+    }
+
+    if (
+      item.contentType === QuoteSettingItemType.POLICY_DOCUMENT &&
+      currentPolicyDocument &&
+      !keptItemIds.includes(currentPolicyDocument.id)
+    ) {
+      keptItemIds.push(currentPolicyDocument.id);
+    }
+    markerItemIds.push(item.id);
+  }
+
+  return { keptItemIds: [...new Set(keptItemIds)], markerItemIds };
+}
+
+/** Reads the "didn't carry across" banner off a quote's own content response -
+ * any archived item still linked is a marker left by `partitionDuplicateContentItems`. */
+export function getDuplicateContentWarningMessages(
+  items: QuoteEditorContentItemResponseDto[] = [],
+): string[] {
+  const markers = items.filter((item) => item.archived);
+  if (markers.length === 0) return [];
+
+  const activePolicyDocument = items.find(
+    (item) =>
+      item.contentType === QuoteSettingItemType.POLICY_DOCUMENT &&
+      !item.archived &&
+      item.selected,
+  );
+
+  return markers.map((marker) => {
+    if (marker.contentType === QuoteSettingItemType.POLICY_DOCUMENT) {
+      return activePolicyDocument
+        ? `The document attached to the original quote is no longer available. "${activePolicyDocument.name}" has been attached instead.`
+        : 'The document attached to the original quote is no longer available and hasn\'t been re-attached.';
+    }
+    return marker.name
+      ? `"${marker.name}" is no longer available and hasn't been attached.`
+      : 'One or more items attached to the original quote have since been removed.';
+  });
+}
+
 const isPolicyDocumentItem = (
   item: QuoteSettingItem,
 ): item is PolicyDocumentItem =>
@@ -235,4 +302,17 @@ export function buildQuoteContentSelectionItems(
       sortOrder: index,
       visible: true,
     }));
+}
+
+/** Builds the hidden (visible: false) marker entries appended after the real
+ * selection - `sortOrder` continues on from the real items to avoid gaps. */
+export function buildQuoteContentMarkerItems(
+  markerIds: number[],
+  realItemCount: number,
+): QuoteContentSelectionItemRequestDto[] {
+  return markerIds.map((id, index) => ({
+    libraryItemId: id,
+    sortOrder: realItemCount + index,
+    visible: false,
+  }));
 }
