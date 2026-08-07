@@ -93,12 +93,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.PREPARING]: [
-    {
-      label: 'Mark Ready',
-      icon: Check,
-      action: 'markReady',
-      separator: true,
-    },
+    { label: 'Mark Ready', icon: Check, action: 'markReady', separator: true },
     {
       label: 'Back to Pending',
       icon: Undo2,
@@ -137,7 +132,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    { label: 'Cash Sale', icon: Receipt, action: 'cashSale', separator: true },
+    { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -147,13 +142,24 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       separator: true,
     },
   ],
-  [DOCKET_STATUS.UNASSIGNED]: [
+  [DOCKET_STATUS.CASH_SALE]: [
     {
-      label: 'Assign',
-      icon: UserRoundPlus,
-      action: 'assign',
+      label: 'Cash Receipts',
+      icon: ReceiptText,
+      action: 'cashReceipts',
       separator: true,
     },
+  ],
+  [DOCKET_STATUS.INVOICED]: [
+    {
+      label: 'View Invoice',
+      icon: Receipt,
+      action: 'viewInvoice',
+      separator: true,
+    },
+  ],
+  [DOCKET_STATUS.UNASSIGNED]: [
+    { label: 'Assign', icon: UserRoundPlus, action: 'assign', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -183,17 +189,14 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   [DOCKET_STATUS.IN_TRANSIT]: [
     {
       label: 'Mark Arrived',
-      icon: Check,
+      icon: CircleCheckBig,
       action: 'markArrived',
       separator: true,
     },
-    { label: 'Stop', icon: Square, action: 'stop', separator: true },
-    { label: 'Unassign', icon: Undo2, action: 'unassign', separator: true },
-    { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
-      label: 'Void',
-      icon: Trash2,
-      action: 'void',
+      label: 'Stop',
+      icon: Square,
+      action: 'stop',
       className: 'text-red-600',
       separator: true,
     },

@@ -109,11 +109,11 @@ interface DialogConfig {
   confirmText: string;
   confirmCustomColor?: string;
   confirmVariant?:
-    | 'default'
-    | 'destructive'
-    | 'outline'
-    | 'secondary'
-    | 'ghost';
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost';
   confirmDisabled?: boolean;
   confirmCustomClass?: string;
   cancelText?: string;
@@ -127,6 +127,7 @@ interface DialogConfig {
 }
 
 export function useDocketActions(docketData?: DocketDTO | null) {
+  console.log(docketData)
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
   const [isFormDirty, setIsFormDirty] = React.useState(false);
