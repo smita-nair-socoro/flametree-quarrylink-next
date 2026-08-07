@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { centsToDollars } from '@/lib/utils/currency';
 import { QuoteCurrencyTax } from '@/lib/types/quotation';
+import { Info } from 'lucide-react';
 
 export interface SummaryPaymentProps {
   totalProducts: number;
@@ -32,6 +33,12 @@ export function SummaryPayment({
 
   return (
     <div className="bg-[rgba(245,245,245,0.3)] border-b-[1.25px] border-[rgba(229,229,229,1)] px-8 py-8">
+      <div className="flex items-center gap-2 rounded-lg border border-[#E4D4FF] bg-[#F5F0FF] px-4 py-3 mb-8">
+        <Info className="h-4 w-4 flex-shrink-0 text-[#8E51FF]" />
+        <p className="text-sm font-medium text-[#8E51FF]">
+          Please note: A digital platform fee of $xx.xx applies per docket.
+        </p>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left Column - Summary */}
         <div>

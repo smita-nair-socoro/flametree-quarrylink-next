@@ -653,11 +653,14 @@ export function useDocketFormState({
 
     const subtotal = roundToTwoDecimals(productSell + truckSell);
     const gst = roundToTwoDecimals(subtotal * (taxPercentage / 100));
-    const total = roundToTwoDecimals(subtotal + gst);
+    // Placeholder until fee-recovery is wired up per customer.
+    const digitalPlatformFee = 0;
+    const total = roundToTwoDecimals(subtotal + gst + digitalPlatformFee);
 
     return {
       productSell,
       truckSell,
+      digitalPlatformFee,
       subtotal,
       gst,
       total,
