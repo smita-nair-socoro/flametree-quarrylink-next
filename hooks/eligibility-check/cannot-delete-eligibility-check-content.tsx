@@ -59,21 +59,15 @@ export function CannotDeleteEligibilityCheckContent({
 
   const quotationsHref =
     blockingQuotationIds.length > 0
-      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
-          blockingQuotationIds.join(','),
-        )}`
+      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotationIds.join(',')}`
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
-      ? `/customer-operations/jobs?ids=${encodeURIComponent(
-          blockingJobIds.join(','),
-        )}`
+      ? `/customer-operations/jobs?ids=${blockingJobIds.join(',')}`
       : undefined;
   const docketsHref =
     blockingDocketIds.length > 0
-      ? `/customer-operations/dockets/?docketId=${encodeURIComponent(
-          blockingDocketIds.join(','),
-        )}`
+      ? `/customer-operations/dockets/?docketId=${blockingDocketIds.join(',')}`
       : undefined;
 
   return (
