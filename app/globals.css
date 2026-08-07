@@ -140,12 +140,18 @@ input:-webkit-autofill:active {
   }
 
   /* Increased touch target size for buttons */
-  button:not([data-slot="switch"]),
+  button,
   .btn,
   input[type="button"],
   input[type="submit"] {
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Fee-recovery override switches need to stay compact next to their labels */
+  .fee-recovery-overrides button[data-slot="switch"] {
+    min-height: unset;
+    min-width: unset;
   }
 
   /* Enhanced touch area for radio/checkboxes */

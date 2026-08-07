@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   CustomerFeeRecoveryOverridesQueryOptions,
@@ -71,29 +71,25 @@ export function useCustomerOverridesTable({
     handleConfirmRevert,
   } = useCustomerFeeOverrides(rows, globalFeeLabel);
 
-  const getEffectiveStatus = useCallback(
-    (customer: CustomerFeeRecoverySettingsDto): RECOVERY_MODE => {
-      const on = isOn(customer.customerId);
-      const form = overrideForms[customer.customerId];
-      // No override rule picked yet — preview the global default until one is chosen.
-      if (!on || !form?.overrideRule) return globalMode;
-      return form.overrideRule;
-    },
-    [isOn, overrideForms, globalMode],
-  );
+  const getEffectiveStatus = (
+    customer: CustomerFeeRecoverySettingsDto,
+  ): RECOVERY_MODE => {
+    const on = isOn(customer.customerId);
+    const form = overrideForms[customer.customerId];
+    // No override rule picked yet — preview the global default until one is chosen.
+    if (!on || !form?.overrideRule) return globalMode;
+    return form.overrideRule;
+  };
 
-  const getEffectiveFee = useCallback(
-    (customer: CustomerFeeRecoverySettingsDto) => {
-      const on = isOn(customer.customerId);
-      const form = overrideForms[customer.customerId];
-      const usesGlobalDefault = !on || !form?.overrideRule;
-      const mode = usesGlobalDefault ? globalMode : form.overrideRule;
-      if (mode !== RECOVERY_MODE.RECOVER) return 0;
-      const amount = usesGlobalDefault ? globalAmount : form.fee;
-      return Number.parseFloat(amount ?? '0') || 0;
-    },
-    [isOn, overrideForms, globalMode, globalAmount],
-  );
+  const getEffectiveFee = (customer: CustomerFeeRecoverySettingsDto) => {
+    const on = isOn(customer.customerId);
+    const form = overrideForms[customer.customerId];
+    const usesGlobalDefault = !on || !form?.overrideRule;
+    const mode = usesGlobalDefault ? globalMode : form.overrideRule;
+    if (mode !== RECOVERY_MODE.RECOVER) return 0;
+    const amount = usesGlobalDefault ? globalAmount : form.fee;
+    return Number.parseFloat(amount ?? '0') || 0;
+  };
 
   return {
     search,

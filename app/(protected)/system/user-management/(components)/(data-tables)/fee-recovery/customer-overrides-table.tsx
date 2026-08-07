@@ -11,7 +11,6 @@ import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -26,15 +25,8 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { InputIcon } from '@/components/ui/input-icon';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  Loader2,
-  Search,
-} from 'lucide-react';
-import { formatNumberThousandSeparatorWithoutDecimal } from '@/lib/utils/number';
+import { Loader2, Search } from 'lucide-react';
+import { TablePaginationFooter } from '@/components/ui/table-pagination-footer';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerOverridesTable } from '@/hooks/fee-recovery/use-customer-overrides-table';
@@ -95,7 +87,7 @@ export function CustomerOverridesTable({
 
   return (
     <>
-      <Card className="rounded-xl">
+      <Card className="fee-recovery-overrides rounded-xl">
         <CardContent className="p-6 space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Customer overrides</h3>
@@ -502,97 +494,23 @@ export function CustomerOverridesTable({
 
           {/* Pagination */}
           {!isLoading && (
-            <div className="overflow-x-auto">
-              <div className="min-w-full py-2">
-                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Total Records:
-                      <span className="text-accent-foreground ml-2">
-                        {formatNumberThousandSeparatorWithoutDecimal(
-                          totalElements,
-                        )}
-                      </span>
-                    </p>
-
-                    <Separator
-                      orientation="vertical"
-                      className="text-accent-foreground"
-                    />
-
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Rows per page
-                    </p>
-                    <Select
-                      value={String(pageSize)}
-                      onValueChange={(val) => {
-                        setPageSize(Number(val));
-                        setPage(0);
-                      }}
-                    >
-                      <SelectTrigger className="h-8 w-[80px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {PAGE_SIZE_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="flex items-center space-x-4">
-                    <div className="flex min-w-[100px] items-center justify-center whitespace-nowrap text-sm font-medium">
-                      Page {page + 1} of {Math.max(1, totalPages)}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setPage(0)}
-                        disabled={page === 0}
-                      >
-                        <span className="sr-only">First page</span>
-                        <ChevronsLeft size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setPage((p) => p - 1)}
-                        disabled={page === 0}
-                      >
-                        <span className="sr-only">Previous page</span>
-                        <ChevronLeft size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setPage((p) => p + 1)}
-                        disabled={page >= totalPages - 1}
-                      >
-                        <span className="sr-only">Next page</span>
-                        <ChevronRight size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setPage(totalPages - 1)}
-                        disabled={page >= totalPages - 1}
-                      >
-                        <span className="sr-only">Last page</span>
-                        <ChevronsRight size={15} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <TablePaginationFooter
+              totalElements={totalElements}
+              pageIndex={page}
+              pageCount={Math.max(1, totalPages)}
+              pageSize={String(pageSize)}
+              pageSizeOptions={PAGE_SIZE_OPTIONS}
+              onPageSizeChange={(val) => {
+                setPageSize(Number(val));
+                setPage(0);
+              }}
+              onFirstPage={() => setPage(0)}
+              onPreviousPage={() => setPage((p) => p - 1)}
+              onNextPage={() => setPage((p) => p + 1)}
+              onLastPage={() => setPage(totalPages - 1)}
+              canPreviousPage={page > 0}
+              canNextPage={page < totalPages - 1}
+            />
           )}
         </CardContent>
       </Card>
