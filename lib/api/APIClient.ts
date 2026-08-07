@@ -118,6 +118,18 @@ import {
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  PolicyDocumentItem,
+  PolicyDocumentMetadata,
+  PolicyDocumentViewDTO,
+  QuoteTextTemplateResponseDto,
+  QuoteTextTemplateRequestDto,
+  QuoteExternalLinkResponseDto,
+  QuoteExternalLinkRequestDto,
+  QuoteEditorContentResponseDto,
+  QuoteContentSelectionRequestDto,
+  QuoteContentLibraryResponseDto,
+} from '../types/terms-conditions';
 
 type RequestBody =
   | BodyInit
@@ -1854,5 +1866,113 @@ export const APIClient = {
       }),
     deleteDepartment: (id: number) =>
       appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
+  },
+
+  policyDocuments: {
+    getAll: () =>
+      appClient.Get<PolicyDocumentItem | null>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+      ),
+    create: (metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', file);
+      return appClient.Post<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+        { body: formData },
+      );
+    },
+    update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', file);
+      return appClient.Put<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+        { body: formData },
+      );
+    },
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+      ),
+    view: (id: number) =>
+      appClient.Get<PolicyDocumentViewDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}/view`,
+      ),
+  },
+
+  textTemplates: {
+    getAll: () =>
+      appClient.Get<QuoteTextTemplateResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+    create: (data: QuoteTextTemplateRequestDto) =>
+      appClient.Post<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteTextTemplateRequestDto) =>
+      appClient.Put<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+  },
+
+  externalLinks: {
+    getAll: () =>
+      appClient.Get<QuoteExternalLinkResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+    create: (data: QuoteExternalLinkRequestDto) =>
+      appClient.Post<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteExternalLinkRequestDto) =>
+      appClient.Put<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+  },
+
+  quoteEditorContent: {
+    get: (quoteId: number) =>
+      appClient.Get<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+      ),
+    update: (quoteId: number, data: QuoteContentSelectionRequestDto) =>
+      appClient.Put<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+        { body: data },
+      ),
+  },
+
+  quoteContentLibrary: {
+    getAll: (params?: { sortBy?: string; direction?: string }) =>
+      appClient.Get<QuoteContentLibraryResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            direction: params?.direction,
+          },
+        },
+      ),
   },
 };

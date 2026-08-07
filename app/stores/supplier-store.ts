@@ -13,14 +13,6 @@ interface SupplierStore {
   setLoading: (loading: boolean) => void;
 
   getSupplierById: (id: number) => QuarrySupplierProduct | undefined;
-  getSuppliersByStatus: (status: boolean) => QuarrySupplierProduct[];
-
-  getSupplierStats: () => {
-    total: number;
-    available: number;
-    unavailable: number;
-    archived: number;
-  };
 }
 
 export const useSupplierStore = create<SupplierStore>()(

@@ -210,3 +210,30 @@ export const DepartmentKeys = {
   all: ['departments'] as const,
   list: () => [...DepartmentKeys.all, 'list'] as const,
 };
+
+export const PolicyDocumentKeys = {
+  all: ['policy-documents'] as const,
+  list: () => [...PolicyDocumentKeys.all, 'list'] as const,
+  view: (id: number) => [...PolicyDocumentKeys.all, 'view', id] as const,
+};
+
+export const TextTemplateKeys = {
+  all: ['text-templates'] as const,
+  detail: (id: number) => [...TextTemplateKeys.all, 'detail', id] as const,
+};
+
+export const ExternalLinkKeys = {
+  all: ['external-links'] as const,
+  detail: (id: number) => [...ExternalLinkKeys.all, 'detail', id] as const,
+};
+
+export const QuoteContentLibraryKeys = {
+  all: ['quote-content-library'] as const,
+  list: (params?: { sortBy?: string; direction?: string }) =>
+    [...QuoteContentLibraryKeys.all, 'list', params] as const,
+};
+
+export const QuoteEditorContentKeys = {
+  all: ['quote-editor-content'] as const,
+  detail: (quoteId: number) => [...QuoteEditorContentKeys.all, quoteId] as const,
+};

@@ -7,11 +7,13 @@ import { CustomerInfoPdf } from './CustomerInfoPdf';
 import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
+import { TermsAndConditionsPdf } from './TermsAndConditionsPdf';
 import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
 import {
   QuoteCurrencyTax,
   StripeTenantDetailsSnapshot,
 } from '@/lib/types/quotation';
+import type { QuoteDocument, QuoteTermItem } from '../terms-and-conditions';
 
 // Type matching the mockQuotationData structure
 export interface QuotationData {
@@ -63,6 +65,9 @@ export interface QuotationData {
   };
   inclDeliveryCost?: boolean;
   currencyTax: QuoteCurrencyTax;
+  notes?: string[];
+  terms?: QuoteTermItem[];
+  documents?: QuoteDocument[];
   footer: {
     email: string;
     phone: string;
@@ -118,6 +123,13 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
             quoteId={quoteId}
             baseUrl={baseUrl}
             includeDeliveryPrices={data.inclDeliveryCost}
+          />
+
+          {/* Notes & Terms */}
+          <TermsAndConditionsPdf
+            notes={data.notes}
+            terms={data.terms}
+            documents={data.documents}
           />
         </View>
 

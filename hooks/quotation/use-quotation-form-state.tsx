@@ -2,27 +2,25 @@ import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { useQuery } from '@tanstack/react-query';
 import { QuotationWithLineItemsQueryOptions } from '@/lib/api/quotation';
+import { QuoteEditorContentQueryOptions } from '@/lib/api/quote-profile-content';
 import { calculateQuotationPricing } from '@/lib/utils/quote-helpers';
+import {
+  mapQuoteEditorContentItems,
+  selectedItemIdsFromContent,
+  sortQuoteContentItems,
+} from '@/lib/utils/quotation-form-helpers';
 import { useQuotationStore } from '@/app/stores/quotation-store';
 import type { Quotation } from '@/lib/types/quotation';
+import type { QuotationFormValues } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/quotation-form-schema';
 
-/**
- * Consolidated hook for managing all quotation form state and data
- *
- * Combines:
- * - Fetching quotation details from API
- * - Dynamic labels based on quote type
- * - Pricing calculations with GST
- * - Customer phone/email auto-fill
- */
+/** Consolidated hook for quotation form data: detail fetch, pricing, and the Quote content panel. */
 export function useQuotationFormState(
   selectedQuotation: Quotation | null,
   isEditing: boolean,
-  quotationForm: UseFormReturn<any>,
+  quotationForm: UseFormReturn<QuotationFormValues>,
   taxPercentage?: number,
   currencyCode?: string,
 ) {
-  // ===== DATA FETCHING =====
   const {
     data: quotationDetailData,
     isLoading: isLoadingDetail,
@@ -31,21 +29,14 @@ export function useQuotationFormState(
 
   React.useEffect(() => {
     if (detailError) {
-      console.error('❌ Error fetching quotation details:', detailError);
+      console.error('Error fetching quotation details:', detailError);
     }
-  }, [detailError, quotationDetailData]);
+  }, [detailError]);
 
-  const getDetailedQuotation = React.useMemo(() => {
-    if (isEditing && quotationDetailData) {
-      return quotationDetailData;
-    }
-    return null;
-  }, [isEditing, quotationDetailData]);
+  // Only use fetched data when editing; keep the create-new form empty otherwise.
+  const currentQuotation = isEditing ? (quotationDetailData ?? null) : null;
 
-  // Only use selected quotation data when editing; keep new form empty otherwise
-  const currentQuotation = isEditing ? getDetailedQuotation : null;
-
-  // The store's selectedQuotation (used by FormDialog's header/links)
+  // FormDialog's header/links read the selected quotation from the store.
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation,
   );
@@ -55,16 +46,6 @@ export function useQuotationFormState(
     }
   }, [currentQuotation, setSelectedQuotation]);
 
-  // ===== DYNAMIC LABELS =====
-  const dateLabel = React.useMemo(() => {
-    return 'Estimated Start Date';
-  }, []);
-
-  const timeWindowLabel = React.useMemo(() => {
-    return 'Estimated Time Window';
-  }, []);
-
-  // ===== PRICING CALCULATIONS =====
   const pricingBreakdown = React.useMemo(() => {
     if (!isEditing || !currentQuotation) {
       return calculateQuotationPricing(null, currencyCode, taxPercentage);
@@ -76,17 +57,39 @@ export function useQuotationFormState(
     );
   }, [isEditing, currentQuotation, taxPercentage, currencyCode]);
 
+  // QuoteEditorContentQueryOptions is only enabled once a real quote id exists.
+  const { data: quoteContent } = useQuery(
+    QuoteEditorContentQueryOptions(selectedQuotation?.id ?? 0),
+  );
+
+  const contentItems = React.useMemo(
+    () =>
+      sortQuoteContentItems(
+        mapQuoteEditorContentItems(quoteContent?.availableItems),
+      ),
+    [quoteContent],
+  );
+
+  // Seed customer notes / attached item selections once the quote's content loads.
+  React.useEffect(() => {
+    if (!isEditing || !quoteContent) return;
+    quotationForm.setValue(
+      'customerNotes',
+      quoteContent.customerNotesHtml ?? '',
+      { shouldDirty: false },
+    );
+    quotationForm.setValue(
+      'attachedItemIds',
+      selectedItemIdsFromContent(quoteContent.availableItems),
+      { shouldDirty: false },
+    );
+  }, [isEditing, quoteContent, quotationForm]);
+
   return {
-    // Data
     currentQuotation,
     isLoadingDetail,
-    detailError: detailError,
-
-    // Labels
-    dateLabel,
-    timeWindowLabel,
-
-    // Pricing (includes gst and totalInvoiceIncGST)
+    detailError,
     pricingBreakdown,
+    contentItems,
   };
 }

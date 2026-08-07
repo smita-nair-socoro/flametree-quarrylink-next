@@ -6,6 +6,7 @@ import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
 import { ProductsServices } from './products-services';
 import { SummaryPayment } from './summary-payment';
+import { TermsAndConditions } from './terms-and-conditions';
 import { ProceedActions } from './proceed-actions';
 import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
@@ -532,6 +533,15 @@ export default function QuoteReviewDocument({
             {...quotationData.summary}
             currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
+          />
+          {(quotationData.notes?.length > 0 ||
+            quotationData.terms?.length > 0 ||
+            quotationData.documents?.length > 0) && <Separator />}
+          {/* Notes & Terms */}
+          <TermsAndConditions
+            notes={quotationData.notes}
+            terms={quotationData.terms}
+            documents={quotationData.documents}
           />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}
