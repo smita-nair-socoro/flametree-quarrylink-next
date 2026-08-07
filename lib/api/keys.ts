@@ -114,6 +114,7 @@ export const DriverKeys = {
 export const DocketKeys = {
   all: ['dockets'] as const,
   list: () => [...DocketKeys.all, 'list'] as const,
+  table: () => [...DocketKeys.all, 'table'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
   truckInspection: (docketId: number) =>

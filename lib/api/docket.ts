@@ -15,10 +15,16 @@ import {
   DuplicateDocketRequest,
   DocketsListResponse,
   DocketsPage,
+  DocketsTableResponse,
+  DocketTableRow,
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
 import { useDocketStore } from '@/app/stores/docket-store';
+import {
+  mapDocketDtoToTableRow,
+  mapDocketTableItemToRow,
+} from '@/lib/utils/docket-table-helpers';
 
 export const DocketStatisticsQueryOptions = () => {
   const today = new Date();
@@ -50,11 +56,11 @@ export type DocketsListParams = {
 
 const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
   docketNumber: 'docketNumber',
-  docketType: 'jobItemType',
+  docketType: 'type',
   jobReference: 'jobReference',
   customer: 'customer',
   product: 'product',
-  deliveryDate: 'deliveryCollectionDate',
+  deliveryDate: 'deliveryDate',
   loadSize: 'actualLoadSize',
   totalInvoice: 'totalInvoiceAmount',
 };
@@ -67,7 +73,7 @@ export function toDocketApiSortParams(
 ): Pick<DocketsListParams, 'sortBy' | 'sortOrder'> {
   const sort = sorting[0];
   if (!sort) {
-    return { sortBy: 'deliveryCollectionDate', sortOrder: 'asc' };
+    return { sortBy: 'deliveryDate', sortOrder: 'asc' };
   }
 
   return {
@@ -123,8 +129,13 @@ function formatFacetEnumLabel(value: string): string {
     .join(' ');
 }
 
-/** The 3 shapes a docket list endpoint (list/getbydriverId/getbytruckId/getbyjobId) can return. */
+/** Nested DocketDTO list shapes (job/driver/truck endpoints). */
 type DocketListPayload = DocketsListResponse | DocketsPage | DocketDTO[];
+
+type DocketFacetSource = Pick<
+  DocketsListResponse,
+  'customers' | 'products' | 'statuses' | 'types'
+>;
 
 /** Normalizes any of the 3 shapes a docket list endpoint can return into a single DocketsPage. */
 export function getDocketsPageFromListResponse(
@@ -173,7 +184,48 @@ export function getDocketItemsFromJobPage(
   return page?.content ?? [];
 }
 
-export function buildDocketFacetOptions(response?: DocketsListResponse | null) {
+export function getDocketsTablePage(
+  data: DocketsTableResponse | null | undefined,
+): DocketsTableResponse['dockets'] | null {
+  return data?.dockets ?? null;
+}
+
+export function getDocketTableRowsFromTableResponse(
+  data: DocketsTableResponse | null | undefined,
+): DocketTableRow[] {
+  return (data?.dockets?.content ?? []).map(mapDocketTableItemToRow);
+}
+
+export function getDocketTableRowsFromDtoPayload(
+  data: DocketListPayload | null | undefined,
+): DocketTableRow[] {
+  return getDocketItemsFromListResponse(data).map(mapDocketDtoToTableRow);
+}
+
+export function getDocketTableRowsFromInfinitePages(
+  pages:
+    | (DocketListPayload | DocketsTableResponse | null | undefined)[]
+    | undefined,
+  source: 'table' | 'dto',
+): DocketTableRow[] {
+  const seenIds = new Set<number>();
+  const result: DocketTableRow[] = [];
+  for (const page of pages ?? []) {
+    const rows =
+      source === 'table'
+        ? getDocketTableRowsFromTableResponse(page as DocketsTableResponse)
+        : getDocketTableRowsFromDtoPayload(page as DocketListPayload);
+    for (const row of rows) {
+      if (row.id != null && !seenIds.has(row.id)) {
+        seenIds.add(row.id);
+        result.push(row);
+      }
+    }
+  }
+  return result;
+}
+
+export function buildDocketFacetOptions(response?: DocketFacetSource | null) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
       value: status,
@@ -206,6 +258,19 @@ export const DocketsListQueryOptions = (params?: DocketsListParams) =>
     staleTime: 5_000,
   });
 
+/** Default dockets page list — flat GET /dockets/table projection. */
+export const DocketsTableQueryOptions = (params?: DocketsListParams) =>
+  queryOptions({
+    queryKey: [...DocketKeys.table(), params],
+    queryFn: () =>
+      APIClient.dockets.getTable({
+        ...params,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
 export const DocketsInfiniteListQueryOptions = (
   params: Omit<DocketsListParams, 'page'>,
 ) =>
@@ -220,6 +285,30 @@ export const DocketsInfiniteListQueryOptions = (
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       const page = getDocketsPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      const content = page.content ?? [];
+      if (content.length === 0) return undefined;
+      const nextPage = lastPageParam + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export const DocketsTableInfiniteQueryOptions = (
+  params: Omit<DocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.table(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getTable({
+        ...params,
+        page: pageParam,
+        pageSize: params.pageSize ?? 10,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getDocketsTablePage(lastPage);
       if (!page) return undefined;
       const content = page.content ?? [];
       if (content.length === 0) return undefined;

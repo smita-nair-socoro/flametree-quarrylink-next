@@ -507,11 +507,75 @@ export interface DocketsPage {
   size?: number;
 }
 
-/** Paginated dockets list with facet metadata from GET /dockets. */
+/** Paginated dockets list with facet metadata from GET /dockets (legacy nested rows). */
 export interface DocketsListResponse {
   customers?: DocketListFacetOption[];
   products?: DocketListFacetOption[];
   statuses?: string[];
   types?: string[];
   dockets: DocketsPage;
+}
+
+/** Flat row from GET /dockets/table (default dockets list). */
+export interface DocketTableItem {
+  id: number;
+  docketNumber: string;
+  type: string;
+  jobReference: string;
+  status: string;
+  customerId: number;
+  customerName: string;
+  productId: number;
+  productName: string;
+  deliveryDate: string;
+  quantity: number;
+  quantityUom: string;
+  totalLoadSize?: number;
+  actualLoadSize?: number;
+  totalInvoiceAmount: number;
+  invoiceStatus?: INVOICE_STATUS;
+}
+
+export interface DocketsTablePage {
+  content: DocketTableItem[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+/** Paginated table list with facet metadata from GET /dockets/table. */
+export interface DocketsTableResponse {
+  customers?: DocketListFacetOption[];
+  products?: DocketListFacetOption[];
+  statuses?: string[];
+  types?: string[];
+  dockets: DocketsTablePage;
+}
+
+/**
+ * Normalized row used by the dockets DataTable columns (both /table flat
+ * rows and nested DocketDTO sources map into this shape).
+ */
+export interface DocketTableRow {
+  id: number;
+  docketNumber: string;
+  type: string;
+  jobReference: string;
+  status: string;
+  customerId: number;
+  customerName: string;
+  productId: number;
+  productName: string;
+  deliveryDate: string;
+  /** Fallback quantity when actualLoadSize is absent (planned / API quantity). */
+  quantity: number;
+  quantityUom: string;
+  actualLoadSize?: number | null;
+  totalInvoiceAmount: number;
+  invoiceStatus?: INVOICE_STATUS;
 }
