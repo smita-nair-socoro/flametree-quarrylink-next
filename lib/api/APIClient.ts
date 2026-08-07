@@ -1073,6 +1073,10 @@ export const APIClient = {
         page?: number;
         pageSize?: number;
         size?: number;
+        customerIds?: number[];
+        productIds?: number[];
+        statuses?: string[];
+        types?: string[];
       },
     ) => {
       const isPaginated =
@@ -1090,6 +1094,10 @@ export const APIClient = {
             size: isPaginated
               ? (pageSize?.toString() ?? '10')
               : (params?.size?.toString() ?? '1000'),
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            statuses: params?.statuses,
+            types: params?.types,
           },
         },
       );
