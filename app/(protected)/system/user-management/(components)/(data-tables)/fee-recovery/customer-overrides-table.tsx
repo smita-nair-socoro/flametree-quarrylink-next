@@ -87,7 +87,7 @@ export function CustomerOverridesTable({
 
   return (
     <>
-      <Card className="fee-recovery-overrides rounded-xl">
+      <Card className="rounded-xl">
         <CardContent className="p-6 space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Customer overrides</h3>
