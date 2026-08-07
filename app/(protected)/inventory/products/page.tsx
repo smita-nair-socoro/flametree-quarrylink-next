@@ -25,6 +25,7 @@ import {
   toProductApiSortParams,
   buildProductFacetOptions,
   isProductsListResponse,
+  usePullFromAccSoftware,
 } from '@/lib/api/product';
 import {
   LinkedProductsListQueryOptions,
@@ -34,9 +35,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { usePullFromAccSoftware } from '@/lib/api/product';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -51,7 +53,6 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 export default function ProductsPage() {
-  const { currencySymbol } = useTenantCurrencyTax();
   const router = useRouter();
   const searchParams = useSearchParams();
 
