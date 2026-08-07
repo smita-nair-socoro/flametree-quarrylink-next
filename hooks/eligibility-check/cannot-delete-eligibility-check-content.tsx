@@ -69,7 +69,7 @@ export function CannotDeleteEligibilityCheckContent({
       : undefined;
   const docketsHref =
     blockingDocketIds.length > 0
-      ? `/customer-operations/dockets/?docketId=${blockingDocketIds.join(',')}`
+      ? `/customer-operations/dockets/?ids=${blockingDocketIds.join(',')}`
       : undefined;
 
   return (
