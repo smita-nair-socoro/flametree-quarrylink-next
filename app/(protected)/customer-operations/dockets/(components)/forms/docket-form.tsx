@@ -17,12 +17,9 @@ import { useFormDialogFooter } from '@/components/form-dialog';
 import { DocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
-import {
-  addNewRecordId,
-  cn,
-  splitReasonNote,
-  scrollToFirstError,
-} from '@/lib/utils';
+import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
+import { addNewRecord } from '@/lib/utils/pinned-records';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
   AlertTriangle,
@@ -82,19 +79,22 @@ import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
-const truckTypeOptions: FormSelectOption[] = [
-  { label: 'Truck', value: TRUCK_TYPE.TRUCK },
-  { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
-  { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
-  { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
-  { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
-  { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
-  { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
-  { label: 'Quad', value: TRUCK_TYPE.QUAD },
-  { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
-  { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
-  { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
-];
+const truckTypeOptions: FormSelectOption[] = sortByLabel(
+  [
+    { label: 'Truck', value: TRUCK_TYPE.TRUCK },
+    { label: 'Truck & Trailer', value: TRUCK_TYPE.TRUCK_AND_TRAILER },
+    { label: 'Semi-Trailer', value: TRUCK_TYPE.SEMI_TRAILER },
+    { label: 'Rigid Truck', value: TRUCK_TYPE.RIGID_TRUCK },
+    { label: 'Flatbed', value: TRUCK_TYPE.FLATBED },
+    { label: 'Tipper', value: TRUCK_TYPE.TIPPER },
+    { label: 'Tandem', value: TRUCK_TYPE.TANDEM },
+    { label: 'Quad', value: TRUCK_TYPE.QUAD },
+    { label: 'Tri-Axle', value: TRUCK_TYPE.TRI_AXLE },
+    { label: 'Tautliner', value: TRUCK_TYPE.TAUTLINER },
+    { label: 'Crane Truck', value: TRUCK_TYPE.CRANE_TRUCK },
+  ],
+  (option) => option.label,
+);
 
 interface FormProps {
   id?: number;
@@ -159,7 +159,9 @@ export default function DocketForm({
     jobLineItemOptions,
     jobLineItemSelectProps,
     selectedJobId,
-    selectedJob,
+    selectedJobEmail,
+    selectedJobDetails,
+    jobLineItems,
     selectedJobLineItemDetails,
     pricingBreakdown,
     mapMarkers,
@@ -237,24 +239,24 @@ export default function DocketForm({
     !isEditing ||
     (isDelivery
       ? currentStatus === DOCKET_STATUS.UNASSIGNED ||
-        currentStatus === DOCKET_STATUS.ASSIGNED ||
-        currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.STOPPED ||
-        currentStatus === DOCKET_STATUS.ARRIVED
+      currentStatus === DOCKET_STATUS.ASSIGNED ||
+      currentStatus === DOCKET_STATUS.IN_TRANSIT ||
+      currentStatus === DOCKET_STATUS.STOPPED ||
+      currentStatus === DOCKET_STATUS.ARRIVED
       : currentStatus === DOCKET_STATUS.PENDING ||
-        currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY);
+      currentStatus === DOCKET_STATUS.PREPARING ||
+      currentStatus === DOCKET_STATUS.READY);
 
   const canActualLoadSize =
     isEditing &&
     (isDelivery
       ? currentStatus === DOCKET_STATUS.IN_TRANSIT ||
-        currentStatus === DOCKET_STATUS.ARRIVED ||
-        currentStatus === DOCKET_STATUS.DELIVERED ||
-        currentStatus === DOCKET_STATUS.STOPPED
+      currentStatus === DOCKET_STATUS.ARRIVED ||
+      currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.STOPPED
       : currentStatus === DOCKET_STATUS.PREPARING ||
-        currentStatus === DOCKET_STATUS.READY ||
-        currentStatus === DOCKET_STATUS.COLLECTED);
+      currentStatus === DOCKET_STATUS.READY ||
+      currentStatus === DOCKET_STATUS.COLLECTED);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -318,7 +320,7 @@ export default function DocketForm({
     return (
       <div className="border border-[#DC2626] bg-[#FEF2F2] p-4 rounded-md mb-4 flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">
-          <Info className="h-4 w-4 mt-0.5 flex-shrink-0 text-[#EF4444]" />
+          <Info className="h-4 w-4 mt-0.5 shrink-0 text-[#EF4444]" />
           <div className="flex flex-col text-[#7F1D1D]">
             <span>
               This docket was {actionLabel} by {actorName} - Reason: {reason} (
@@ -343,7 +345,7 @@ export default function DocketForm({
     return (
       <div className="border border-red-300 bg-red-50 p-4 rounded-md flex flex-col">
         <div className="flex items-start gap-2 font-medium text-sm">
-          <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0 text-red-600" />
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-red-600" />
           <span className="text-red-900">
             Invoice created, but third-party sync failed. The docket remains
             invoiced. Select Resync Invoice to try again.
@@ -402,7 +404,7 @@ export default function DocketForm({
         const diff = Math.floor(
           (new Date(selectedDocket.deliveredAt).getTime() -
             new Date(selectedDocket.arrivedAt).getTime()) /
-            1000,
+          1000,
         );
         if (diff >= 0) {
           const h = Math.floor(diff / 3600);
@@ -434,7 +436,7 @@ export default function DocketForm({
               )}
           </div>
           {timeOnSite && (
-            <div className="flex flex-col items-center justify-center border-2 border-[#65A30D] bg-[#F9FFEB] rounded-lg px-[14px] py-[3px] min-w-[130px] shrink-0 self-stretch">
+            <div className="flex flex-col items-center justify-center border-2 border-[#65A30D] bg-[#F9FFEB] rounded-lg px-3.5 py-0.75 min-w-32.5 shrink-0 self-stretch">
               <span className="text-[10px] font-bold text-[#65A30D] tracking-wider uppercase">
                 Time on Site
               </span>
@@ -443,7 +445,7 @@ export default function DocketForm({
                   {timeOnSite}
                 </span>
                 <div className="bg-[#65A30D]/50 p-0.5 rounded-full flex items-center justify-center">
-                  <span className="w-[9px] h-[9px] rounded-full bg-[#365314] inline-block" />
+                  <span className="w-2.25 h-2.25 rounded-full bg-[#365314] inline-block" />
                 </div>
               </div>
             </div>
@@ -566,7 +568,7 @@ export default function DocketForm({
       ? values.docketEmail.split(',').map((e) => e.trim())
       : [];
     const docketEmailRecipients = Array.from(
-      new Set([selectedJob.customerEmail, ...additionalEmails].filter(Boolean)),
+      new Set([selectedJobEmail, ...additionalEmails].filter(Boolean)),
     );
 
     const lineItemDetails = selectedJobLineItemDetails();
@@ -662,25 +664,21 @@ export default function DocketForm({
 
       const effectiveLoadSize =
         isEditing &&
-        currentStatus !== DOCKET_STATUS.UNASSIGNED &&
-        currentStatus !== DOCKET_STATUS.ASSIGNED &&
-        currentStatus !== DOCKET_STATUS.PENDING
+          currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+          currentStatus !== DOCKET_STATUS.ASSIGNED &&
+          currentStatus !== DOCKET_STATUS.PENDING
           ? values.actualLoadSize || values.plannedLoadSize || 0
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
       const additionalDocketEmails = values.docketEmail
         ? values.docketEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
         : [];
       const docketEmailRecipients = Array.from(
-        new Set(
-          [selectedJob.customerEmail, ...additionalDocketEmails].filter(
-            Boolean,
-          ),
-        ),
+        new Set([selectedJobEmail, ...additionalDocketEmails].filter(Boolean)),
       );
 
       if (
@@ -758,18 +756,18 @@ export default function DocketForm({
         deliveryAddress: isCollection
           ? undefined
           : {
-              googlePlaceId: deliveryAddress.googlePlaceId,
-              formattedAddress: deliveryAddress.formattedAddress,
-              streetDetailsPrimary: deliveryAddress.address1,
-              streetDetailsOptional: deliveryAddress.address2,
-              city: deliveryAddress.city,
-              suburb: deliveryAddress.city,
-              state: deliveryAddress.region,
-              postcode: deliveryAddress.postalCode,
-              country: deliveryAddress.country,
-              latitude: deliveryAddress.lat,
-              longitude: deliveryAddress.lng,
-            },
+            googlePlaceId: deliveryAddress.googlePlaceId,
+            formattedAddress: deliveryAddress.formattedAddress,
+            streetDetailsPrimary: deliveryAddress.address1,
+            streetDetailsOptional: deliveryAddress.address2,
+            city: deliveryAddress.city,
+            suburb: deliveryAddress.city,
+            state: deliveryAddress.region,
+            postcode: deliveryAddress.postalCode,
+            country: deliveryAddress.country,
+            latitude: deliveryAddress.lat,
+            longitude: deliveryAddress.lng,
+          },
         purchaseOrder: values.purchaseOrder,
         productEstimatedVolume: estimatedVolumeM3,
         deliveryCollectionDate: values.deliveryCollectionDate
@@ -805,7 +803,16 @@ export default function DocketForm({
       } else {
         const newDocket = await createDocket.mutateAsync(payload);
         if (newDocket && typeof newDocket.id === 'number') {
-          addNewRecordId('docket_main_data_table', newDocket.id);
+          // The create response doesn't reliably embed the job/job-item, so
+          // fall back to what the form already knows.
+          const selectedLineItem = jobLineItems.find(
+            (lineItem) => lineItem.id === values.jobLineItemId,
+          );
+          addNewRecord('docket_main_data_table', {
+            ...newDocket,
+            job: selectedJobDetails ?? newDocket.job,
+            jobItem: selectedLineItem ?? newDocket.jobItem,
+          } as DocketDTO);
         }
         notifySuccess('Docket created successfully');
         onSaved?.();
@@ -925,7 +932,7 @@ export default function DocketForm({
         title="Confirm Delivery Time Change"
         description={
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EFF6FF]">
               <UserPlus className="h-5 w-5 text-[#193CB8]" />
             </div>
             <div className="flex flex-col">
@@ -936,16 +943,16 @@ export default function DocketForm({
                 {selectedDocket?.jobItem?.product?.productName ?? '—'}
                 {(selectedDocket?.actualLoadSize ??
                   selectedDocket?.plannedLoadSize) != null && (
-                  <>
-                    {' '}
-                    ·{' '}
-                    {formatNumberThousandSeparator(
-                      selectedDocket?.actualLoadSize ??
+                    <>
+                      {' '}
+                      ·{' '}
+                      {formatNumberThousandSeparator(
+                        selectedDocket?.actualLoadSize ??
                         selectedDocket?.plannedLoadSize,
-                    )}{' '}
-                    {selectedDocket?.jobItem?.productSellUom}
-                  </>
-                )}
+                      )}{' '}
+                      {selectedDocket?.jobItem?.productSellUom}
+                    </>
+                  )}
               </span>
             </div>
           </div>
@@ -953,7 +960,7 @@ export default function DocketForm({
         content={
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 flex flex-col gap-2">
             <div className="flex items-start gap-2">
-              <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" />
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
               <div className="flex flex-col gap-1">
                 <span className="text-sm font-semibold text-[#101828]">
                   New time {timeLabel} conflicts with existing dockets
@@ -999,7 +1006,7 @@ export default function DocketForm({
         {isSubmitting && (
           <div
             className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-9999 flex items-center justify-center',
               isDesktop ? '' : 'pt-10',
             )}
           >
@@ -1084,7 +1091,7 @@ export default function DocketForm({
                       <FormControl>
                         <Input
                           className="w-full mb-7"
-                          readOnly
+                          disabled
                           value={selectedJobLineItemDetails().quarryName ?? ''}
                         />
                       </FormControl>
@@ -1095,7 +1102,7 @@ export default function DocketForm({
                       <FormControl>
                         <Input
                           className="w-full"
-                          readOnly
+                          disabled
                           isNumber
                           allowDecimal
                           minDecimals={2}
@@ -1123,10 +1130,10 @@ export default function DocketForm({
                     const truckCapacityInProductUom =
                       truckVolumeM3 != null
                         ? convertTruckVolumeToProductUom(
-                            truckVolumeM3,
-                            details.productUom,
-                            details.densityTonnagePerM3 || 1,
-                          )
+                          truckVolumeM3,
+                          details.productUom,
+                          details.densityTonnagePerM3 || 1,
+                        )
                         : null;
                     const isGenericTruck =
                       selectedDocket?.truck?.licensePlate
@@ -1211,7 +1218,7 @@ export default function DocketForm({
                                 <FormControl>
                                   <Input
                                     className="w-full"
-                                    readOnly
+                                    disabled
                                     value={
                                       field.value ??
                                       details.productUomLabel ??
@@ -1240,15 +1247,14 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                                productMax,
-                                                truckCapacityInProductUom,
-                                              )
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomText =
-                                          details.productUomLabel;
+                                        const uomText = details.productUomLabel;
 
                                         if (
                                           !Number.isNaN(val) &&
@@ -1308,15 +1314,14 @@ export default function DocketForm({
                                           ? productMax
                                           : truckCapacityInProductUom != null
                                             ? Math.min(
-                                                productMax,
-                                                truckCapacityInProductUom,
-                                              )
+                                              productMax,
+                                              truckCapacityInProductUom,
+                                            )
                                             : productMax;
                                         const val = Number.parseFloat(
                                           e.target.value,
                                         );
-                                        const uomText =
-                                          details.productUomLabel;
+                                        const uomText = details.productUomLabel;
 
                                         if (
                                           !Number.isNaN(val) &&
@@ -1384,7 +1389,7 @@ export default function DocketForm({
                                   className={cn(
                                     'w-full',
                                     gvmExceeded &&
-                                      'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
+                                    'border-[#DC2626] text-[#DC2626] focus-visible:ring-[#DC2626]',
                                   )}
                                   disabled
                                   isNumber
@@ -1424,13 +1429,13 @@ export default function DocketForm({
                       </div>
                       <div className="text-sm text-[#92400E] pl-6">
                         {adjustedAlert.isGenericTruck &&
-                        adjustedAlert.productMax != null &&
-                        adjustedAlert.overProductMax
+                          adjustedAlert.productMax != null &&
+                          adjustedAlert.overProductMax
                           ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry up to ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                           : adjustedAlert.truckCapacity != null &&
-                              adjustedAlert.productMax != null &&
-                              adjustedAlert.truckCapacity <
-                                adjustedAlert.productMax
+                            adjustedAlert.productMax != null &&
+                            adjustedAlert.truckCapacity <
+                            adjustedAlert.productMax
                             ? adjustedAlert.overProductMax
                               ? `Only ${formatNumberThousandSeparator(adjustedAlert.productMax)} ${adjustedAlert.uom} of product remains, but the truck can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
                               : `Truck max capacity can carry ${formatNumberThousandSeparator(adjustedAlert.truckCapacity)} ${adjustedAlert.uom}. Quantity adjusted to ${formatNumberThousandSeparator(adjustedAlert.amount)} ${adjustedAlert.uom}.`
@@ -1487,12 +1492,12 @@ export default function DocketForm({
                         <span className="text-sm font-medium">
                           {formatNumberThousandSeparator(
                             selectedJobLineItemDetails().remainingQty -
-                              (isEditing &&
+                            (isEditing &&
                               currentStatus !== DOCKET_STATUS.UNASSIGNED &&
                               currentStatus !== DOCKET_STATUS.ASSIGNED &&
                               currentStatus !== DOCKET_STATUS.PENDING
-                                ? docketForm.watch('actualLoadSize') || 0
-                                : docketForm.watch('plannedLoadSize') || 0),
+                              ? docketForm.watch('actualLoadSize') || 0
+                              : docketForm.watch('plannedLoadSize') || 0),
                           )}{' '}
                           {selectedJobLineItemDetails().productUomLabel} total
                         </span>
@@ -1585,8 +1590,8 @@ export default function DocketForm({
                               value={field.value}
                               onChangeAction={field.onChange}
                               placeholder="Pick a date"
-                              disabled={{ before: today }}
-                              readOnly={isReadOnly && !canEditCollectionDate}
+                              disabledDates={{ before: today }}
+                              disabled={isReadOnly}
                             />
                           </FormControl>
                           <FormMessage />
@@ -1663,12 +1668,7 @@ export default function DocketForm({
                       />
                     )}
                   </div>
-                  {
-                    <Map
-                      markers={mapMarkers}
-                      className="h-[400px] w-full mt-5"
-                    />
-                  }
+                  {<Map markers={mapMarkers} className="h-100 w-full mt-5" />}
                 </div>
               </div>
 
@@ -1771,8 +1771,8 @@ export default function DocketForm({
                     control={docketForm.control}
                     name="docketEmail"
                     render={({ field }) => {
-                      const fixedValues = selectedJob.customerEmail
-                        ? [selectedJob.customerEmail]
+                      const fixedValues = selectedJobEmail
+                        ? [selectedJobEmail]
                         : [];
                       return (
                         <FormItem className={'col-span-2 col-start-1'}>
@@ -1808,7 +1808,7 @@ export default function DocketForm({
                         <FormLabel>Notes</FormLabel>
                         <FormControl>
                           <Textarea
-                            className="w-full min-h-[80px]"
+                            className="w-full min-h-20"
                             placeholder="Enter important FYI notes"
                             {...field}
                             disabled={isReadOnly || isAssigned}
@@ -1858,12 +1858,12 @@ export default function DocketForm({
               {(() => {
                 const driverChecklist =
                   selectedDocket?.hasTodayDriverPreStart &&
-                  selectedDocket?.driverChecklistSubmissionId
+                    selectedDocket?.driverChecklistSubmissionId
                     ? selectedDocket?.driverChecklistSubmission
                     : null;
                 const truckChecklist =
                   selectedDocket?.hasTodayTruckInspectionByCurrentDriver &&
-                  selectedDocket?.truckChecklistSubmissionId
+                    selectedDocket?.truckChecklistSubmissionId
                     ? selectedDocket?.truckChecklistSubmission
                     : null;
 

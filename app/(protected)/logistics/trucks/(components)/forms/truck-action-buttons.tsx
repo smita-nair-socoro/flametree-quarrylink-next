@@ -20,13 +20,26 @@ import {
 import { useTruckActions } from '@/hooks/use-truck-actions';
 import { TruckDTO } from '@/lib/types/truck';
 import { TRUCK_STATUS, normalizeTruckStatus } from '@/lib/types/truck-enums';
+import { notifyWarning } from '@/lib/toast';
 
 interface TruckActionButtonsProps {
   truck: TruckDTO | null | undefined;
+  hasUnsavedChanges?: boolean;
 }
 
-export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
+export function TruckActionButtons({
+  truck,
+  hasUnsavedChanges = false,
+}: TruckActionButtonsProps) {
   const { actions, confirmDialogs } = useTruckActions(truck);
+
+  const runAction = (action?: () => void) => {
+    if (hasUnsavedChanges) {
+      notifyWarning('You have unsaved changes. Please save first');
+      return;
+    }
+    action?.();
+  };
 
   if (!truck || !truck.id) {
     return null;
@@ -34,7 +47,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
 
   const status = normalizeTruckStatus(truck.truckStatus);
   const handleViewDockets = () => {
-    actions.viewDockets(truck.id);
+    runAction(() => actions.viewDockets(truck.id));
   };
 
   return (
@@ -65,7 +78,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
             <DropdownMenuContent align="end" className="w-48">
               {status === TRUCK_STATUS.DEACTIVATED && (
                 <>
-                  <DropdownMenuItem onClick={actions.reactivate}>
+                  <DropdownMenuItem onClick={() => runAction(actions.reactivate)}>
                     <Power className="h-4 w-4 mr-2 text-green-600" />
                     <span className="text-green-600">Reactivate Truck</span>
                   </DropdownMenuItem>
@@ -75,7 +88,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
 
               {status === TRUCK_STATUS.ACTIVE && (
                 <>
-                  <DropdownMenuItem onClick={actions.deactivate}>
+                  <DropdownMenuItem onClick={() => runAction(actions.deactivate)}>
                     <PowerOff className="h-4 w-4 mr-2 text-orange-900" />
                     <span className="text-orange-900">Deactivate Truck</span>
                   </DropdownMenuItem>
@@ -83,7 +96,7 @@ export function TruckActionButtons({ truck }: TruckActionButtonsProps) {
                 </>
               )}
 
-              <DropdownMenuItem onClick={actions.delete}>
+              <DropdownMenuItem onClick={() => runAction(actions.delete)}>
                 <Trash2 className="h-4 w-4 mr-2 text-red-600" />
                 <span className="text-red-600">Delete Truck</span>
               </DropdownMenuItem>

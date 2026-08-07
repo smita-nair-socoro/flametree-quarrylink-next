@@ -18,14 +18,14 @@ export interface DatePickerProps {
   value?: Date;
   /** called with the new date when the user picks one */
   onChangeAction: (date: Date | undefined) => void;
-  /** disable dates exactly the same way <Calendar> does */
-  disabled?: Matcher | Matcher[] | undefined;
+  /** Greys out the trigger and prevents opening the picker */
+  disabled?: boolean;
+  /** Disables specific dates inside the calendar (react-day-picker Matcher) */
+  disabledDates?: Matcher | Matcher[];
   /** placeholder text when no date is selected */
   placeholder?: string;
   /** whether selection is required (forces `required: true` on the picker) */
   required?: boolean;
-  /** readonly for input button basically it's disabled if true default to false */
-  readOnly?: boolean;
   /** extra styling for the trigger button */
   className?: string;
   /** forwarded from FormControl via Radix Slot */
@@ -35,14 +35,15 @@ export interface DatePickerProps {
 export function DatePicker({
   value,
   onChangeAction,
-  disabled,
+  disabled = false,
+  disabledDates,
   placeholder = 'Pick a date',
   required = false,
-  readOnly = false,
   className,
   'aria-invalid': ariaInvalid,
 }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
+  const isDisabled = disabled;
 
   const handleDateSelect = (date: Date | undefined) => {
     onChangeAction(date);
@@ -50,12 +51,15 @@ export function DatePicker({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={isDisabled ? false : open}
+      onOpenChange={isDisabled ? undefined : setOpen}
+    >
       <PopoverTrigger asChild>
         <Button
           type="button"
           variant="outline"
-          disabled={readOnly}
+          disabled={isDisabled}
           aria-invalid={ariaInvalid}
           className={cn(
             'w-full  sm:w-auto pl-3 text-left font-normal',
@@ -79,7 +83,7 @@ export function DatePicker({
           selected={value}
           defaultMonth={value}
           onSelect={handleDateSelect}
-          disabled={disabled}
+          disabled={disabledDates}
           required={required}
           startMonth={new Date(2000, 0)}
           endMonth={new Date(2050, 11)}

@@ -51,6 +51,7 @@ import { useTenantStore } from '@/app/stores/tenant-store';
 import { MultipleInput } from '@/components/ui/multiple-input';
 import { useQuery } from '@tanstack/react-query';
 import { CustomerDetailQueryOptions } from '@/lib/api/customer';
+import { startOfDay } from 'date-fns';
 
 interface DialogConfig {
   title?: string;
@@ -105,6 +106,7 @@ const getDialogConfigs = (
   const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
   const lineItemsCount = quotationData?.lineItemsCount;
   const expiryDate = quotationData?.expiryDate;
+  const today = startOfDay(new Date());
 
   if (selectedAction?.key === 'sendToCustomer') {
     return {
@@ -453,19 +455,19 @@ const getDialogConfigs = (
                   <SelectValue placeholder="Select a reason..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="price_too_high">Price too high</SelectItem>
-                  <SelectItem value="timeline_conflict">
-                    Timeline conflict
-                  </SelectItem>
-                  <SelectItem value="scope_changed">Scope changed</SelectItem>
-                  <SelectItem value="customer_unresponsive">
-                    Customer unresponsive
-                  </SelectItem>
                   <SelectItem value="competitor_selected">
                     Competitor selected
                   </SelectItem>
+                  <SelectItem value="customer_unresponsive">
+                    Customer unresponsive
+                  </SelectItem>
+                  <SelectItem value="price_too_high">Price too high</SelectItem>
                   <SelectItem value="project_cancelled">
                     Project cancelled
+                  </SelectItem>
+                  <SelectItem value="scope_changed">Scope changed</SelectItem>
+                  <SelectItem value="timeline_conflict">
+                    Timeline conflict
                   </SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
@@ -736,8 +738,7 @@ const getDialogConfigs = (
                     setNewExpiryDate(date);
                   }
                 }}
-                // Original: disabled={{ before: new Date(expiryDate ?? '') }}, update for test
-                disabled={{ before: new Date() }}
+                disabledDates={{ before: today }}
               />
             </div>
 
@@ -844,6 +845,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   );
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [duplicateOpen, setDuplicateOpen] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
@@ -1325,13 +1327,20 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         setViewOpen(open);
         // Ensure dropdown menu state is reset when dialog closes
         if (!open) {
+          setIsFormDirty(false);
           // Small delay to ensure proper cleanup
           setTimeout(() => {
             setViewOpen(false);
           }, 100);
         }
       }}
-      headerButtons={<QuotationActionButtons quotation={quotationData} />}
+      onUnsavedChangesChange={setIsFormDirty}
+      headerButtons={
+        <QuotationActionButtons
+          quotation={quotationData}
+          hasUnsavedChanges={isFormDirty}
+        />
+      }
       hideTrigger
       headerInfo={{
         useSelectedQuotation: true,

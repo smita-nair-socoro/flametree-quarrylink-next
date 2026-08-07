@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { FormDialog } from '@/components/form-dialog';
 import JobForm from './(components)/forms/job-form';
 import { JobDTO } from '@/lib/types/job';
-import { FileText, Wallet, Package, CircleAlert } from 'lucide-react';
+import { FileText, Wallet, Package, CircleAlert, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 import {
@@ -13,31 +13,43 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { getJobColumns } from './(components)/(data-tables)/job/columns';
+import { JobTableActions } from './(components)/(data-tables)/job/job-table-actions';
 import { useJobActions } from '@/hooks/use-job-actions';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   JobsListQueryOptions,
   JobStatisticsQueryOptions,
+  JobsInfiniteListQueryOptions,
+  getJobsFromInfinitePages,
   toJobApiSortParams,
   toJobApiFilterParams,
   buildJobFacetOptions,
 } from '@/lib/api/job';
-import { centsToDollars } from '@/lib/utils/currency';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
+import { MobileCard } from '@/components/mobile/mobile-card';
+import { TableBadges } from '@/components/table-badges';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, formatCentsToCurrency } =
+    useTenantCurrencyTax();
+  const jobColumns = React.useMemo(
+    () => getJobColumns(currencyCode, taxLabel),
+    [currencyCode, taxLabel],
+  );
 
   const { data: statistics } = useQuery(JobStatisticsQueryOptions());
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'jobNumber', desc: true },
   ]);
@@ -77,6 +89,29 @@ export default function CustomersPage() {
     }),
   );
 
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching: infiniteIsFetching,
+  } = useInfiniteQuery({
+    ...JobsInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ids: idsFilter,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile && !idsFilter,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getJobsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
+
   const jobsPage = jobsList?.jobs;
 
   const facetOptions = React.useMemo(
@@ -105,7 +140,7 @@ export default function CustomersPage() {
     },
     {
       title: 'Value of Uninvoiced Dockets',
-      value: `$${centsToDollars(statistics?.uninvoicedDocketsValue ?? 0)}`,
+      value: formatCentsToCurrency(statistics?.uninvoicedDocketsValue ?? 0),
       description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -211,6 +246,49 @@ export default function CustomersPage() {
     actions.view(row);
   };
 
+  const renderJobCard = React.useCallback(
+    (job: JobDTO) => {
+      const customerName =
+        job.customerDto?.customerType === 'INDIVIDUAL'
+          ? job.customerDto?.individualContactName
+          : job.customerDto?.businessName || job.contactPersonName || 'N/A';
+      const uninvoiced = formatCentsToCurrency(
+        job.uninvoicedDocketsAmount ?? 0,
+      );
+
+      return (
+        <MobileCard
+          title={job.jobNumber || 'N/A'}
+          badges={<TableBadges names={[job.jobStatus]} visibleCount={1} />}
+          actions={<JobTableActions job={job} />}
+          fields={[
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Customer',
+              value: customerName || '-',
+            },
+            {
+              icon: <Package className="h-4 w-4" />,
+              label: 'Project',
+              value: job.projectName || '-',
+            },
+            {
+              icon: <Wallet className="h-4 w-4" />,
+              label: 'Uninvoiced',
+              value: uninvoiced,
+            },
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Account Manager',
+              value: job.customerDto?.accountManagerName || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [formatCentsToCurrency],
+  );
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
@@ -231,11 +309,7 @@ export default function CustomersPage() {
       </div>
 
       {/* Statistics Cards */}
-      <StatsCards
-        cards={statsCards}
-        mobileGridCols={1}
-        desktopGridCols={4}
-      />
+      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {isLoading && !jobsList ? (
@@ -264,11 +338,19 @@ export default function CustomersPage() {
             <DataTableClient
               tableId="job_main_data_table"
               data={items ?? []}
-              columns={getJobColumns(currencyCode, taxLabel)}
+              columns={jobColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search jobs..."
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
+              mobileCardRenderer={renderJobCard}
+              mobileInfinite={!idsFilter ? {
+                items: mobileItems,
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              } : undefined}
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}

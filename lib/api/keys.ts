@@ -44,6 +44,14 @@ export const CustomerKeys = {
     params?: { page?: number; pageSize?: number },
   ) =>
     [...CustomerKeys.all, 'additional-contacts', customerId, params] as const,
+  additionalContactDetail: (customerId: number, contactId: number) =>
+    [
+      ...CustomerKeys.all,
+      'additional-contacts',
+      customerId,
+      'detail',
+      contactId,
+    ] as const,
 };
 
 export const QuotationKeys = {
@@ -163,11 +171,18 @@ export const XeroKeys = {
   status: () => [...XeroKeys.all, 'status'] as const,
 };
 
-export const MyobKeys = {
-  all: ['myob'] as const,
-  connect: () => [...MyobKeys.all, 'connect'] as const,
-  status: () => [...MyobKeys.all, 'status'] as const,
+export const MyobBusinessKeys = {
+  all: ['myob-business'] as const,
+  connect: () => [...MyobBusinessKeys.all, 'connect'] as const,
+  status: () => [...MyobBusinessKeys.all, 'status'] as const,
 };
+
+export const MyobAcumaticaKeys = {
+  all: ['myob-acumatica'] as const,
+  connect: () => [...MyobAcumaticaKeys.all, 'connect'] as const,
+  status: () => [...MyobAcumaticaKeys.all, 'status'] as const,
+};
+
 export const SchedulerKeys = {
   all: ['scheduler'] as const,
   trucks: (start: string, end: string) =>

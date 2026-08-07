@@ -50,6 +50,8 @@ export interface CustomerDTO {
   isDeleted?: boolean;
 
   accSoftwareContactId?: string | null;
+  customerLocationId?: string;
+  customerClassification?: string;
   accSoftwareNotes?: string;
   lastAccSoftwareSyncDirection?: string | null;
   lastAccSoftwareSyncStatus?: string | null;
@@ -237,14 +239,17 @@ export interface UnarchiveCustomerResponseDTO {
   reason: string;
 }
 
+export interface AdditionalContactMethodDTO {
+  type: string;
+  value: string;
+}
+
 export interface AdditionalContactApiDTO {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
-  phoneCountryCode: string;
-  phoneNumber: string;
   positionRole: string;
+  contactMethods: AdditionalContactMethodDTO[];
 }
 
 export interface AdditionalContactsPage {
@@ -260,9 +265,8 @@ export interface AdditionalContactDTO {
   customerId?: number;
   firstName?: string;
   lastName?: string;
-  email?: string;
-  phone?: string;
-  position?: string;
+  positionRole?: string;
+  contactMethods?: AdditionalContactMethodDTO[];
 }
 
 // Get all and Post
@@ -275,6 +279,16 @@ export interface CustomerAttachmentDTO {
   fileSizeBytes: number;
 }
 
-export interface customerAttachmentResponseDTO {
-  string;
+interface syncResult {
+  success: boolean;
+  accSoftwareContactId: string;
+  externalStatus: string;
+  reason: string;
+}
+
+export interface SyncAllFromAccSoftwareResponse {
+  totalAttempted: number;
+  successCount: number;
+  failureCount: number;
+  result: syncResult[];
 }

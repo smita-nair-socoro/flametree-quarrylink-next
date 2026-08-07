@@ -449,6 +449,7 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
   const selectedCustomer = useCustomerStore((s) => s.selectedCustomer);
   const [activeDialog, setActiveDialog] = React.useState<string | null>(null);
   const [viewOpen, setViewOpen] = React.useState(false);
+  const [isFormDirty, setIsFormDirty] = React.useState(false);
   const [selectedAction, setSelectedAction] =
     React.useState<SelectedAction | null>(null);
   const [archiveResponse, setArchiveResponse] =
@@ -652,9 +653,16 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
+        if (!open) {
+          setIsFormDirty(false);
+        }
       }}
+      onUnsavedChangesChange={setIsFormDirty}
       headerButtons={
-        <CustomerActionButtons customer={selectedCustomer ?? undefined} />
+        <CustomerActionButtons
+          customer={selectedCustomer ?? undefined}
+          hasUnsavedChanges={isFormDirty}
+        />
       }
       hideTrigger
       headerInfo={{

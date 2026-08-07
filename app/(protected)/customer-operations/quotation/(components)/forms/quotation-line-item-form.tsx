@@ -38,7 +38,7 @@ import { formatLocalDateShort } from '@/lib/utils/date';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -60,6 +60,7 @@ export default function QuoteLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const accountingSoftware = useAccountingSoftwareProvider();
   const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const {
     currencySymbol,
@@ -157,6 +158,7 @@ export default function QuoteLineItemForm({
   React.useEffect(() => {
     if (
       prevTruckSellUomRef.current !== truckSellUom &&
+      prevTruckSellUomRef.current &&
       MANUAL_TRUCK_UOMS.includes(truckSellUom)
     ) {
       quotationLineItemForm.setValue('truckSellQty', 0);
@@ -168,6 +170,7 @@ export default function QuoteLineItemForm({
   React.useEffect(() => {
     if (
       prevTruckCostUomRef.current !== truckCostUom &&
+      prevTruckCostUomRef.current &&
       MANUAL_TRUCK_UOMS.includes(truckCostUom)
     ) {
       quotationLineItemForm.setValue('truckCostQty', 0);
@@ -721,7 +724,13 @@ export default function QuoteLineItemForm({
                       disabled={
                         !quotationLineItemForm.watch('truckType') || isReadOnly
                       }
-                      autoSelectForOnlyOneOption={!isEditing && !isCollection && quotationLineItemForm.watch('truckType') !== undefined}
+                      autoSelectForOnlyOneOption={
+                        !isEditing &&
+                        !isCollection &&
+                        quotationLineItemForm.watch('truckType') !==
+                          undefined &&
+                        accountingSoftware !== 'MYOB_ACUMATICA'
+                      }
                     />
 
                     <FormField
@@ -834,7 +843,13 @@ export default function QuoteLineItemForm({
                       disabled={
                         !quotationLineItemForm.watch('truckType') || isReadOnly
                       }
-                      autoSelectForOnlyOneOption={!isEditing && !isCollection && quotationLineItemForm.watch('truckType') !== undefined}
+                      autoSelectForOnlyOneOption={
+                        !isEditing &&
+                        !isCollection &&
+                        quotationLineItemForm.watch('truckType') !==
+                          undefined &&
+                        accountingSoftware !== 'MYOB_ACUMATICA'
+                      }
                     />
 
                     <FormField

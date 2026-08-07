@@ -14,25 +14,31 @@ import {
   User,
   Mail,
   CreditCard,
+  RefreshCw,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   CustomersListQueryOptions,
   CustomerReportingQueryOptions,
+  CustomersInfiniteListQueryOptions,
+  getCustomerItemsFromInfinitePages,
   toCustomerApiFilterParams,
   toCustomerApiSortParams,
   getCustomersPageFromListResponse,
   buildCustomerFacetOptions,
   isCustomersListResponse,
+  usePullFromAccSoftware,
 } from '@/lib/api/customer';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -44,12 +50,51 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const { actions, confirmDialogs, viewDialog } = useCustomerActions();
-  const { currencyCode } = useTenantCurrencyTax();
+  const { formatCentsToCurrency, currencyCode } = useTenantCurrencyTax();
+
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncCustomerFromAcumatica = usePullFromAccSoftware();
+
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncCustomerFromAcumatica = React.useCallback(async () => {
+    if (syncCustomerFromAcumatica.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      await syncCustomerFromAcumatica.mutateAsync();
+      notifySuccess('Customers synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }, [syncCustomerFromAcumatica, isSyncDisabled]);
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
-  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>([]);
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'customer_name', desc: false },
   ]);
@@ -82,6 +127,28 @@ export default function CustomersPage() {
 
   const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
 
+  const isMobile = useIsMobile();
+
+  const {
+    data: infiniteData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isFetching: infiniteIsFetching,
+  } = useInfiniteQuery({
+    ...CustomersInfiniteListQueryOptions({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    enabled: isMobile,
+  });
+
+  const mobileItems = React.useMemo(
+    () => getCustomerItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
+
   const customerPage = React.useMemo(
     () => getCustomersPageFromListResponse(customersData),
     [customersData],
@@ -105,7 +172,8 @@ export default function CustomersPage() {
 
   const totalElements = customerPage?.totalElements ?? items.length;
   const totalPages =
-    customerPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    customerPage?.totalPages ??
+    Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -147,9 +215,8 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${
-        reportingData?.totalCustomersChangePercentThisMonth || 0
-      } this month`,
+      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
+        } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -158,9 +225,8 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${
-        reportingData?.activeCustomersPercentOfTotal || 0
-      }% of total`,
+      description: `${reportingData?.activeCustomersPercentOfTotal || 0
+        }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -169,9 +235,8 @@ export default function CustomersPage() {
     {
       title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${
-        reportingData?.businessCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.businessCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -180,9 +245,8 @@ export default function CustomersPage() {
     {
       title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${
-        reportingData?.individualCustomerQuotesPercent || 0
-      }% requested quotes`,
+      description: `${reportingData?.individualCustomerQuotesPercent || 0
+        }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -201,51 +265,70 @@ export default function CustomersPage() {
     actions.view(customer);
   };
 
-  const renderCustomerCard = React.useCallback((customer: CustomerDTO) => {
-    const formattedStatus = formatCustomerStatus(
-      customer.customerStatus as CUSTOMER_STATUS,
-    );
-    const displayName =
-      customer.customerType === 'BUSINESS'
-        ? customer.businessName?.trim() || customer.individualContactName
-        : customer.individualContactName;
-    const formattedCreditLimit = centsToDollars(customer.creditLimit);
+  const customerColumns = React.useMemo(
+    () => getCustomerColumns(currencyCode),
+    [currencyCode],
+  );
 
-    return (
-      <MobileCard
-        title={displayName}
-        badges={
-          <>
-            <TableBadges names={[customer.customerType]} visibleCount={1} />
-            <TableBadges names={[formattedStatus]} visibleCount={1} />
-          </>
-        }
-        actions={<CustomerTableActions customer={customer} />}
-        fields={[
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Contact',
-            value: customer.individualContactName,
-          },
-          {
-            icon: <Mail className="h-4 w-4" />,
-            label: 'Email',
-            value: customer.contactPersonEmail,
-          },
-          {
-            icon: <CreditCard className="h-4 w-4" />,
-            label: 'Credit Limit',
-            value: `$${formattedCreditLimit}`,
-          },
-          {
-            icon: <User className="h-4 w-4" />,
-            label: 'Account Manager',
-            value: customer.accountManagerName || '-',
-          },
-        ]}
-      />
-    );
-  }, []);
+  const renderCustomerCard = React.useCallback(
+    (customer: CustomerDTO) => {
+      const formattedStatus = formatCustomerStatus(
+        customer.customerStatus as CUSTOMER_STATUS,
+      );
+
+      let displayName: string;
+      let contactName: string;
+      let customerEmail: string;
+      if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
+
+        displayName = customer.businessName ?? '';
+        customerEmail = customer.businessEmail ?? '';
+        const first = customer.contactPersonFirstName ?? '';
+        const last = customer.contactPersonLastName ?? '';
+        contactName = `${first} ${last}`.trim() || 'N/A';
+      } else {
+        displayName = customer.individualContactName ?? '';
+        customerEmail = customer.contactPersonEmail ?? '';
+        contactName = customer.individualContactName ?? '';
+      }
+
+      return (
+        <MobileCard
+          title={displayName}
+          badges={
+            <>
+              <TableBadges names={[customer.customerType]} visibleCount={1} />
+              <TableBadges names={[formattedStatus]} visibleCount={1} />
+            </>
+          }
+          actions={<CustomerTableActions customer={customer} />}
+          fields={[
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Contact',
+              value: contactName,
+            },
+            {
+              icon: <Mail className="h-4 w-4" />,
+              label: 'Email',
+              value: customerEmail,
+            },
+            {
+              icon: <CreditCard className="h-4 w-4" />,
+              label: 'Credit Limit',
+              value: formatCentsToCurrency(customer.creditLimit),
+            },
+            {
+              icon: <User className="h-4 w-4" />,
+              label: 'Account Manager',
+              value: customer.accountManagerName || '-',
+            },
+          ]}
+        />
+      );
+    },
+    [formatCentsToCurrency],
+  );
 
   const facetDefs: FacetDefinition[] = React.useMemo(
     () => [
@@ -268,6 +351,56 @@ export default function CustomersPage() {
     [facetOptions],
   );
 
+  let tableContent: React.ReactNode;
+  if (isLoading && !customersData) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+          <p>Loading customers...</p>
+        </div>
+      </div>
+    );
+  } else if (isError) {
+    tableContent = (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center text-destructive">
+          Error loading customers
+        </div>
+      </div>
+    );
+  } else {
+    tableContent = (
+      <DataTableClient
+        tableId="customer_main_data_table"
+        data={items ?? []}
+        columns={customerColumns}
+        facetDefinition={facetDefs}
+        searchPlaceHolder="Search customers..."
+        onRowClick={handleRowClick}
+        defaultSorting={[{ id: 'customer_name', desc: false }]}
+        mobileCardRenderer={renderCustomerCard}
+        mobileInfinite={{
+          items: mobileItems,
+          hasNextPage,
+          isFetchingNextPage,
+          isLoading: infiniteIsFetching,
+          fetchNextPage,
+        }}
+        totalElements={totalElements}
+        totalPages={totalPages}
+        externalPageIndex={pageIndex}
+        externalPageSize={pageSize}
+        externalSorting={sorting}
+        onPaginationChange={handlePaginationChange}
+        onSearchChange={handleSearchChange}
+        onFacetFiltersChange={handleFacetFiltersChange}
+        onSortingChange={handleSortingChange}
+        isLoading={isFetching}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
@@ -277,15 +410,34 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl">Customers</h1>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Add New Customer"
-            dialogDescription="Fill in the required fields to add a new customer."
-            buttonTitle="Add Customer"
+        {readOnly ? (
+          <Button
+            onClick={handleSyncCustomerFromAcumatica}
+            disabled={
+              syncCustomerFromAcumatica.isPending || isSyncDisabled
+            }
           >
-            <CustomerForm />
-          </FormDialog>
-        </div>
+            <div className="flex items-center gap-2">
+              <RefreshCw
+                className={`h-4 w-4 ${syncCustomerFromAcumatica.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncCustomerFromAcumatica.isPending
+                ? 'Syncing'
+                : 'Sync Customer'}
+            </div>
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog
+              dialogTitle="Add New Customer"
+              dialogDescription="Fill in the required fields to add a new customer."
+              buttonTitle="Add Customer"
+              hideButton={readOnly}
+            >
+              <CustomerForm />
+            </FormDialog>
+          </div>
+        )}
       </div>
 
       <StatsCards
@@ -296,41 +448,7 @@ export default function CustomersPage() {
       />
 
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !customersData ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p>Loading customers...</p>
-            </div>
-          </div>
-        ) : isError ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center text-destructive">
-              Error loading customers
-            </div>
-          </div>
-        ) : (
-          <DataTableClient
-            tableId="customer_main_data_table"
-            data={items ?? []}
-            columns={getCustomerColumns(currencyCode)}
-            facetDefinition={facetDefs}
-            searchPlaceHolder="Search customers..."
-            onRowClick={handleRowClick}
-            defaultSorting={[{ id: 'customer_name', desc: false }]}
-            mobileCardRenderer={renderCustomerCard}
-            totalElements={totalElements}
-            totalPages={totalPages}
-            externalPageIndex={pageIndex}
-            externalPageSize={pageSize}
-            externalSorting={sorting}
-            onPaginationChange={handlePaginationChange}
-            onSearchChange={handleSearchChange}
-            onFacetFiltersChange={handleFacetFiltersChange}
-            onSortingChange={handleSortingChange}
-            isLoading={isFetching}
-          />
-        )}
+        {tableContent}
       </div>
     </div>
   );

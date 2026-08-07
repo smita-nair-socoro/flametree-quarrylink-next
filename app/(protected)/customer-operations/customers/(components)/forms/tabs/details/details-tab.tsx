@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/form';
 import { FormSelect } from '@/components/ui/form-select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { ABNInput, CurrencyInput } from '@/components/ui/input-mask';
 import { PhoneInput } from '@/components/ui/phone-input';
@@ -30,7 +31,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useAddressSync } from '@/lib/utils/address-helper';
-import { useAccountingSoftwareLabel } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareLabel, useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 import {
   useCustomerFormState,
   EMPTY_CUSTOMER_FORM_VALUES,
@@ -42,6 +43,7 @@ import { AddCustomerAttachmentDialog } from './add-customer-attachment-dialog';
 import { CustomerFormBlockBanner } from './customer-form-blocker';
 import { getAdditionalContactColumns } from '../../../(data-tables)/additional-contact/columns';
 import { getCustomerAttachmentColumns } from '../../../(data-tables)/attachment/columns';
+
 
 type CustomerFormValues = z.infer<typeof NewCustomerFormSchema>;
 
@@ -96,6 +98,9 @@ export default function DetailsTab({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const isEditing = customerId > 0;
   const accSoftware = useAccountingSoftwareLabel();
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
 
   const customerForm = useForm<CustomerFormValues>({
     resolver: zodResolver(NewCustomerFormSchema),
@@ -150,7 +155,7 @@ export default function DetailsTab({
   );
 
   useFormDialogFooter(
-    isDesktop ? (
+    isDesktop && !readOnly ? (
       <div className="flex justify-end gap-2">
         <Button variant="outline" type="button" onClick={onCancel}>
           {isEditing ? 'Close' : 'Cancel'}
@@ -159,10 +164,18 @@ export default function DetailsTab({
           form="add-new-customer-form"
           className="cursor-pointer"
           type="submit"
-          disabled={isSubmitting || isFormBlocked}
+          disabled={isSubmitting || isFormBlocked || readOnly}
         >
-          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {getSubmitButtonLabel(isSubmitting, isEditing)}
+          {isSubmitting && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          )}
+          {isSubmitting
+            ? isEditing
+              ? 'Saving Changes...'
+              : 'Adding Customer...'
+            : isEditing
+              ? 'Save Changes'
+              : 'Add Customer'}
         </Button>
       </div>
     ) : null,
@@ -386,6 +399,7 @@ export default function DetailsTab({
                           handleFormFieldChange('customer_type', value);
                         }}
                         className="grid grid-flow-col auto-cols-max gap-4"
+                        disabled={readOnly}
                       >
                         <FormItem className="flex items-center gap-3">
                           <FormControl>
@@ -428,6 +442,7 @@ export default function DetailsTab({
                           handleFormFieldChange('payment_type', value);
                         }}
                         className="grid grid-flow-col auto-cols-max gap-4"
+                        disabled={readOnly}
                       >
                         <FormItem className="flex items-center gap-3">
                           <FormControl>
@@ -466,6 +481,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="Enter Business Name"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -491,12 +507,44 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="email@example.com"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+              )}
+
+              {readOnly && (
+                <div className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-1 mb-5'
+                    : 'col-span-2 mb-5'
+                }>
+                  <Label className="mb-2">Customer Location ID</Label>
+                  <Input
+                    className="w-full"
+                    value={selectedCustomer?.customerLocationId ?? 'N/A'}
+                    readOnly={readOnly}
+                  />
+                </div>
+              )}
+
+              {readOnly && (
+                <div className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2 mb-5'
+                    : 'col-span-2 mb-5'
+                }>
+
+                  <Label className="mb-2">Customer Classification</Label>
+                  <Input
+                    className="w-full"
+                    value={selectedCustomer?.customerClassification ?? 'N/A'}
+                    readOnly={readOnly}
+                  />
+                </div>
               )}
 
               {/* Business Phone */}
@@ -517,6 +565,7 @@ export default function DetailsTab({
                           defaultCountry="AU"
                           placeholder="Enter phone number"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -538,7 +587,7 @@ export default function DetailsTab({
                     >
                       <FormLabel>ABN*</FormLabel>
                       <FormControl>
-                        <ABNInput className="w-full" {...field} />
+                        <ABNInput className="w-full" {...field} readOnly={readOnly} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -563,6 +612,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="Enter Contact Person Name"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -587,6 +637,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="Enter First Name"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -612,6 +663,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="Enter Last Name"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -637,6 +689,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="email@example.com"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -662,6 +715,7 @@ export default function DetailsTab({
                           defaultCountry="AU"
                           placeholder="Enter phone number"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -687,6 +741,7 @@ export default function DetailsTab({
                           className="w-full"
                           placeholder="email@example.com"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -713,6 +768,7 @@ export default function DetailsTab({
                           defaultCountry="AU"
                           placeholder="Enter phone number"
                           {...field}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -747,6 +803,7 @@ export default function DetailsTab({
                           }
                           decimalPlaces={2}
                           allowNegative={false}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -787,6 +844,7 @@ export default function DetailsTab({
                                 // Trigger validation for both payment_terms_day and payment_terms fields
                                 customerForm.trigger(['payment_terms_day', 'payment_terms']);
                               }}
+                              readOnly={readOnly}
                             />
                           </FormControl>
                           <FormMessage className="absolute mt-9 whitespace-nowrap" />
@@ -804,6 +862,7 @@ export default function DetailsTab({
                         // Trigger validation for payment_terms_day when payment_terms changes
                         customerForm.trigger(['payment_terms_day', 'payment_terms']);
                       }}
+                      disabled={readOnly}
                     />
                   </div>
                 </div>
@@ -823,6 +882,7 @@ export default function DetailsTab({
                   selectedCustomerType,
                   'business-first',
                 )}
+                disabled={readOnly}
               />
 
               {/* Billing Address */}
@@ -848,6 +908,7 @@ export default function DetailsTab({
                         dialogTitle="Search for Billing Address"
                         placeholder="Search for Billing Address..."
                         {...field}
+                        readOnly={readOnly}
                       />
                     </FormControl>
                     <FormMessage />
@@ -875,6 +936,7 @@ export default function DetailsTab({
                         dialogWidth="600px"
                         contentClass="-mt-5"
                         preventAutoFocus
+                        hideButton={readOnly}
                       >
                         <AdditionalContactForm customerId={customerId} />
                       </FormDialog>
@@ -912,13 +974,16 @@ export default function DetailsTab({
                       )}
                     >
                       <span className="text-lg font-semibold">Attachments</span>
-                      <Button
-                        type="button"
-                        className="cursor-pointer"
-                        onClick={() => setAddAttachmentOpen(true)}
-                      >
-                        Add Attachment
-                      </Button>
+                      {!readOnly && (
+                        <Button
+                          type="button"
+                          className="cursor-pointer"
+                          onClick={() => setAddAttachmentOpen(true)}
+
+                        >
+                          Add Attachment
+                        </Button>
+                      )}
                     </div>
 
                     <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

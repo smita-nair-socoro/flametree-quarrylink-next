@@ -9,7 +9,7 @@ interface TenantStore {
   taxPercentage?: number;
   tenantEmail?: string;
   businessName: string | null;
-  /** Raw connected accounting software, e.g. "XERO" or "MYOB_BUSINESS". */
+  /** Raw connected accounting software, e.g. "XERO" or "MYOB_BUSINESS" or "MYOB_ACUMATICA". */
   accountingSoftware?: string;
 
   /** Display name of the currently logged-in user. */

@@ -3,30 +3,32 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import {
-  Gem,
-  PackageX,
-  TrendingUp,
-  Package,
-  Tag,
-  Box,
-} from 'lucide-react';
+import { Gem, PackageX, TrendingUp, Package, Tag, Box, RefreshCw } from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   ProductsListQueryOptions,
   ProductReportingQueryOptions,
+  ProductsInfiniteListQueryOptions,
+  getProductItemsFromInfinitePages,
   getProductsPageFromListResponse,
   toProductApiFilterParams,
   toProductApiSortParams,
   buildProductFacetOptions,
   isProductsListResponse,
 } from '@/lib/api/product';
+import {
+  LinkedProductsListQueryOptions,
+  LinkedProductsInfiniteListQueryOptions,
+} from '@/lib/api/quarries';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { centsToDollars } from '@/lib/utils/currency';
+import { usePullFromAccSoftware } from '@/lib/api/product';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -37,12 +39,51 @@ import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { ProductTableActions } from './(components)/(data-tables)/products/product-table-actions';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 
 export default function ProductsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const { actions, confirmDialogs, viewDialog } = useProductActions();
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
+
+  const syncProductFromAcumatica = usePullFromAccSoftware();
+
+  const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
+  const syncCooldownTimeoutRef = React.useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+
+  React.useEffect(() => {
+    return () => {
+      if (syncCooldownTimeoutRef.current) {
+        clearTimeout(syncCooldownTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleSyncProductFromAcumatica = React.useCallback(async () => {
+    if (syncProductFromAcumatica.isPending || isSyncDisabled) {
+      return;
+    }
+
+    setIsSyncDisabled(true);
+    syncCooldownTimeoutRef.current = setTimeout(() => {
+      setIsSyncDisabled(false);
+      syncCooldownTimeoutRef.current = null;
+    }, 10000);
+
+    try {
+      await syncProductFromAcumatica.mutateAsync();
+      notifySuccess('Products synced from Acumatica successfully');
+    } catch (error) {
+      notifyError(extractErrorMessage(error));
+    }
+  }, [syncProductFromAcumatica, isSyncDisabled]);
+  const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
   const linkedQuarrySupplierIdParam = searchParams.get(
@@ -61,7 +102,20 @@ export default function ProductsPage() {
     return new Set(ids);
   }, [linkedProductIdsParam]);
 
-  const isLinkedFilter = !!linkedProductIdsSet;
+  const linkedProductIds = React.useMemo(
+    () => (linkedProductIdsSet ? Array.from(linkedProductIdsSet) : undefined),
+    [linkedProductIdsSet],
+  );
+
+  const linkedQuarrySupplierId = React.useMemo(() => {
+    if (!linkedQuarrySupplierIdParam) return undefined;
+    const id = Number(linkedQuarrySupplierIdParam);
+    return Number.isFinite(id) && id > 0 ? id : undefined;
+  }, [linkedQuarrySupplierIdParam]);
+
+  const isLinkedQuarryView = linkedQuarrySupplierId != null;
+  const isLegacyLinkedIdsView = linkedProductIdsSet != null;
+  const isLinkedView = isLinkedQuarryView || isLegacyLinkedIdsView;
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -83,23 +137,99 @@ export default function ProductsPage() {
     [facetFilters],
   );
 
-  const {
-    data: productsData,
-    isLoading,
-    isFetching,
-    error,
-    isError,
-  } = useQuery(
-    ProductsListQueryOptions({
-      page: isLinkedFilter ? 0 : pageIndex,
-      pageSize: isLinkedFilter ? 1000 : pageSize,
+  const listParams = React.useMemo(
+    () => ({
+      page: pageIndex,
+      pageSize,
       search: search.trim() || undefined,
       ...apiSortParams,
       ...apiFilterParams,
     }),
+    [pageIndex, pageSize, search, apiSortParams, apiFilterParams],
   );
 
+  const infiniteListParams = React.useMemo(
+    () => ({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    [search, apiFilterParams],
+  );
+
+  React.useEffect(() => {
+    setPageIndex(0);
+  }, [linkedProductIdsParam, linkedQuarrySupplierIdParam]);
+
+  const linkedProductsQuery = useQuery({
+    ...LinkedProductsListQueryOptions(linkedQuarrySupplierId ?? 0, listParams),
+    enabled: isLinkedQuarryView,
+  });
+
+  const mainProductsQuery = useQuery({
+    ...ProductsListQueryOptions({
+      ...listParams,
+      ids: linkedProductIds,
+    }),
+    enabled: !isLinkedQuarryView,
+  });
+
+  const productsData = isLinkedQuarryView
+    ? linkedProductsQuery.data
+    : mainProductsQuery.data;
+  const isLoading = isLinkedQuarryView
+    ? linkedProductsQuery.isLoading
+    : mainProductsQuery.isLoading;
+  const isFetching = isLinkedQuarryView
+    ? linkedProductsQuery.isFetching
+    : mainProductsQuery.isFetching;
+  const error = isLinkedQuarryView
+    ? linkedProductsQuery.error
+    : mainProductsQuery.error;
+  const isError = isLinkedQuarryView
+    ? linkedProductsQuery.isError
+    : mainProductsQuery.isError;
+
   const { data: reportingData } = useQuery(ProductReportingQueryOptions());
+
+  const isMobile = useIsMobile();
+
+  const linkedProductsInfiniteQuery = useInfiniteQuery({
+    ...LinkedProductsInfiniteListQueryOptions(
+      linkedQuarrySupplierId ?? 0,
+      infiniteListParams,
+    ),
+    enabled: isMobile && isLinkedQuarryView,
+  });
+
+  const mainProductsInfiniteQuery = useInfiniteQuery({
+    ...ProductsInfiniteListQueryOptions({
+      ...infiniteListParams,
+      ids: linkedProductIds,
+    }),
+    enabled: isMobile && !isLinkedQuarryView,
+  });
+
+  const infiniteData = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.data
+    : mainProductsInfiniteQuery.data;
+  const fetchNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.fetchNextPage
+    : mainProductsInfiniteQuery.fetchNextPage;
+  const hasNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.hasNextPage
+    : mainProductsInfiniteQuery.hasNextPage;
+  const isFetchingNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.isFetchingNextPage
+    : mainProductsInfiniteQuery.isFetchingNextPage;
+  const infiniteIsFetching = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.isFetching
+    : mainProductsInfiniteQuery.isFetching;
+
+  const mobileItems = React.useMemo(
+    () => getProductItemsFromInfinitePages(infiniteData?.pages),
+    [infiniteData?.pages],
+  );
 
   const productPage = React.useMemo(
     () => getProductsPageFromListResponse(productsData),
@@ -118,9 +248,7 @@ export default function ProductsPage() {
     {
       title: 'Highest Revenue Product',
       value: reportingData?.mostQuotedProductName || 'QuarryLink Product',
-      description: `$${centsToDollars(
-        reportingData?.mostQuotedProductValueThisMonth || 0,
-      )} this month`,
+      description: `${formatCentsToCurrency(reportingData?.mostQuotedProductValueThisMonth || 0)} this month`,
       icon: Gem,
       iconBgColor: 'bg-[#FEF3C6]',
       iconColor: 'text-[#733E0A]',
@@ -129,9 +257,8 @@ export default function ProductsPage() {
     {
       title: 'Unavailable Products',
       value: reportingData?.unavailableProductsCount || 0,
-      description: `${
-        reportingData?.unavailableProductsPercentOfInventory || 0
-      }% of inventory`,
+      description: `${reportingData?.unavailableProductsPercentOfInventory || 0
+        }% of inventory`,
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
       iconColor: 'text-[#9F0712]',
@@ -140,9 +267,8 @@ export default function ProductsPage() {
     {
       title: 'Average Product Margin',
       value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
-      description: `${
-        reportingData?.averageProductMarginChangeVsLastMonth || 0
-      }% last month`,
+      description: `${reportingData?.averageProductMarginChangeVsLastMonth || 0
+        }% last month`,
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
       iconColor: 'text-[#00A63E]',
@@ -151,9 +277,8 @@ export default function ProductsPage() {
     {
       title: 'Total Products',
       value: reportingData?.totalProducts || 0,
-      description: `+${
-        reportingData?.productsAddedThisMonth || 0
-      } added this month`,
+      description: `+${reportingData?.productsAddedThisMonth || 0
+        } added this month`,
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
       iconColor: 'text-[#0891B2]',
@@ -173,7 +298,7 @@ export default function ProductsPage() {
 
   const renderProductCard = React.useCallback((product: ProductDetails) => {
     const materialName = product.material?.name || '';
-
+    const status = product.isActive === true ? 'AVAILABLE' : 'UNAVAILABLE';
     return (
       <MobileCard
         title={product.productName}
@@ -185,9 +310,7 @@ export default function ProductsPage() {
         }
         badges={
           <>
-            {product.status && (
-              <TableBadges names={[product.status]} visibleCount={1} />
-            )}
+            <TableBadges names={[status]} visibleCount={1} />
             {materialName && (
               <TableBadges names={[materialName]} visibleCount={1} />
             )}
@@ -218,18 +341,9 @@ export default function ProductsPage() {
     [productPage],
   );
 
-  const filteredItems = React.useMemo(() => {
-    if (!linkedProductIdsSet) return items;
-    return items.filter((p) => linkedProductIdsSet.has(p.id));
-  }, [items, linkedProductIdsSet]);
-
-  const totalElements = isLinkedFilter
-    ? filteredItems.length
-    : (productPage?.totalElements ?? items.length);
-  const totalPages = isLinkedFilter
-    ? 1
-    : (productPage?.totalPages ??
-      Math.max(1, Math.ceil(totalElements / pageSize)));
+  const totalElements = productPage?.totalElements ?? items.length;
+  const totalPages =
+    productPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -251,9 +365,7 @@ export default function ProductsPage() {
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
-      newSorting.length > 0
-        ? newSorting
-        : [{ id: 'productName', desc: false }],
+      newSorting.length > 0 ? newSorting : [{ id: 'productName', desc: false }],
     );
     setPageIndex(0);
   }, []);
@@ -282,18 +394,49 @@ export default function ProductsPage() {
     [facetOptions],
   );
 
+  let linkedFilterSuffix: React.ReactNode = null;
+  if (linkedQuarrySupplierNameParam) {
+    linkedFilterSuffix = (
+      <>
+        <span>{' for '}</span>
+        <span className="font-semibold text-foreground">
+          {linkedQuarrySupplierNameParam}
+        </span>
+      </>
+    );
+  } else if (linkedQuarrySupplierIdParam) {
+    linkedFilterSuffix = (
+      <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
+    );
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
+        {readOnly ? (
+          <Button
+            onClick={handleSyncProductFromAcumatica}
+            disabled={syncProductFromAcumatica.isPending || isSyncDisabled}
+          >
+            <div className="flex items-center gap-2">
+              <RefreshCw
+                className={`h-4 w-4 ${syncProductFromAcumatica.isPending ? 'animate-spin' : ''}`}
+              />
+              {syncProductFromAcumatica.isPending ? 'Syncing' : 'Sync Product'}
+            </div>
+          </Button>
+        ) : (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
+              <ProductForm />
+            </FormDialog>
+          </div>
+        )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product">
-            <ProductForm />
-          </FormDialog>
-        </div>
+
       </div>
       <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
@@ -311,22 +454,13 @@ export default function ProductsPage() {
         ) : (
           <>
             <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
-              {linkedProductIdsSet && (
+              {isLinkedView && (
                 <div className="mt-1 text-sm text-muted-foreground">
                   <span>Showing linked products</span>
-                  {linkedQuarrySupplierNameParam ? (
-                    <>
-                      <span>{' for '}</span>
-                      <span className="font-semibold text-foreground">
-                        {linkedQuarrySupplierNameParam}
-                      </span>
-                    </>
-                  ) : linkedQuarrySupplierIdParam ? (
-                    <span>{` for quarry/supplier #${linkedQuarrySupplierIdParam}`}</span>
-                  ) : null}
+                  {linkedFilterSuffix}
                 </div>
               )}
-              {linkedProductIdsSet && (
+              {isLinkedView && (
                 <Button
                   type="button"
                   variant="outline"
@@ -339,23 +473,30 @@ export default function ProductsPage() {
 
             <DataTableClient
               tableId={
-                linkedProductIdsSet
+                isLinkedView
                   ? `product_linked_${linkedQuarrySupplierIdParam ?? 'unknown'}`
                   : 'product_main_data_table'
               }
-              data={filteredItems ?? []}
+              data={items ?? []}
               columns={productColumns}
               facetDefinition={facetDefs}
               searchPlaceHolder="Search products..."
               onRowClick={handleRowClick}
               defaultSorting={[{ id: 'productName', desc: false }]}
               mobileCardRenderer={renderProductCard}
+              mobileInfinite={{
+                items: mobileItems as unknown as ProductDetails[],
+                hasNextPage,
+                isFetchingNextPage,
+                isLoading: infiniteIsFetching,
+                fetchNextPage,
+              }}
               totalElements={totalElements}
               totalPages={totalPages}
-              externalPageIndex={isLinkedFilter ? 0 : pageIndex}
-              externalPageSize={isLinkedFilter ? filteredItems.length || 10 : pageSize}
+              externalPageIndex={pageIndex}
+              externalPageSize={pageSize}
               externalSorting={sorting}
-              onPaginationChange={isLinkedFilter ? undefined : handlePaginationChange}
+              onPaginationChange={handlePaginationChange}
               onSearchChange={handleSearchChange}
               onFacetFiltersChange={handleFacetFiltersChange}
               onSortingChange={handleSortingChange}

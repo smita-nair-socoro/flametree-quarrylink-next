@@ -224,7 +224,7 @@ export function DuplicateDocketContent({
                 value={newDeliveryDate}
                 onChangeAction={onNewDeliveryDateChange}
                 placeholder="Pick a date"
-                disabled={{ before: new Date() }}
+                disabledDates={{ before: new Date() }}
               />
               {isDateInPast && !newDeliveryDate && (
                 <p className="text-xs text-red-500">

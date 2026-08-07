@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
+import { sortByLabelOtherLast } from '@/lib/utils/sort-options';
 
 export const CANCEL_REASON_LABELS: Record<string, string> = {
   customer_requested: 'Customer requested',
@@ -18,8 +19,9 @@ export const CANCEL_REASON_LABELS: Record<string, string> = {
   other: 'Other',
 };
 
-const CANCEL_REASONS = Object.entries(CANCEL_REASON_LABELS).map(
-  ([value, label]) => ({ value, label }),
+const CANCEL_REASONS = sortByLabelOtherLast(
+  Object.entries(CANCEL_REASON_LABELS).map(([value, label]) => ({ value, label })),
+  (option) => option.label,
 );
 
 export function CancelDocketDescription({

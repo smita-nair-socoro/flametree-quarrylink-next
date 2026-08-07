@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/form';
 
 import { cn, scrollToFirstError } from '@/lib/utils';
+import { sortByLabel } from '@/lib/utils/sort-options';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import z from 'zod';
@@ -21,7 +22,10 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { Spinner } from '@/components/ui/spinner';
 import { NewProductFormSchema } from './schemas/product-form-schema';
 import { supplierColumns } from '../../(components)/(data-tables)/supplier/columns';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 import { Textarea } from '@/components/ui/textarea';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { MobileLineItem } from '@/components/mobile/mobile-line-item';
@@ -33,10 +37,8 @@ import { ActionDialog } from '@/components/action-dialog';
 import { CompareSupplierTable } from '../(data-tables)/supplier-comparison/compare-supplier-table';
 import { useQuery } from '@tanstack/react-query';
 import { notifyError, notifySuccess } from '@/lib/toast';
-import {
-  extractErrorMessage,
-} from '@/lib/utils/error-message-helper';
-// import { addNewRecordId } from '@/lib/utils';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { addNewRecord } from '@/lib/utils/pinned-records';
 import {
   ProductDetailWithQuarrySupplierProductQueryOptions,
   useCreateProduct,
@@ -49,7 +51,6 @@ import { AuditInformation } from '@/components/audit-information';
 
 interface FormProps {
   id?: number;
-  onSuccess?: () => void;
   onSaved?: () => void;
   className?: string;
   onCancel?: () => void;
@@ -67,7 +68,6 @@ import {
 export default function ProductForm({
   id,
   onCancel,
-  onSuccess,
   onSaved,
   className,
   onDirtyChange,
@@ -75,6 +75,9 @@ export default function ProductForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { currencyCode, taxLabel } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
+
+  const accSoftwareProvider = useAccountingSoftwareProvider();
+  const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isCompareDialogOpen, setIsCompareDialogOpen] = React.useState(false);
@@ -138,10 +141,15 @@ export default function ProductForm({
   // Map materials to options
   const materialTypeOptions = React.useMemo(() => {
     if (!materialsData) return [];
-    return materialsData.map((material) => ({
-      label: material.name,
-      value: material.id,
-    }));
+    return sortByLabel(
+      materialsData
+        .filter((material) => material.name !== 'UNKNOWN')
+        .map((material) => ({
+          label: material.name,
+          value: material.id,
+        })),
+      (option) => option.label,
+    );
   }, [materialsData]);
 
   const productForm = useForm<z.infer<typeof NewProductFormSchema>>({
@@ -165,7 +173,10 @@ export default function ProductForm({
   const updateProduct = useUpdateProduct();
 
   const buildProductPayload = React.useCallback(
-    (values: ProductFormValues, needDensityOverride?: boolean): Partial<Product> => {
+    (
+      values: ProductFormValues,
+      needDensityOverride?: boolean,
+    ): Partial<Product> => {
       const payload: Partial<Product> = {
         productName: values.productName,
         productCode: values.productCode,
@@ -195,8 +206,8 @@ export default function ProductForm({
           id,
           data: { ...buildProductPayload(values, needDensityOverride), id },
         });
+        productForm.reset(values);
         onSaved?.();
-        onSuccess?.();
       } catch (error) {
         notifyError(extractErrorMessage(error));
       } finally {
@@ -204,7 +215,7 @@ export default function ProductForm({
         setIsSubmitting(false);
       }
     },
-    [id, updateProduct, buildProductPayload, onSaved, onSuccess],
+    [id, updateProduct, buildProductPayload, onSaved, productForm],
   );
 
   const handleDensityModalConfirm = React.useCallback(() => {
@@ -212,10 +223,7 @@ export default function ProductForm({
     if (!values) return;
 
     pendingSubmitValuesRef.current = null;
-    void submitProductUpdate(
-      values,
-      densityOverrideChoice === 'override',
-    );
+    void submitProductUpdate(values, densityOverrideChoice === 'override');
   }, [densityOverrideChoice, submitProductUpdate]);
 
   async function onSubmit(values: ProductFormValues) {
@@ -244,17 +252,21 @@ export default function ProductForm({
       const createdProduct = await createProduct.mutateAsync(payload);
       console.log('Product created successfully!', createdProduct);
 
-      // Add the new record ID to sessionStorage for highlighting
-      // if (createdProduct && typeof createdProduct.id === 'number') {
-      //   addNewRecordId('product_main_data_table', createdProduct.id);
-      // }
-
       // Store the created product ID and mark as just created
       if (
         createdProduct &&
         typeof createdProduct === 'object' &&
         'id' in createdProduct
       ) {
+        // The create response doesn't reliably embed the material relation,
+        // so fall back to the one selected in the form.
+        const selectedMaterial = materialsData?.find(
+          (material) => material.id === values.materialId,
+        );
+        addNewRecord('product_main_data_table', {
+          ...createdProduct,
+          material: createdProduct.material ?? selectedMaterial,
+        });
         setCreatedProductId(createdProduct.id as number);
         setProductJustCreated(true);
         notifySuccess(
@@ -269,69 +281,67 @@ export default function ProductForm({
     } catch (error) {
       notifyError(extractErrorMessage(error));
     } finally {
-      notifySuccess('Product created successfully.');
+      // notifySuccess('Product created successfully.');
       setIsSubmitting(false);
     }
   }
 
   useFormDialogFooter(
-    isDesktop && isEditing ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button
-          form="add-new-product-form"
-          type="submit"
-          className="cursor-pointer"
-        >
-          Save Changes
-        </Button>
-      </div>
-    ) : isDesktop && createStep === 1 ? (
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" type="button" onClick={onCancel}>
-          Cancel
-        </Button>
-        {!productJustCreated && (
+    !readOnly &&
+      (isDesktop && isEditing ? (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
           <Button
             form="add-new-product-form"
-            className="cursor-pointer"
             type="submit"
-            disabled={isSubmitting}
+            className="cursor-pointer"
+            disabled={readOnly}
           >
-            {isSubmitting ? 'Adding Product...' : 'Create Product'}
+            Save Changes
           </Button>
-        )}
-        {productJustCreated && (
-          <>
+        </div>
+      ) : isDesktop && createStep === 1 ? (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" type="button" onClick={onCancel}>
+            Cancel
+          </Button>
+          {!productJustCreated && (
             <Button
-              variant="outline"
-              disabled
-              className="cursor-not-allowed"
+              form="add-new-product-form"
+              className="cursor-pointer"
+              type="submit"
+              disabled={isSubmitting || readOnly}
             >
-              ✓ Product Created
+              {isSubmitting ? 'Adding Product...' : 'Create Product'}
             </Button>
-            <Button type="button" onClick={() => setCreateStep(2)}>
-              Next
-            </Button>
-          </>
-        )}
-      </div>
-    ) : isDesktop ? (
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          type="button"
-          onClick={() => setCreateStep(1)}
-        >
-          Back to Details
-        </Button>
-        <Button type="button" onClick={onCancel}>
-          Save Changes
-        </Button>
-      </div>
-    ) : null,
+          )}
+          {productJustCreated && (
+            <>
+              <Button variant="outline" disabled className="cursor-not-allowed">
+                ✓ Product Created
+              </Button>
+              <Button type="button" onClick={() => setCreateStep(2)}>
+                Next
+              </Button>
+            </>
+          )}
+        </div>
+      ) : isDesktop ? (
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="outline"
+            type="button"
+            onClick={() => setCreateStep(1)}
+          >
+            Back to Details
+          </Button>
+          <Button type="button" onClick={onCancel}>
+            Save Changes
+          </Button>
+        </div>
+      ) : null),
   );
 
   // Show loading state when fetching product details or materials
@@ -381,19 +391,19 @@ export default function ProductForm({
     title: string;
     description: string;
   }[] = [
-      {
-        value: 'keep',
-        title: 'Keep Original Density Figures',
-        description:
-          'Existing product supplier records will retain their current density values',
-      },
-      {
-        value: 'override',
-        title: 'Override Product Supplier Density Figures',
-        description:
-          'Update all attached product supplier records with the new density value',
-      },
-    ];
+    {
+      value: 'keep',
+      title: 'Keep Original Density Figures',
+      description:
+        'Existing product supplier records will retain their current density values',
+    },
+    {
+      value: 'override',
+      title: 'Override Product Supplier Density Figures',
+      description:
+        'Update all attached product supplier records with the new density value',
+    },
+  ];
 
   return (
     <div className="w-full relative">
@@ -471,7 +481,7 @@ export default function ProductForm({
       {isSubmitting && (
         <div
           className={cn(
-            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-9999 flex items-center justify-center',
             isDesktop ? '' : 'pt-10',
           )}
         >
@@ -558,6 +568,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Name"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
                         />
                       </FormControl>
@@ -578,6 +589,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Code"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
                         />
                       </FormControl>
@@ -591,11 +603,12 @@ export default function ProductForm({
                   control={productForm.control}
                   name="materialId"
                   label="Material Type*"
+                  searchLabel="material types"
                   options={materialTypeOptions}
                   placeholder="Select Material Type"
                   showSearch={true}
                   className="col-span-1"
-                  disabled={productJustCreated}
+                  disabled={productJustCreated || readOnly}
                   autoSelectForOnlyOneOption={!isEditing}
                 />
 
@@ -617,6 +630,7 @@ export default function ProductForm({
                           suffix="TN/m³"
                           {...field}
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                         />
                       </FormControl>
                       <FormMessage />
@@ -638,6 +652,7 @@ export default function ProductForm({
                           className="w-full"
                           placeholder="Enter Product Description"
                           disabled={productJustCreated}
+                          readOnly={readOnly}
                           {...field}
                         />
                       </FormControl>
@@ -646,7 +661,6 @@ export default function ProductForm({
                   )}
                 />
               </div>
-
             </>
           )}
 
@@ -707,6 +721,7 @@ export default function ProductForm({
                       buttonTitle="Add Quarry / Supplier"
                       dialogWidth="700px"
                       contentClass="-mt-5"
+                      hideButton={readOnly}
                     >
                       <SupplierForm
                         productId={activeProductId ?? undefined}
@@ -741,14 +756,19 @@ export default function ProductForm({
                 }
                 cancelButtonClass="mx-5 my-3"
                 confirmActionNeeded={false}
-                cancelActionNeeded={isDesktop ? false : true}
+                cancelActionNeeded={!isDesktop}
               />
 
               {/* Supplier Table / Cards */}
               <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
                 {isDesktop ? (
                   <DataTableClient
-                    columns={supplierColumns(selectedProduct?.id, currencyCode, taxLabel)}
+                    columns={supplierColumns(
+                      selectedProduct?.id,
+                      currencyCode,
+                      taxLabel,
+                      readOnly,
+                    )}
                     data={
                       isEditing || productJustCreated
                         ? (selectedProduct?.quarrySupplierProducts ?? [])
@@ -763,8 +783,12 @@ export default function ProductForm({
                       ? (selectedProduct?.quarrySupplierProducts ?? [])
                       : []
                     ).map((supplier) => {
-                      const cost = supplier.perTnCostPrice || 0;
-                      const sell = supplier.perTnSellPrice || 0;
+                      const cost = !readOnly
+                        ? supplier.perTnCostPrice
+                        : supplier.perM3CostPrice || 0;
+                      const sell = !readOnly
+                        ? supplier.perTnSellPrice
+                        : supplier.perM3SellPrice || 0;
                       const margin =
                         sell === 0 ? 0 : ((sell - cost) / sell) * 100;
                       return (
@@ -774,8 +798,8 @@ export default function ProductForm({
                           subtitle={supplier.supplierProductName || 'N/A'}
                           costPrice={cost}
                           sellPrice={sell}
-                          costLabel="Cost (TN)"
-                          sellLabel="Sell (TN)"
+                          costLabel={!readOnly ? 'Cost (TN)' : 'Cost (m³)'}
+                          sellLabel={!readOnly ? 'Sell (TN)' : 'Sell (m³)'}
                           profitLabel="Margin"
                           profitValue={margin}
                           actions={
@@ -792,7 +816,6 @@ export default function ProductForm({
                   </div>
                 )}
               </div>
-
             </div>
           )}
 
@@ -805,7 +828,7 @@ export default function ProductForm({
             />
           )}
 
-          {!isDesktop && (
+          {!isDesktop && !readOnly && (
             <>
               {isEditing ? (
                 <div className="flex flex-col col-span-full gap-3 mb-6">

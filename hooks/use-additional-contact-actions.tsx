@@ -9,9 +9,12 @@ import { Trash2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import {
-  formatPhoneNumber,
-  normalizePhoneNumber,
-} from '@/lib/utils/phone-helper';
+  getContactMethodValue,
+} from '@/lib/utils/additional-contact-helper';
+import {
+  ADDITIONAL_CONTACT_METHOD_TYPE,
+  ADDITIONAL_CONTACT_METHOD_TYPE_LABELS,
+} from '@/lib/types/customer-enums';
 import { useDeleteAdditionalContact } from '@/lib/api/customer';
 
 const getContactDisplayName = (contact?: AdditionalContactDTO | null) =>
@@ -23,6 +26,11 @@ function RemoveAdditionalContactDescription({
 }: {
   contact?: AdditionalContactDTO | null;
 }) {
+  const email = getContactMethodValue(
+    contact,
+    ADDITIONAL_CONTACT_METHOD_TYPE.EMAIL,
+  );
+
   return (
     <div className="flex items-center gap-2">
       <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#FFE2E2]">
@@ -32,8 +40,8 @@ function RemoveAdditionalContactDescription({
         <span className="text-[16px] font-medium text-[#101828]">
           {getContactDisplayName(contact)}
         </span>
-        {contact?.email ? (
-          <span className="text-[14px] text-[#6A7282]">{contact.email}</span>
+        {email ? (
+          <span className="text-[14px] text-[#6A7282]">{email}</span>
         ) : null}
       </div>
     </div>
@@ -45,9 +53,7 @@ function RemoveAdditionalContactContent({
 }: {
   contact?: AdditionalContactDTO | null;
 }) {
-  const formattedPhone = formatPhoneNumber(
-    normalizePhoneNumber(contact?.phone),
-  );
+  const methods = contact?.contactMethods ?? [];
 
   return (
     <div className="flex flex-col gap-5">
@@ -72,24 +78,34 @@ function RemoveAdditionalContactContent({
 
       <div className="rounded-md bg-[#E5E5E5] p-1">
         <div className="flex flex-col gap-1 px-4 py-2">
-          <div className="flex justify-between gap-4">
-            <span className="text-md font-normal text-[#6A7282]">Email:</span>
-            <span className="text-md font-normal text-[#364153]">
-              {contact?.email || '—'}
-            </span>
-          </div>
-          <div className="flex justify-between gap-4">
-            <span className="text-md font-normal text-[#6A7282]">Phone:</span>
-            <span className="text-md font-normal text-[#364153]">
-              {formattedPhone || '—'}
-            </span>
-          </div>
+          {methods.length > 0 ? (
+            methods.map((method, index) => (
+              <div key={`${method.type}-${index}`} className="flex justify-between gap-4">
+                <span className="text-md font-normal text-[#6A7282]">
+                  {ADDITIONAL_CONTACT_METHOD_TYPE_LABELS[
+                    method.type as ADDITIONAL_CONTACT_METHOD_TYPE
+                  ] ?? method.type}
+                  :
+                </span>
+                <span className="text-md font-normal text-[#364153]">
+                  {method.value || '—'}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="flex justify-between gap-4">
+              <span className="text-md font-normal text-[#6A7282]">
+                Contact methods:
+              </span>
+              <span className="text-md font-normal text-[#364153]">—</span>
+            </div>
+          )}
           <div className="flex justify-between gap-4">
             <span className="text-md font-normal text-[#6A7282]">
               Position / Role:
             </span>
             <span className="text-md font-normal text-[#364153]">
-              {contact?.position || '—'}
+              {contact?.positionRole || '—'}
             </span>
           </div>
         </div>
@@ -189,7 +205,7 @@ export function useAdditionalContactActions(
     >
       <AdditionalContactForm
         customerId={customerId}
-        contact={contactData}
+        contactId={contactData?.id}
         onCancel={() => setViewOpen(false)}
         onSuccess={() => setViewOpen(false)}
       />

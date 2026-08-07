@@ -455,6 +455,23 @@ export const useGetAdditionalContacts = (
     enabled: !!customerId,
   });
 
+export const AdditionalContactDetailQueryOptions = (
+  customerId: number,
+  contactId: number,
+  enabled = true,
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.additionalContactDetail(customerId, contactId),
+    queryFn: async () => {
+      const response = await APIClient.customers.getAdditionalContact(
+        customerId,
+        contactId,
+      );
+      return mapAdditionalContactFromApi(response, customerId);
+    },
+    enabled: enabled && !!customerId && !!contactId,
+  });
+
 export const useCreateAdditionalContact = () => {
   const queryClient = useQueryClient();
 
@@ -510,6 +527,12 @@ export const useUpdateAdditionalContact = () => {
           variables.customerId,
         ],
       });
+      queryClient.invalidateQueries({
+        queryKey: CustomerKeys.additionalContactDetail(
+          variables.customerId,
+          variables.contactId,
+        ),
+      });
     },
   });
 };
@@ -524,8 +547,7 @@ export const useDeleteAdditionalContact = () => {
     }: {
       customerId: number;
       contactId: number;
-    }) =>
-      APIClient.customers.deleteAdditionalContact(customerId, contactId),
+    }) => APIClient.customers.deleteAdditionalContact(customerId, contactId),
 
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
@@ -536,5 +558,16 @@ export const useDeleteAdditionalContact = () => {
         ],
       });
     },
+  });
+};
+
+export const usePullFromAccSoftware = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.all });
+      queryClient.invalidateQueries({ queryKey: CustomerKeys.list() });
+    },
+    mutationFn: () => APIClient.customers.syncAllFromAccSoftware(),
   });
 };

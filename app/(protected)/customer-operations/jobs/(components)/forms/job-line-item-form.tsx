@@ -39,6 +39,7 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
+import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -60,6 +61,9 @@ export default function JobLineItemForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  const accountingSoftware = useAccountingSoftwareProvider();
+
   const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
     useTenantCurrencyTax();
@@ -161,6 +165,7 @@ export default function JobLineItemForm({
   React.useEffect(() => {
     if (
       prevTruckSellUomRef.current !== truckSellUom &&
+      prevTruckSellUomRef.current &&
       MANUAL_TRUCK_UOMS.includes(truckSellUom)
     ) {
       jobLineItemForm.setValue('truckSellQty', 0);
@@ -172,6 +177,7 @@ export default function JobLineItemForm({
   React.useEffect(() => {
     if (
       prevTruckCostUomRef.current !== truckCostUom &&
+      prevTruckCostUomRef.current &&
       MANUAL_TRUCK_UOMS.includes(truckCostUom)
     ) {
       jobLineItemForm.setValue('truckCostQty', 0);
@@ -759,7 +765,7 @@ export default function JobLineItemForm({
                       disabled={
                         !jobLineItemForm.watch('truckType') || isReadOnly
                       }
-                      autoSelectForOnlyOneOption={!isEditing && jobLineItemForm.watch('type') === JOB_LINE_ITEM_TYPE.DELIVERY && jobLineItemForm.watch('type') !== undefined}
+                      autoSelectForOnlyOneOption={!isEditing && jobLineItemForm.watch('type') === JOB_LINE_ITEM_TYPE.DELIVERY && jobLineItemForm.watch('type') !== undefined && accountingSoftware !== 'MYOB_ACUMATICA'}
                     />
 
                     <FormField
@@ -869,8 +875,7 @@ export default function JobLineItemForm({
                       disabled={
                         !jobLineItemForm.watch('truckType') || isReadOnly
                       }
-                      autoSelectForOnlyOneOption={!isEditing && jobLineItemForm.watch('type') === JOB_LINE_ITEM_TYPE.DELIVERY && jobLineItemForm.watch('type') !== undefined}
-
+                      autoSelectForOnlyOneOption={!isEditing && jobLineItemForm.watch('type') === JOB_LINE_ITEM_TYPE.DELIVERY && jobLineItemForm.watch('type') !== undefined && accountingSoftware !== 'MYOB_ACUMATICA'}
                     />
 
                     <FormField

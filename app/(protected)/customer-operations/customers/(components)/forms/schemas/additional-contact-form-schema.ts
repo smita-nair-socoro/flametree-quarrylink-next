@@ -1,21 +1,54 @@
 import z from 'zod';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import {
+  ADDITIONAL_CONTACT_METHOD_TYPE,
+  ADDITIONAL_CONTACT_METHOD_TYPE_LABELS,
+} from '@/lib/types/customer-enums';
+import { FormSelectOption } from '@/components/ui/form-select';
+import { sortByLabel } from '@/lib/utils/sort-options';
 
-const PhoneRequired = z
-  .string()
-  .trim()
-  .nonempty({ message: 'Phone number is required' })
-  .refine((v) => !v || isValidPhoneNumber(v), {
-    message: 'Invalid phone number',
-  });
+export const ADDITIONAL_CONTACT_METHOD_TYPE_OPTIONS: readonly FormSelectOption[] =
+  (() => {
+    const options = Object.values(ADDITIONAL_CONTACT_METHOD_TYPE).map(
+      (value) => ({
+        label: ADDITIONAL_CONTACT_METHOD_TYPE_LABELS[value],
+        value,
+      }),
+    );
 
-const EmailRequired = z
-  .string()
-  .trim()
-  .nonempty({ message: 'Email is required' })
-  .max(256, 'Maximum 256 characters')
-  .refine((v) => !v || z.string().email().safeParse(v).success, {
-    message: 'Invalid email format',
+    const other = options.find(
+      (option) => option.value === ADDITIONAL_CONTACT_METHOD_TYPE.OTHER,
+    );
+    const rest = sortByLabel(
+      options.filter(
+        (option) => option.value !== ADDITIONAL_CONTACT_METHOD_TYPE.OTHER,
+      ),
+      (option) => option.label,
+    );
+
+    return other ? [...rest, other] : rest;
+  })();
+
+const contactMethodSchema = z
+  .object({
+    type: z.nativeEnum(ADDITIONAL_CONTACT_METHOD_TYPE, {
+      message: 'Type is required',
+    }),
+    value: z
+      .string()
+      .trim()
+      .min(1, 'Required')
+      .max(256, 'Maximum 256 characters'),
+  })
+  .superRefine((method, ctx) => {
+    if (method.type === ADDITIONAL_CONTACT_METHOD_TYPE.EMAIL) {
+      if (!z.string().email().safeParse(method.value).success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['value'],
+          message: 'Invalid email format',
+        });
+      }
+    }
   });
 
 export const additionalContactFormSchema = z.object({
@@ -29,7 +62,8 @@ export const additionalContactFormSchema = z.object({
     .trim()
     .min(1, 'Last name is required')
     .max(256, 'Maximum 256 characters'),
-  email: EmailRequired,
-  phone: PhoneRequired,
-  position: z.string().trim().max(256, 'Maximum 256 characters').optional(),
+  positionRole: z.string().trim().max(256, 'Maximum 256 characters').optional(),
+  contactMethods: z
+    .array(contactMethodSchema)
+    .min(1, 'At least one contact method is required'),
 });

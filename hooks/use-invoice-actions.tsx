@@ -53,7 +53,9 @@ export function InvoiceDetailsDialog() {
   }, [open]);
 
   const handleDownload = async () => {
-    if (invoiceId == null || isDownloading) return;
+    if (invoiceId == null || isDownloading) {
+      return;
+    }
 
     setIsDownloading(true);
     try {
@@ -67,11 +69,13 @@ export function InvoiceDetailsDialog() {
         return;
       }
 
-      if (accSoftware === 'MYOB') {
+      if (accSoftware === 'MYOB Business' || accSoftware === 'MYOB Acumatica') {
         const invoicePdf = await queryClient.fetchQuery(
           InvoicePdfQueryOptions(invoiceId),
         );
-        if (!(invoicePdf instanceof Blob)) return;
+        if (!(invoicePdf instanceof Blob)) {
+          return;
+        }
 
         const url = URL.createObjectURL(invoicePdf);
         const opened = window.open(url, '_blank', 'noopener,noreferrer');
@@ -204,13 +208,13 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {formatNumberThousandSeparator(
                               docket.actualLoadSize ||
-                                docket.plannedLoadSize ||
-                                0,
+                              docket.plannedLoadSize ||
+                              0,
                             )}{' '}
                             {docket.jobItem?.productSellUom === 'TN'
                               ? 'TN'
                               : docket.jobItem?.productSellUom === 'M3' ||
-                                  docket.jobItem?.productSellUom === 'm3'
+                                docket.jobItem?.productSellUom === 'm3'
                                 ? 'm³'
                                 : docket.jobItem?.productSellUom === 'KG_20'
                                   ? 'x 20kg'
@@ -221,9 +225,9 @@ export function InvoiceDetailsDialog() {
                           <td className="px-4 py-3 text-gray-600">
                             {docket.deliveryCollectionDate
                               ? formatDate(
-                                  docket.deliveryCollectionDate,
-                                  'MMM dd, yyyy',
-                                )
+                                docket.deliveryCollectionDate,
+                                'MMM dd, yyyy',
+                              )
                               : '-'}
                           </td>
                         </tr>

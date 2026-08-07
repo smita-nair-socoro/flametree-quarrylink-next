@@ -76,6 +76,7 @@ type CountryEntry = { label: string; value: RPNInput.Country | undefined };
 
 type CountrySelectProps = {
   disabled?: boolean;
+  readOnly?: boolean;
   value: RPNInput.Country;
   options: CountryEntry[];
   onChange: (country: RPNInput.Country) => void;
@@ -83,6 +84,7 @@ type CountrySelectProps = {
 
 const CountrySelect = ({
   disabled,
+  readOnly,
   value: selectedCountry,
   options: countryList,
   onChange,
@@ -105,7 +107,7 @@ const CountrySelect = ({
           type="button"
           variant="outline"
           className="flex gap-1 rounded-e-none rounded-s-lg border-r-0 px-3 focus:z-10"
-          disabled={disabled}
+          disabled={disabled || readOnly}
         >
           <FlagComponent
             country={selectedCountry}
@@ -189,9 +191,8 @@ const CountrySelectOption = ({
         country
       )}`}</span>
       <CheckIcon
-        className={`ml-auto size-4 ${
-          country === selectedCountry ? 'opacity-100' : 'opacity-0'
-        }`}
+        className={`ml-auto size-4 ${country === selectedCountry ? 'opacity-100' : 'opacity-0'
+          }`}
       />
     </CommandItem>
   );

@@ -17,6 +17,7 @@ import type { AccountCode } from '@/lib/types/accounting';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 
 const EMPTY_ACCOUNT_CODE_DRAFT: AccountCode = {
   code: '',
@@ -40,6 +41,7 @@ function AccountCodeForm({
 }>) {
   const canSave = draft.code.trim().length > 0 && draft.name.trim().length > 0;
 
+
   return (
     <div className="rounded-xl border border-[#E5E7EB] bg-white p-4">
       <div className="grid gap-4 md:grid-cols-[1fr_1fr]">
@@ -54,7 +56,7 @@ function AccountCodeForm({
               onDraftChange({ ...draft, code: event.target.value })
             }
           />
-          <p className="text-xs text-[#6A7282]">Xero max 10 characters.</p>
+          <p className="text-xs text-[#6A7282]">max 10 characters.</p>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -167,6 +169,9 @@ export function AccountCodeMapping() {
   const updateAccountCode = useUpdateAccountCode();
   const deleteAccountCode = useDeleteAccountCode();
 
+  const { accountingSoftwareLabel } =
+    useAccountingIntegrationConnection();
+
   const accountCodes = accountCodesQuery.data ?? [];
   const isAccountCodeSaving =
     createAccountCode.isPending ||
@@ -277,7 +282,7 @@ export function AccountCodeMapping() {
           className="shrink-0 text-[#364153]"
           onClick={() => setAccountCodesExpanded((current) => !current)}
         >
-          {accountCodesExpanded ? 'Hide account codes' : 'Manage account codes'}
+          {accountCodesExpanded ? `Hide ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'}` : `Manage ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'}`}
           <ChevronDown
             className={cn(
               'ml-1 h-4 w-4 transition-transform',
@@ -292,11 +297,10 @@ export function AccountCodeMapping() {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm font-semibold text-[#101828]">
-                Account Codes
+                {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'}
               </p>
               <p className="text-sm text-[#6A7282]">
-                Map QuarryLink Quarry / Supplier records to Xero account
-                codes.
+                Map QuarryLink Quarry / Supplier records to {accountingSoftwareLabel} {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'}.
               </p>
             </div>
             {!isAddingAccountCode && editingAccountCodeId === null && (
@@ -308,7 +312,7 @@ export function AccountCodeMapping() {
                 onClick={handleStartAddAccountCode}
               >
                 <Plus className="h-4 w-4" />
-                Add account code
+                Add {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}
               </Button>
             )}
           </div>
@@ -320,7 +324,7 @@ export function AccountCodeMapping() {
               onCancel={handleCancelAddAccountCode}
               onSave={handleSaveAccountCode}
               isSaving={isAccountCodeSaving}
-              submitText="Create account code"
+              submitText={`Create ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}`}
             />
           )}
 
@@ -336,17 +340,17 @@ export function AccountCodeMapping() {
                   <Plus className="h-5 w-5 text-[#9CA3AF]" />
                 </div>
                 <p className="text-sm font-medium text-[#101828]">
-                  Add your first account code
+                  Add your first {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}
                 </p>
                 <p className="text-sm text-[#6A7282]">
-                  No account codes have been configured yet.
+                  No {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'} have been configured yet.
                 </p>
               </button>
             )}
 
           {accountCodesQuery.isLoading && (
             <div className="rounded-xl border border-[#E5E7EB] bg-white px-4 py-5 text-sm text-[#6A7282]">
-              Loading account codes...
+              Loading {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Ids' : 'Account Codes'}...
             </div>
           )}
 
@@ -361,7 +365,7 @@ export function AccountCodeMapping() {
                     onCancel={handleCancelEditAccountCode}
                     onSave={handleSaveEditAccountCode}
                     isSaving={isAccountCodeSaving}
-                    submitText="Update account code"
+                    submitText={`Update ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}`}
                   />
                 ) : (
                   <AccountCodeRow
@@ -390,13 +394,13 @@ export function AccountCodeMapping() {
             setDeleteTargetAccountCode(null);
           }
         }}
-        title="Delete account code?"
+        title={`Delete ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}?`}
         titleIcon={<AlertTriangle className="h-5 w-5 text-[#E7000B]" />}
         content={
           deleteTargetAccountCode ? (
             <div className="flex flex-col gap-4">
               <p className="text-sm text-[#364153]">
-                Are you sure you want to delete the account code{' '}
+                Are you sure you want to delete the {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}{' '}
                 <span className="font-medium">
                   {deleteTargetAccountCode.code} —{' '}
                   {deleteTargetAccountCode.name}
@@ -409,15 +413,15 @@ export function AccountCodeMapping() {
                 </p>
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-[#6A7282]">
                   <li>
-                    This account code will be removed from the integration
+                    This {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} will be removed from the integration
                     mapping.
                   </li>
                   <li>
-                    Invoices already pushed to Xero will keep their existing
+                    Invoices already pushed to {accountingSoftwareLabel} will keep their existing
                     account code.
                   </li>
                   <li>
-                    New invoices will no longer use this account code for mapped
+                    New invoices will no longer use this {accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'} for mapped
                     records.
                   </li>
                   <li>You can recreate it at any time from this page.</li>
@@ -427,7 +431,7 @@ export function AccountCodeMapping() {
           ) : null
         }
         confirmText={
-          deleteAccountCode.isPending ? 'Deleting...' : 'Delete account code'
+          deleteAccountCode.isPending ? 'Deleting...' : `Delete ${accountingSoftwareLabel === 'MYOB Acumatica' ? 'Warehouse Id' : 'Account Code'}`
         }
         confirmVariant="destructive"
         confirmCustomColor="#E7000B"

@@ -1,45 +1,9 @@
-import { parsePhoneNumber } from 'react-phone-number-input';
 import type {
   AdditionalContactApiDTO,
   AdditionalContactDTO,
+  AdditionalContactMethodDTO,
 } from '@/lib/types/customer';
-import { normalizePhoneNumber } from './phone-helper';
-
-export function combineAdditionalContactPhone(
-  phoneCountryCode?: string | null,
-  phoneNumber?: string | null,
-): string {
-  if (!phoneNumber?.trim()) return '';
-
-  const digits = phoneNumber.replace(/\s/g, '');
-  const code = phoneCountryCode?.trim() || '+61';
-  const normalizedCode = code.startsWith('+') ? code : `+${code}`;
-
-  return normalizePhoneNumber(`${normalizedCode}${digits}`);
-}
-
-export function splitAdditionalContactPhone(e164Phone: string): {
-  phoneCountryCode: string;
-  phoneNumber: string;
-} {
-  const normalized = normalizePhoneNumber(e164Phone);
-  if (!normalized) {
-    return { phoneCountryCode: '+61', phoneNumber: '' };
-  }
-
-  const parsed = parsePhoneNumber(normalized);
-  if (!parsed) {
-    return {
-      phoneCountryCode: '+61',
-      phoneNumber: normalized.replace(/^\+\d+/, ''),
-    };
-  }
-
-  return {
-    phoneCountryCode: `+${parsed.countryCallingCode}`,
-    phoneNumber: parsed.nationalNumber,
-  };
-}
+import { ADDITIONAL_CONTACT_METHOD_TYPE } from '@/lib/types/customer-enums';
 
 export function mapAdditionalContactFromApi(
   contact: AdditionalContactApiDTO,
@@ -50,31 +14,46 @@ export function mapAdditionalContactFromApi(
     customerId,
     firstName: contact.firstName,
     lastName: contact.lastName,
-    email: contact.email,
-    phone: combineAdditionalContactPhone(
-      contact.phoneCountryCode,
-      contact.phoneNumber,
-    ),
-    position: contact.positionRole,
+    positionRole: contact.positionRole,
+    contactMethods: Array.isArray(contact.contactMethods)
+      ? contact.contactMethods.map((method) => ({
+          type: method.type,
+          value: method.value,
+        }))
+      : [],
   };
 }
 
 export function mapAdditionalContactToApiPayload(
   values: Pick<
     AdditionalContactDTO,
-    'firstName' | 'lastName' | 'email' | 'phone' | 'position'
+    'firstName' | 'lastName' | 'positionRole' | 'contactMethods'
   >,
 ): Omit<AdditionalContactApiDTO, 'id'> {
-  const { phoneCountryCode, phoneNumber } = splitAdditionalContactPhone(
-    values.phone ?? '',
-  );
+  const contactMethods: AdditionalContactMethodDTO[] = (
+    values.contactMethods ?? []
+  )
+    .filter((method) => method.type && method.value?.trim())
+    .map((method) => ({
+      type: method.type,
+      value: method.value.trim(),
+    }));
 
   return {
     firstName: values.firstName?.trim() ?? '',
     lastName: values.lastName?.trim() ?? '',
-    email: values.email?.trim() ?? '',
-    phoneCountryCode,
-    phoneNumber,
-    positionRole: values.position?.trim() ?? '',
+    positionRole: values.positionRole?.trim() ?? '',
+    contactMethods,
   };
+}
+
+export function getContactMethodValue(
+  contact?: AdditionalContactDTO | null,
+  type?: ADDITIONAL_CONTACT_METHOD_TYPE,
+): string {
+  const methods = contact?.contactMethods ?? [];
+  if (type) {
+    return methods.find((method) => method.type === type)?.value?.trim() ?? '';
+  }
+  return methods[0]?.value?.trim() ?? '';
 }
