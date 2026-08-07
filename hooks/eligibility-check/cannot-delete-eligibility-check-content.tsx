@@ -59,7 +59,9 @@ export function CannotDeleteEligibilityCheckContent({
 
   const quotationsHref =
     blockingQuotationIds.length > 0
-      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotationIds.join(',')}`
+      ? `/customer-operations/quotation?linkedQuotationIds=${encodeURIComponent(
+          blockingQuotationIds.join(','),
+        )}`
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
