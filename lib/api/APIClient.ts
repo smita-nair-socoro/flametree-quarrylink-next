@@ -1,7 +1,6 @@
 import { baseUrl, getTenantId, getUser } from '../utils';
 // import { handleLogout } from '../auth/authManager';
 import {
-  LinkedProduct,
   Product,
   ProductDetails,
   ProductListItem,
@@ -127,9 +126,25 @@ import {
   CustomerFeeRecoveryOverridePage,
 } from '../types/fee-recovery';
 import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
+import {
+  PolicyDocumentItem,
+  PolicyDocumentMetadata,
+  PolicyDocumentViewDTO,
+  QuoteTextTemplateResponseDto,
+  QuoteTextTemplateRequestDto,
+  QuoteExternalLinkResponseDto,
+  QuoteExternalLinkRequestDto,
+  QuoteEditorContentResponseDto,
+  QuoteContentSelectionRequestDto,
+  QuoteContentLibraryResponseDto,
+} from '../types/terms-conditions';
 
 type RequestBody =
-  BodyInit | FormData | object | Record<string, unknown> | null;
+  | BodyInit
+  | FormData
+  | object
+  | Record<string, unknown>
+  | null;
 type Primitive = string | number | boolean | symbol | undefined;
 
 export interface HttpConfig {
@@ -628,10 +643,38 @@ export const APIClient = {
       appClient.Delete(
         `/api/v1/quarries/quarry-product/${quarryProductPriceId}`,
       ),
-    linkedProducts: (quarryId: number) =>
-      appClient.Get<LinkedProduct>(
+    linkedProducts: (
+      quarryId: number,
+      params?: {
+        materialIds?: number[];
+        isActive?: boolean[];
+        page?: number;
+        pageSize?: number;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: string;
+      },
+    ) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+
+      return appClient.Get<ProductsListResponse>(
         `/socoro/quarrylink/api/quarries/${quarryId}/linked-products`,
-      ),
+        {
+          queryString: {
+            materialIds: params?.materialIds?.map(String),
+            isActive: params?.isActive?.map(String),
+            page: params?.page?.toString(),
+            pageSize: isPaginated
+              ? (params?.pageSize?.toString() ?? '10')
+              : (params?.pageSize?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+          },
+        },
+      );
+    },
   },
 
   materials: {
@@ -1371,7 +1414,8 @@ export const APIClient = {
     pause: (
       id: number,
       deliveryPauseStrategy:
-        'STOP_ALL_DELIVERY_DOCKETS' | 'ALLOW_DRIVERS_TO_COMPLETE',
+        | 'STOP_ALL_DELIVERY_DOCKETS'
+        | 'ALLOW_DRIVERS_TO_COMPLETE',
       collectionPauseStrategy:
         | 'STOP_ACTIVE_COLLECTION_DOCKETS'
         | 'ALLOW_ACTIVE_COLLECTIONS_TO_COMPLETE',
@@ -1830,6 +1874,120 @@ export const APIClient = {
       }),
     deleteDepartment: (id: number) =>
       appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
+  },
+
+  policyDocuments: {
+    getAll: () =>
+      appClient.Get<PolicyDocumentItem | null>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+      ),
+    create: (metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+      );
+      formData.append('file', file);
+      return appClient.Post<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+        { body: formData },
+      );
+    },
+    update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+      );
+      formData.append('file', file);
+      return appClient.Put<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+        { body: formData },
+      );
+    },
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+      ),
+    view: (id: number) =>
+      appClient.Get<PolicyDocumentViewDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}/view`,
+      ),
+  },
+
+  textTemplates: {
+    getAll: () =>
+      appClient.Get<QuoteTextTemplateResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+    create: (data: QuoteTextTemplateRequestDto) =>
+      appClient.Post<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteTextTemplateRequestDto) =>
+      appClient.Put<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+  },
+
+  externalLinks: {
+    getAll: () =>
+      appClient.Get<QuoteExternalLinkResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+    create: (data: QuoteExternalLinkRequestDto) =>
+      appClient.Post<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteExternalLinkRequestDto) =>
+      appClient.Put<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+  },
+
+  quoteEditorContent: {
+    get: (quoteId: number) =>
+      appClient.Get<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+      ),
+    update: (quoteId: number, data: QuoteContentSelectionRequestDto) =>
+      appClient.Put<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+        { body: data },
+      ),
+  },
+
+  quoteContentLibrary: {
+    getAll: (params?: { sortBy?: string; direction?: string }) =>
+      appClient.Get<QuoteContentLibraryResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            direction: params?.direction,
+          },
+        },
+      ),
   },
   feeRecovery: {
     getCustomerOverrides: (params?: {

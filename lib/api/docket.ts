@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys, JobKeys, SchedulerKeys } from './keys';
-import { toLocalDateTime } from '@/lib/utils/date';
 import {
   DocketAssignRequest,
   DocketDTO,
@@ -27,7 +26,7 @@ export const DocketStatisticsQueryOptions = () => {
   const dateKey = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
   return queryOptions({
     queryKey: [...DocketKeys.statistics(), dateKey],
-    queryFn: () => APIClient.dockets.statistics(toLocalDateTime(new Date())),
+    queryFn: () => APIClient.dockets.statistics(dateKey),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

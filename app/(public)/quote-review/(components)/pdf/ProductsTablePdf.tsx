@@ -29,12 +29,24 @@ const getTypeBadgeStyle = (type: string) => {
   switch (type.toUpperCase()) {
     case 'DELIVERY':
       // bg-blue-100 text-blue-800 border-blue-800
-      return { backgroundColor: '#DBEAFE', borderColor: '#1E40AF', color: '#1E40AF' };
+      return {
+        backgroundColor: '#DBEAFE',
+        borderColor: '#1E40AF',
+        color: '#1E40AF',
+      };
     case 'COLLECTION':
       // bg-orange-100 text-orange-900 border-orange-900
-      return { backgroundColor: '#FFEDD5', borderColor: '#7C2D12', color: '#7C2D12' };
+      return {
+        backgroundColor: '#FFEDD5',
+        borderColor: '#7C2D12',
+        color: '#7C2D12',
+      };
     default:
-      return { backgroundColor: '#F3F4F6', borderColor: '#6B7280', color: '#6B7280' };
+      return {
+        backgroundColor: '#F3F4F6',
+        borderColor: '#6B7280',
+        color: '#6B7280',
+      };
   }
 };
 
@@ -53,12 +65,40 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
     );
   const colWidths = (() => {
     if (isCollection && includeDeliveryPrices)
-      return { product: '25%', type: '15%', qty: '15%', delivery: '15%', unitPrice: '15%', price: '15%' };
+      return {
+        product: '25%',
+        type: '15%',
+        qty: '15%',
+        delivery: '15%',
+        unitPrice: '15%',
+        price: '15%',
+      };
     if (isCollection)
-      return { product: '30%', type: '20%', qty: '20%', delivery: undefined, unitPrice: '15%', price: '15%' };
+      return {
+        product: '30%',
+        type: '20%',
+        qty: '20%',
+        delivery: undefined,
+        unitPrice: '15%',
+        price: '15%',
+      };
     if (includeDeliveryPrices)
-      return { product: '25%', type: '17%', qty: '10%', delivery: '13%', unitPrice: '17%', price: '18%' };
-    return { product: '30%', type: '20%', qty: '15%', delivery: undefined, unitPrice: '17%', price: '18%' };
+      return {
+        product: '25%',
+        type: '17%',
+        qty: '10%',
+        delivery: '13%',
+        unitPrice: '17%',
+        price: '18%',
+      };
+    return {
+      product: '30%',
+      type: '20%',
+      qty: '15%',
+      delivery: undefined,
+      unitPrice: '17%',
+      price: '18%',
+    };
   })();
 
   return (
@@ -122,9 +162,14 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
       {/* Table Rows */}
       {products.map((product) => {
         const combinedPrice = product.totalPrice + (product.deliveryPrice || 0);
-        const displayPrice = includeDeliveryPrices ? product.totalPrice : combinedPrice;
-        const combinedUnitPrice = product.rawQty > 0 ? combinedPrice / product.rawQty : 0;
-        const unitPriceCents = includeDeliveryPrices ? product.unitPrice : combinedUnitPrice;
+        const displayPrice = includeDeliveryPrices
+          ? product.totalPrice
+          : combinedPrice;
+        const combinedUnitPrice =
+          product.rawQty > 0 ? combinedPrice / product.rawQty : 0;
+        const unitPriceCents = includeDeliveryPrices
+          ? product.unitPrice
+          : combinedUnitPrice;
         const rowKey = `${product.name}-${product.deliveryAddress}-${product.totalPrice}`;
 
         return (
@@ -143,24 +188,33 @@ export const ProductsTablePdf: React.FC<ProductsTablePdfProps> = ({
                 justifyContent: 'center',
               }}
             >
-              {product.type ? (() => {
-                const badgeStyle = getTypeBadgeStyle(product.type);
-                return (
-                  <View
-                    style={[
-                      styles.statusBadge,
-                      {
-                        backgroundColor: badgeStyle.backgroundColor,
-                        borderColor: badgeStyle.borderColor,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.statusBadgeText, { color: badgeStyle.color }]}>
-                      {product.type.replaceAll('_', ' ')}
-                    </Text>
-                  </View>
-                );
-              })() : <Text style={styles.quantity}>—</Text>}
+              {product.type ? (
+                (() => {
+                  const badgeStyle = getTypeBadgeStyle(product.type);
+                  return (
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor: badgeStyle.backgroundColor,
+                          borderColor: badgeStyle.borderColor,
+                        },
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.statusBadgeText,
+                          { color: badgeStyle.color },
+                        ]}
+                      >
+                        {product.type.replaceAll('_', ' ')}
+                      </Text>
+                    </View>
+                  );
+                })()
+              ) : (
+                <Text style={styles.quantity}>—</Text>
+              )}
             </View>
 
             {/* Quantity Column */}

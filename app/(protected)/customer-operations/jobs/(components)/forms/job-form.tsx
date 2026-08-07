@@ -29,6 +29,7 @@ import { AuditInformation } from '@/components/audit-information';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
+import { startOfDay } from 'date-fns';
 
 interface FormProps {
   id?: number;
@@ -43,6 +44,7 @@ interface FormProps {
 export default function JobForm({
   id,
   className,
+  canEdit,
   onDirtyChange,
   onSaved,
   onCancel,
@@ -50,6 +52,7 @@ export default function JobForm({
 }: Readonly<FormProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
+  const today = startOfDay(new Date());
 
   const {
     jobForm,
@@ -188,6 +191,7 @@ export default function JobForm({
                       className="w-full"
                       placeholder="Enter PO Number"
                       {...field}
+                      disabled={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -258,6 +262,7 @@ export default function JobForm({
                       className="w-full"
                       placeholder="Enter Project Name"
                       {...field}
+                      disabled={isEditing && !canEdit}
                     />
                   </FormControl>
                   <FormMessage />
@@ -282,6 +287,7 @@ export default function JobForm({
                         placeholder="Enter Customer Name"
                         {...field}
                         value={field.value || ''}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -307,6 +313,7 @@ export default function JobForm({
                         placeholder="Enter Phone"
                         defaultCountry="AU"
                         {...field}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -338,6 +345,8 @@ export default function JobForm({
                         value={field.value}
                         onChangeAction={field.onChange}
                         placeholder="Pick a date"
+                        disabled={isEditing && !canEdit}
+                        disabledDates={{ before: today }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -358,6 +367,7 @@ export default function JobForm({
                         relation="start"
                         siblingValue={deliveryWindowEnd}
                         aria-invalid={!!fieldState.error}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -378,6 +388,7 @@ export default function JobForm({
                         relation="end"
                         siblingValue={deliveryWindowStart}
                         aria-invalid={!!fieldState.error}
+                        disabled={isEditing && !canEdit}
                       />
                     </FormControl>
                     <FormMessage />
@@ -410,7 +421,7 @@ export default function JobForm({
                         }
                         fixedValues={fixedValues}
                         label="Press Enter or comma to add email addresses for delivery receipts"
-                        disabled={jobForm.watch('customerId') === 0}
+                        disabled={jobForm.watch('customerId') === 0 || (isEditing && !canEdit)}
                         {...field}
                       />
                     </FormControl>
@@ -424,7 +435,7 @@ export default function JobForm({
           {isEditing && <Separator className="my-4" />}
 
           {isEditing && (
-            <div className="w-full flex min-w-0 mb-10">
+            <div className="w-full flex min-w-0 mb-11">
               <Tab
                 tabs={tabs}
                 className="w-full min-w-0"

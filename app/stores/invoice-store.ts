@@ -14,12 +14,6 @@ interface InvoiceStore {
 
   getInvoiceById: (id: number) => Invoice | undefined;
   getInvoicesByStatus: (status: string) => Invoice[];
-
-  getInvoiceStats: () => {
-    total: number;
-    paid: number;
-    due_payment: number;
-  };
 }
 
 export const useInvoiceStore = create<InvoiceStore>()(
@@ -45,18 +39,6 @@ export const useInvoiceStore = create<InvoiceStore>()(
       getInvoicesByStatus: (status: string) => {
         const state = get();
         return state.invoices.filter((i) => i.invoice_status === status);
-      },
-
-      getInvoiceStats: () => {
-        const state = get();
-        const invoices = state.invoices;
-
-        return {
-          total: invoices.length,
-          active: invoices.filter((i) => i.invoice_status === 'ACTIVE').length,
-          archived: invoices.filter((i) => i.invoice_status === 'ARCHIVED')
-            .length,
-        };
       },
     }),
     { name: 'invoice-store' },

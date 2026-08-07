@@ -455,6 +455,23 @@ export const useGetAdditionalContacts = (
     enabled: !!customerId,
   });
 
+export const AdditionalContactDetailQueryOptions = (
+  customerId: number,
+  contactId: number,
+  enabled = true,
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.additionalContactDetail(customerId, contactId),
+    queryFn: async () => {
+      const response = await APIClient.customers.getAdditionalContact(
+        customerId,
+        contactId,
+      );
+      return mapAdditionalContactFromApi(response, customerId);
+    },
+    enabled: enabled && !!customerId && !!contactId,
+  });
+
 export const useCreateAdditionalContact = () => {
   const queryClient = useQueryClient();
 
@@ -509,6 +526,12 @@ export const useUpdateAdditionalContact = () => {
           'additional-contacts',
           variables.customerId,
         ],
+      });
+      queryClient.invalidateQueries({
+        queryKey: CustomerKeys.additionalContactDetail(
+          variables.customerId,
+          variables.contactId,
+        ),
       });
     },
   });

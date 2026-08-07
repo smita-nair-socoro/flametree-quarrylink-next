@@ -10,11 +10,12 @@ import { QuarrySupplierActionButtons } from '@/app/(protected)/inventory/quarrie
 import { CircleAlert, CircleCheck, CircleX, TriangleAlert } from 'lucide-react';
 import { Separator } from '@radix-ui/react-separator';
 import {
-  LinkedProductsQueryOptions,
+  LinkedProductsListQueryOptions,
   useUnarchiveQuarry,
   useDeleteQuarryAfterEligibilityCheck,
 } from '@/lib/api/quarries';
 import { useQueryClient } from '@tanstack/react-query';
+import { getProductsPageFromListResponse } from '@/lib/api/product';
 import {
   extractEligibilityBlockingDependencies,
   extractErrorData,
@@ -293,42 +294,27 @@ export function useQuarrySupplierActions(quarrySupplierData?: Quarry | null) {
       if (!quarrySupplierId) return;
 
       try {
-        const linked = await queryClient.fetchQuery(
-          LinkedProductsQueryOptions(quarrySupplierId)
+        const linkedProductsData = await queryClient.fetchQuery(
+          LinkedProductsListQueryOptions(quarrySupplierId, {
+            page: 0,
+            pageSize: 1,
+          }),
         );
+        const linkedPage = getProductsPageFromListResponse(linkedProductsData);
 
-        const linkedArr = Array.isArray(linked)
-          ? linked
-          : linked
-            ? [linked]
-            : [];
-
-        const productIdsSet = new Set<number>();
-        for (const lp of linkedArr) {
-          const qsp = lp?.quarrySupplierProducts ?? [];
-          for (const p of qsp) {
-            const id = p?.productId;
-            if (typeof id === 'number' && id > 0) productIdsSet.add(id);
-          }
-        }
-
-        const productIds = Array.from(productIdsSet);
-
-        if (productIds.length === 0) {
+        if (!linkedPage?.totalElements) {
           notifyError('No linked products found for this quarry/supplier.');
           return;
         }
 
-        const quarrySupplierName = quarrySupplierData?.name?.trim() ?? selectedQuarrySupplier?.name?.trim();
+        const quarrySupplierName =
+          quarrySupplierData?.name?.trim() ??
+          selectedQuarrySupplier?.name?.trim();
         const nameParam = quarrySupplierName
-          ? `&linkedQuarrySupplierName=${encodeURIComponent(
-            quarrySupplierName
-          )}`
+          ? `&linkedQuarrySupplierName=${encodeURIComponent(quarrySupplierName)}`
           : '';
 
-        const linkedProductsUrl = `/inventory/products/?linkedProductIds=${encodeURIComponent(
-          productIds.join(',')
-        )}&linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`;
+        const linkedProductsUrl = `/inventory/products/?linkedQuarrySupplierId=${quarrySupplierId}${nameParam}`;
         window.open(linkedProductsUrl, '_blank', 'noopener,noreferrer');
       } catch (e: unknown) {
         console.error('[useQuarrySupplierActions] linkedProducts failed:', e);

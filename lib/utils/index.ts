@@ -242,4 +242,9 @@ export const BADGE_COLORS: Record<string, string> = {
   'CUSTOM RULE': 'bg-violet-100 text-violet-800 border-violet-800',
   CHARGING: 'bg-green-100 text-green-800 border-green-300',
   ABSORBED: 'bg-gray-100 text-gray-600 border-gray-400',
+  // Quote Settings Badge Colors
+  'TEXT TEMPLATE': 'border-[#DDD6FF] bg-[#F5F3FF] text-[#7008E7]',
+  'EXTERNAL LINK': 'border-[#BEDBFF] bg-[#EFF6FF] text-[#1447E6]',
+  'POLICY DOCUMENT': 'border-[#FFC9C9] bg-[#FEF2F2] text-[#C10007]',
+  DEFAULT: 'border-transparent bg-primary text-primary-foreground',
 };

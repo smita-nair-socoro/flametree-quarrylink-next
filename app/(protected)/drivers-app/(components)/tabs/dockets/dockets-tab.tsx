@@ -42,10 +42,11 @@ import { Map } from '@/components/ui/map';
 import type { MapMarker } from '@/components/ui/map';
 import { resolveAddressCoords } from '@/components/ui/address-autocomplete/Geodata-match';
 import { formatPhoneNumber } from '@/lib/utils/phone-helper';
-import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
+import { formatUomLabel, getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import { parseBackendDateTime } from '@/lib/utils/date';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 
 const getCustomerName = (
   customerDto?: CustomerDTO,
@@ -520,16 +521,12 @@ export default function DocketsTab({
                       </span>
                       <div className="grid grid-cols-2 items-center">
                         <span className="text-[14px] font-bold text-gray-900">
-                          {selectedDocket.docketStatus === 'ASSIGNED'
-                            ? selectedDocket.plannedLoadSize
-                            : (docketSizes[selectedDocket.id] ?? selectedDocket.actualLoadSize ?? selectedDocket.plannedLoadSize)}
-                          {selectedDocket.jobItem?.productSellUom === 'M3' || selectedDocket.jobItem?.productSellUom === 'm3'
-                            ? 'm³'
-                            : selectedDocket.jobItem?.productSellUom === 'KG_20'
-                              ? 'x 20kg'
-                              : selectedDocket.jobItem?.productSellUom === 'BULKA'
-                                ? 'Bulka'
-                                : selectedDocket.jobItem?.productSellUom}
+                          {formatNumberThousandSeparator(
+                            selectedDocket.actualLoadSize ??
+                            selectedDocket.plannedLoadSize ??
+                            0,
+                          )}{' '}
+                          {formatUomLabel(selectedDocket.jobItem?.productSellUom ?? 'TN')}
                         </span>
                         {['IN_TRANSIT', 'ARRIVED', 'STOPPED'].includes(selectedDocket.docketStatus) && (
                           <Button
@@ -539,7 +536,8 @@ export default function DocketsTab({
                             onClick={() => {
                               const currentValue =
                                 (docketSizes[selectedDocket.id] ??
-                                  selectedDocket.actualLoadSize)?.toString() ?? '';
+                                  selectedDocket.actualLoadSize ??
+                                  selectedDocket.plannedLoadSize)?.toString() ?? '';
                               setUpdateValue(
                                 clampLoadSizeInputValue(currentValue),
                               );
@@ -778,29 +776,18 @@ export default function DocketsTab({
                 {updateValue || '0'}
               </span>
               <span className="text-[24px] text-[#64748B] font-medium">
-                {selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
-                  ? 'm³'
-                  : selectedDocket?.jobItem?.productSellUom === 'KG_20'
-                    ? 'x 20kg'
-                    : selectedDocket?.jobItem?.productSellUom === 'BULKA'
-                      ? 'Bulka'
-                      : selectedDocket?.jobItem?.productSellUom}
+                {formatUomLabel(selectedDocket?.jobItem?.productSellUom ?? 'TN')}
               </span>
             </div>
             <span className="text-[13px] text-[#64748B] font-medium mt-2">
               Current:{' '}
               <span className="font-bold">
-                {(selectedDocket?.id ? docketSizes[selectedDocket.id] : undefined) ??
+                {formatNumberThousandSeparator(
                   selectedDocket?.actualLoadSize ??
-                  selectedDocket?.plannedLoadSize}
-                {
-                  selectedDocket?.jobItem?.productSellUom === 'M3' || selectedDocket?.jobItem?.productSellUom === 'm3'
-                    ? 'm³'
-                    : selectedDocket?.jobItem?.productSellUom === 'KG_20'
-                      ? 'x 20kg'
-                      : selectedDocket?.jobItem?.productSellUom === 'BULKA'
-                        ? 'Bulka'
-                        : selectedDocket?.jobItem?.productSellUom}
+                  selectedDocket?.plannedLoadSize ??
+                  0,
+                )}{' '}
+                {formatUomLabel(selectedDocket?.jobItem?.productSellUom ?? 'TN')}
               </span>
             </span>
           </div>

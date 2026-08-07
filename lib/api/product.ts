@@ -94,7 +94,7 @@ export function toProductApiFilterParams(
 }
 
 /** Products API pagination is 1-based (page 1 = first page). */
-function toApiPage(page: number): number {
+export function toApiPage(page: number): number {
   return page + 1;
 }
 

@@ -239,14 +239,17 @@ export interface UnarchiveCustomerResponseDTO {
   reason: string;
 }
 
+export interface AdditionalContactMethodDTO {
+  type: string;
+  value: string;
+}
+
 export interface AdditionalContactApiDTO {
   id: number;
   firstName: string;
   lastName: string;
-  email: string;
-  phoneCountryCode: string;
-  phoneNumber: string;
   positionRole: string;
+  contactMethods: AdditionalContactMethodDTO[];
 }
 
 export interface AdditionalContactsPage {
@@ -262,9 +265,8 @@ export interface AdditionalContactDTO {
   customerId?: number;
   firstName?: string;
   lastName?: string;
-  email?: string;
-  phone?: string;
-  position?: string;
+  positionRole?: string;
+  contactMethods?: AdditionalContactMethodDTO[];
 }
 
 // Get all and Post

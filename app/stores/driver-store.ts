@@ -15,12 +15,6 @@ interface DriverStore {
 
   getDriverById: (id: number) => DriverDTO | undefined;
   getDriversByStatus: (status: string) => DriverDTO[];
-
-  getDriverStats: () => {
-    total: number;
-    active: number;
-    archived: number;
-  };
 }
 
 export const useDriverStore = create<DriverStore>()(

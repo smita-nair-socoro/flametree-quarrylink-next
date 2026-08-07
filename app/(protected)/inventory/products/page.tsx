@@ -26,6 +26,10 @@ import {
   buildProductFacetOptions,
   isProductsListResponse,
 } from '@/lib/api/product';
+import {
+  LinkedProductsListQueryOptions,
+  LinkedProductsInfiniteListQueryOptions,
+} from '@/lib/api/quarries';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -112,6 +116,16 @@ export default function ProductsPage() {
     [linkedProductIdsSet],
   );
 
+  const linkedQuarrySupplierId = React.useMemo(() => {
+    if (!linkedQuarrySupplierIdParam) return undefined;
+    const id = Number(linkedQuarrySupplierIdParam);
+    return Number.isFinite(id) && id > 0 ? id : undefined;
+  }, [linkedQuarrySupplierIdParam]);
+
+  const isLinkedQuarryView = linkedQuarrySupplierId != null;
+  const isLegacyLinkedIdsView = linkedProductIdsSet != null;
+  const isLinkedView = isLinkedQuarryView || isLegacyLinkedIdsView;
+
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
@@ -132,46 +146,94 @@ export default function ProductsPage() {
     [facetFilters],
   );
 
-  React.useEffect(() => {
-    setPageIndex(0);
-  }, [linkedProductIdsParam]);
-
-  const {
-    data: productsData,
-    isLoading,
-    isFetching,
-    error,
-    isError,
-  } = useQuery(
-    ProductsListQueryOptions({
+  const listParams = React.useMemo(
+    () => ({
       page: pageIndex,
       pageSize,
       search: search.trim() || undefined,
-      ids: linkedProductIds,
       ...apiSortParams,
       ...apiFilterParams,
     }),
+    [pageIndex, pageSize, search, apiSortParams, apiFilterParams],
   );
+
+  const infiniteListParams = React.useMemo(
+    () => ({
+      pageSize: 25,
+      search: search.trim() || undefined,
+      ...apiFilterParams,
+    }),
+    [search, apiFilterParams],
+  );
+
+  React.useEffect(() => {
+    setPageIndex(0);
+  }, [linkedProductIdsParam, linkedQuarrySupplierIdParam]);
+
+  const linkedProductsQuery = useQuery({
+    ...LinkedProductsListQueryOptions(linkedQuarrySupplierId ?? 0, listParams),
+    enabled: isLinkedQuarryView,
+  });
+
+  const mainProductsQuery = useQuery({
+    ...ProductsListQueryOptions({
+      ...listParams,
+      ids: linkedProductIds,
+    }),
+    enabled: !isLinkedQuarryView,
+  });
+
+  const productsData = isLinkedQuarryView
+    ? linkedProductsQuery.data
+    : mainProductsQuery.data;
+  const isLoading = isLinkedQuarryView
+    ? linkedProductsQuery.isLoading
+    : mainProductsQuery.isLoading;
+  const isFetching = isLinkedQuarryView
+    ? linkedProductsQuery.isFetching
+    : mainProductsQuery.isFetching;
+  const error = isLinkedQuarryView
+    ? linkedProductsQuery.error
+    : mainProductsQuery.error;
+  const isError = isLinkedQuarryView
+    ? linkedProductsQuery.isError
+    : mainProductsQuery.isError;
 
   const { data: reportingData } = useQuery(ProductReportingQueryOptions());
 
   const isMobile = useIsMobile();
 
-  const {
-    data: infiniteData,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isFetching: infiniteIsFetching,
-  } = useInfiniteQuery({
-    ...ProductsInfiniteListQueryOptions({
-      pageSize: 25,
-      search: search.trim() || undefined,
-      ids: linkedProductIds,
-      ...apiFilterParams,
-    }),
-    enabled: isMobile,
+  const linkedProductsInfiniteQuery = useInfiniteQuery({
+    ...LinkedProductsInfiniteListQueryOptions(
+      linkedQuarrySupplierId ?? 0,
+      infiniteListParams,
+    ),
+    enabled: isMobile && isLinkedQuarryView,
   });
+
+  const mainProductsInfiniteQuery = useInfiniteQuery({
+    ...ProductsInfiniteListQueryOptions({
+      ...infiniteListParams,
+      ids: linkedProductIds,
+    }),
+    enabled: isMobile && !isLinkedQuarryView,
+  });
+
+  const infiniteData = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.data
+    : mainProductsInfiniteQuery.data;
+  const fetchNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.fetchNextPage
+    : mainProductsInfiniteQuery.fetchNextPage;
+  const hasNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.hasNextPage
+    : mainProductsInfiniteQuery.hasNextPage;
+  const isFetchingNextPage = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.isFetchingNextPage
+    : mainProductsInfiniteQuery.isFetchingNextPage;
+  const infiniteIsFetching = isLinkedQuarryView
+    ? linkedProductsInfiniteQuery.isFetching
+    : mainProductsInfiniteQuery.isFetching;
 
   const mobileItems = React.useMemo(
     () => getProductItemsFromInfinitePages(infiniteData?.pages),
@@ -406,13 +468,13 @@ export default function ProductsPage() {
         ) : (
           <>
             <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
-              {linkedProductIdsSet && (
+              {isLinkedView && (
                 <div className="mt-1 text-sm text-muted-foreground">
                   <span>Showing linked products</span>
                   {linkedFilterSuffix}
                 </div>
               )}
-              {linkedProductIdsSet && (
+              {isLinkedView && (
                 <Button
                   type="button"
                   variant="outline"
@@ -425,7 +487,7 @@ export default function ProductsPage() {
 
             <DataTableClient
               tableId={
-                linkedProductIdsSet
+                isLinkedView
                   ? `product_linked_${linkedQuarrySupplierIdParam ?? 'unknown'}`
                   : 'product_main_data_table'
               }

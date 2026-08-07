@@ -1,9 +1,14 @@
 import { StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register Geist font
+// Register all four Geist variants needed for bold + italic RTE rendering
 Font.register({
   family: 'Geist',
-  src: '/fonts/Geist.ttf',
+  fonts: [
+    { src: '/fonts/GeistRegular.ttf' },
+    { src: '/fonts/GeistBold.ttf', fontWeight: 700 },
+    { src: '/fonts/GeistItalic.ttf', fontStyle: 'italic' },
+    { src: '/fonts/GeistBoldItalic.ttf', fontWeight: 700, fontStyle: 'italic' },
+  ],
 });
 
 // Disable word hyphenation - keeps words intact when wrapping
@@ -757,4 +762,121 @@ export const pdfStyles = StyleSheet.create({
   mb16: { marginBottom: 16 },
   mt8: { marginTop: 8 },
   mt16: { marginTop: 16 },
+
+  // Notes & Terms section
+  notesBox: {
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    backgroundColor: '#FAF5FF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+
+  noteText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    marginBottom: 6,
+  },
+
+  termsBox: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+
+  termNumber: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    width: 14,
+  },
+
+  termText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    flex: 1,
+  },
+
+  termCardContainer: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termCardTitle: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 4,
+  },
+
+  termCardBody: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+  },
+
+  disclaimerText: {
+    fontSize: fontSize.xs,
+    color: colors.gray500,
+    marginBottom: 10,
+  },
+
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 6,
+  },
+
+  documentName: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray800,
+    marginBottom: 2,
+  },
+
+  documentMeta: {
+    fontSize: fontSize.xs,
+    color: colors.gray600,
+  },
+
+  documentLink: {
+    fontSize: fontSize.xs,
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
+
+  // RTE (rich-text) inline/block rendering in PDF
+  rteListItem: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  rteListMarker: {
+    width: 18,
+    flexShrink: 0,
+  },
+  rteLink: {
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
 });
