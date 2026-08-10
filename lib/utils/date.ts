@@ -178,24 +178,24 @@ export function formatTimeRange(
   endDateString?: string | null,
   options?: FormatTimeRangeOptions,
 ): string {
-  if (!startDateString && !endDateString) return 'N/A';
-
   if (options?.hour12) {
-    if (!startDateString || !endDateString) return 'N/A';
+    if (!startDateString && !endDateString) return '--';
+    const formatTime = (date: Date) =>
+      date.toLocaleString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+      });
     try {
-      const start = toDate(startDateString);
-      const end = toDate(endDateString);
-      const formatTime = (date: Date) =>
-        date.toLocaleString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-      return `${formatTime(start)} - ${formatTime(end)}`;
+      const start = startDateString ? formatTime(toDate(startDateString)) : '--';
+      const end = endDateString ? formatTime(toDate(endDateString)) : '--';
+      return `${start} - ${end}`;
     } catch {
-      return 'N/A';
+      return '--';
     }
   }
+
+  if (!startDateString && !endDateString) return 'N/A';
 
   const startTime = extractTimeLabel(startDateString ?? undefined);
   const endTime = extractTimeLabel(endDateString ?? undefined);
