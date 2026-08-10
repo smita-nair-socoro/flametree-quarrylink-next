@@ -97,15 +97,9 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
   baseUrl,
   tenantDetails,
 }) => {
-  // Defaults to the large-logo template when the tenant hasn't been
-  // explicitly set to SMALL or MEDIUM - keep in sync with QuoteNavbarPdf.
-  const isLargeLogo =
-    data.navbar.logoSize !== LogoSize.SMALL &&
-    data.navbar.logoSize !== LogoSize.MEDIUM;
-
   return (
     <Document>
-      <Page size="A4" style={isLargeLogo ? styles.pageLarge : styles.page} wrap>
+      <Page size="A4" style={styles.page} wrap>
         {/* Fixed Header */}
         <QuoteNavbarPdf {...data.navbar} tenantDetails={tenantDetails} logoError={data.navbar.logoError} />
 

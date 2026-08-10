@@ -164,9 +164,9 @@ export const pdfStyles = StyleSheet.create({
   },
 
   headerRightTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-start',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    marginBottom: 16,
   },
 
   // No fixed width/height: react-pdf renders it at its natural aspect

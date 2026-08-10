@@ -121,6 +121,9 @@ interface HeaderInfoGridProps {
   status: string;
   statusStyle: { backgroundColor: string; borderColor: string; color: string };
   textColor: string;
+  /** Large template: right-align the right column so it shares the exact
+   * same right edge as the quote number row above it. */
+  alignRight?: boolean;
 }
 
 function HeaderInfoGrid({
@@ -130,7 +133,12 @@ function HeaderInfoGrid({
   status,
   statusStyle,
   textColor,
+  alignRight = false,
 }: Readonly<HeaderInfoGridProps>) {
+  const rightColumnStyle = alignRight
+    ? [styles.headerColumn, { alignItems: 'flex-end' as const }]
+    : styles.headerColumn;
+
   return (
     <View style={styles.headerInfo}>
       {/* Left Column */}
@@ -146,7 +154,7 @@ function HeaderInfoGrid({
       </View>
 
       {/* Right Column */}
-      <View style={styles.headerColumn}>
+      <View style={rightColumnStyle}>
         <View style={{ marginBottom: 16 }}>
           <Text style={[styles.headerLabel, { color: textColor }]}>Valid Until</Text>
           <Text style={[styles.headerValue, { color: textColor }]}>{validUntil}</Text>
@@ -195,13 +203,17 @@ function LargeLogoHeader({
         <Text style={[styles.brandNameLarge, { color: textColor }]}>{displayName}</Text>
       </View>
 
-      {/* Right: Quote number row, then info grid - both centered and spread
-          across the full column height via headerRightLarge so it doesn't
-          look sparse next to the taller logo/name column. */}
+      {/* Right: quote number sits in the same column position (headerInfo/
+          headerColumn) as the Valid Until column below, so they share the
+          exact same right edge. wrap={false} lets it overflow leftward
+          instead of wrapping if it's ever wider than the column. */}
       <View style={styles.headerRightLarge}>
-        <View style={styles.headerRightTopRow}>
-          <View style={styles.headerRight}>
-            <Text style={[styles.quoteNumber, { color: textColor }]}>{quoteNumber}</Text>
+        <View style={styles.headerInfo}>
+          <View style={styles.headerColumn} />
+          <View style={[styles.headerColumn, { alignItems: 'flex-end' }]}>
+            <Text style={[styles.quoteNumber, { color: textColor }]} wrap={false}>
+              {quoteNumber}
+            </Text>
             <Text style={[styles.quotationLabel, { color: textColor }]}>QUOTATION</Text>
           </View>
         </View>
@@ -280,13 +292,14 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
       status={status}
       statusStyle={statusStyle}
       textColor={textColor}
+      alignRight={isLargeLogo}
     />
   );
 
   const HeaderContent = isLargeLogo ? LargeLogoHeader : StandardHeader;
 
   return (
-    <View style={isLargeLogo ? styles.headerLarge : styles.header} fixed>
+    <View style={styles.header} fixed>
       <View style={headerStyle}>
         <HeaderContent
           displayName={displayName}
