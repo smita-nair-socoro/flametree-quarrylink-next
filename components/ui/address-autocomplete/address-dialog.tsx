@@ -12,9 +12,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import type React from 'react';
 import {
-  type FormEvent,
+  type SubmitEvent,
   useCallback,
   useEffect,
   useRef,
@@ -50,8 +51,10 @@ interface AddressDialogProps {
 
 /**
  * Address Line 1 is optional — if blank it will be filled with the lat/lng
- * coordinate string before saving. Suburb (city), postal code, and country
- * are always required so that incomplete reverse-geocode results are caught.
+ * coordinate string before saving. Suburb (city) and country are always
+ * required so that incomplete reverse-geocode results are caught.
+ * Postal code is optional (e.g. Fiji has no postcode system) but must match the
+ * format regex when a value is provided.
  */
 export function createAddressSchema() {
   return z.object({
@@ -65,8 +68,10 @@ export function createAddressSchema() {
     region: z.string().optional(),
     postalCode: z
       .string()
-      .min(1, { message: 'Postal code is required' })
-      .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
+      .optional()
+      .refine((value) => !value || /^[a-zA-Z0-9\s-]{1,12}$/.test(value), {
+        message: 'Invalid postal code format',
+      }),
     country: z.string().min(1, { message: 'Country is required' }),
   });
 }
@@ -104,6 +109,9 @@ export default function AddressDialog(
   // Country code for state selector
   const [countryCode, setCountryCode] = useState('AU');
 
+  // Whether the dialog is expanded to fullscreen to give more room to pick a location
+  const [isMapExpanded, setIsMapExpanded] = useState(false);
+
   // Validation errors
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
   const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
@@ -129,6 +137,7 @@ export default function AddressDialog(
       setErrorMap({});
       setHasAttemptedSave(false);
       setGeocodeError(null);
+      setIsMapExpanded(false);
 
       // Get country code from country name
       const countryData = Country.getAllCountries().find(
@@ -386,9 +395,8 @@ export default function AddressDialog(
       draftAddress.city?.trim() || draftAddress.address1?.trim()
     );
     const hasAddress1 = !!draftAddress.address1?.trim();
-    const hasPostalCode = !!draftAddress.postalCode?.trim();
 
-    if (!hasCountry || !hasLocation || !hasAddress1 || !hasPostalCode) {
+    if (!hasCountry || !hasLocation || !hasAddress1) {
       return;
     }
 
@@ -446,7 +454,7 @@ export default function AddressDialog(
   /**
    * Handle form submission and save the address
    */
-  const handleSave = (e: FormEvent) => {
+  const handleSave = (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
     setHasAttemptedSave(true);
@@ -540,7 +548,16 @@ export default function AddressDialog(
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent
+        className={cn(
+          'flex w-full flex-col overflow-hidden',
+          isMapExpanded && 'rounded-none',
+        )}
+        style={{
+          maxWidth: isMapExpanded ? '100vw' : 'min(95vw, 1100px)',
+          maxHeight: isMapExpanded ? '100vh' : '95vh',
+        }}
+      >
         <DialogHeader className="pb-4">
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
@@ -554,10 +571,7 @@ export default function AddressDialog(
             <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
-          <form
-            onSubmit={handleSave}
-            className="flex-1 min-h-0 flex flex-col"
-          >
+          <form onSubmit={handleSave} className="flex-1 min-h-0 flex flex-col">
             {/* -mx-6 puts the scrollbar on the dialog border; px-6 keeps
                 the fields aligned with the header. */}
             <div className="flex-1 min-h-0 overflow-y-auto -mx-6 px-6">
@@ -635,7 +649,7 @@ export default function AddressDialog(
 
                 <div className="flex gap-4">
                   <div className="flex-1 flex flex-col gap-2">
-                    <Label htmlFor="postalCode">Postal Code*</Label>
+                    <Label htmlFor="postalCode">Postal Code</Label>
                     <Input
                       value={draftAddress.postalCode}
                       onChange={(e) =>
@@ -771,6 +785,8 @@ export default function AddressDialog(
                   onLocationChange={handleMapLocationChange}
                   disabled={isMapDisabled}
                   markerColor={isCollection ? 'green' : 'red'}
+                  isExpanded={isMapExpanded}
+                  onToggleExpand={() => setIsMapExpanded((prev) => !prev)}
                 />
                 {isReverseGeocoding && (
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">

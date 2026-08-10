@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import { getDefaultMapCenter, isValidCoordinates } from '@/lib/utils/geocoding';
+import { cn } from '@/lib/utils';
 import {
   APIProvider,
   Map,
@@ -10,7 +11,7 @@ import {
   useMap,
   type MapMouseEvent,
 } from '@vis.gl/react-google-maps';
-import { Loader2, LocateFixed } from 'lucide-react';
+import { Expand, Loader2, LocateFixed, Shrink } from 'lucide-react';
 import { useCallback, useEffect, useState, memo } from 'react';
 
 interface EmbeddedMapPickerProps {
@@ -24,6 +25,10 @@ interface EmbeddedMapPickerProps {
   disabled?: boolean;
   /** Marker color: 'red' for delivery/billing, 'green' for collection */
   markerColor?: 'red' | 'green';
+  /** Whether the surrounding dialog is expanded to give the map more room */
+  isExpanded?: boolean;
+  /** Toggles the expanded state (grows/shrinks the surrounding dialog) */
+  onToggleExpand?: () => void;
 }
 
 // Map styles to hide extra labels (POI, business, road icons, transit)
@@ -72,6 +77,8 @@ function MapContent({
   onLocationChange,
   disabled,
   markerColor = 'red',
+  isExpanded = false,
+  onToggleExpand,
 }: EmbeddedMapPickerProps) {
   const map = useMap();
   const [isGeolocating, setIsGeolocating] = useState(false);
@@ -167,7 +174,12 @@ function MapContent({
 
   return (
     <div className="relative">
-      <div className="relative h-[400px] w-full rounded-md overflow-hidden border">
+      <div
+        className={cn(
+          'relative w-full rounded-md overflow-hidden border transition-[height] duration-200',
+          isExpanded ? 'h-[70vh]' : 'h-[400px]',
+        )}
+      >
         <Map
           defaultCenter={defaultCenter}
           defaultZoom={hasValidCoords ? SELECTED_ZOOM : DEFAULT_ZOOM}
@@ -187,6 +199,23 @@ function MapContent({
             />
           )}
         </Map>
+
+        {/* Expand/collapse toggle */}
+        {onToggleExpand && (
+          <button
+            type="button"
+            onClick={onToggleExpand}
+            className="absolute top-2 right-2 z-10 flex items-center justify-center rounded-md border bg-background/90 p-1.5 text-foreground shadow-sm hover:bg-background"
+            title={isExpanded ? 'Collapse map' : 'Expand map'}
+            aria-label={isExpanded ? 'Collapse map' : 'Expand map'}
+          >
+            {isExpanded ? (
+              <Shrink className="size-4" />
+            ) : (
+              <Expand className="size-4" />
+            )}
+          </button>
+        )}
 
         {/* Geolocation loading overlay */}
         {isGeolocating && (
