@@ -32,7 +32,7 @@ import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 import {
   useDocketRowActions,
   type DocketTableActionType,
-} from './use-docket-table-action-host';
+} from './docket-table-action-host';
 
 interface DocketTableActionsProps {
   docketId: number;

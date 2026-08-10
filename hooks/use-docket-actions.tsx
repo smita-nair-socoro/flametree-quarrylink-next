@@ -260,6 +260,42 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
     setAssignExceedsCapacity(false);
   }, []);
 
+  const resetActionState = React.useCallback(() => {
+    setActiveDialog(null);
+    setViewOpen(false);
+    setIsFormDirty(false);
+
+    setDeliveredProductsConfirmed(false);
+    setUnloadedPhoto(null);
+    setReceiptPhoto(null);
+    setReceiverOnSite(false);
+    setReceiverName('');
+    setReceiverSignature('');
+
+    setStopReason('');
+    setStopNotes('');
+
+    setVoidReason('');
+    setVoidNotes('');
+
+    setCancelReason('');
+    setCancelNotes('');
+
+    resetAssignState();
+    resetDuplicateState();
+  }, [resetAssignState, resetDuplicateState]);
+
+  // Shared table host reuses one hook instance across rows — clear dialog/form
+  // state whenever the target docket changes so values don't leak A → B.
+  const previousActionDocketIdRef = React.useRef<number | null | undefined>(
+    undefined,
+  );
+  React.useEffect(() => {
+    if (previousActionDocketIdRef.current === actionDocketId) return;
+    previousActionDocketIdRef.current = actionDocketId;
+    resetActionState();
+  }, [actionDocketId, resetActionState]);
+
   const dataURLtoFile = (dataUrl: string, filename: string): File => {
     const [header, data] = dataUrl.split(',');
     const mime = /:(.*?);/.exec(header)?.[1] ?? 'image/png';

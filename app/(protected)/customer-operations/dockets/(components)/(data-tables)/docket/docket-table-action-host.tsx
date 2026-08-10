@@ -27,51 +27,38 @@ export type DocketTableActionType =
   | 'retrySync'
   | 'print';
 
+type ActionRequest = {
+  docketId: number;
+  action: DocketTableActionType;
+};
+
 /**
  * Owns a single `useDocketActions` instance for a docket table/list.
  * Rows call `runAction(docketId, action)` instead of instantiating the hook.
  */
 export function useDocketTableActionHost() {
-  const [actionDocketId, setActionDocketId] = React.useState<number | null>(
-    null,
-  );
-  const pendingActionRef = React.useRef<DocketTableActionType | null>(null);
+  const [request, setRequest] = React.useState<ActionRequest | null>(null);
+  const actionDocketId = request?.docketId ?? null;
 
   const { actions, confirmDialogs, viewDialog } =
     useDocketActions(actionDocketId);
   const actionsRef = React.useRef(actions);
   actionsRef.current = actions;
 
-  React.useEffect(() => {
-    const pending = pendingActionRef.current;
-    if (pending == null || actionDocketId == null) return;
-    pendingActionRef.current = null;
-    void actionsRef.current[pending]?.();
-  }, [actionDocketId]);
-
   const runAction = React.useCallback(
     (docketId: number, action: DocketTableActionType) => {
-      pendingActionRef.current = action;
-      setActionDocketId((prev) => {
-        if (prev === docketId) {
-          // Same row again — effect won't re-fire; run immediately.
-          queueMicrotask(() => {
-            const pending = pendingActionRef.current;
-            if (pending == null) return;
-            pendingActionRef.current = null;
-            void actionsRef.current[pending]?.();
-          });
-          return prev;
-        }
-        return docketId;
-      });
+      setRequest({ docketId, action });
     },
     [],
   );
 
+  React.useEffect(() => {
+    if (!request) return;
+    void actionsRef.current[request.action]?.();
+  }, [request]);
+
   return {
     runAction,
-    actions,
     confirmDialogs,
     viewDialog,
     actionDocketId,

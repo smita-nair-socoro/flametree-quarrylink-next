@@ -56,7 +56,7 @@ import { DocketTableActions } from './(components)/(data-tables)/docket/docket-t
 import {
   DocketRowActionsProvider,
   useDocketTableActionHost,
-} from './(components)/(data-tables)/docket/use-docket-table-action-host';
+} from './(components)/(data-tables)/docket/docket-table-action-host';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
@@ -730,46 +730,46 @@ export default function DocketsPage() {
         {viewDialog}
         <InvoiceDetailsDialog />
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h1 className="text-2xl">Dockets</h1>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {showSyncInvoice && (
-            <Button
-              onClick={handleSyncInvoiceFromAcumatica}
-              disabled={syncInvoice.isPending || isSyncDisabled}
-            >
-              <div className="flex items-center gap-2">
-                <RefreshCw
-                  className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
-                />
-                {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
-              </div>
-            </Button>
-          )}
+          <div>
+            <h1 className="text-2xl">Dockets</h1>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <FormDialog
-              dialogTitle="Add New Docket"
-              dialogDescription="Fill in the required fields to add a new docket."
-              buttonTitle="Add Docket"
-            >
-              <DocketForm />
-            </FormDialog>
+            {showSyncInvoice && (
+              <Button
+                onClick={handleSyncInvoiceFromAcumatica}
+                disabled={syncInvoice.isPending || isSyncDisabled}
+              >
+                <div className="flex items-center gap-2">
+                  <RefreshCw
+                    className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
+                  />
+                  {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
+                </div>
+              </Button>
+            )}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <FormDialog
+                dialogTitle="Add New Docket"
+                dialogDescription="Fill in the required fields to add a new docket."
+                buttonTitle="Add Docket"
+              >
+                <DocketForm />
+              </FormDialog>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Statistics Cards */}
-      <StatsCards
-        cards={statsCards}
-        mobileGridCols={1}
-        desktopGridCols={4}
-        isLoading={isStatisticsLoading}
-      />
+        {/* Statistics Cards */}
+        <StatsCards
+          cards={statsCards}
+          mobileGridCols={1}
+          desktopGridCols={4}
+          isLoading={isStatisticsLoading}
+        />
 
-      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {tableContent}
-      </div>
+        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+          {tableContent}
+        </div>
       </div>
     </DocketRowActionsProvider>
   );

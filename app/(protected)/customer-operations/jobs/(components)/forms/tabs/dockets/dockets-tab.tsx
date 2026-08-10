@@ -11,7 +11,7 @@ import DocketForm from '@/app/(protected)/customer-operations/dockets/(component
 import {
   DocketRowActionsProvider,
   useDocketTableActionHost,
-} from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/use-docket-table-action-host';
+} from '@/app/(protected)/customer-operations/dockets/(components)/(data-tables)/docket/docket-table-action-host';
 import { JobDetails } from '@/lib/types/job';
 import { useQuery } from '@tanstack/react-query';
 import {
