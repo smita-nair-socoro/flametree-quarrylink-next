@@ -10,7 +10,6 @@ import {
   Contact,
   IdCard,
   Package,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- edit button is temporarily hidden, keep icon for when it's restored
   Pencil,
   Plus,
   Trash2,
@@ -210,7 +209,6 @@ function MappingForm({
 
 function MappingRow({
   mapping,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- edit button is temporarily hidden, keep prop for when it's restored
   onEdit,
   onDelete,
   disabled,
