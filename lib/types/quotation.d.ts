@@ -1,6 +1,7 @@
 import {
   QUOTE_ITEM_TYPE as QuoteItemType,
   QUOTE_STATUS as QuoteStatus,
+  LOGO_SIZE as LogoSize,
 } from './quotation-enums';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
@@ -193,6 +194,7 @@ export interface TenantProfileSnapshot {
   taxType?: string;
   taxAmount?: string;
   timeZoneId?: string;
+  logoSize?: LogoSize;
 }
 
 export interface QuoteContentItem {
@@ -273,6 +275,7 @@ export interface QuotationDisplayData {
     status: QuoteStatus;
     tenantDetails?: StripeTenantDetailsSnapshot;
     logoUrl?: string;
+    logoSize?: LogoSize;
   };
   customer: {
     customerName: string;

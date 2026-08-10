@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, Image } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
-import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
+import {
+  QUOTE_STATUS,
+  LOGO_SIZE as LogoSize,
+} from '@/lib/types/quotation-enums';
 import { StripeTenantDetailsSnapshot } from '@/lib/types/quotation';
 import { getInitials } from '@/lib/utils/user-helper';
 
@@ -14,8 +17,8 @@ export interface QuoteNavbarPdfProps {
   tenantDetails?: StripeTenantDetailsSnapshot;
   logoUrl?: string;
   logoError?: boolean;
+  logoSize?: LogoSize;
 }
-
 
 // Status badge colors mapping - matches BADGE_COLORS in lib/utils
 const getStatusBadgeStyle = (status: string) => {
@@ -56,12 +59,7 @@ const getStatusBadgeStyle = (status: string) => {
         borderColor: '#7F1D1D', // red-900
         color: '#7F1D1D',
       };
-    case 'ARCHIVED':
-      return {
-        backgroundColor: '#F3F4F6', // gray-100
-        borderColor: '#6B7280', // gray-500
-        color: '#6B7280',
-      };
+    // ARCHIVED falls back to the same neutral gray as the default case.
     default:
       return {
         backgroundColor: '#F3F4F6',
@@ -70,6 +68,174 @@ const getStatusBadgeStyle = (status: string) => {
       };
   }
 };
+
+interface LogoElementParams {
+  isQuarryLink: boolean;
+  isLargeLogo: boolean;
+  logoUrl?: string;
+  logoError: boolean;
+  initials: string;
+}
+
+function renderLogoElement({
+  isQuarryLink,
+  isLargeLogo,
+  logoUrl,
+  logoError,
+  initials,
+}: Readonly<LogoElementParams>) {
+  if (!logoUrl || logoError) {
+    return (
+      <View style={isLargeLogo ? styles.initialsLogoLarge : styles.initialsLogo}>
+        <Text style={isLargeLogo ? styles.initialsTextLarge : styles.initialsText}>
+          {initials}
+        </Text>
+      </View>
+    );
+  }
+
+  if (isQuarryLink) {
+    /* eslint-disable-next-line jsx-a11y/alt-text */
+    return <Image src={logoUrl} style={isLargeLogo ? styles.tenantLogoLarge : styles.logo} />;
+  }
+
+  if (isLargeLogo) {
+    // No crop wrapper: width fills half the column, height auto-scales to
+    // the source image's aspect ratio.
+    /* eslint-disable-next-line jsx-a11y/alt-text */
+    return <Image src={logoUrl} style={styles.tenantLogoLarge} />;
+  }
+
+  return (
+    <View style={styles.tenantLogoWrapper}>
+      {/* eslint-disable-next-line jsx-a11y/alt-text */}
+      <Image src={logoUrl} style={styles.tenantLogo} />
+    </View>
+  );
+}
+
+interface HeaderInfoGridProps {
+  dateIssued: string;
+  accountManager: string;
+  validUntil: string;
+  status: string;
+  statusStyle: { backgroundColor: string; borderColor: string; color: string };
+  textColor: string;
+}
+
+function HeaderInfoGrid({
+  dateIssued,
+  accountManager,
+  validUntil,
+  status,
+  statusStyle,
+  textColor,
+}: Readonly<HeaderInfoGridProps>) {
+  return (
+    <View style={styles.headerInfo}>
+      {/* Left Column */}
+      <View style={styles.headerColumn}>
+        <View style={{ marginBottom: 16 }}>
+          <Text style={[styles.headerLabel, { color: textColor }]}>Date Issued</Text>
+          <Text style={[styles.headerValue, { color: textColor }]}>{dateIssued}</Text>
+        </View>
+        <View>
+          <Text style={[styles.headerLabel, { color: textColor }]}>Account Manager</Text>
+          <Text style={[styles.headerValue, { color: textColor }]}>{accountManager}</Text>
+        </View>
+      </View>
+
+      {/* Right Column */}
+      <View style={styles.headerColumn}>
+        <View style={{ marginBottom: 16 }}>
+          <Text style={[styles.headerLabel, { color: textColor }]}>Valid Until</Text>
+          <Text style={[styles.headerValue, { color: textColor }]}>{validUntil}</Text>
+        </View>
+        <View>
+          <Text style={[styles.headerLabel, { color: textColor }]}>Status</Text>
+          <View
+            style={[
+              styles.statusBadge,
+              {
+                backgroundColor: statusStyle.backgroundColor,
+                borderColor: statusStyle.borderColor,
+              },
+            ]}
+          >
+            <Text style={[styles.statusBadgeText, { color: statusStyle.color }]}>
+              {status.replaceAll('_', ' ')}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+interface HeaderContentProps {
+  displayName: string;
+  quoteNumber: string;
+  textColor: string;
+  logoElement: React.ReactNode;
+  infoGrid: React.ReactNode;
+}
+
+function LargeLogoHeader({
+  displayName,
+  quoteNumber,
+  textColor,
+  logoElement,
+  infoGrid,
+}: Readonly<HeaderContentProps>) {
+  return (
+    <View style={styles.headerTopLarge}>
+      {/* Left: Large logo above the business name */}
+      <View style={styles.headerLeftLarge}>
+        {logoElement}
+        <Text style={[styles.brandNameLarge, { color: textColor }]}>{displayName}</Text>
+      </View>
+
+      {/* Right: Quote number row, then info grid - both centered and spread
+          across the full column height via headerRightLarge so it doesn't
+          look sparse next to the taller logo/name column. */}
+      <View style={styles.headerRightLarge}>
+        <View style={styles.headerRightTopRow}>
+          <View style={styles.headerRight}>
+            <Text style={[styles.quoteNumber, { color: textColor }]}>{quoteNumber}</Text>
+            <Text style={[styles.quotationLabel, { color: textColor }]}>QUOTATION</Text>
+          </View>
+        </View>
+        {infoGrid}
+      </View>
+    </View>
+  );
+}
+
+function StandardHeader({
+  displayName,
+  quoteNumber,
+  textColor,
+  logoElement,
+  infoGrid,
+}: Readonly<HeaderContentProps>) {
+  return (
+    <>
+      <View style={styles.headerTop}>
+        <View style={styles.headerLeft}>
+          {logoElement}
+          <Text style={[styles.brandName, { color: textColor }]}>{displayName}</Text>
+        </View>
+
+        <View style={styles.headerRight}>
+          <Text style={[styles.quoteNumber, { color: textColor }]}>{quoteNumber}</Text>
+          <Text style={[styles.quotationLabel, { color: textColor }]}>QUOTATION</Text>
+        </View>
+      </View>
+
+      {infoGrid}
+    </>
+  );
+}
 
 export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   quoteNumber,
@@ -80,6 +246,7 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   tenantDetails,
   logoUrl,
   logoError = false,
+  logoSize,
 }) => {
   const statusStyle = getStatusBadgeStyle(status);
 
@@ -87,6 +254,9 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   const isQuarryLink = !tenantDetails || tenantDetails.tenantName === 'QuarryLink';
   const displayName = tenantDetails?.businessName || 'QuarryLink';
   const initials = isQuarryLink ? '' : getInitials(displayName);
+  // Defaults to the large-logo template when the tenant hasn't been
+  // explicitly set to SMALL or MEDIUM.
+  const isLargeLogo = logoSize !== LogoSize.SMALL && logoSize !== LogoSize.MEDIUM;
 
   // Dynamic styles based on tenant
   const headerStyle = isQuarryLink
@@ -94,79 +264,37 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
     : { ...styles.headerGradient, backgroundColor: '#e4e4e4' };
   const textColor = isQuarryLink ? '#FFFFFF' : '#000000';
 
+  const logoElement = renderLogoElement({
+    isQuarryLink,
+    isLargeLogo,
+    logoUrl,
+    logoError,
+    initials,
+  });
+
+  const infoGrid = (
+    <HeaderInfoGrid
+      dateIssued={dateIssued}
+      accountManager={accountManager}
+      validUntil={validUntil}
+      status={status}
+      statusStyle={statusStyle}
+      textColor={textColor}
+    />
+  );
+
+  const HeaderContent = isLargeLogo ? LargeLogoHeader : StandardHeader;
+
   return (
-    <View style={styles.header} fixed>
+    <View style={isLargeLogo ? styles.headerLarge : styles.header} fixed>
       <View style={headerStyle}>
-        {/* Top Row: Logo and Quote Number */}
-        <View style={styles.headerTop}>
-          <View style={styles.headerLeft}>
-            {logoUrl && !logoError ? (
-              isQuarryLink ? (
-                /* eslint-disable-next-line jsx-a11y/alt-text */
-                <Image src={logoUrl} style={styles.logo} />
-              ) : (
-                <View style={styles.tenantLogoWrapper}>
-                  {/* eslint-disable-next-line jsx-a11y/alt-text */}
-                  <Image src={logoUrl} style={styles.tenantLogo} />
-                </View>
-              )
-            ) : (
-              <View style={styles.initialsLogo}>
-                <Text style={styles.initialsText}>{initials}</Text>
-              </View>
-            )}
-            <Text style={[styles.brandName, { color: textColor }]}>{displayName}</Text>
-          </View>
-
-          <View style={styles.headerRight}>
-            <Text style={[styles.quoteNumber, { color: textColor }]}>{quoteNumber}</Text>
-            <Text style={[styles.quotationLabel, { color: textColor }]}>QUOTATION</Text>
-          </View>
-        </View>
-
-        {/* Bottom Row: Info Grid */}
-        <View style={styles.headerInfo}>
-          {/* Left Column */}
-          <View style={styles.headerColumn}>
-            <View style={{ marginBottom: 16 }}>
-              <Text style={[styles.headerLabel, { color: textColor }]}>Date Issued</Text>
-              <Text style={[styles.headerValue, { color: textColor }]}>{dateIssued}</Text>
-            </View>
-            <View>
-              <Text style={[styles.headerLabel, { color: textColor }]}>Account Manager</Text>
-              <Text style={[styles.headerValue, { color: textColor }]}>{accountManager}</Text>
-            </View>
-          </View>
-
-          {/* Right Column */}
-          <View style={styles.headerColumn}>
-            <View style={{ marginBottom: 16 }}>
-              <Text style={[styles.headerLabel, { color: textColor }]}>Valid Until</Text>
-              <Text style={[styles.headerValue, { color: textColor }]}>{validUntil}</Text>
-            </View>
-            <View>
-              <Text style={[styles.headerLabel, { color: textColor }]}>Status</Text>
-              <View
-                style={[
-                  styles.statusBadge,
-                  {
-                    backgroundColor: statusStyle.backgroundColor,
-                    borderColor: statusStyle.borderColor,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.statusBadgeText,
-                    { color: statusStyle.color },
-                  ]}
-                >
-                  {status.replace(/_/g, ' ')}
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <HeaderContent
+          displayName={displayName}
+          quoteNumber={quoteNumber}
+          textColor={textColor}
+          logoElement={logoElement}
+          infoGrid={infoGrid}
+        />
       </View>
     </View>
   );

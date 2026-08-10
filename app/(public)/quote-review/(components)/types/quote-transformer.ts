@@ -233,6 +233,7 @@ export function transformQuoteData(
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
       logoUrl: tenantLogoDto?.logoPublicS3Url,
+      logoSize: tenantProfile?.logoSize,
     },
     customer: {
       customerName: customerDisplayName,
