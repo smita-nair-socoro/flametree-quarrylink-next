@@ -974,16 +974,14 @@ export default function DetailsTab({
                       )}
                     >
                       <span className="text-lg font-semibold">Attachments</span>
-                      {!readOnly && (
-                        <Button
-                          type="button"
-                          className="cursor-pointer"
-                          onClick={() => setAddAttachmentOpen(true)}
+                      <Button
+                        type="button"
+                        className="cursor-pointer"
+                        onClick={() => setAddAttachmentOpen(true)}
 
-                        >
-                          Add Attachment
-                        </Button>
-                      )}
+                      >
+                        Add Attachment
+                      </Button>
                     </div>
 
                     <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

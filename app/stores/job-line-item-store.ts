@@ -8,12 +8,10 @@ interface JobLineItemStore {
   isLoading: boolean;
 
   // Actions
-  setLineItems: (lineItems: JobItem[]) => void;
   setSelectedLineItem: (lineItem: JobItem | null) => void;
   setLoading: (loading: boolean) => void;
 
   getLineItemById: (id: number) => JobItem | undefined;
-  getLineItemsByStatus: (status: string) => JobItem[];
 }
 
 export const useJobLineItemStore = create<JobLineItemStore>()(
@@ -24,7 +22,6 @@ export const useJobLineItemStore = create<JobLineItemStore>()(
       isLoading: false,
 
       // Actions
-
       setSelectedLineItem: (lineItem) => set({ selectedLineItem: lineItem }),
 
       setLoading: (loading) => set({ isLoading: loading }),

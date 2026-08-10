@@ -65,15 +65,11 @@ export function CannotDeleteEligibilityCheckContent({
       : undefined;
   const jobsHref =
     blockingJobIds.length > 0
-      ? `/customer-operations/jobs?ids=${encodeURIComponent(
-          blockingJobIds.join(','),
-        )}`
+      ? `/customer-operations/jobs?ids=${blockingJobIds.join(',')}`
       : undefined;
   const docketsHref =
     blockingDocketIds.length > 0
-      ? `/customer-operations/dockets/?docketId=${encodeURIComponent(
-          blockingDocketIds.join(','),
-        )}`
+      ? `/customer-operations/dockets/?ids=${blockingDocketIds.join(',')}`
       : undefined;
 
   return (
