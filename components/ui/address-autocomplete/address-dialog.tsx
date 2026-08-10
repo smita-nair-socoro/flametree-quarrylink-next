@@ -13,13 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type React from 'react';
-import {
-  type SubmitEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ZodError, z } from 'zod';
 import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
@@ -449,7 +443,7 @@ export default function AddressDialog(
   /**
    * Handle form submission and save the address
    */
-  const handleSave = (e: SubmitEvent<HTMLFormElement>) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setHasAttemptedSave(true);
