@@ -1,9 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
 import {
-  Clock,
   Pencil,
   Trash2,
   Send,
@@ -20,7 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Spinner } from '@/components/ui/spinner';
-import { useUserStore } from '@/app/stores/user-store';
+import { useUserStore, useIsAdmin, useIsSuperAdmin } from '@/app/stores/user-store';
 import { getAvatarColor, getInitials } from '@/lib/utils/user-helper';
 import {
   CustomerNotesQueryOptions,
@@ -39,7 +37,6 @@ interface NotesTabProps {
   customerId?: number;
 }
 
-
 function NoteAvatar({ name }: Readonly<{ name: string }>) {
   const color = getAvatarColor(name);
   const initials = getInitials(name);
@@ -56,7 +53,11 @@ function NoteAvatar({ name }: Readonly<{ name: string }>) {
 export default function NotesTab({
   customerId = 0,
 }: Readonly<NotesTabProps>) {
-  const currentUserName = useUserStore((state) => state.userName) || 'You';
+  const currentUserName = useUserStore((state) => state.userName) || 'User';
+  const currentUserSub = useUserStore((state) => state.user?.sub);
+  const isAdmin = useIsAdmin();
+  const isSuperAdmin = useIsSuperAdmin();
+  const canModerateNotes = isAdmin || isSuperAdmin;
 
   const [page, setPage] = React.useState(0);
   const [draft, setDraft] = React.useState('');
@@ -221,6 +222,11 @@ export default function NotesTab({
         )}
         {notes.map((note) => {
           const isEditingNote = editingId === note.id;
+          const isAuthor =
+            Boolean(currentUserSub) && note.authorSub === currentUserSub;
+          const canEditNote = isAuthor;
+          const canDeleteNote = isAuthor || canModerateNotes;
+
           return (
             <div
               key={note.id}
@@ -243,25 +249,30 @@ export default function NotesTab({
                       </span>
                     )}
                   </div>
-                  {!isEditingNote && (
+                  {!isEditingNote && (canEditNote || canDeleteNote) && (
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => startEdit(note)}
-                        disabled={isMutating}
-                      >
-                        <Pencil className="h-4 w-4 text-muted-foreground" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteTarget(note)}
-                        aria-label="Delete note"
-                        disabled={isMutating}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      {canEditNote && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => startEdit(note)}
+                          aria-label="Edit note"
+                          disabled={isMutating}
+                        >
+                          <Pencil className="h-4 w-4 text-muted-foreground" />
+                        </Button>
+                      )}
+                      {canDeleteNote && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteTarget(note)}
+                          aria-label="Delete note"
+                          disabled={isMutating}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>

@@ -59,6 +59,16 @@ export const useUserStore = create<UserStore>()(
             g.toLowerCase() === 'superadmin',
         );
       },
+
+      isAdmin: () => {
+        const { userGroups } = get();
+        return userGroups.some(
+          (g) =>
+            g.toLowerCase() === 'admin' ||
+            g.toLowerCase() === 'super_admin' ||
+            g.toLowerCase() === 'superadmin',
+        );
+      },
     }),
     { name: 'user-store' },
   ),
@@ -77,4 +87,9 @@ export const useIsSuperAdmin = () =>
       (g) =>
         g.toLowerCase() === 'super_admin' || g.toLowerCase() === 'superadmin',
     ),
+  );
+
+export const useIsAdmin = () =>
+  useUserStore((state) =>
+    state.userGroups.some((g) => g.toLowerCase() === 'admin'),
   );
