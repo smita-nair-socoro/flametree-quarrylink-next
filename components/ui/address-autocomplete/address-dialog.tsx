@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
 import type React from 'react';
 import {
   type SubmitEvent,
@@ -109,9 +108,6 @@ export default function AddressDialog(
   // Country code for state selector
   const [countryCode, setCountryCode] = useState('AU');
 
-  // Whether the dialog is expanded to fullscreen to give more room to pick a location
-  const [isMapExpanded, setIsMapExpanded] = useState(false);
-
   // Validation errors
   const [errorMap, setErrorMap] = useState<Record<string, string>>({});
   const [hasAttemptedSave, setHasAttemptedSave] = useState(false);
@@ -137,7 +133,6 @@ export default function AddressDialog(
       setErrorMap({});
       setHasAttemptedSave(false);
       setGeocodeError(null);
-      setIsMapExpanded(false);
 
       // Get country code from country name
       const countryData = Country.getAllCountries().find(
@@ -549,13 +544,10 @@ export default function AddressDialog(
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent
-        className={cn(
-          'flex w-full flex-col overflow-hidden',
-          isMapExpanded && 'rounded-none',
-        )}
+        className="flex w-full flex-col overflow-hidden"
         style={{
-          maxWidth: isMapExpanded ? '100vw' : 'min(95vw, 1100px)',
-          maxHeight: isMapExpanded ? '100vh' : '95vh',
+          maxWidth: 'min(95vw, 1100px)',
+          maxHeight: '95vh',
         }}
       >
         <DialogHeader className="pb-4">
@@ -785,8 +777,6 @@ export default function AddressDialog(
                   onLocationChange={handleMapLocationChange}
                   disabled={isMapDisabled}
                   markerColor={isCollection ? 'green' : 'red'}
-                  isExpanded={isMapExpanded}
-                  onToggleExpand={() => setIsMapExpanded((prev) => !prev)}
                 />
                 {isReverseGeocoding && (
                   <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
