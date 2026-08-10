@@ -41,9 +41,9 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
           <Text style={styles.valueSmall}>{projectName}</Text>
         </View>
 
-        {/*  Estimated Start Date* */}
+        {/* Estimated Start Date */}
         <View style={styles.quarterColumn}>
-          <Text style={styles.label}> Estimated Start Date*</Text>
+          <Text style={styles.label}>Estimated Start Date</Text>
           <Text style={styles.valueSmall}>{deliveryDate}</Text>
         </View>
 

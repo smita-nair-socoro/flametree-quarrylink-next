@@ -32,10 +32,10 @@ export function ProjectDetails({
           <p className="text-sm text-gray-600">{projectName}</p>
         </div>
 
-        {/* Estimated Start Date* */}
+        {/* Estimated Start Date */}
         <div>
           <h3 className="font-semibold text-gray-700 mb-3 text-sm">
-            Estimated Start Date*
+            Estimated Start Date
           </h3>
           <p className="text-sm text-gray-600">{deliveryDate}</p>
         </div>

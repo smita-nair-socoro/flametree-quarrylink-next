@@ -274,7 +274,9 @@ export function transformQuoteData(
         return undefined;
       })(),
       projectName: projectName || 'N/A',
-      deliveryDate: formatDateWithOrdinal(deliveryStartDate),
+      deliveryDate: deliveryStartDate
+        ? formatDateWithOrdinal(deliveryStartDate)
+        : '--',
       deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd, {
         hour12: true,
       }),
@@ -283,7 +285,9 @@ export function transformQuoteData(
     products,
     summary: {
       totalProducts: quoteItems?.length || 0,
-      estimatedDelivery: formatDateWithOrdinal(deliveryStartDate),
+      estimatedDelivery: deliveryStartDate
+        ? formatDateWithOrdinal(deliveryStartDate)
+        : '--',
       subtotal,
       gst,
       total,
