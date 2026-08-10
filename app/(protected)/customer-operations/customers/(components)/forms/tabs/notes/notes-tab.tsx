@@ -2,51 +2,43 @@
 
 import * as React from 'react';
 import { format } from 'date-fns';
-import { Clock, Pencil, Trash2, Send, X, Check } from 'lucide-react';
+import {
+  Clock,
+  Pencil,
+  Trash2,
+  Send,
+  X,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+} from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { Spinner } from '@/components/ui/spinner';
 import { useUserStore } from '@/app/stores/user-store';
 import { getAvatarColor, getInitials } from '@/lib/utils/user-helper';
+import {
+  CustomerNotesQueryOptions,
+  useCreateCustomerNote,
+  useUpdateCustomerNote,
+  useDeleteCustomerNote,
+} from '@/lib/api/customer';
+import type { CustomerNoteDTO } from '@/lib/types/customer';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { formatCalendarDate } from '@/lib/utils/date';
 
-interface CustomerNote {
-  id: string;
-  authorName: string;
-  note: string;
-  createdAt: string;
-  editedAt?: string;
-}
+const NOTES_PAGE_SIZE = 5;
 
 interface NotesTabProps {
   customerId?: number;
-  onCountChange?: (count: number) => void;
 }
 
-// Placeholder data — no backend endpoint exists for customer notes yet.
-// Replace with a real query/mutation once the API is available.
-const MOCK_NOTES: Omit<CustomerNote, 'id'>[] = [
-  {
-    authorName: 'Bec Smith',
-    note: 'Called the customer to confirm pricing for the June delivery window. They are happy with the quoted rate and asked us to lock it in.',
-    createdAt: '2026-07-07T23:00:00',
-  },
-  {
-    authorName: 'Dan Carter',
-    note: 'Left a voicemail about the outstanding invoice #4821. Customer mentioned they are waiting on a PO from their finance team.',
-    createdAt: '2026-07-06T21:00:00',
-  },
-  {
-    authorName: 'Bec Smith',
-    note: 'Updated billing contact to finance@actinfra.gov.au per customer request.',
-    createdAt: '2026-07-05T14:30:00',
-  },
-];
-
-function formatNoteTimestamp(dateString: string): string {
-  return format(new Date(dateString), 'd MMMM yyyy, h:mm aa');
-}
 
 function NoteAvatar({ name }: Readonly<{ name: string }>) {
   const color = getAvatarColor(name);
@@ -62,42 +54,66 @@ function NoteAvatar({ name }: Readonly<{ name: string }>) {
 }
 
 export default function NotesTab({
-  customerId,
-  onCountChange,
+  customerId = 0,
 }: Readonly<NotesTabProps>) {
   const currentUserName = useUserStore((state) => state.userName) || 'You';
 
-  const [notes, setNotes] = React.useState<CustomerNote[]>(() =>
-    MOCK_NOTES.map((n, i) => ({ ...n, id: `mock-${customerId ?? 0}-${i}` })),
-  );
+  const [page, setPage] = React.useState(0);
   const [draft, setDraft] = React.useState('');
-  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editingId, setEditingId] = React.useState<number | null>(null);
   const [editDraft, setEditDraft] = React.useState('');
-  const [deleteTarget, setDeleteTarget] = React.useState<CustomerNote | null>(
+  const [deleteTarget, setDeleteTarget] = React.useState<CustomerNoteDTO | null>(
     null,
   );
 
-  React.useEffect(() => {
-    onCountChange?.(notes.length);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notes.length]);
+  const {
+    data: notesPage,
+    isPending,
+    isFetching,
+    isError,
+  } = useQuery(
+    CustomerNotesQueryOptions(customerId, {
+      page,
+      pageSize: NOTES_PAGE_SIZE,
+    }),
+  );
 
-  const handleAddNote = () => {
+  const createNote = useCreateCustomerNote();
+  const updateNote = useUpdateCustomerNote();
+  const deleteNote = useDeleteCustomerNote();
+
+  const notes = notesPage?.content ?? [];
+  const totalElements = notesPage?.totalElements ?? 0;
+  const totalPages = Math.max(notesPage?.totalPages ?? 0, 1);
+  const isMutating =
+    createNote.isPending || updateNote.isPending || deleteNote.isPending;
+
+  React.useEffect(() => {
+    if (!notesPage) return;
+    const maxPage = Math.max((notesPage.totalPages ?? 1) - 1, 0);
+    if (page > maxPage) setPage(maxPage);
+  }, [notesPage, page]);
+
+  const handleAddNote = async () => {
     const trimmed = draft.trim();
-    if (!trimmed) return;
-    const newNote: CustomerNote = {
-      id: `local-${Date.now()}`,
-      authorName: currentUserName,
-      note: trimmed,
-      createdAt: new Date().toISOString(),
-    };
-    setNotes((prev) => [...prev, newNote]);
-    setDraft('');
+    if (!trimmed || !customerId) return;
+
+    try {
+      await createNote.mutateAsync({
+        customerId,
+        data: { body: trimmed, authorName: currentUserName },
+      });
+      setDraft('');
+      setPage(0);
+      notifySuccess('Note added');
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to add note');
+    }
   };
 
-  const startEdit = (note: CustomerNote) => {
+  const startEdit = (note: CustomerNoteDTO) => {
     setEditingId(note.id);
-    setEditDraft(note.note);
+    setEditDraft(note.body);
   };
 
   const cancelEdit = () => {
@@ -105,46 +121,58 @@ export default function NotesTab({
     setEditDraft('');
   };
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const trimmed = editDraft.trim();
-    if (!trimmed || !editingId) {
+    if (!trimmed || editingId == null || !customerId) {
       cancelEdit();
       return;
     }
-    setNotes((prev) =>
-      prev.map((n) =>
-        n.id === editingId
-          ? { ...n, note: trimmed, editedAt: new Date().toISOString() }
-          : n,
-      ),
-    );
-    cancelEdit();
+
+    try {
+      await updateNote.mutateAsync({
+        customerId,
+        noteId: editingId,
+        data: { body: trimmed },
+      });
+      cancelEdit();
+      notifySuccess('Note updated');
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to update note');
+    }
   };
 
-  const confirmDelete = () => {
-    if (!deleteTarget) return;
-    setNotes((prev) => prev.filter((n) => n.id !== deleteTarget.id));
-    setDeleteTarget(null);
+  const confirmDelete = async () => {
+    if (!deleteTarget || !customerId) return;
+
+    try {
+      await deleteNote.mutateAsync({
+        customerId,
+        noteId: deleteTarget.id,
+      });
+      setDeleteTarget(null);
+      notifySuccess('Note deleted');
+    } catch (error) {
+      notifyError(extractErrorMessage(error) || 'Failed to delete note');
+    }
   };
 
   return (
-    <div className="animate-in fade-in slide-in-from-right-4 duration-300 rounded-md border mb-10">
+    <div className="animate-in fade-in slide-in-from-right-4 duration-300 relative rounded-md border mb-10">
+      {isPending && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-white/50">
+          <Spinner size="medium" />
+        </div>
+      )}
+
       <div className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
           <span className="font-semibold">Notes</span>
           <Badge variant="secondary" className="rounded-full px-2 font-normal">
-            {notes.length}
+            {totalElements}
           </Badge>
-        </div>
-        <div
-          className="flex items-center gap-1.5 text-sm text-muted-foreground"
-        >
-          <Clock className="h-3.5 w-3.5" />
-          Newest first
         </div>
       </div>
 
-      {/* Composer */}
       <div className="flex items-start gap-3 border-b px-4 py-4">
         <NoteAvatar name={currentUserName} />
         <div className="flex-1">
@@ -153,6 +181,7 @@ export default function NotesTab({
             onChange={(e) => setDraft(e.target.value)}
             placeholder="Add a note..."
             className="min-h-20 w-full"
+            disabled={isMutating}
           />
           <div className="mt-2 flex items-center justify-between">
             <span className="text-sm text-muted-foreground">
@@ -165,27 +194,32 @@ export default function NotesTab({
               type="button"
               size="sm"
               className="gap-2"
-              disabled={!draft.trim()}
+              disabled={!draft.trim() || createNote.isPending || !customerId}
               onClick={handleAddNote}
             >
-              <Send className="h-4 w-4" />
+              {createNote.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
               Add note
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Notes list */}
       <div>
-        {notes.length === 0 && (
+        {isError && (
+          <div className="px-4 py-8 text-center text-sm text-destructive">
+            Failed to load notes. Please try again.
+          </div>
+        )}
+        {!isError && !isPending && notes.length === 0 && (
           <div className="px-4 py-8 text-center text-sm text-muted-foreground">
             No notes yet.
           </div>
         )}
         {notes.map((note) => {
-          // Placeholder notes use synthetic author IDs. Keep them manageable
-          // until the notes API supplies real ownership data.
-          const canManageNote = note.id.startsWith('mock-');
           const isEditingNote = editingId === note.id;
           return (
             <div
@@ -195,36 +229,39 @@ export default function NotesTab({
               <NoteAvatar name={note.authorName} />
               <div className="flex-1">
                 <div className="flex items-start justify-between gap-2">
-                  <div className="text-sm">
+                  <div className="text-sm flex items-center gap-2">
                     <span className="font-semibold">{note.authorName}</span>{' '}
                     <span className="text-muted-foreground">
-                      {formatNoteTimestamp(note.editedAt ?? note.createdAt)}
+                      {formatCalendarDate(
+                        note.edited ? note.updatedAt : note.createdAt,
+                      )}
                     </span>
-                    {note.editedAt && (
+                    {note.edited && (
                       <span className="italic text-muted-foreground">
                         {' '}
                         (edited)
                       </span>
                     )}
                   </div>
-                  {canManageNote && !isEditingNote && (
+                  {!isEditingNote && (
                     <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => startEdit(note)}
-                        aria-label="Edit note"
+                        disabled={isMutating}
                       >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        className="flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-muted text-[#FC0000] focus-visible:bg-muted focus-visible:text-[#FC0000] active:bg-muted active:text-[#FC0000]"
+                        <Pencil className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setDeleteTarget(note)}
                         aria-label="Delete note"
+                        disabled={isMutating}
                       >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -238,31 +275,37 @@ export default function NotesTab({
                       onKeyDown={(e) => {
                         if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
                           e.preventDefault();
-                          saveEdit();
+                          void saveEdit();
                         } else if (e.key === 'Escape') {
                           e.preventDefault();
                           cancelEdit();
                         }
                       }}
                       className="min-h-16 w-full"
+                      disabled={updateNote.isPending}
                     />
                     <div className="mt-3 flex items-center justify-end gap-3">
-                      <button
-                        type="button"
-                        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
                         onClick={cancelEdit}
+                        disabled={updateNote.isPending}
                       >
                         <X className="h-3.5 w-3.5" />
                         Cancel
-                      </button>
+                      </Button>
                       <Button
-                        type="button"
                         size="sm"
                         className="gap-1.5"
-                        disabled={!editDraft.trim()}
+                        disabled={!editDraft.trim() || updateNote.isPending}
                         onClick={saveEdit}
                       >
-                        <Check className="h-3.5 w-3.5" />
+                        {updateNote.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <Check className="h-3.5 w-3.5" />
+                        )}
                         Save
                       </Button>
                     </div>
@@ -271,13 +314,46 @@ export default function NotesTab({
                     </span>
                   </div>
                 ) : (
-                  <p className="mt-1 text-sm">{note.note}</p>
+                  <p className="mt-1 text-sm whitespace-pre-wrap">{note.body}</p>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
+      {totalElements > 0 && (
+        <div className="flex items-center justify-between gap-3 border-t px-4 py-3">
+          <p className="text-sm text-muted-foreground">
+            Page {page + 1} of {totalPages}
+            {isFetching && !isPending ? (
+              <Loader2 className="ml-2 inline h-3.5 w-3.5 animate-spin" />
+            ) : null}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              disabled={page <= 0 || isFetching}
+              onClick={() => setPage((p) => Math.max(p - 1, 0))}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1"
+              disabled={page >= totalPages - 1 || isFetching}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

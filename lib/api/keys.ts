@@ -52,6 +52,10 @@ export const CustomerKeys = {
       'detail',
       contactId,
     ] as const,
+  notes: (
+    customerId: number,
+    params?: { page?: number; pageSize?: number },
+  ) => [...CustomerKeys.all, 'notes', customerId, params] as const,
 };
 
 export const QuotationKeys = {

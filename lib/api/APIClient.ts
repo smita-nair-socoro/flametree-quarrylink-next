@@ -19,6 +19,10 @@ import {
   CustomerAttachmentDTO,
   AdditionalContactApiDTO,
   AdditionalContactsPage,
+  CustomerNoteDTO,
+  CustomerNotesPage,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
   SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
 import {
@@ -857,6 +861,37 @@ export const APIClient = {
     deleteAdditionalContact: (customerId: number, contactId: number) =>
       appClient.Delete(
         `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
+      ),
+    getNotes: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<CustomerNotesPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    createNote: (customerId: number, data: CreateCustomerNoteRequest) =>
+      appClient.Post<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        { body: data },
+      ),
+    updateNote: (
+      customerId: number,
+      noteId: number,
+      data: UpdateCustomerNoteRequest,
+    ) =>
+      appClient.Put<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+        { body: data },
+      ),
+    deleteNote: (customerId: number, noteId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
       ),
   },
 

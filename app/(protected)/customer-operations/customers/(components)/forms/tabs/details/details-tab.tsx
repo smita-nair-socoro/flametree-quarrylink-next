@@ -542,7 +542,6 @@ export default function DetailsTab({
                   <Input
                     className="w-full"
                     value={selectedCustomer?.customerClassification ?? 'N/A'}
-                    readOnly={readOnly}
                   />
                 </div>
               )}

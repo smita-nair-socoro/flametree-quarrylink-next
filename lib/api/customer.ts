@@ -12,6 +12,8 @@ import {
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
   AdditionalContactDTO,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
 } from '../types/customer';
 import type { CustomersListResponse, CustomersPage } from '../types/customer';
 import { formatCustomerStatus } from '../utils/customer-helper';
@@ -557,6 +559,85 @@ export const useDeleteAdditionalContact = () => {
           variables.customerId,
         ],
       });
+    },
+  });
+};
+
+export type CustomerNotesListParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+export const CustomerNotesQueryOptions = (
+  customerId: number,
+  params?: CustomerNotesListParams,
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.notes(customerId, params),
+    queryFn: () => APIClient.customers.getNotes(customerId, params),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!customerId,
+  });
+
+const invalidateCustomerNotes = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  customerId: number,
+) => {
+  queryClient.invalidateQueries({
+    queryKey: [...CustomerKeys.all, 'notes', customerId],
+  });
+};
+
+export const useCreateCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      data,
+    }: {
+      customerId: number;
+      data: CreateCustomerNoteRequest;
+    }) => APIClient.customers.createNote(customerId, data),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
+    },
+  });
+};
+
+export const useUpdateCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      noteId,
+      data,
+    }: {
+      customerId: number;
+      noteId: number;
+      data: UpdateCustomerNoteRequest;
+    }) => APIClient.customers.updateNote(customerId, noteId, data),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
+    },
+  });
+};
+
+export const useDeleteCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      noteId,
+    }: {
+      customerId: number;
+      noteId: number;
+    }) => APIClient.customers.deleteNote(customerId, noteId),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
     },
   });
 };

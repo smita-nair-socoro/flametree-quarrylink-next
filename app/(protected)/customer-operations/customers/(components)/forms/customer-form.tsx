@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Tab } from '@/components/ui/tabs';
 import NotesTab from './tabs/notes/notes-tab';
 import DetailsTab from './tabs/details/details-tab';
+import { CustomerNotesQueryOptions } from '@/lib/api/customer';
 
 interface FormProps {
   id?: number;
@@ -24,7 +26,12 @@ export default function CustomerForm({
 }: Readonly<FormProps>) {
   const isEditing = Boolean(id);
   const customerId = id ?? 0;
-  const [notesCount, setNotesCount] = React.useState(0);
+
+  const { data: notesPage } = useQuery({
+    ...CustomerNotesQueryOptions(customerId, { page: 0, pageSize: 1 }),
+    enabled: isEditing && !!customerId,
+  });
+  const notesCount = notesPage?.totalElements ?? 0;
 
   const detailsTabProps = {
     customerId,
@@ -52,12 +59,7 @@ export default function CustomerForm({
                 {notesCount}
               </span>
             ),
-            content: (
-              <NotesTab
-                customerId={customerId}
-                onCountChange={setNotesCount}
-              />
-            ),
+            content: <NotesTab customerId={customerId} />,
           },
         ]}
       />
