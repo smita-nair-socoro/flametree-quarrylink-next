@@ -223,32 +223,30 @@ export function QuoteNavbar({
             {/* Row 1, Col 1: empty spacer above Date Issued */}
             <div />
             {/* Row 1, Col 2: Quote number + download icon */}
-            <div className="flex items-start justify-end gap-4">
+            <div className="flex items-start justify-end gap-4 px-6">
               <div className="text-right">
                 <div className="font-bold text-[30px] whitespace-nowrap">
                   {quoteNumber}
                 </div>
                 <div className={`${labelColor} text-sm`}>QUOTATION</div>
               </div>
-              {downloadButton}
+              <div className="pt-3">{downloadButton}</div>
             </div>
 
             {/* Row 2, Col 1 */}
-            <div className="space-y-3">
+            <div className="space-y-3 pl-6">
               <div>
                 <div className={`${labelColor} text-sm`}>Date Issued</div>
                 <div className="text-[16px] font-medium">{dateIssued}</div>
               </div>
               <div>
                 <div className={`${labelColor} text-sm`}>Account Manager</div>
-                <div className="text-[16px] font-medium">
-                  {accountManager}
-                </div>
+                <div className="text-[16px] font-medium">{accountManager}</div>
               </div>
             </div>
 
             {/* Row 2, Col 2 - right-aligned to match the quote number above */}
-            <div className="space-y-3 text-right">
+            <div className="space-y-3 text-right pr-6">
               <div>
                 <div className={`${labelColor} text-sm`}>Valid Until</div>
                 <div className="text-[16px] font-medium">{validUntil}</div>
