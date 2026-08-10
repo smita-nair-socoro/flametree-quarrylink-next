@@ -16,7 +16,7 @@ import {
 import { Button } from '@/components/ui/button';
 import DocketForm from './(components)/forms/docket-form';
 
-import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   DocketsTableQueryOptions,
   DocketsByJobIdQueryOptions,
@@ -27,7 +27,6 @@ import {
   DocketsByTruckIdInfiniteQueryOptions,
   DocketStatisticsQueryOptions,
   DocketsTableInfiniteQueryOptions,
-  DocketByIdQueryOptions,
   getDocketTableRowsFromInfinitePages,
   getDocketTableRowsFromTableResponse,
   getDocketTableRowsFromDtoPayload,
@@ -54,7 +53,10 @@ import {
 import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
-import { useDocketActions } from '@/hooks/use-docket-actions';
+import {
+  DocketRowActionsProvider,
+  useDocketTableActionHost,
+} from './(components)/(data-tables)/docket/use-docket-table-action-host';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
@@ -67,7 +69,6 @@ import { notifyError, notifySuccess } from '@/lib/toast';
 
 export default function DocketsPage() {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const linkedJobIdParam = searchParams.get('linkedJobId');
   const linkedJobNumberParam = searchParams.get('linkedJobNumber');
@@ -458,7 +459,7 @@ export default function DocketsPage() {
     },
   ];
 
-  const { actions, viewDialog, confirmDialogs } = useDocketActions();
+  const { runAction, viewDialog, confirmDialogs } = useDocketTableActionHost();
 
   // Keep `ids` in the URL after auto-opening so an accidental dialog close
   // still shows just that docket instead of the full list.
@@ -475,16 +476,7 @@ export default function DocketsPage() {
     if (!row) return;
 
     autoOpenedIdRef.current = singleId;
-    void (async () => {
-      try {
-        const fullDocket = await queryClient.fetchQuery(
-          DocketByIdQueryOptions(row.id),
-        );
-        actions.view(fullDocket);
-      } catch (error) {
-        notifyError(extractErrorMessage(error));
-      }
-    })();
+    runAction(row.id, 'view');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsFilter, items]);
 
@@ -514,15 +506,8 @@ export default function DocketsPage() {
     [facetOptions],
   );
 
-  const handleRowClick = async (row: DocketTableRow) => {
-    try {
-      const fullDocket = await queryClient.fetchQuery(
-        DocketByIdQueryOptions(row.id),
-      );
-      actions.view(fullDocket);
-    } catch (error) {
-      notifyError(extractErrorMessage(error));
-    }
+  const handleRowClick = (row: DocketTableRow) => {
+    runAction(row.id, 'view');
   };
 
   const renderDocketCard = React.useCallback((docket: DocketTableRow) => {
@@ -739,11 +724,12 @@ export default function DocketsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {confirmDialogs}
-      {viewDialog}
-      <InvoiceDetailsDialog />
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+    <DocketRowActionsProvider runAction={runAction}>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        {confirmDialogs}
+        {viewDialog}
+        <InvoiceDetailsDialog />
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>
           <h1 className="text-2xl">Dockets</h1>
         </div>
@@ -784,6 +770,7 @@ export default function DocketsPage() {
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
         {tableContent}
       </div>
-    </div>
+      </div>
+    </DocketRowActionsProvider>
   );
 }
