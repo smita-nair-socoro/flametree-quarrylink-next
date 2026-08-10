@@ -270,10 +270,9 @@ export function useJobFormState({
   const onSubmit = React.useCallback(
     async (values: JobFormValues) => {
       try {
-        const dateStr = formatCalendarDate(
-          values.deliveryStartDate,
-          'yyyy-MM-dd',
-        );
+        const dateStr = values.deliveryStartDate
+          ? formatCalendarDate(values.deliveryStartDate, 'yyyy-MM-dd')
+          : undefined;
 
         const selectedCustomer = customers.find(
           (customer) => customer.id === values.customerId,
@@ -306,9 +305,13 @@ export function useJobFormState({
           emailRecipients,
           jobStatus:
             isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
-          estimatedStartDate: `${dateStr}T00:00:00`,
-          startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00`,
-          endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00`,
+          ...(dateStr ? { estimatedStartDate: `${dateStr}T00:00:00` } : {}),
+          ...(dateStr && values.deliveryWindowStart
+            ? { startTimeWindow: `${dateStr}T${values.deliveryWindowStart}:00` }
+            : {}),
+          ...(dateStr && values.deliveryWindowEnd
+            ? { endTimeWindow: `${dateStr}T${values.deliveryWindowEnd}:00` }
+            : {}),
         };
 
         if (isEditing && jobId) {
