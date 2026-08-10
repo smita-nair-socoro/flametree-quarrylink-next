@@ -22,7 +22,14 @@ export const JobFormSchema = z.object({
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
     }),
-  receiptEmail: z.string().optional(),
+  receiptEmail: z.string().refine(
+    (val) =>
+      val
+        .split(',')
+        .map((e) => e.trim())
+        .some(Boolean),
+    { message: 'At least one recipient email is required' },
+  ),
   phone: z.string().optional(),
   contactPersonName: z.string().optional(),
 });
@@ -34,8 +41,12 @@ export const getJobFormSchema = (isEditing: boolean) => {
     return JobFormSchema.extend({
       contactPersonName: z
         .string()
-        .min(2, { message: 'Contact person name must be at least 2 characters.' })
-        .max(100, { message: "Contact person name can't be more than 100 characters" }),
+        .min(2, {
+          message: 'Contact person name must be at least 2 characters.',
+        })
+        .max(100, {
+          message: "Contact person name can't be more than 100 characters",
+        }),
       phone: z
         .string()
         .trim()

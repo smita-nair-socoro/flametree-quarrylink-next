@@ -12,6 +12,15 @@ const requiredPhoneSchema = z
     message: 'Invalid phone number',
   });
 
+const requiredRecipientEmailSchema = z.string().refine(
+  (val) =>
+    val
+      .split(',')
+      .map((e) => e.trim())
+      .some(Boolean),
+  { message: 'At least one recipient email is required' },
+);
+
 export const QuotationFormSchema = z.object({
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
@@ -46,6 +55,7 @@ export const getQuotationFormSchema = (isEditing: boolean) => {
   if (isEditing) {
     return QuotationFormSchema.extend({
       phone: requiredPhoneSchema,
+      receiptEmail: requiredRecipientEmailSchema,
     });
   }
   return QuotationFormSchema;

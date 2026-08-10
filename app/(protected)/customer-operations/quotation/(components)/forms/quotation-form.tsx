@@ -200,7 +200,10 @@ export default function QuotationForm({
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
               '',
           );
-          quotationForm.setValue('receiptEmail', '');
+          quotationForm.setValue(
+            'receiptEmail',
+            selectedCustomer.contactPersonEmail || '',
+          );
 
           quotationForm.setValue(
             'accountManagerSub',
@@ -240,15 +243,12 @@ export default function QuotationForm({
     console.log('[QuotationForm] Validation passed, submitting:', values);
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.contactPersonEmail || '';
-    const receiptEmails = [
-      customerEmail,
-      ...(values.receiptEmail
-        ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
-        : []),
-    ].filter(Boolean);
+    const receiptEmails = values.receiptEmail
+      ? values.receiptEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : [];
     const submitCustomer = customers.find((c) => c.id === values.customerId);
     const customerName =
       submitCustomer?.customerType === 'BUSINESS'
@@ -666,12 +666,6 @@ export default function QuotationForm({
                 control={quotationForm.control}
                 name="receiptEmail"
                 render={({ field }) => {
-                  const selectedCustomer = customers.find(
-                    (c) => c.id === quotationForm.watch('customerId'),
-                  );
-                  const customerEmail = selectedCustomer?.contactPersonEmail;
-                  const fixedValues = customerEmail ? [customerEmail] : [];
-
                   return (
                     <FormItem
                       className={
@@ -687,7 +681,6 @@ export default function QuotationForm({
                               ? 'Select Customer First'
                               : 'Enter Recipient Emails'
                           }
-                          fixedValues={fixedValues}
                           validate={(s) =>
                             /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
                               s,

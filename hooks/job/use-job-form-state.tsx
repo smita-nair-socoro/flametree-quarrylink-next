@@ -236,7 +236,10 @@ export function useJobFormState({
         selectedCustomer.accountManagerSub || '',
       );
 
-      jobForm.setValue('receiptEmail', '');
+      jobForm.setValue(
+        'receiptEmail',
+        selectedCustomer.contactPersonEmail || '',
+      );
     });
 
     return () => subscription.unsubscribe();
@@ -276,19 +279,12 @@ export function useJobFormState({
           (customer) => customer.id === values.customerId,
         );
 
-        const receiptEmails = values.receiptEmail
+        const emailRecipients = values.receiptEmail
           ? values.receiptEmail
             .split(',')
             .map((email) => email.trim())
             .filter(Boolean)
           : [];
-
-        const customerEmail = selectedCustomer?.contactPersonEmail;
-
-        const emailRecipients = [
-          ...(customerEmail ? [customerEmail] : []),
-          ...receiptEmails.filter((email) => email !== customerEmail),
-        ];
 
         let newContactPersonName: string | undefined;
 
