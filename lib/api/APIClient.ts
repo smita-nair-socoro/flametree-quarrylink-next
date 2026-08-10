@@ -916,17 +916,27 @@ export const APIClient = {
       token: string,
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
+      // PO Number is mandatory when a customer approves via this public endpoint (QLINK-3356).
+      if (status === 'APPROVED' && !poNumber?.trim()) {
+        throw new Error('Purchase Order Number is required to approve this quote.');
+      }
+
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
 
       return appClient.Put<PublicQuoteDecisionResponse>(
@@ -1050,17 +1060,22 @@ export const APIClient = {
       status: 'APPROVED' | 'DECLINED',
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,

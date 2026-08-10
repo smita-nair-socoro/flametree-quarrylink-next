@@ -17,6 +17,7 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   decisionMakerName?: string;
+  poNumber?: string;
   email: string;
   phone: string;
   customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
@@ -234,6 +235,7 @@ export interface PublicQuoteDecisionResponse {
   quoteStatus: QuoteStatus;
   declineReason?: string;
   decisionMakerName?: string;
+  poNumber?: string;
   customerResponseAt?: string;
   deliveryStartDate: string | null;
   expiryDate: string | null;

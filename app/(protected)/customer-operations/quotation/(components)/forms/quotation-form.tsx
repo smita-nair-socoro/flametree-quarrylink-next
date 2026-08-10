@@ -661,6 +661,26 @@ export default function QuotationForm({
               )}
             />
 
+            <FormField
+              control={quotationForm.control}
+              name="poNumber"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>PO Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter PO Number"
+                      maxLength={20}
+                      {...field}
+                      disabled={isEditing && !canEdit}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {isEditing && (
               <FormField
                 control={quotationForm.control}
