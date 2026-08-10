@@ -410,10 +410,6 @@ export function useDocketFormState({
 
     if (!isJobLoaded) return;
 
-    if (!selectedJob.startTimeWindow || !selectedJob.endTimeWindow) {
-      return;
-    }
-
     const currentValues = docketForm.getValues();
 
     docketForm.reset(
@@ -454,10 +450,6 @@ export function useDocketFormState({
       selectedJobDetails || jobsList.find((job) => job.id === selectedJobId);
 
     if (!isJobLoaded) return;
-
-    if (!selectedJob.startTimeWindow || !selectedJob.endTimeWindow) {
-      return;
-    }
 
     previousSelectedJobIdRef.current = selectedJobId;
 
