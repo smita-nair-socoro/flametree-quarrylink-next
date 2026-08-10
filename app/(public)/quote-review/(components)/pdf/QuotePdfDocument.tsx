@@ -42,8 +42,8 @@ export interface QuotationData {
   };
   project: {
     projectName: string;
-    deliveryDate: string;
-    deliveryWindow: string;
+    deliveryDate?: string;
+    deliveryWindow?: string;
   };
   products: Array<{
     name: string;
