@@ -179,7 +179,6 @@ export function formatTimeRange(
   options?: FormatTimeRangeOptions,
 ): string {
   if (options?.hour12) {
-    if (!startDateString && !endDateString) return '--';
     const formatTime = (date: Date) =>
       date.toLocaleString('en-US', {
         hour: 'numeric',
@@ -187,11 +186,13 @@ export function formatTimeRange(
         hour12: true,
       });
     try {
-      const start = startDateString ? formatTime(toDate(startDateString)) : '--';
-      const end = endDateString ? formatTime(toDate(endDateString)) : '--';
-      return `${start} - ${end}`;
+      const start = startDateString ? formatTime(toDate(startDateString)) : '';
+      const end = endDateString ? formatTime(toDate(endDateString)) : '';
+      // Avoid an orphaned "9:00 AM - " when only one side is set
+      if (start && end) return `${start} - ${end}`;
+      return start || end;
     } catch {
-      return '--';
+      return '';
     }
   }
 

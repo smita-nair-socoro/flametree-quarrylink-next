@@ -4,8 +4,8 @@ import { Separator } from '@/components/ui/separator';
 
 export interface ProjectDetailsProps {
   projectName: string;
-  deliveryDate: string;
-  deliveryWindow: string;
+  deliveryDate?: string;
+  deliveryWindow?: string;
   /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
   timeZone?: string;
 }
@@ -15,7 +15,7 @@ export function ProjectDetails({
   deliveryDate,
   deliveryWindow,
   timeZone,
-}: ProjectDetailsProps) {
+}: Readonly<ProjectDetailsProps>) {
   return (
     <div className="px-8 py-4 pt-10 mb-4 bg-white">
       <h2 className="font-semibold text-lg mb-3 text-[rgba(142,81,255,1)]">
@@ -32,24 +32,28 @@ export function ProjectDetails({
           <p className="text-sm text-gray-600">{projectName}</p>
         </div>
 
-        {/* Estimated Start Date */}
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
-            Estimated Start Date
-          </h3>
-          <p className="text-sm text-gray-600">{deliveryDate}</p>
-        </div>
+        {/* Estimated Start Date — omitted entirely when not set */}
+        {deliveryDate && (
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+              Estimated Start Date
+            </h3>
+            <p className="text-sm text-gray-600">{deliveryDate}</p>
+          </div>
+        )}
 
-        {/* Timeframe */}
-        <div>
-          <h3 className="font-semibold text-gray-700 mb-3 text-sm">
-            Timeframe
-          </h3>
-          <p className="text-sm text-gray-600">
-            {deliveryWindow}
-            {timeZone ? ` (${timeZone})` : ''}
-          </p>
-        </div>
+        {/* Timeframe — omitted entirely when neither window bound is set */}
+        {deliveryWindow && (
+          <div>
+            <h3 className="font-semibold text-gray-700 mb-3 text-sm">
+              Timeframe
+            </h3>
+            <p className="text-sm text-gray-600">
+              {deliveryWindow}
+              {timeZone ? ` (${timeZone})` : ''}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -276,10 +276,11 @@ export function transformQuoteData(
       projectName: projectName || 'N/A',
       deliveryDate: deliveryStartDate
         ? formatDateWithOrdinal(deliveryStartDate)
-        : '--',
-      deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd, {
-        hour12: true,
-      }),
+        : undefined,
+      deliveryWindow:
+        formatTimeRange(deliveryWindowStart, deliveryWindowEnd, {
+          hour12: true,
+        }) || undefined,
       timeZone: tenantProfile?.timeZoneId,
     },
     products,

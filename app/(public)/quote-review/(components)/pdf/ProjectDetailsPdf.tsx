@@ -4,8 +4,8 @@ import { pdfStyles as styles } from './styles';
 
 export interface ProjectDetailsPdfProps {
   projectName: string;
-  deliveryDate: string;
-  deliveryWindow: string;
+  deliveryDate?: string;
+  deliveryWindow?: string;
 }
 
 export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
@@ -41,17 +41,21 @@ export const ProjectDetailsPdf: React.FC<ProjectDetailsPdfProps> = ({
           <Text style={styles.valueSmall}>{projectName}</Text>
         </View>
 
-        {/* Estimated Start Date */}
-        <View style={styles.quarterColumn}>
-          <Text style={styles.label}>Estimated Start Date</Text>
-          <Text style={styles.valueSmall}>{deliveryDate}</Text>
-        </View>
+        {/* Estimated Start Date — omitted entirely when not set */}
+        {deliveryDate && (
+          <View style={styles.quarterColumn}>
+            <Text style={styles.label}>Estimated Start Date</Text>
+            <Text style={styles.valueSmall}>{deliveryDate}</Text>
+          </View>
+        )}
 
-        {/* Timeframe */}
-        <View style={styles.quarterColumn}>
-          <Text style={styles.label}>Timeframe</Text>
-          <Text style={styles.valueSmall}>{deliveryWindow}</Text>
-        </View>
+        {/* Timeframe — omitted entirely when neither window bound is set */}
+        {deliveryWindow && (
+          <View style={styles.quarterColumn}>
+            <Text style={styles.label}>Timeframe</Text>
+            <Text style={styles.valueSmall}>{deliveryWindow}</Text>
+          </View>
+        )}
       </View>
       <View style={styles.separator} />
     </View>
