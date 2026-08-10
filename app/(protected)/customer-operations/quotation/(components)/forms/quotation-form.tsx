@@ -781,7 +781,7 @@ export default function QuotationForm({
                 name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Estimated Start Date*</FormLabel>
+                    <FormLabel>Estimated Start Date</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -801,7 +801,7 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window*</FormLabel>
+                    <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -822,7 +822,7 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>End Time Window*</FormLabel>
+                    <FormLabel>End Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}

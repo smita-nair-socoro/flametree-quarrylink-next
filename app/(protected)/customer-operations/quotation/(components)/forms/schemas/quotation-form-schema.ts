@@ -25,19 +25,21 @@ export const QuotationFormSchema = z.object({
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),
-  deliveryStartDate: z.date({ message: 'Required' }),
+  deliveryStartDate: z.date().optional(),
   deliveryWindowStart: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
+    })
+    .or(z.literal(''))
+    .optional(),
   deliveryWindowEnd: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
+    })
+    .or(z.literal(''))
+    .optional(),
   expiryDate: z.date({ message: 'Required' }),
   // Create flow: phone is auto-filled from customer but not shown — skip format checks.
   phone: z.string().optional(),
