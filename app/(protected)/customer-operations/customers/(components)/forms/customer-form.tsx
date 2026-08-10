@@ -42,7 +42,10 @@ import {
   PAYMENT_TERMS_OPTIONS,
 } from '@/hooks/customer/use-customer-form-state';
 import { AuditInformation } from '@/components/audit-information';
-import { useAccountingSoftwareLabel, useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareLabel,
+  useAccountingSoftwareProvider,
+} from '@/lib/utils/tenant-config-helper';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { Separator } from '@/components/ui/separator';
 import AdditionalContactForm from './additional-contact-form';
@@ -140,9 +143,7 @@ export default function CustomerForm({
           type="submit"
           disabled={isSubmitting || isFormBlocked || readOnly}
         >
-          {isSubmitting && (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          )}
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isSubmitting
             ? isEditing
               ? 'Saving Changes...'
@@ -498,11 +499,13 @@ export default function CustomerForm({
             )}
 
             {readOnly && (
-              <div className={
-                isEditing && isDesktop
-                  ? 'col-span-1 col-start-1 mb-5'
-                  : 'col-span-2 mb-5'
-              }>
+              <div
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-1 mb-5'
+                    : 'col-span-2 mb-5'
+                }
+              >
                 <Label className="mb-2">Customer Location ID</Label>
                 <Input
                   className="w-full"
@@ -513,12 +516,13 @@ export default function CustomerForm({
             )}
 
             {readOnly && (
-              <div className={
-                isEditing && isDesktop
-                  ? 'col-span-1 col-start-2 mb-5'
-                  : 'col-span-2 mb-5'
-              }>
-
+              <div
+                className={
+                  isEditing && isDesktop
+                    ? 'col-span-1 col-start-2 mb-5'
+                    : 'col-span-2 mb-5'
+                }
+              >
                 <Label className="mb-2">Customer Classification</Label>
                 <Input
                   className="w-full"
@@ -934,7 +938,9 @@ export default function CustomerForm({
                         : 'flex flex-col gap-4',
                     )}
                   >
-                    <span className="text-lg font-semibold">Additional Contacts</span>
+                    <span className="text-lg font-semibold">
+                      Additional Contacts
+                    </span>
                     <FormDialog
                       dialogTitle="Add New Contact"
                       dialogDescription="Fill in the contact details below."
@@ -984,15 +990,14 @@ export default function CustomerForm({
                     )}
                   >
                     <span className="text-lg font-semibold">Attachments</span>
-                    {!readOnly && (
-                      <Button
-                        type="button"
-                        className="cursor-pointer"
-                        onClick={() => setAddAttachmentOpen(true)}
-                      >
-                        Add Attachment
-                      </Button>
-                    )}
+                    {/* Attachment button now shown for MYOB Acumatica / Flametree too */}
+                    <Button
+                      type="button"
+                      className="cursor-pointer"
+                      onClick={() => setAddAttachmentOpen(true)}
+                    >
+                      Add Attachment
+                    </Button>
                   </div>
 
                   <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
@@ -1016,7 +1021,6 @@ export default function CustomerForm({
                 customerId={customerId}
               />
             )}
-
 
             {/* Audit Information */}
             {isEditing && (
@@ -1054,7 +1058,6 @@ export default function CustomerForm({
                 </Button>
               </div>
             )}
-
           </form>
         </Form>
       </div>
