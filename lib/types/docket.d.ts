@@ -183,9 +183,9 @@ export interface DocketDTO {
     uninvoicedDockets: number;
     quoteId: number;
     emailRecipients: string[];
-    estimatedStartDate: string;
-    startTimeWindow: string;
-    endTimeWindow: string;
+    estimatedStartDate?: string;
+    startTimeWindow?: string;
+    endTimeWindow?: string;
     version: number;
   };
   jobItem: {
