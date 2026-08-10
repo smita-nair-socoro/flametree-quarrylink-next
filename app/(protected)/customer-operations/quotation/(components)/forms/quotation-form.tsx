@@ -100,10 +100,11 @@ export default function QuotationForm({
 
   const quotationForm = useForm<QuotationFormValues>({
     resolver: zodResolver(getQuotationFormSchema(isEditing)),
-    defaultValues: quotationToFormValues(
-      isEditing ? selectedQuotation : null,
-      isEditing,
-    ),
+    defaultValues: {
+      ...quotationToFormValues(isEditing ? selectedQuotation : null, isEditing),
+      // Duplicated quotes should not carry over the original's PO number.
+      ...(isDuplicate ? { poNumber: '' } : {}),
+    },
   });
 
   const createQuotation = useCreateQuotation();
