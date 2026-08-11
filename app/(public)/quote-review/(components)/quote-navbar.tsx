@@ -66,12 +66,10 @@ export function QuoteNavbar({
   // Determine if this is QuarryLink or a custom tenant
   const isQuarryLink =
     !tenantDetails || tenantDetails.tenantName === 'QuarryLink';
-  // TEMP: forcing the long name to check text-wrap behavior — revert before commit.
-  const displayName = 'Flame Tree Developments (Fiji) Pte Ltd';
-  // Defaults to the large-logo template when the tenant hasn't been
-  // explicitly set to SMALL or MEDIUM.
-  const isLargeLogo =
-    logoSize !== LogoSize.SMALL && logoSize !== LogoSize.MEDIUM;
+  const displayName = tenantDetails?.businessName || 'QuarryLink';
+  // Defaults to the small-logo template unless the tenant has been
+  // explicitly set to LARGE.
+  const isLargeLogo = logoSize === LogoSize.LARGE;
 
   // Dynamic styling based on tenant
   const bgColor = isQuarryLink

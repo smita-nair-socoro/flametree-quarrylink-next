@@ -266,9 +266,9 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   const isQuarryLink = !tenantDetails || tenantDetails.tenantName === 'QuarryLink';
   const displayName = tenantDetails?.businessName || 'QuarryLink';
   const initials = isQuarryLink ? '' : getInitials(displayName);
-  // Defaults to the large-logo template when the tenant hasn't been
-  // explicitly set to SMALL or MEDIUM.
-  const isLargeLogo = logoSize !== LogoSize.SMALL && logoSize !== LogoSize.MEDIUM;
+  // Defaults to the small-logo template unless the tenant has been
+  // explicitly set to LARGE.
+  const isLargeLogo = logoSize === LogoSize.LARGE;
 
   // Dynamic styles based on tenant
   const headerStyle = isQuarryLink
