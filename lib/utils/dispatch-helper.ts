@@ -752,7 +752,7 @@ export function getUnassignedQueueApiSortParams(
     case 'time':
       return { sortBy: 'deliveryCollectionStartTime', sortOrder };
     case 'size':
-      return { sortBy: 'actualLoadSize', sortOrder };
+      return { sortBy: 'plannedLoadSize', sortOrder };
     case 'customer':
       return { sortBy: 'customerName', sortOrder };
   }
