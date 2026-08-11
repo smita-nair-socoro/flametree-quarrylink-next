@@ -131,6 +131,19 @@ export function transformQuoteData(
   } = apiResponse;
   const currencyTax = buildQuoteCurrencyTax(tenantProfile);
   const { notes, terms, documents } = mapQuoteContent(content);
+
+  // TEMP FIX: Flametree Quarry stores a dedicated quote-page logo variant
+  // alongside the standard one in S3 (same folder, different filename).
+  // Scoped to this tenant only until the backend returns a proper
+  // quote-page logo URL for all tenants.
+  const isFlametreeQuarry =
+    tenantProfile?.email === 'flametree@gmail.com' ||
+    tenantProfile?.tenantId?.includes('flametree-quarry');
+  const rawLogoUrl = tenantLogoDto?.logoPublicS3Url;
+  const logoUrl =
+    isFlametreeQuarry && rawLogoUrl?.includes('logo.png')
+      ? rawLogoUrl.replace('logo.png', 'quote-page-logo.png')
+      : rawLogoUrl;
   const {
     quoteNumber,
     customerName,
@@ -232,7 +245,7 @@ export function transformQuoteData(
       accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
-      logoUrl: tenantLogoDto?.logoPublicS3Url,
+      logoUrl,
       logoSize: tenantProfile?.logoSize,
     },
     customer: {
