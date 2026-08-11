@@ -27,43 +27,25 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useDocketActions } from '@/hooks/use-docket-actions';
-import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
+import {
+  useDocketRowActions,
+  type DocketTableActionType,
+} from './docket-table-action-host';
 
 interface DocketTableActionsProps {
-  docket: DocketDTO;
+  docketId: number;
+  status: string;
+  invoiceStatus?: INVOICE_STATUS | string;
 }
 
-type ActionType =
-  | 'view'
-  | 'cancel'
-  | 'markArrived'
-  | 'markDelivered'
-  | 'markReady'
-  | 'markCollected'
-  | 'stop'
-  | 'void'
-  | 'remove'
-  | 'duplicate'
-  | 'startTransit'
-  | 'resumeTransit'
-  | 'unassign'
-  | 'startPreparing'
-  | 'cashSale'
-  | 'invoice'
-  | 'cashReceipts'
-  | 'viewInvoice'
-  | 'assign'
-  | 'backToPending'
-  | 'backToPreparing'
-  | 'retrySync'
-  | 'print';
+export type { DocketTableActionType };
 
 interface ActionItem {
   label: string;
   icon: LucideIcon;
-  action: ActionType;
+  action: DocketTableActionType;
   className?: string;
   separator?: boolean;
 }
@@ -107,12 +89,6 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       label: 'Mark Collected',
       icon: CircleCheckBig,
       action: 'markCollected',
-      separator: true,
-    },
-    {
-      label: 'Back to Preparing',
-      icon: Undo2,
-      action: 'backToPreparing',
       separator: true,
     },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
@@ -240,28 +216,30 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
 };
 
+/** Row action menu only — dialogs/actions live on the parent via useDocketTableActionHost. */
 export function DocketTableActions({
-  docket,
+  docketId,
+  status,
+  invoiceStatus,
 }: Readonly<DocketTableActionsProps>) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
-  const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
+  const { runAction } = useDocketRowActions();
 
   const handleView = () => {
     setDropdownOpen(false);
-    actions.view();
+    runAction(docketId, 'view');
   };
 
-  const handleAction = (actionType: ActionType) => {
+  const handleAction = (actionType: DocketTableActionType) => {
     setDropdownOpen(false);
-    actions[actionType]?.();
+    runAction(docketId, actionType);
   };
 
-  let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
+  let currentActions = [
+    ...(ACTION_CONFIG[status as DOCKET_STATUS] || []),
+  ];
 
-  if (
-    docket.docketStatus === DOCKET_STATUS.INVOICED &&
-    docket.invoiceStatus === 'FAILED'
-  ) {
+  if (status === DOCKET_STATUS.INVOICED && invoiceStatus === 'FAILED') {
     currentActions = [
       {
         label: 'Retry Sync',
@@ -273,46 +251,42 @@ export function DocketTableActions({
   }
 
   return (
-    <div>
-      {confirmDialogs}
-      {viewDialog}
-      <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem onClick={handleView}>
-            <Eye className="h-4 w-4 mr-2" />
-            View Details
-          </DropdownMenuItem>
+    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon">
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuItem onClick={handleView}>
+          <Eye className="h-4 w-4 mr-2" />
+          View Details
+        </DropdownMenuItem>
 
-          {currentActions.map((item, index) => (
-            <React.Fragment key={`${item.label}-${index}`}>
-              {item.separator && <DropdownMenuSeparator />}
-              <DropdownMenuItem
-                onClick={() => handleAction(item.action)}
-                className={item.className}
-              >
-                <item.icon className={`h-4 w-4 mr-2 ${item.className || ''}`} />
-                {item.label}
-              </DropdownMenuItem>
-            </React.Fragment>
-          ))}
+        {currentActions.map((item, index) => (
+          <React.Fragment key={`${item.label}-${index}`}>
+            {item.separator && <DropdownMenuSeparator />}
+            <DropdownMenuItem
+              onClick={() => handleAction(item.action)}
+              className={item.className}
+            >
+              <item.icon className={`h-4 w-4 mr-2 ${item.className || ''}`} />
+              {item.label}
+            </DropdownMenuItem>
+          </React.Fragment>
+        ))}
 
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleAction('duplicate')}>
-            <Copy className="h-4 w-4 mr-2" />
-            Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => handleAction('print')}>
-            <Printer className="h-4 w-4 mr-2" />
-            Print Docket
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => handleAction('duplicate')}>
+          <Copy className="h-4 w-4 mr-2" />
+          Duplicate
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={() => handleAction('print')}>
+          <Printer className="h-4 w-4 mr-2" />
+          Print Docket
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

@@ -278,9 +278,11 @@ export function useInvoiceActions(invoiceId: number | undefined) {
   const openDialog = useInvoiceDetailsDialogStore((s) => s.openDialog);
 
   const actions = {
-    viewDetails: () => {
-      if (invoiceId != null) {
-        openDialog(invoiceId);
+    /** Pass `id` to open a specific invoice; otherwise uses the hook's invoiceId. */
+    viewDetails: (id?: number) => {
+      const resolvedId = id ?? invoiceId;
+      if (resolvedId != null) {
+        openDialog(resolvedId);
       }
     },
   };

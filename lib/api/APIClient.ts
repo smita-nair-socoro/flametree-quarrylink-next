@@ -78,6 +78,7 @@ import {
   DuplicateDocketResponse,
   DocketsListResponse,
   DocketsPage,
+  DocketsTableResponse,
 } from '../types/docket';
 import {
   JobDTO,
@@ -1091,6 +1092,46 @@ export const APIClient = {
 
       const response = await appClient.Get<DocketsListResponse>(
         `/socoro/quarrylink/api/dockets`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
+          },
+        },
+      );
+      return response;
+    },
+    /** Flat table projection for the customer-operations dockets page. */
+    getTable: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
+      ids?: number[];
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      const response = await appClient.Get<DocketsTableResponse>(
+        `/socoro/quarrylink/api/dockets/table`,
         {
           queryString: {
             page: params?.page?.toString(),
