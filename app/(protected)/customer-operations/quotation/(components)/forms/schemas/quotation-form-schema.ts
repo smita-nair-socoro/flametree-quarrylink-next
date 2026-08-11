@@ -21,6 +21,26 @@ const requiredRecipientEmailSchema = z.string().refine(
   { message: 'At least one recipient email is required' },
 );
 
+const validateDeliveryTimeWindow = (
+  data: {
+    deliveryStartDate?: Date;
+    deliveryWindowStart?: string;
+    deliveryWindowEnd?: string;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  if (
+    !data.deliveryStartDate &&
+    (data.deliveryWindowStart || data.deliveryWindowEnd)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Date is required when a time window is set',
+      path: ['deliveryStartDate'],
+    });
+  }
+};
+
 export const QuotationFormSchema = z.object({
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
@@ -58,11 +78,11 @@ export const QuotationFormSchema = z.object({
 export type QuotationFormValues = z.infer<typeof QuotationFormSchema>;
 
 export const getQuotationFormSchema = (isEditing: boolean) => {
-  if (isEditing) {
-    return QuotationFormSchema.extend({
+  const schema = isEditing
+    ? QuotationFormSchema.extend({
       phone: requiredPhoneSchema,
       receiptEmail: requiredRecipientEmailSchema,
-    });
-  }
-  return QuotationFormSchema;
+    })
+    : QuotationFormSchema;
+  return schema.superRefine(validateDeliveryTimeWindow);
 };

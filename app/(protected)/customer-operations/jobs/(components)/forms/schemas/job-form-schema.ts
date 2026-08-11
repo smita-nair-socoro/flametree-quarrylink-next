@@ -4,6 +4,26 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
 
+const validateDeliveryTimeWindow = (
+  data: {
+    deliveryStartDate?: Date;
+    deliveryWindowStart?: string;
+    deliveryWindowEnd?: string;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  if (
+    !data.deliveryStartDate &&
+    (data.deliveryWindowStart || data.deliveryWindowEnd)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Date is required when a time window is set',
+      path: ['deliveryStartDate'],
+    });
+  }
+};
+
 export const JobFormSchema = z.object({
   poNumber: z.string().optional(),
   customerId: z.coerce.number().min(1, { message: 'Required' }),
@@ -39,8 +59,8 @@ export const JobFormSchema = z.object({
 export type JobFormValues = z.infer<typeof JobFormSchema>;
 
 export const getJobFormSchema = (isEditing: boolean) => {
-  if (isEditing) {
-    return JobFormSchema.extend({
+  const schema = isEditing
+    ? JobFormSchema.extend({
       contactPersonName: z
         .string()
         .min(2, {
@@ -56,7 +76,7 @@ export const getJobFormSchema = (isEditing: boolean) => {
         .refine((v) => !v || isValidPhoneNumber(v), {
           message: 'Invalid phone number',
         }),
-    });
-  }
-  return JobFormSchema;
+    })
+    : JobFormSchema;
+  return schema.superRefine(validateDeliveryTimeWindow);
 };
