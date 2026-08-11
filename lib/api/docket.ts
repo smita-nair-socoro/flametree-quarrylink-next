@@ -17,6 +17,8 @@ import {
   DocketsPage,
   DocketsTableResponse,
   DocketTableRow,
+  UnassignedDocketListItem,
+  UnassignedDocketsPage,
 } from '../types/docket';
 import { DOCKET_STATUS } from '../types/docket-enums';
 import { useJobStore } from '@/app/stores/job-store';
@@ -53,6 +55,36 @@ export type DocketsListParams = {
   /** Restrict results to specific docket ids (e.g. linking from a job/customer dialog). */
   ids?: number[];
 };
+
+export type UnassignedDocketsListParams = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
+
+export function getUnassignedDocketsFromPage(
+  page: UnassignedDocketsPage | null | undefined,
+): UnassignedDocketListItem[] {
+  return page?.content ?? [];
+}
+
+export function getUnassignedDocketsFromInfinitePages(
+  pages: (UnassignedDocketsPage | null | undefined)[] | undefined,
+): UnassignedDocketListItem[] {
+  const seenIds = new Set<number>();
+  const result: UnassignedDocketListItem[] = [];
+  for (const page of pages ?? []) {
+    for (const item of getUnassignedDocketsFromPage(page)) {
+      if (item.id != null && !seenIds.has(item.id)) {
+        seenIds.add(item.id);
+        result.push(item);
+      }
+    }
+  }
+  return result;
+}
 
 const DOCKET_COLUMN_TO_API_SORT: Record<string, string> = {
   docketNumber: 'docketNumber',
@@ -290,6 +322,27 @@ export const DocketsInfiniteListQueryOptions = (
       if (content.length === 0) return undefined;
       const nextPage = lastPageParam + 1;
       if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export const UnassignedDocketsInfiniteQueryOptions = (
+  params: Omit<UnassignedDocketsListParams, 'page'>,
+) =>
+  infiniteQueryOptions({
+    queryKey: [...DocketKeys.unassigned(), 'infinite', params],
+    queryFn: ({ pageParam }) =>
+      APIClient.dockets.getUnassignedAll({
+        ...params,
+        page: pageParam,
+        pageSize: params.pageSize ?? 10,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (!lastPage?.content?.length) return undefined;
+      const nextPage = lastPageParam + 1;
+      if (nextPage > lastPage.totalPages) return undefined;
       return nextPage;
     },
     staleTime: 5_000,
