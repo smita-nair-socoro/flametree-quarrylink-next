@@ -74,6 +74,7 @@ import {
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { addNewRecords } from '@/lib/utils/pinned-records';
+import { mapDocketDtoToTableRow } from '@/lib/utils/docket-table-helpers';
 import { getCalendarDateString } from '@/lib/utils/date';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useInvoiceActions } from '@/hooks/use-invoice-actions';
@@ -613,11 +614,13 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
       // to `effectiveDocket`.
       addNewRecords(
         'docket_main_data_table',
-        result.dockets.map((d) => ({
-          ...d,
-          job: d.job ?? effectiveDocket?.job,
-          jobItem: d.jobItem ?? effectiveDocket?.jobItem,
-        })),
+        result.dockets.map((d) =>
+          mapDocketDtoToTableRow({
+            ...d,
+            job: d.job ?? effectiveDocket?.job,
+            jobItem: d.jobItem ?? effectiveDocket?.jobItem,
+          } as DocketDTO),
+        ),
       );
       notifySuccess(
         `${result.dockets.length} docket${result.dockets.length === 1 ? '' : 's'} duplicated successfully`,
