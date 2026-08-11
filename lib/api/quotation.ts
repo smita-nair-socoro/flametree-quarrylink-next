@@ -347,19 +347,19 @@ export const useDeleteQuoteItem = () => {
  */
 type UpdatePublicQuoteStatusParams =
   | {
-    status: 'APPROVED';
-    token: string;
-    declineReason?: string;
-    decisionMakerName?: string;
-    // Mandatory: customers must supply a PO number to approve via the public link (QLINK-3356).
-    poNumber: string;
-  }
+      status: 'APPROVED';
+      token: string;
+      declineReason?: string;
+      decisionMakerName?: string;
+      // Mandatory: customers must supply a PO number to approve via the public link .
+      poNumber: string;
+    }
   | {
-    status: 'DECLINED';
-    token: string;
-    declineReason?: string;
-    decisionMakerName?: string;
-  };
+      status: 'DECLINED';
+      token: string;
+      declineReason?: string;
+      decisionMakerName?: string;
+    };
 
 export const useUpdatePublicQuoteStatus = () => {
   return useMutation({

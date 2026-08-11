@@ -441,7 +441,7 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
-    // PO Number is mandatory when a customer approves a quote (QLINK-3356).
+    // PO Number is mandatory when a customer approves a quote.
     if (!approvePoNumber.trim()) {
       setShowApproveValidationError(true);
       return;
