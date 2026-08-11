@@ -203,8 +203,8 @@ export function QuoteNavbar({
         <div className="flex flex-col md:flex-row gap-6 md:gap-10">
           {/* Left: Large logo above the business name - shrink-wraps to the
               logo's actual rendered width instead of reserving a fixed
-              column, so there's no dead space beside a narrow logo. */}
-          <div className="flex flex-col items-start gap-3 w-fit max-w-full md:max-w-[45%]">
+              column, so there's no dead space beside a narrow logo.*/}
+          <div className="flex flex-col items-start gap-3 w-fit max-w-full md:min-w-[40%] md:max-w-[55%]">
             {renderLargeLogo()}
             <h1 className="text-[18px] sm:text-[22px] font-bold break-words w-full">
               {displayName}
