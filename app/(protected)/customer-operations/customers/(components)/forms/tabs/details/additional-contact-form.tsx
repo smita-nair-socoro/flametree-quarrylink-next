@@ -24,7 +24,7 @@ import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import {
   ADDITIONAL_CONTACT_METHOD_TYPE_OPTIONS,
   additionalContactFormSchema,
-} from './schemas/additional-contact-form-schema';
+} from '../../schemas/additional-contact-form-schema';
 import { ADDITIONAL_CONTACT_METHOD_TYPE } from '@/lib/types/customer-enums';
 import {
   AdditionalContactDetailQueryOptions,

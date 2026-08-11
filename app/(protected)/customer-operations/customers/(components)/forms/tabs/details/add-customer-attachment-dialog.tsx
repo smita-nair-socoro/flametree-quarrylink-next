@@ -9,7 +9,7 @@ import {
   AddCustomerAttachmentContent,
   AddCustomerAttachmentDescription,
 } from '@/hooks/customer/add-customer-attachment-content';
-import { customerAttachmentFormSchema } from './schemas/customer-attachment-form-schema';
+import { customerAttachmentFormSchema } from '../../schemas/customer-attachment-form-schema';
 import { useUploadCustomerAttachment } from '@/lib/api/customer';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
