@@ -28,11 +28,11 @@ interface DialogConfig {
   cancelText?: string;
   confirmText?: string;
   confirmVariant?:
-  | 'default'
-  | 'destructive'
-  | 'outline'
-  | 'secondary'
-  | 'ghost';
+    | 'default'
+    | 'destructive'
+    | 'outline'
+    | 'secondary'
+    | 'ghost';
   confirmCustomColor?: string;
   confirmCustomClass?: string;
   confirmIcon?: React.ReactNode;
@@ -228,16 +228,6 @@ const getDialogConfigs = (
     const blockingJobs = archiveResponse?.blockingJobs ?? [];
     const totalBlocking =
       blockingQuotes.length + blockingDockets.length + blockingJobs.length;
-
-    const blockingQuotesHref = blockingQuotes.length
-      ? `/customer-operations/quotation?linkedQuotationIds=${blockingQuotes.map((q) => q.id).join(',')}`
-      : undefined;
-    const blockingDocketsHref = blockingDockets.length
-      ? `/customer-operations/dockets/?docketId=${blockingDockets.map((d) => d.id).join(',')}`
-      : undefined;
-    const blockingJobsHref = blockingJobs.length
-      ? `/customer-operations/jobs?ids=${blockingJobs.map((j) => j.id).join(',')}`
-      : undefined;
 
     return {
       cannotArchive: {
@@ -469,7 +459,13 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
         unarchiveResponse,
         accSoftware,
       ),
-    [customerData, selectedAction, archiveResponse, unarchiveResponse, accSoftware],
+    [
+      customerData,
+      selectedAction,
+      archiveResponse,
+      unarchiveResponse,
+      accSoftware,
+    ],
   );
 
   const handleArchive = async () => {
@@ -502,7 +498,9 @@ export function useCustomerActions(customerData?: CustomerDTO | null) {
 
       if (apiErrorMessage.includes('Local archive was successful')) {
         // Strip the raw accounting software JSON — only show the human-readable prefix
-        notifyError('Archive customer failed! Failed at linked accounting software. Reverting QuarryLink archive.');
+        notifyError(
+          'Archive customer failed! Failed at linked accounting software. Reverting QuarryLink archive.',
+        );
         if (customerId) {
           queryClient.invalidateQueries({
             queryKey: CustomerKeys.detail(customerId),

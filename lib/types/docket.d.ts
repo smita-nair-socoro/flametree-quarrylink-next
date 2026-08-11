@@ -411,6 +411,43 @@ export interface DispatchUnassignedDocket {
   truckSellPrice: number;
 }
 
+/** Flat row from GET /dockets/unassigned-dockets (dispatch all-dates queue). */
+export interface UnassignedDocketListItem {
+  id: number;
+  docketNumber: string;
+  docketStatus: DOCKET_STATUS;
+  deliveryCollectionDate?: string;
+  deliveryCollectionStartTime: string;
+  deliveryCollectionEndTime: string;
+  productName: string;
+  plannedLoadSize?: number;
+  actualLoadSize?: number;
+  deliveryDistanceUom?: string;
+  deliveryDistanceQuantity?: number;
+  customerName: string;
+  pickUpSuburb: string;
+  pickUpState: string;
+  deliverySuburb: string;
+  deliveryState: string;
+  productSellUom: string;
+  productDensity: number;
+  truckSellQty: number;
+  truckSellUom: string;
+  truckSellPrice: number;
+}
+
+export interface UnassignedDocketsPage {
+  content: UnassignedDocketListItem[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
 /** Slim board docket (assigned or unassigned list item — same fields). */
 export type DispatchBoardDocketRow =
   | DispatchAssignedDocket

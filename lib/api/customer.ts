@@ -12,6 +12,8 @@ import {
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
   AdditionalContactDTO,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
 } from '../types/customer';
 import type { CustomersListResponse, CustomersPage } from '../types/customer';
 import { formatCustomerStatus } from '../utils/customer-helper';
@@ -68,7 +70,7 @@ function getFacetFilterValues(
 ): string[] {
   const filter = filters.find((f) => f.id === columnId);
   if (!filter || !Array.isArray(filter.value)) return [];
-  return filter.value.map((v) => String(v));
+  return filter.value.map(String);
 }
 
 export function toCustomerApiFilterParams(
@@ -196,7 +198,7 @@ export const CustomersListQueryOptions = (params?: CustomersListParams) =>
     queryFn: () =>
       APIClient.customers.getAll({
         ...params,
-        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+        page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
@@ -210,7 +212,7 @@ export const CustomersInfiniteListQueryOptions = (
     queryFn: ({ pageParam }) =>
       APIClient.customers.getAll({
         ...params,
-        page: pageParam as number,
+        page: pageParam,
         pageSize: params.pageSize ?? 25,
       }),
     initialPageParam: 1,
@@ -219,7 +221,7 @@ export const CustomersInfiniteListQueryOptions = (
       if (!page) return undefined;
       const content = page.content ?? [];
       if (content.length === 0) return undefined;
-      const nextPage = (lastPageParam as number) + 1;
+      const nextPage = lastPageParam + 1;
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
@@ -557,6 +559,85 @@ export const useDeleteAdditionalContact = () => {
           variables.customerId,
         ],
       });
+    },
+  });
+};
+
+export type CustomerNotesListParams = {
+  page?: number;
+  pageSize?: number;
+};
+
+export const CustomerNotesQueryOptions = (
+  customerId: number,
+  params?: CustomerNotesListParams,
+) =>
+  queryOptions({
+    queryKey: CustomerKeys.notes(customerId, params),
+    queryFn: () => APIClient.customers.getNotes(customerId, params),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!customerId,
+  });
+
+const invalidateCustomerNotes = (
+  queryClient: ReturnType<typeof useQueryClient>,
+  customerId: number,
+) => {
+  queryClient.invalidateQueries({
+    queryKey: [...CustomerKeys.all, 'notes', customerId],
+  });
+};
+
+export const useCreateCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      data,
+    }: {
+      customerId: number;
+      data: CreateCustomerNoteRequest;
+    }) => APIClient.customers.createNote(customerId, data),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
+    },
+  });
+};
+
+export const useUpdateCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      noteId,
+      data,
+    }: {
+      customerId: number;
+      noteId: number;
+      data: UpdateCustomerNoteRequest;
+    }) => APIClient.customers.updateNote(customerId, noteId, data),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
+    },
+  });
+};
+
+export const useDeleteCustomerNote = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      customerId,
+      noteId,
+    }: {
+      customerId: number;
+      noteId: number;
+    }) => APIClient.customers.deleteNote(customerId, noteId),
+    onSuccess: (_data, variables) => {
+      invalidateCustomerNotes(queryClient, variables.customerId);
     },
   });
 };

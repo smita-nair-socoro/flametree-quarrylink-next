@@ -19,6 +19,10 @@ import {
   CustomerAttachmentDTO,
   AdditionalContactApiDTO,
   AdditionalContactsPage,
+  CustomerNoteDTO,
+  CustomerNotesPage,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
   SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
 import {
@@ -75,6 +79,7 @@ import {
   DocketsListResponse,
   DocketsPage,
   DocketsTableResponse,
+  UnassignedDocketsPage,
 } from '../types/docket';
 import {
   JobDTO,
@@ -859,6 +864,37 @@ export const APIClient = {
       appClient.Delete(
         `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
       ),
+    getNotes: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<CustomerNotesPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    createNote: (customerId: number, data: CreateCustomerNoteRequest) =>
+      appClient.Post<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        { body: data },
+      ),
+    updateNote: (
+      customerId: number,
+      noteId: number,
+      data: UpdateCustomerNoteRequest,
+    ) =>
+      appClient.Put<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+        { body: data },
+      ),
+    deleteNote: (customerId: number, noteId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+      ),
   },
 
   quotations: {
@@ -1116,6 +1152,33 @@ export const APIClient = {
         },
       );
       return response;
+    },
+    /** Paginated unassigned dockets for dispatch all-dates queue. */
+    getUnassignedAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      sort?: string[];
+    }) => {
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<UnassignedDocketsPage>(
+        `/socoro/quarrylink/api/dockets/unassigned-dockets`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            sort: params?.sort,
+          },
+        },
+      );
     },
     getByJobId: async (
       jobId: number,

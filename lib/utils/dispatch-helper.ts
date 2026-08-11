@@ -18,6 +18,7 @@ import type {
   DispatchBoardTruckRef,
   DocketDTO,
   DocketOperationalUpdateRequest,
+  UnassignedDocketListItem,
 } from '@/lib/types/docket';
 import { getDeliveryDistanceQuantity } from '@/lib/utils/docket-helper';
 import type { DispatchBoardFilterState } from '@/app/(protected)/logistics/dispatch/views/drivers-trucks-filter';
@@ -105,6 +106,16 @@ export function mapSchedulerUnassignedToBoardRow(
     loadSize: d.loadSize ?? d.actualLoadSize ?? d.plannedLoadSize ?? 0,
     uiAssignedTruckId: null,
     uiAssignedTime: null,
+  });
+}
+
+/** Maps GET /dockets/unassigned-dockets list items to dispatch board rows. */
+export function mapUnassignedDocketListItemToBoardRow(
+  d: UnassignedDocketListItem,
+): DispatchDocket {
+  return mapSchedulerUnassignedToBoardRow({
+    ...d,
+    loadSize: d.actualLoadSize ?? d.plannedLoadSize ?? 0,
   });
 }
 

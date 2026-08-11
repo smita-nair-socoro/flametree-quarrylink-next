@@ -52,6 +52,10 @@ export const CustomerKeys = {
       'detail',
       contactId,
     ] as const,
+  notes: (
+    customerId: number,
+    params?: { page?: number; pageSize?: number },
+  ) => [...CustomerKeys.all, 'notes', customerId, params] as const,
 };
 
 export const QuotationKeys = {
@@ -114,6 +118,7 @@ export const DriverKeys = {
 export const DocketKeys = {
   all: ['dockets'] as const,
   list: () => [...DocketKeys.all, 'list'] as const,
+  unassigned: () => [...DocketKeys.all, 'unassigned'] as const,
   table: () => [...DocketKeys.all, 'table'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
