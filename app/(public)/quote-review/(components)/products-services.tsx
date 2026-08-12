@@ -49,75 +49,75 @@ const createColumns = (
   includeDeliveryPrices: boolean,
   currencySymbol: string,
 ): ColumnDef<Product>[] => [
-  {
-    accessorKey: 'name',
-    header: 'Product',
-    cell: ({ row }) => (
-      <div className="min-w-0">
-        <p
-          className="font-semibold text-gray-900 text-sm"
-          title={row.original.name}
-        >
-          {row.original.name}
-        </p>
-        <p
-          className="text-gray-500 text-xs whitespace-normal"
-          title={row.original.deliveryAddress}
-        >
-          {row.original.deliveryAddress}
-        </p>
-      </div>
-    ),
-    size: 250,
-  },
-  {
-    accessorKey: 'type',
-    header: 'Type',
-    cell: ({ row }) => (
-      <div className="inline-flex">
-        <TableBadges names={[String(row.original.type || '').toUpperCase()]} />
-      </div>
-    ),
-    size: 140,
-  },
-  {
-    accessorKey: 'quantity',
-    header: 'Quantity',
-    cell: ({ row }) => (
-      <p className="text-gray-900 text-sm whitespace-nowrap">{row.original.quantity}</p>
-    ),
-    size: 140,
-  },
-  ...(includeDeliveryPrices ? [deliveryCol(currencySymbol)] : []),
-  {
-    accessorKey: 'unitPrice',
-    header: 'Unit Price',
-    cell: ({ row }) => (
-      <p className="text-gray-900 text-sm">
-        {currencySymbol}
-        {centsToDollars(calcUnitPriceCents(row.original, includeDeliveryPrices))}
-        {row.original.unit ? `/${row.original.unit}` : ''}
-      </p>
-    ),
-    size: 120,
-  },
-  {
-    accessorKey: 'totalPrice',
-    header: includeDeliveryPrices ? 'Product Price' : 'Total Price',
-    cell: ({ row }) => {
-      const price = includeDeliveryPrices
-        ? row.original.totalPrice
-        : row.original.totalPrice + (row.original.deliveryPrice || 0);
-      return (
-        <p className="font-semibold text-gray-900 text-sm">
-          {currencySymbol}
-          {centsToDollars(price)}
-        </p>
-      );
+    {
+      accessorKey: 'name',
+      header: 'Product',
+      cell: ({ row }) => (
+        <div className="min-w-0">
+          <p
+            className="font-semibold text-gray-900 text-sm"
+            title={row.original.name}
+          >
+            {row.original.name}
+          </p>
+          <p
+            className="text-gray-500 text-xs whitespace-normal"
+            title={row.original.deliveryAddress}
+          >
+            {row.original.deliveryAddress}
+          </p>
+        </div>
+      ),
+      size: 250,
     },
-    size: 100,
-  },
-];
+    {
+      accessorKey: 'type',
+      header: 'Type',
+      cell: ({ row }) => (
+        <div className="inline-flex">
+          <TableBadges names={[String(row.original.type || '').toUpperCase()]} />
+        </div>
+      ),
+      size: 140,
+    },
+    {
+      accessorKey: 'quantity',
+      header: 'Quantity',
+      cell: ({ row }) => (
+        <p className="text-gray-900 text-sm whitespace-nowrap">{row.original.quantity}</p>
+      ),
+      size: 140,
+    },
+    ...(includeDeliveryPrices ? [deliveryCol(currencySymbol)] : []),
+    {
+      accessorKey: 'unitPrice',
+      header: 'Unit Price',
+      cell: ({ row }) => (
+        <p className="text-gray-900 text-sm">
+          {currencySymbol}
+          {centsToDollars(calcUnitPriceCents(row.original, includeDeliveryPrices))}
+          {row.original.unit ? `/${row.original.unit}` : ''}
+        </p>
+      ),
+      size: 120,
+    },
+    {
+      accessorKey: 'totalPrice',
+      header: includeDeliveryPrices ? 'Product Price' : 'Total Price',
+      cell: ({ row }) => {
+        const price = includeDeliveryPrices
+          ? row.original.totalPrice
+          : row.original.totalPrice + (row.original.deliveryPrice || 0);
+        return (
+          <p className="font-semibold text-gray-900 text-sm">
+            {currencySymbol}
+            {centsToDollars(price)}
+          </p>
+        );
+      },
+      size: 100,
+    },
+  ];
 
 export function ProductsServices({
   products,
@@ -138,6 +138,7 @@ export function ProductsServices({
         columns={columns}
         data={products}
         simpleTable={true}
+        enablePagination={false}
         isShowHideColumns={false}
         useColumnSizing={true}
       />
