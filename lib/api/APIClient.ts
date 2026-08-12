@@ -1213,7 +1213,7 @@ export const APIClient = {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
-      const response = await appClient.Get<DocketsPage>(
+      const response = await appClient.Get<DocketsListResponse>(
         `/socoro/quarrylink/api/dockets/job/${jobId}`,
         {
           queryString: {

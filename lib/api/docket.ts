@@ -210,12 +210,6 @@ export function getDocketItemsFromInfinitePages(
   return result;
 }
 
-export function getDocketItemsFromJobPage(
-  page: DocketsPage | null | undefined,
-): DocketDTO[] {
-  return page?.content ?? [];
-}
-
 export function getDocketsTablePage(
   data: DocketsTableResponse | null | undefined,
 ): DocketsTableResponse['dockets'] | null {
@@ -673,22 +667,6 @@ export const DocketsByDriverIdQueryOptions = (
     enabled: !!driverId,
   });
 
-export function getDocketItemsFromJobInfinitePages(
-  pages: (DocketsPage | null | undefined)[] | undefined,
-): DocketDTO[] {
-  const seenIds = new Set<number>();
-  const result: DocketDTO[] = [];
-  for (const page of pages ?? []) {
-    for (const item of page?.content ?? []) {
-      if (item.id != null && !seenIds.has(item.id)) {
-        seenIds.add(item.id);
-        result.push(item);
-      }
-    }
-  }
-  return result;
-}
-
 export const DocketsByJobIdInfiniteQueryOptions = (
   jobId: number,
   params?: Pick<
@@ -712,9 +690,10 @@ export const DocketsByJobIdInfiniteQueryOptions = (
       }),
     initialPageParam: 1,
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
-      if (!lastPage?.content?.length) return undefined;
+      const page = getDocketsPageFromListResponse(lastPage);
+      if (!page?.content?.length) return undefined;
       const nextPage = lastPageParam + 1;
-      return nextPage > lastPage.totalPages ? undefined : nextPage;
+      return nextPage > page.totalPages ? undefined : nextPage;
     },
     staleTime: 5_000,
   });
