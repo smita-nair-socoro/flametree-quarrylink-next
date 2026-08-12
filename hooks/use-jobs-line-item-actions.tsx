@@ -39,6 +39,7 @@ interface DialogConfig {
 
 interface SelectedAction {
   key: string;
+  blockingDocketIds?: number[];
 }
 
 // Will change once we have the actual API endpoints
@@ -74,7 +75,11 @@ const getDialogConfigs = (
       'cannot-delete': {
         title: 'Cannot Remove Line Item',
         description: <CannotDeleteJobLineItemDescription jobItem={lineItemData} />,
-        content: <CannotDeleteJobLineItemContent />,
+        content: (
+          <CannotDeleteJobLineItemContent
+            blockingDocketIds={selectedAction.blockingDocketIds}
+          />
+        ),
         cancelText: 'Close',
         confirmActionNeeded: false,
       },
@@ -189,8 +194,8 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
     };
   };
 
-  const handleCannotDelete = () => {
-    setSelectedAction({ key: 'cannot-delete' });
+  const handleCannotDelete = (blockingDocketIds: number[]) => {
+    setSelectedAction({ key: 'cannot-delete', blockingDocketIds });
     setActiveDialog('cannot-delete');
   };
 
@@ -202,7 +207,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
     const response = await deleteJobItem.mutateAsync(lineItemId);
 
     if ((response.blockingDocketIds?.length ?? 0) > 0) {
-      handleCannotDelete();
+      handleCannotDelete(response.blockingDocketIds ?? []);
       return;
     }
 
@@ -267,7 +272,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
                 ) as DeleteJobItemResponse | null;
 
                 if ((response?.blockingDocketIds?.length ?? 0) > 0) {
-                  handleCannotDelete();
+                  handleCannotDelete(response?.blockingDocketIds ?? []);
                 } else {
                   notifyError(
                     extractErrorMessage(error) || 'Failed to remove line item',
