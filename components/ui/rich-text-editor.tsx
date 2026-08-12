@@ -88,12 +88,17 @@ export function RichTextEditor({
   });
 
   // Keep the editor in sync if the form value is changed externally (e.g. reset).
+  // Compare against a normalized `value` too: legacy saved content may still
+  // contain bare `<p></p>` (pre-dating the preserveEmptyParagraphs fix above),
+  // which would otherwise never match the editor's own normalized output and
+  // force a needless setContent reset (losing cursor/undo state) on every render.
   React.useEffect(() => {
     if (!editor) return;
+    const normalizedValue = value ? preserveEmptyParagraphs(value) : value;
     const editorHtml = editor.isEmpty
       ? ''
       : preserveEmptyParagraphs(editor.getHTML());
-    if (value !== editorHtml) {
+    if (normalizedValue !== editorHtml) {
       editor.commands.setContent(value);
     }
   }, [editor, value]);
