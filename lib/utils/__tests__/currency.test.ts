@@ -23,6 +23,10 @@ describe('dollarsToCents', () => {
     expect(dollarsToCents('0.325')).toBe(32);
   });
 
+  test('handles floating-point multiplication artifacts', () => {
+    expect(dollarsToCents(10 * 0.18)).toBe(180);
+  });
+
   test('handles zero and negative values', () => {
     expect(dollarsToCents(0)).toBe(0);
     expect(dollarsToCents(-1.5)).toBe(-150);
@@ -47,6 +51,10 @@ describe('roundToTwoDecimals', () => {
   test('preserves values already at two decimal places', () => {
     expect(roundToTwoDecimals(123.45)).toBe(123.45);
     expect(roundToTwoDecimals(0)).toBe(0);
+  });
+
+  test('handles floating-point multiplication artifacts', () => {
+    expect(roundToTwoDecimals(10 * 0.18)).toBe(1.8);
   });
 });
 
