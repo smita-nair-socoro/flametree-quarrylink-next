@@ -9,6 +9,7 @@ import { Address, CustomerDeliveryAddress } from './address';
 import { TenantLogoResponse } from './client';
 import { QuoteSettingItemType } from './term-conditions-enums';
 import { QuoteTermItem, QuoteDocument } from './terms-conditions';
+import { RECOVERY_MODE, EFFECTIVE_SOURCE } from './fee-recovery-enums';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -216,12 +217,23 @@ export interface QuoteContent {
   items: QuoteContentItem[];
 }
 
+/** Fee-recovery preview for this quote's customer, shown on the public quote-review page. */
+export interface QuoteFeeRecoveryPreviewDto {
+  recoveredFromCustomer: boolean;
+  feeAmount: number;
+  invoiceLineDescription: string;
+  customerFacingNote: string;
+  mode: RECOVERY_MODE;
+  source: EFFECTIVE_SOURCE;
+}
+
 export interface PublicQuoteLinkResponse {
   quoteDto: QuotePreviewDto;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
   tenantLogoDto?: TenantLogoResponse;
   tenantProfile?: TenantProfileSnapshot;
   content?: QuoteContent;
+  feeRecoveryPreview?: QuoteFeeRecoveryPreviewDto;
 }
 
 /** Quote summary returned after a public approve/decline decision. */
@@ -320,6 +332,9 @@ export interface QuotationDisplayData {
     total: number;
     productSubtotal?: number;
     deliverySubtotal?: number;
+    showDigitalPlatformFee: boolean;
+    digitalPlatformFeeLabel: string;
+    digitalPlatformFeeAmount: number;
   };
   proceedActions: {
     validUntil: string;

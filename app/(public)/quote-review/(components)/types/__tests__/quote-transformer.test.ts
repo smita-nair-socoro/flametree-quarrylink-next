@@ -20,6 +20,10 @@ import type {
   TenantProfileSnapshot,
 } from '@/lib/types/quotation';
 import type { Address } from '@/lib/types/address';
+import {
+  RECOVERY_MODE,
+  EFFECTIVE_SOURCE,
+} from '@/lib/types/fee-recovery-enums';
 
 // Mirrors the shape the backend returns from GET /quote/{id}/preview and
 // /quote/public/link's `content.items`, used to debug why items selected
@@ -484,6 +488,9 @@ describe('transformQuoteData', () => {
       total: 16500,
       productSubtotal: 30850,
       deliverySubtotal: 3000,
+      showDigitalPlatformFee: false,
+      digitalPlatformFeeLabel: 'digital platform fee',
+      digitalPlatformFeeAmount: 0,
     });
     expect(result.footer).toEqual({
       email: 'hello@quarrylink.com.au',
@@ -495,6 +502,50 @@ describe('transformQuoteData', () => {
       businessName: 'QuarryLink Pty Ltd',
       abn: '11 222 333 444',
     });
+  });
+
+  test('feeRecoveryPreview with mode RECOVER shows the fee using its own label and amount', () => {
+    const result = transformQuoteData(
+      makeApiResponse({
+        feeRecoveryPreview: {
+          recoveredFromCustomer: true,
+          feeAmount: 2.4,
+          invoiceLineDescription: 'Platform Fee',
+          customerFacingNote: 'A platform fee of $2.40 applies per docket.',
+          mode: RECOVERY_MODE.RECOVER,
+          source: EFFECTIVE_SOURCE.GLOBAL_DEFAULT,
+        },
+      }),
+    );
+
+    expect(result.summary.showDigitalPlatformFee).toBe(true);
+    expect(result.summary.digitalPlatformFeeLabel).toBe('Platform Fee');
+    expect(result.summary.digitalPlatformFeeAmount).toBe(2.4);
+  });
+
+  test('feeRecoveryPreview with mode ABSORB hides the fee', () => {
+    const result = transformQuoteData(
+      makeApiResponse({
+        feeRecoveryPreview: {
+          recoveredFromCustomer: false,
+          feeAmount: 2.4,
+          invoiceLineDescription: 'Platform Fee',
+          customerFacingNote: '',
+          mode: RECOVERY_MODE.ABSORB,
+          source: EFFECTIVE_SOURCE.GLOBAL_DEFAULT,
+        },
+      }),
+    );
+
+    expect(result.summary.showDigitalPlatformFee).toBe(false);
+  });
+
+  test('falls back to the default label when feeRecoveryPreview is missing', () => {
+    const result = transformQuoteData(makeApiResponse());
+
+    expect(result.summary.showDigitalPlatformFee).toBe(false);
+    expect(result.summary.digitalPlatformFeeLabel).toBe('digital platform fee');
+    expect(result.summary.digitalPlatformFeeAmount).toBe(0);
   });
 
   test('rounds gst using the tenant tax percentage from tenantProfile', () => {
