@@ -30,6 +30,16 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+/**
+ * Tiptap serializes a blank line as a content-less `<p></p>`. Renderers
+ * outside the editor (sanitizers, the PDF converter, email clients) treat a
+ * fully-empty element as void and collapse it, silently dropping the blank
+ * line. Forcing a `<br>` inside makes the paragraph non-empty so it survives.
+ */
+function preserveEmptyParagraphs(html: string): string {
+  return html.replace(/<p([^>]*)>\s*<\/p>/g, '<p$1><br></p>');
+}
+
 interface RichTextEditorProps {
   /** HTML string. Empty string when the editor has no content. */
   value: string;
@@ -67,7 +77,7 @@ export function RichTextEditor({
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.isEmpty ? '' : editor.getHTML());
+      onChange(editor.isEmpty ? '' : preserveEmptyParagraphs(editor.getHTML()));
     },
     editorProps: {
       attributes: {
@@ -80,7 +90,9 @@ export function RichTextEditor({
   // Keep the editor in sync if the form value is changed externally (e.g. reset).
   React.useEffect(() => {
     if (!editor) return;
-    const editorHtml = editor.isEmpty ? '' : editor.getHTML();
+    const editorHtml = editor.isEmpty
+      ? ''
+      : preserveEmptyParagraphs(editor.getHTML());
     if (value !== editorHtml) {
       editor.commands.setContent(value);
     }

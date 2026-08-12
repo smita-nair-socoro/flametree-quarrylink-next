@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text } from '@react-pdf/renderer';
 import { pdfStyles as styles } from './styles';
-import { centsToDollars } from '@/lib/utils/currency';
+import { centsToDollars, formatDollars } from '@/lib/utils/currency';
 import { QuoteCurrencyTax } from '@/lib/types/quotation';
 
 export interface SummaryPaymentPdfProps {
@@ -18,6 +18,9 @@ export interface SummaryPaymentPdfProps {
   includeDeliveryPrices?: boolean;
   productSubtotal?: number;
   deliverySubtotal?: number;
+  showDigitalPlatformFee?: boolean;
+  digitalPlatformFeeLabel?: string;
+  digitalPlatformFeeAmount?: number;
 }
 
 export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
@@ -30,11 +33,22 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
   includeDeliveryPrices = false,
   productSubtotal,
   deliverySubtotal,
+  showDigitalPlatformFee = false,
+  digitalPlatformFeeLabel = 'digital platform fee',
+  digitalPlatformFeeAmount = 0,
 }) => {
   const { currencySymbol, taxLabel, taxRateLabel, exTaxLabel } = currencyTax;
   return (
     <View style={styles.section} wrap={false}>
       <View style={styles.separator} />
+      {showDigitalPlatformFee && (
+        <View style={styles.feeNoticeBanner}>
+          <Text style={styles.feeNoticeText}>
+            Please note: A {digitalPlatformFeeLabel} of {currencySymbol}
+            {formatDollars(digitalPlatformFeeAmount)} applies per docket.
+          </Text>
+        </View>
+      )}
       <View style={styles.twoColumn}>
         {/* Left Column - Summary */}
         <View style={[styles.column, { justifyContent: 'center' }]}>
