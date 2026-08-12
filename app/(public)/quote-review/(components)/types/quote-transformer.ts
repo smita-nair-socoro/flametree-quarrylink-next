@@ -132,16 +132,19 @@ export function transformQuoteData(
   const currencyTax = buildQuoteCurrencyTax(tenantProfile);
   const { notes, terms, documents } = mapQuoteContent(content);
 
-  // TEMP FIX: Flametree Quarry stores a dedicated quote-page logo variant
-  // alongside the standard one in S3 (same folder, different filename).
-  // Scoped to this tenant only until the backend returns a proper
-  // quote-page logo URL for all tenants.
+  // TEMP FIX: Flametree Quarry and MYOB Acumatica tenants store a dedicated
+  // quote-page logo variant alongside the standard one in S3 (same folder,
+  // different filename). Scoped to these tenants only until the backend
+  // returns a proper quote-page logo URL for all tenants.
   const isFlametreeQuarry =
     tenantProfile?.email === 'flametree@gmail.com' ||
     tenantProfile?.tenantId?.includes('flametree-quarry');
+  const isMyobAcumatica =
+    tenantProfile?.tenantId?.toLowerCase().includes('myob-acumatica') ||
+    tenantProfile?.tenantName?.toLowerCase().includes('myob acumatica');
   const rawLogoUrl = tenantLogoDto?.logoPublicS3Url;
   const logoUrl =
-    isFlametreeQuarry && rawLogoUrl?.includes('logo.png')
+    (isFlametreeQuarry || isMyobAcumatica) && rawLogoUrl?.includes('logo.png')
       ? rawLogoUrl.replace('logo.png', 'quote-page-logo.png')
       : rawLogoUrl;
   const {
