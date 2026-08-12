@@ -157,14 +157,15 @@ export interface JobItem {
   selectedSellUnit: string;
   selectedTruckRateType: string;
   selectedTruckType: string;
+  deleted?: boolean;
   version: number;
 }
 
 export interface DeleteJobItemResponse {
   deleted: boolean;
   message: string;
-  blockingJobIds: number[];
-  blockingDocketIds: number[];
+  blockingJobIds?: number[];
+  blockingDocketIds?: number[];
 }
 
 /** Paginated job items from GET /job/{id}/job-items. */

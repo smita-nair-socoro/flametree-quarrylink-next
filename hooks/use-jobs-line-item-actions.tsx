@@ -201,7 +201,7 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
     }
     const response = await deleteJobItem.mutateAsync(lineItemId);
 
-    if (response.blockingDocketIds.length > 0) {
+    if ((response.blockingDocketIds?.length ?? 0) > 0) {
       handleCannotDelete();
       return;
     }
