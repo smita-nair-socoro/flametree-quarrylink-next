@@ -8,6 +8,8 @@ import { APIClient } from './APIClient';
 import { FeeRecoveryKeys } from './keys';
 import { FeeRecoverySettingsDto } from '../types/fee-recovery';
 import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
+import { notifyError } from '../toast';
+import { extractErrorMessage } from '../utils/error-message-helper';
 
 export const FeeRecoveryScreenQueryOptions = (params?: {
   page?: number;
@@ -46,6 +48,7 @@ export const useUpdateFeeRecoverySettings = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
+    onError: (error) => notifyError(extractErrorMessage(error)),
   });
 };
 
@@ -79,6 +82,7 @@ export const useUpdateCustomerFeeRecoveryOverride = () => {
       });
       queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
+    onError: (error) => notifyError(extractErrorMessage(error)),
   });
 };
 
@@ -104,5 +108,6 @@ export const useDeleteCustomerFeeRecoveryOverride = () => {
       });
       queryClient.invalidateQueries({ queryKey: FeeRecoveryKeys.all });
     },
+    onError: (error) => notifyError(extractErrorMessage(error)),
   });
 };

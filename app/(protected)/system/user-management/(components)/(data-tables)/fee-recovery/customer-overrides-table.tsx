@@ -44,11 +44,16 @@ const PAGE_SIZE_OPTIONS = [
 interface CustomerOverridesTableProps {
   globalMode: RECOVERY_MODE;
   globalAmount: string;
+  /** Last-saved (not draft) global default, used for the revert dialog's copy. */
+  savedGlobalMode: RECOVERY_MODE;
+  savedGlobalAmount: string;
 }
 
 export function CustomerOverridesTable({
   globalMode,
   globalAmount,
+  savedGlobalMode,
+  savedGlobalAmount,
 }: Readonly<CustomerOverridesTableProps>) {
   const isMobile = useIsMobile();
   const { currencySymbol, formatCurrency } = useTenantCurrencyTax();
@@ -87,7 +92,7 @@ export function CustomerOverridesTable({
 
   return (
     <>
-      <Card className="rounded-xl">
+      <Card className="fee-recovery-overrides rounded-xl">
         <CardContent className="p-6 space-y-4">
           <div>
             <h3 className="text-lg font-semibold">Customer overrides</h3>
@@ -564,8 +569,8 @@ export function CustomerOverridesTable({
         }}
         onConfirm={handleConfirmRevert}
         customerName={revertTarget?.customerName ?? ''}
-        globalMode={globalMode === RECOVERY_MODE.RECOVER ? 'charge' : 'absorb'}
-        amount={globalAmount}
+        globalMode={savedGlobalMode === RECOVERY_MODE.RECOVER ? 'charge' : 'absorb'}
+        amount={savedGlobalAmount}
         currencySymbol={currencySymbol}
       />
     </>

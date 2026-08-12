@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { FormDialog } from '@/components/form-dialog';
-import { JobItem } from '@/lib/types/job';
+import { DeleteJobItemResponse, JobItem } from '@/lib/types/job';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { ActionDialog } from '@/components/action-dialog';
 import { JobLineItemActionButtons } from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-action-buttons';
@@ -14,6 +14,10 @@ import {
   CannotDeleteJobLineItemDescription,
   CannotDeleteJobLineItemContent,
 } from '@/hooks/job/cannot-delete-job-lineitem-content';
+import {
+  extractErrorData,
+  extractErrorMessage,
+} from '@/lib/utils/error-message-helper';
 
 interface DialogConfig {
   title?: string;
@@ -195,7 +199,18 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
       notifyError('Unable to delete line item');
       return;
     }
-    await deleteJobItem.mutateAsync(lineItemId);
+    const response = await deleteJobItem.mutateAsync(lineItemId);
+
+    if (response.blockingDocketIds.length > 0) {
+      handleCannotDelete();
+      return;
+    }
+
+    if (!response.deleted) {
+      notifyError(response.message || 'Failed to remove line item');
+      return;
+    }
+
     notifySuccess('Line item removed successfully');
     setActiveDialog(null);
     setSelectedAction(null);
@@ -247,8 +262,17 @@ export function useJobLineItemActions(lineItemData?: JobItem | null) {
                 await handleDelete();
               } catch (error) {
                 console.error('Failed to delete job line item:', error);
-                notifyError('Failed to remove line item');
-                handleCannotDelete();
+                const response = extractErrorData(
+                  error,
+                ) as DeleteJobItemResponse | null;
+
+                if ((response?.blockingDocketIds?.length ?? 0) > 0) {
+                  handleCannotDelete();
+                } else {
+                  notifyError(
+                    extractErrorMessage(error) || 'Failed to remove line item',
+                  );
+                }
               }
               break;
             case 'duplicate':

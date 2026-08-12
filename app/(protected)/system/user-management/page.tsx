@@ -66,11 +66,15 @@ export default function UserRolesPage() {
           },
         ]
       : []),
-    {
-      name: 'Fee Recovery',
-      content: <FeeRecoveryTab />,
-      icon: <CircleDollarSign className="w-4 h-4" />,
-    },
+    ...(isSuperAdmin || isAdmin
+      ? [
+          {
+            name: 'Fee Recovery',
+            content: <FeeRecoveryTab />,
+            icon: <CircleDollarSign className="w-4 h-4" />,
+          },
+        ]
+      : []),
     {
       name: 'Quote Settings',
       content: <QuoteSettingsTab />,

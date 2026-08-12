@@ -94,6 +94,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
   JobsListResponse,
+  DeleteJobItemResponse,
 } from '../types/job';
 import {
   HaulierCreateDTO,
@@ -1525,7 +1526,7 @@ export const APIClient = {
       });
     },
     deleteJobItem: (id: number) => {
-      return appClient.Delete<JobItem>(
+      return appClient.Delete<DeleteJobItemResponse>(
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },

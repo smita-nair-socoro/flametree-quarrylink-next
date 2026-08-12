@@ -350,6 +350,12 @@ export default function FeeRecoveryTab() {
             chargeMode === 'charge' ? RECOVERY_MODE.RECOVER : RECOVERY_MODE.ABSORB
           }
           globalAmount={invoiceAmount}
+          savedGlobalMode={
+            savedChargeMode === 'charge'
+              ? RECOVERY_MODE.RECOVER
+              : RECOVERY_MODE.ABSORB
+          }
+          savedGlobalAmount={savedAmount}
         />
       </div>
 

@@ -160,6 +160,13 @@ export interface JobItem {
   version: number;
 }
 
+export interface DeleteJobItemResponse {
+  deleted: boolean;
+  message: string;
+  blockingJobIds: number[];
+  blockingDocketIds: number[];
+}
+
 /** Paginated job items from GET /job/{id}/job-items. */
 export interface JobItemsPage {
   content: JobItem[];
