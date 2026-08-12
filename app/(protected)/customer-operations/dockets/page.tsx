@@ -346,6 +346,7 @@ export default function DocketsPage() {
       pageSize: 25,
       search: search.trim() || undefined,
       ...apiSortParams,
+      ...apiFilterParams,
     }),
     enabled: isMobile && !!linkedJobId && !idsFilter,
   });

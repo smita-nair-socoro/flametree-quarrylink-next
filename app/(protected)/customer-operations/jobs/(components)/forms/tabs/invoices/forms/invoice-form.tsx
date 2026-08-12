@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DocketDTO } from '@/lib/types/docket';
-import { DocketsByJobIdQueryOptions, getDocketItemsFromJobPage } from '@/lib/api/docket';
+import { DocketsByJobIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 import { DataTableClient } from '@/components/ui/data-table-client';
 // import { Spinner } from '@/components/ui/spinner';
 import { getCreateInvoiceColumns } from '../(data-tables)/create-invoice-columns';
@@ -29,7 +29,7 @@ export default function InvoiceForm({
   const { data: docketPage } = useQuery(DocketsByJobIdQueryOptions(jobId));
 
   const docketList = React.useMemo(
-    () => getDocketItemsFromJobPage(docketPage),
+    () => getDocketItemsFromListResponse(docketPage),
     [docketPage],
   );
 
