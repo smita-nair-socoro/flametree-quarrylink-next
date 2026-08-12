@@ -2145,15 +2145,17 @@ export default function DocketForm({
                       </span>
                     </div>
                   )}
-                  <div className="pt-2 border-t border-dashed border-purple-300">
-                    <span>Digital Platform Fee</span>
-                    <span>
-                      {currencySymbol}
-                      {formatNumberThousandSeparator(
-                        pricingBreakdown.digitalPlatformFee,
-                      )}
-                    </span>
-                  </div>
+                  {pricingBreakdown.showDigitalPlatformFee && (
+                    <div className="pt-2 border-t border-dashed border-purple-300">
+                      <span>{pricingBreakdown.digitalPlatformFeeLabel}</span>
+                      <span>
+                        {currencySymbol}
+                        {formatNumberThousandSeparator(
+                          pricingBreakdown.digitalPlatformFee,
+                        )}
+                      </span>
+                    </div>
+                  )}
                   <div className="pt-2 border-t border-dashed border-purple-300">
                     <span>Subtotal {exTaxLabel}</span>
                     <span>
