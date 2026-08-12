@@ -1204,12 +1204,16 @@ export const APIClient = {
         page?: number;
         pageSize?: number;
         size?: number;
+        customerIds?: number[];
+        productIds?: number[];
+        statuses?: string[];
+        types?: string[];
       },
     ) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
       const pageSize = params?.pageSize ?? params?.size;
-      const response = await appClient.Get<DocketsPage>(
+      const response = await appClient.Get<DocketsListResponse>(
         `/socoro/quarrylink/api/dockets/job/${jobId}`,
         {
           queryString: {
@@ -1221,6 +1225,10 @@ export const APIClient = {
             size: isPaginated
               ? (pageSize?.toString() ?? '10')
               : (params?.size?.toString() ?? '1000'),
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            statuses: params?.statuses,
+            types: params?.types,
           },
         },
       );

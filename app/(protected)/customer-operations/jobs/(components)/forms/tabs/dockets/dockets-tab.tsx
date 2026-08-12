@@ -16,6 +16,8 @@ import { JobDetails } from '@/lib/types/job';
 import { useQuery } from '@tanstack/react-query';
 import {
   DocketsByJobIdQueryOptions,
+  getDocketItemsFromListResponse,
+  getDocketsPageFromListResponse,
   toDocketApiSortParams,
 } from '@/lib/api/docket';
 import { JOB_STATUS } from '@/lib/types/job-enums';
@@ -52,10 +54,11 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
     enabled: !!jobId,
   });
 
-  const items = docketPage?.content ?? [];
-  const totalElements = docketPage?.totalElements ?? 0;
+  const items = getDocketItemsFromListResponse(docketPage);
+  const docketsPage = getDocketsPageFromListResponse(docketPage);
+  const totalElements = docketsPage?.totalElements ?? 0;
   const totalPages =
-    docketPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+    docketsPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
