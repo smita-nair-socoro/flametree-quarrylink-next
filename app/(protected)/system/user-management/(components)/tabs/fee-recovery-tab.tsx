@@ -46,13 +46,11 @@ export default function FeeRecoveryTab() {
   // Hydrate local draft state from the server once, on first load.
   // Subsequent background refetches shouldn't clobber an in-progress draft.
   React.useEffect(() => {
-    if (hasHydrated.current || !data?.settings) return;
+    if (hasHydrated.current || !data) return;
     const mode: ChargeMode =
-      data.settings.recoveryMode === RECOVERY_MODE.RECOVER
-        ? 'charge'
-        : 'absorb';
-    const amount = String(data.settings.feeAmount ?? 0);
-    const label = data.settings.invoiceLineDescription ?? '';
+      data.recoveryMode === RECOVERY_MODE.RECOVER ? 'charge' : 'absorb';
+    const amount = String(data.feeAmount ?? 0);
+    const label = data.invoiceLineDescription ?? '';
 
     setChargeMode(mode);
     setSavedChargeMode(mode);
@@ -61,7 +59,7 @@ export default function FeeRecoveryTab() {
     setFeeLabel(label);
     setSavedLabel(label);
     hasHydrated.current = true;
-  }, [data?.settings]);
+  }, [data]);
 
   const isDraft =
     chargeMode !== savedChargeMode ||

@@ -22,18 +22,6 @@ export interface CustomerEffectiveFeeRecoveryDto {
   source: EFFECTIVE_SOURCE;
 }
 
-export interface CustomerFeeRecoveryOverridePage {
-  totalElements: number;
-  totalPages: number;
-  size?: number;
-  content: CustomerFeeRecoverySettingsDto[];
-  number?: number;
-  first?: boolean;
-  last?: boolean;
-  numberOfElements?: number;
-  empty?: boolean;
-}
-
 // For Fee Recovery Settings Screen
 export interface FeeRecoverySettingsDto {
   id?: number;
@@ -51,21 +39,21 @@ export interface FeeRecoveryScreenSummaryDto {
   customersWithOverrides: number;
 }
 
-export interface FeeRecoveryScreenCustomerDto {
-  customerId: number;
-  customerName: string;
-  hasOverride: boolean;
-  overrideMode: RECOVERY_MODE;
-  overrideFeeAmount: number;
-  overrideInvoiceLineDescription: string;
-  effectiveMode: RECOVERY_MODE;
-  effectiveFeeAmount: number;
-  effectiveInvoiceLineDescription: string;
-  effectiveSource: EFFECTIVE_SOURCE;
-}
-
+/**
+ * GET /fee-recovery — global settings, summary counts, and the paginated
+ * customer-overrides table all in one response.
+ */
 export interface FeeRecoveryScreenResponseDto {
-  settings: FeeRecoverySettingsDto;
+  id?: number;
+  recoveryMode: RECOVERY_MODE;
+  feeAmount: number;
+  invoiceLineDescription: string;
+  createdAt?: string;
+  updatedAt?: string;
   summary: FeeRecoveryScreenSummaryDto;
-  customers: FeeRecoveryScreenCustomerDto[];
+  content: CustomerFeeRecoverySettingsDto[];
+  page?: number;
+  pageSize?: number;
+  totalElements: number;
+  totalPages: number;
 }

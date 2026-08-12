@@ -9,7 +9,7 @@ import { FeeRecoveryKeys } from './keys';
 import { FeeRecoverySettingsDto } from '../types/fee-recovery';
 import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
 
-export const CustomerFeeRecoveryOverridesQueryOptions = (params?: {
+export const FeeRecoveryScreenQueryOptions = (params?: {
   page?: number;
   size?: number;
   sort?: string[];
@@ -18,16 +18,8 @@ export const CustomerFeeRecoveryOverridesQueryOptions = (params?: {
   recoveryMode?: RECOVERY_MODE;
 }) =>
   queryOptions({
-    queryKey: FeeRecoveryKeys.customerOverrides(params),
-    queryFn: () => APIClient.feeRecovery.getCustomerOverrides(params),
-    placeholderData: keepPreviousData,
-    staleTime: 5_000,
-  });
-
-export const FeeRecoveryScreenQueryOptions = () =>
-  queryOptions({
-    queryKey: FeeRecoveryKeys.screen(),
-    queryFn: () => APIClient.feeRecovery.getScreen(),
+    queryKey: FeeRecoveryKeys.screen(params),
+    queryFn: () => APIClient.feeRecovery.getScreen(params),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });

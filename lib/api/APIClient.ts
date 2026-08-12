@@ -129,7 +129,6 @@ import {
   CustomerFeeRecoverySettingsDto,
   FeeRecoveryScreenResponseDto,
   CustomerEffectiveFeeRecoveryDto,
-  CustomerFeeRecoveryOverridePage,
 } from '../types/fee-recovery';
 import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
 import {
@@ -2109,7 +2108,7 @@ export const APIClient = {
       ),
   },
   feeRecovery: {
-    getCustomerOverrides: (params?: {
+    getScreen: (params?: {
       page?: number;
       size?: number;
       sort?: string[];
@@ -2117,8 +2116,8 @@ export const APIClient = {
       effectiveSource?: EFFECTIVE_SOURCE;
       recoveryMode?: RECOVERY_MODE;
     }) =>
-      appClient.Get<CustomerFeeRecoveryOverridePage>(
-        `/socoro/quarrylink/api/fee-recovery/customer-overrides`,
+      appClient.Get<FeeRecoveryScreenResponseDto>(
+        `/socoro/quarrylink/api/fee-recovery`,
         {
           queryString: {
             page: params?.page?.toString(),
@@ -2129,10 +2128,6 @@ export const APIClient = {
             recoveryMode: params?.recoveryMode,
           },
         },
-      ),
-    getScreen: () =>
-      appClient.Get<FeeRecoveryScreenResponseDto>(
-        `/socoro/quarrylink/api/fee-recovery`,
       ),
     getSettings: () =>
       appClient.Get<FeeRecoverySettingsDto>(

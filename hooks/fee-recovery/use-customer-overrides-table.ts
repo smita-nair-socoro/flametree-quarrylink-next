@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import {
-  CustomerFeeRecoveryOverridesQueryOptions,
-  FeeRecoveryScreenQueryOptions,
-} from '@/lib/api/fee-recovery';
+import { FeeRecoveryScreenQueryOptions } from '@/lib/api/fee-recovery';
 import type { CustomerFeeRecoverySettingsDto } from '@/lib/types/fee-recovery';
 import {
   EFFECTIVE_SOURCE,
@@ -40,10 +37,8 @@ export function useCustomerOverridesTable({
     setPage(0);
   }, [debouncedSearch, ruleFilter, statusFilter]);
 
-  // TODO(QLINK-3313): search/effectiveSource/recoveryMode are wired ahead of
-  // backend support — they're no-ops server-side until that ships.
   const { data, isLoading, isFetching } = useQuery(
-    CustomerFeeRecoveryOverridesQueryOptions({
+    FeeRecoveryScreenQueryOptions({
       page,
       size: pageSize,
       search: debouncedSearch || undefined,
@@ -54,9 +49,7 @@ export function useCustomerOverridesTable({
   const rows = useMemo(() => data?.content ?? [], [data]);
   const totalElements = data?.totalElements ?? 0;
   const totalPages = data?.totalPages ?? 0;
-
-  const { data: screenData } = useQuery(FeeRecoveryScreenQueryOptions());
-  const globalFeeLabel = screenData?.settings?.invoiceLineDescription ?? '';
+  const globalFeeLabel = data?.invoiceLineDescription ?? '';
 
   const {
     isOn,

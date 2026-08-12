@@ -224,16 +224,15 @@ export const DepartmentKeys = {
 
 export const FeeRecoveryKeys = {
   all: ['fee-recovery'] as const,
-  screen: () => [...FeeRecoveryKeys.all, 'screen'] as const,
-  settings: () => [...FeeRecoveryKeys.all, 'settings'] as const,
-  customerOverrides: (params?: {
+  screen: (params?: {
     page?: number;
     size?: number;
     sort?: string[];
     search?: string;
     effectiveSource?: EFFECTIVE_SOURCE;
     recoveryMode?: RECOVERY_MODE;
-  }) => [...FeeRecoveryKeys.all, 'customer-overrides', 'list', params] as const,
+  }) => [...FeeRecoveryKeys.all, 'screen', params] as const,
+  settings: () => [...FeeRecoveryKeys.all, 'settings'] as const,
   customerOverride: (customerId: number) =>
     [...FeeRecoveryKeys.all, 'customer-overrides', customerId] as const,
   customerEffective: (customerId: number) =>

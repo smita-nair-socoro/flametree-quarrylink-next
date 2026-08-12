@@ -110,7 +110,9 @@ export function CustomerOverridesTable({
               wrapperClassName={isMobile ? 'w-full' : 'w-64'}
             />
             <div
-              className={isMobile ? 'grid grid-cols-2 gap-2 w-full' : ''}
+              className={
+                isMobile ? 'grid grid-cols-2 gap-2 w-full' : 'flex gap-2'
+              }
             >
               <Select
                 value={ruleFilter}
@@ -266,27 +268,47 @@ export function CustomerOverridesTable({
                           </div>
 
                           {form.overrideRule === RECOVERY_MODE.RECOVER && (
-                            <div className="space-y-1.5">
-                              <Label className="text-sm font-medium">
-                                Fee per docket
-                              </Label>
-                              <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                                  {currencySymbol}
-                                </span>
+                            <>
+                              <div className="space-y-1.5">
+                                <Label className="text-sm font-medium">
+                                  Fee per docket
+                                </Label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                    {currencySymbol}
+                                  </span>
+                                  <Input
+                                    className="pl-6 h-11 w-full text-sm bg-white"
+                                    value={form.fee}
+                                    onChange={(e) =>
+                                      handleFormChange(
+                                        customer.customerId,
+                                        'fee',
+                                        e.target.value,
+                                      )
+                                    }
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="space-y-1.5">
+                                <Label className="text-sm font-medium">
+                                  Fee label on Invoice
+                                </Label>
                                 <Input
-                                  className="pl-6 h-11 w-full text-sm bg-white"
-                                  value={form.fee}
+                                  className="h-11 w-full text-sm bg-white"
+                                  placeholder="Custom label for this customer"
+                                  value={form.label}
                                   onChange={(e) =>
                                     handleFormChange(
                                       customer.customerId,
-                                      'fee',
+                                      'label',
                                       e.target.value,
                                     )
                                   }
                                 />
                               </div>
-                            </div>
+                            </>
                           )}
 
                           <div className="flex items-center gap-3">
@@ -442,27 +464,47 @@ export function CustomerOverridesTable({
                                   </div>
 
                                   {form.overrideRule === RECOVERY_MODE.RECOVER && (
-                                    <div className="space-y-1.5">
-                                      <Label className="text-xs text-muted-foreground">
-                                        Fee per docket
-                                      </Label>
-                                      <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                                          {currencySymbol}
-                                        </span>
+                                    <>
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs text-muted-foreground">
+                                          Fee per docket
+                                        </Label>
+                                        <div className="relative">
+                                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                                            {currencySymbol}
+                                          </span>
+                                          <Input
+                                            className="pl-6 h-9 w-28 text-sm"
+                                            value={form.fee}
+                                            onChange={(e) =>
+                                              handleFormChange(
+                                                customer.customerId,
+                                                'fee',
+                                                e.target.value,
+                                              )
+                                            }
+                                          />
+                                        </div>
+                                      </div>
+
+                                      <div className="space-y-1.5">
+                                        <Label className="text-xs text-muted-foreground">
+                                          Fee label on Invoice
+                                        </Label>
                                         <Input
-                                          className="pl-6 h-9 w-28 text-sm"
-                                          value={form.fee}
+                                          className="h-9 w-48 text-sm"
+                                          placeholder="Custom label"
+                                          value={form.label}
                                           onChange={(e) =>
                                             handleFormChange(
                                               customer.customerId,
-                                              'fee',
+                                              'label',
                                               e.target.value,
                                             )
                                           }
                                         />
                                       </div>
-                                    </div>
+                                    </>
                                   )}
 
                                   {isDirty && (

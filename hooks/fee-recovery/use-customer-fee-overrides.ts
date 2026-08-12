@@ -11,6 +11,7 @@ import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '@/lib/types/fee-recovery-enums'
 export type OverrideFormState = {
   overrideRule: RECOVERY_MODE;
   fee: string;
+  label: string;
 };
 
 const hasOverride = (customer: CustomerFeeRecoverySettingsDto) =>
@@ -25,6 +26,7 @@ function buildOverrideForms(
       {
         overrideRule: c.overrideMode,
         fee: c.overrideFeeAmount > 0 ? String(c.overrideFeeAmount) : '',
+        label: c.overrideInvoiceLineDescription || '',
       },
     ]),
   );
@@ -107,7 +109,6 @@ export function useCustomerFeeOverrides(
   const handleSave = (customerId: number) => {
     const form = overrideForms[customerId];
     if (!form) return;
-    const original = customers.find((c) => c.customerId === customerId);
 
     updateOverride.mutate(
       {
@@ -118,8 +119,7 @@ export function useCustomerFeeOverrides(
             form.overrideRule === RECOVERY_MODE.RECOVER
               ? Number.parseFloat(form.fee) || 0
               : 0,
-          invoiceLineDescription:
-            original?.overrideInvoiceLineDescription || globalFeeLabel,
+          invoiceLineDescription: form.label.trim() || globalFeeLabel,
         },
       },
       {
@@ -135,9 +135,8 @@ export function useCustomerFeeOverrides(
     const saved = savedOverrideForms[customerId];
     if (!form || !saved) return false;
     if (form.overrideRule !== saved.overrideRule) return true;
-    return (
-      form.overrideRule === RECOVERY_MODE.RECOVER && form.fee !== saved.fee
-    );
+    if (form.overrideRule !== RECOVERY_MODE.RECOVER) return false;
+    return form.fee !== saved.fee || form.label !== saved.label;
   };
 
   return {
