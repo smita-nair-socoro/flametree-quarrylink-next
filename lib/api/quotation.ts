@@ -345,24 +345,32 @@ export const useDeleteQuoteItem = () => {
  * Mutation hook for updating public quote status (approve/decline).
  * Used on the public quote review page where customers are not authenticated.
  */
-export const useUpdatePublicQuoteStatus = () => {
-  return useMutation({
-    mutationFn: async ({
-      status,
-      token,
-      declineReason,
-      decisionMakerName,
-    }: {
-      status: 'APPROVED' | 'DECLINED';
+type UpdatePublicQuoteStatusParams =
+  | {
+      status: 'APPROVED';
       token: string;
       declineReason?: string;
       decisionMakerName?: string;
-    }) => {
+      // Mandatory: customers must supply a PO number to approve via the public link .
+      poNumber: string;
+    }
+  | {
+      status: 'DECLINED';
+      token: string;
+      declineReason?: string;
+      decisionMakerName?: string;
+    };
+
+export const useUpdatePublicQuoteStatus = () => {
+  return useMutation({
+    mutationFn: async (params: UpdatePublicQuoteStatusParams) => {
+      const { status, token, declineReason, decisionMakerName } = params;
       const response = await APIClient.quotations.updatePublicQuoteStatus(
         status,
         token,
         declineReason,
         decisionMakerName,
+        status === 'APPROVED' ? params.poNumber : undefined,
       );
       return response;
     },
@@ -382,17 +390,20 @@ export const useUpdateQuoteDecision = () => {
       status,
       declineReason,
       decisionMakerName,
+      poNumber,
     }: {
       id: number;
       status: 'APPROVED' | 'DECLINED';
       declineReason?: string;
       decisionMakerName?: string;
+      poNumber?: string;
     }) => {
       const response = await APIClient.quotations.updateQuoteDecision(
         id,
         status,
         declineReason,
         decisionMakerName,
+        poNumber,
       );
       return response;
     },

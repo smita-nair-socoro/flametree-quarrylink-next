@@ -15,8 +15,7 @@ import { format } from 'date-fns';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { DocketsInfiniteListQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
-import { DocketDTO } from '@/lib/types/docket';
+import { UnassignedDocketsInfiniteQueryOptions } from '@/lib/api/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { useDebounce } from '@/hooks/use-debounce';
 import {
@@ -26,27 +25,13 @@ import {
   parseCollectionStartMs,
   normalizedLoadM3ForSort,
   matchesUnassignedSearch,
-  mapUnassignedDocketDtoToBoardRow,
+  mapUnassignedDocketListItemToBoardRow,
   isDocketOnSelectedLocalDay,
+  getUnassignedQueueApiSortParams,
 } from '@/lib/utils/dispatch-helper';
 import { Spinner } from '@/components/ui/spinner';
 
 type UnassignedSortKey = 'time' | 'size' | 'customer';
-
-/** Server sort for infinite scroll — must match list order so new pages append at the end. */
-function getAllDatesApiSortParams(sortBy: UnassignedSortKey): {
-  sortBy: string;
-  sortOrder: 'asc';
-} {
-  switch (sortBy) {
-    case 'time':
-      return { sortBy: 'deliveryCollectionStartTime', sortOrder: 'asc' };
-    case 'size':
-      return { sortBy: 'actualLoadSize', sortOrder: 'asc' };
-    case 'customer':
-      return { sortBy: 'customerName', sortOrder: 'asc' };
-  }
-}
 
 function UnassignedDocketCardView({
   docket,
@@ -318,8 +303,7 @@ export default function UnassignedDockets({
     () => ({
       pageSize: 10,
       search: debouncedSearch.trim() || undefined,
-      statuses: [DOCKET_STATUS.UNASSIGNED],
-      ...getAllDatesApiSortParams(sortBy),
+      ...getUnassignedQueueApiSortParams(sortBy),
     }),
     [debouncedSearch, sortBy],
   );
@@ -333,7 +317,7 @@ export default function UnassignedDockets({
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions(allDatesQueryParams),
+    ...UnassignedDocketsInfiniteQueryOptions(allDatesQueryParams),
     enabled: activeTab === 'all_dates',
   });
 
@@ -369,20 +353,17 @@ export default function UnassignedDockets({
   const allDatesUnassigned = React.useMemo(() => {
     const pages = allDatesPages?.pages ?? [];
     const seenIds = new Set<number>();
-    const raw: DocketDTO[] = [];
+    const rows: DispatchDocket[] = [];
 
     for (const page of pages) {
-      const items = getDocketItemsFromListResponse(page);
-      for (const docket of items) {
+      for (const docket of page?.content ?? []) {
         if (seenIds.has(docket.id)) continue;
         seenIds.add(docket.id);
-        raw.push(docket);
+        rows.push(mapUnassignedDocketListItemToBoardRow(docket));
       }
     }
 
-    return raw
-      .filter((d) => !assignedIdsSet.has(String(d.id)))
-      .map(mapUnassignedDocketDtoToBoardRow);
+    return rows.filter((d) => !assignedIdsSet.has(String(d.id)));
   }, [allDatesPages, assignedIdsSet]);
 
   const thisDayUnassigned = React.useMemo(

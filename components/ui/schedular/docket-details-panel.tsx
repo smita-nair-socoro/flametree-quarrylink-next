@@ -52,6 +52,15 @@ function dispatchAddressMapsQuery(
   return encodeURIComponent(label === '-' ? '' : label);
 }
 
+/** Joins suburb/state/postcode, dropping any that are blank so no stray gaps remain. */
+function formatSuburbStatePostcode(
+  addr: Partial<Address> | undefined,
+): string {
+  return [addr?.suburb, addr?.state, addr?.postcode]
+    .filter((part) => part?.trim())
+    .join(' ');
+}
+
 function coordsFromDeliveryAddress(
   addr: string | Partial<Address> | undefined,
 ): { lat: number; lng: number } {
@@ -645,11 +654,7 @@ export function DocketDetailsPanel({
                   <span>
                     {docket.deliveryAddress?.streetDetailsPrimary ?? ''}
                   </span>
-                  <span>
-                    {docket.deliveryAddress?.suburb ?? ''}{' '}
-                    {docket.deliveryAddress?.state ?? ''}{' '}
-                    {docket.deliveryAddress?.postcode ?? ''}
-                  </span>
+                  <span>{formatSuburbStatePostcode(docket.deliveryAddress)}</span>
                   <span>
                     <span>{docket.deliveryAddress?.country ?? ''}</span>
                   </span>
@@ -663,11 +668,7 @@ export function DocketDetailsPanel({
                       <span>
                         {docket.pickUpAddress?.streetDetailsPrimary ?? ''}
                       </span>
-                      <span>
-                        {docket.pickUpAddress?.suburb ?? ''}{' '}
-                        {docket.pickUpAddress?.state ?? ''}{' '}
-                        {docket.pickUpAddress?.postcode ?? ''}
-                      </span>
+                      <span>{formatSuburbStatePostcode(docket.pickUpAddress)}</span>
                       <span>
                         <span>{docket.pickUpAddress?.country ?? ''}</span>
                       </span>

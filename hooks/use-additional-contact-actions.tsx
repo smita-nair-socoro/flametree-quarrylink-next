@@ -4,7 +4,7 @@ import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { AdditionalContactDTO } from '@/lib/types/customer';
-import AdditionalContactForm from '@/app/(protected)/customer-operations/customers/(components)/forms/additional-contact-form';
+import AdditionalContactForm from '@/app/(protected)/customer-operations/customers/(components)/forms/tabs/details/additional-contact-form';
 import { Trash2 } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';

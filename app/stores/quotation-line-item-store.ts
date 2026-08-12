@@ -8,12 +8,10 @@ interface QuotationLineItemStore {
   isLoading: boolean;
 
   // Actions
-  setLineItems: (lineItems: QuotationLineItem[]) => void;
   setSelectedLineItem: (lineItem: QuotationLineItem | null) => void;
   setLoading: (loading: boolean) => void;
 
   getLineItemById: (id: number) => QuotationLineItem | undefined;
-  getLineItemsByStatus: (status: string) => QuotationLineItem[];
 }
 
 export const useQuotationLineItemStore = create<QuotationLineItemStore>()(
@@ -24,7 +22,6 @@ export const useQuotationLineItemStore = create<QuotationLineItemStore>()(
       isLoading: false,
 
       // Actions
-
       setSelectedLineItem: (lineItem) => set({ selectedLineItem: lineItem }),
 
       setLoading: (loading) => set({ isLoading: loading }),

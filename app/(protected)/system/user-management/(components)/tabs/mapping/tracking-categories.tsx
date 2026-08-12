@@ -234,7 +234,7 @@ function MappingRow({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        {/* <Button
+        <Button
           type="button"
           variant="ghost"
           size="icon"
@@ -244,7 +244,7 @@ function MappingRow({
           onClick={onEdit}
         >
           <Pencil className="h-4 w-4" />
-        </Button> */}
+        </Button>
         <Button
           type="button"
           variant="ghost"

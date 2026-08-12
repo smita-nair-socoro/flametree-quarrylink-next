@@ -24,12 +24,11 @@ import {
 import { getQuotationLineItemColumns } from '../../(components)/(data-tables)/line-item/columns';
 import { DatePicker } from '@/components/date-picker';
 import { GetTodaysDate, formatLocalDateTime } from '@/lib/utils/date';
-import {
-} from '@/lib/utils/time';
 import { Spinner } from '@/components/ui/spinner';
 import { useSelectedQuotation } from '@/app/stores/quotation-store';
 import { FormDialog, useFormDialogFooter } from '@/components/form-dialog';
 import QuotationLineItemForm from './quotation-line-item-form';
+import { QuoteContentAndNotesSection } from './quote-content-and-notes-section';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PhoneInput } from '@/components/ui/phone-input';
 import {
@@ -38,7 +37,11 @@ import {
   useDuplicateQuotation,
 } from '@/lib/api/quotation';
 import { transformFormDataToQuoteDto } from '@/lib/utils/quote-helpers';
-import { quotationToFormValues } from '@/lib/utils/quotation-form-helpers';
+import {
+  quotationToFormValues,
+  buildQuoteContentSelectionItems,
+} from '@/lib/utils/quotation-form-helpers';
+import { useUpdateQuoteEditorContent } from '@/lib/api/quote-profile-content';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import { Info, HelpCircle, TrendingUp, TrendingDown } from 'lucide-react';
 import { useQuotationFormState } from '@/hooks/quotation/use-quotation-form-state';
@@ -97,24 +100,25 @@ export default function QuotationForm({
 
   const quotationForm = useForm<QuotationFormValues>({
     resolver: zodResolver(getQuotationFormSchema(isEditing)),
-    defaultValues: quotationToFormValues(
-      isEditing ? selectedQuotation : null,
-      isEditing,
-    ),
+    defaultValues: {
+      ...quotationToFormValues(isEditing ? selectedQuotation : null, isEditing),
+      // Duplicated quotes should not carry over the original's PO number.
+      ...(isDuplicate ? { poNumber: '' } : {}),
+    },
   });
 
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
   const duplicateQuotation = useDuplicateQuotation();
 
-  // All form state management: data fetching, labels, pricing, customer auto-fill
+  // All form state management: data fetching, pricing, customer auto-fill,
+  // and Quote content panel data (via GET /quote/{quoteId}/content)
   const {
     currentQuotation,
     isLoadingDetail,
     detailError,
-    dateLabel,
-    timeWindowLabel,
     pricingBreakdown,
+    contentItems,
   } = useQuotationFormState(
     selectedQuotation,
     isEditing,
@@ -123,10 +127,15 @@ export default function QuotationForm({
     currencyCode,
   );
 
-  // Update form values when API data loads
+  const updateQuoteEditorContent = useUpdateQuoteEditorContent();
+
   React.useEffect(() => {
     if (isEditing && currentQuotation) {
-      quotationForm.reset(quotationToFormValues(currentQuotation, true));
+      quotationForm.reset({
+        ...quotationToFormValues(currentQuotation, true),
+        customerNotes: quotationForm.getValues('customerNotes'),
+        attachedItemIds: quotationForm.getValues('attachedItemIds'),
+      });
     }
   }, [isEditing, currentQuotation, quotationForm]);
 
@@ -190,9 +199,12 @@ export default function QuotationForm({
           quotationForm.setValue(
             'phone',
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
-            '',
+              '',
           );
-          quotationForm.setValue('receiptEmail', '');
+          quotationForm.setValue(
+            'receiptEmail',
+            selectedCustomer.contactPersonEmail || '',
+          );
 
           quotationForm.setValue(
             'accountManagerSub',
@@ -205,19 +217,39 @@ export default function QuotationForm({
     return () => subscription.unsubscribe();
   }, [customers, quotationForm, isEditing]);
 
+  const saveQuoteContent = async (
+    quoteIdToSave: number,
+    values: QuotationFormValues,
+  ): Promise<boolean> => {
+    try {
+      await updateQuoteEditorContent.mutateAsync({
+        quoteId: quoteIdToSave,
+        data: {
+          customerNotesHtml: values.customerNotes || '',
+          items: buildQuoteContentSelectionItems(
+            values.attachedItemIds ?? [],
+            contentItems,
+          ),
+        },
+      });
+      return true;
+    } catch (error) {
+      console.error('Error saving quote content selections:', error);
+      notifyError(extractErrorMessage(error));
+      return false;
+    }
+  };
+
   async function onSubmit(values: QuotationFormValues) {
     console.log('[QuotationForm] Validation passed, submitting:', values);
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.contactPersonEmail || '';
-    const receiptEmails = [
-      customerEmail,
-      ...(values.receiptEmail
-        ? values.receiptEmail
+    const receiptEmails = values.receiptEmail
+      ? values.receiptEmail
           .split(',')
           .map((e) => e.trim())
           .filter(Boolean)
-        : []),
-    ].filter(Boolean);
+      : [];
     const submitCustomer = customers.find((c) => c.id === values.customerId);
     const customerName =
       submitCustomer?.customerType === 'BUSINESS'
@@ -252,6 +284,7 @@ export default function QuotationForm({
         // Add the new record ID to sessionStorage for highlighting
         if (newQuotation && typeof newQuotation.id === 'number') {
           addNewRecord('quotation_main_data_table', newQuotation);
+          await saveQuoteContent(newQuotation.id, values);
         }
 
         notifySuccess('Quote duplicated successfully');
@@ -286,6 +319,8 @@ export default function QuotationForm({
         const newQuotation = await createQuotation.mutateAsync(transformed);
 
         // Add the new record ID to sessionStorage for highlighting
+        // Note: the Quote content panel isn't shown during plain creation
+        // (only when editing/duplicating), so there's no content to save here.
         if (newQuotation && typeof newQuotation.id === 'number') {
           addNewRecord('quotation_main_data_table', newQuotation);
         }
@@ -325,9 +360,14 @@ export default function QuotationForm({
           id: id!,
           ...transformed,
         });
-        notifySuccess('Quote updated successfully');
-        quotationForm.reset(quotationForm.getValues());
-        onSaved?.();
+        const contentSaved = await saveQuoteContent(id!, values);
+        if (contentSaved) {
+          // Both the quotation and its content/notes saved - clear isDirty for the
+          // whole form (quotation fields + customerNotes + attachedItemIds).
+          notifySuccess('Quote updated successfully');
+          quotationForm.reset(values);
+          onSaved?.();
+        }
       } catch (error) {
         console.error('Error updating quotation:', error);
 
@@ -417,24 +457,24 @@ export default function QuotationForm({
       {(createQuotation.isPending ||
         updateQuotation.isPending ||
         duplicateQuotation.isPending) && (
-          <div
-            className={cn(
-              'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
-              isDesktop ? '' : 'pt-10',
-            )}
-          >
-            <div className="flex flex-col items-center space-y-4 p-8">
-              <Spinner size="medium" />
-              <p className="text-lg text-muted-foreground font-bold">
-                {isDuplicate
-                  ? 'Creating Duplicate Quote...'
-                  : createQuotation.isPending
-                    ? 'Adding Quote...'
-                    : 'Updating Quote...'}
-              </p>
-            </div>
+        <div
+          className={cn(
+            'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
+            isDesktop ? '' : 'pt-10',
+          )}
+        >
+          <div className="flex flex-col items-center space-y-4 p-8">
+            <Spinner size="medium" />
+            <p className="text-lg text-muted-foreground font-bold">
+              {isDuplicate
+                ? 'Creating Duplicate Quote...'
+                : createQuotation.isPending
+                  ? 'Adding Quote...'
+                  : 'Updating Quote...'}
+            </p>
           </div>
-        )}
+        </div>
+      )}
 
       <Form {...quotationForm}>
         <form
@@ -445,7 +485,7 @@ export default function QuotationForm({
             (createQuotation.isPending ||
               updateQuotation.isPending ||
               duplicateQuotation.isPending) &&
-            'pointer-events-none',
+              'pointer-events-none',
           )}
           onSubmit={quotationForm.handleSubmit(onSubmit, scrollToFirstError)}
         >
@@ -525,7 +565,7 @@ export default function QuotationForm({
                 : 'grid grid-cols-1',
               className,
               (createQuotation.isPending || updateQuotation.isPending) &&
-              'pointer-events-none',
+                'pointer-events-none',
             )}
           >
             {/* Duplicate Info Banner */}
@@ -622,17 +662,31 @@ export default function QuotationForm({
               )}
             />
 
+            <FormField
+              control={quotationForm.control}
+              name="poNumber"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>PO Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter PO Number"
+                      maxLength={20}
+                      {...field}
+                      disabled={isEditing && !canEdit}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {isEditing && (
               <FormField
                 control={quotationForm.control}
                 name="receiptEmail"
                 render={({ field }) => {
-                  const selectedCustomer = customers.find(
-                    (c) => c.id === quotationForm.watch('customerId'),
-                  );
-                  const customerEmail = selectedCustomer?.contactPersonEmail;
-                  const fixedValues = customerEmail ? [customerEmail] : [];
-
                   return (
                     <FormItem
                       className={
@@ -648,7 +702,6 @@ export default function QuotationForm({
                               ? 'Select Customer First'
                               : 'Enter Recipient Emails'
                           }
-                          fixedValues={fixedValues}
                           validate={(s) =>
                             /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
                               s,
@@ -721,14 +774,14 @@ export default function QuotationForm({
               )}
             >
               <h3 className="font-bold col-span-full mb-2">
-                {timeWindowLabel}
+                Estimated Time Window
               </h3>
               <FormField
                 control={quotationForm.control}
                 name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>{dateLabel}*</FormLabel>
+                    <FormLabel>Estimated Start Date</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -748,7 +801,7 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window*</FormLabel>
+                    <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -769,7 +822,7 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>End Time Window*</FormLabel>
+                    <FormLabel>End Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -1016,6 +1069,12 @@ export default function QuotationForm({
                     </div>
                   )}
                 </div>
+
+                <QuoteContentAndNotesSection
+                  control={quotationForm.control}
+                  items={contentItems}
+                  disabled={isEditing && !isDuplicate && !canEdit}
+                />
 
                 {!isDuplicate && (
                   <AuditInformation

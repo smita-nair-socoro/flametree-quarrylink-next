@@ -52,6 +52,10 @@ export const CustomerKeys = {
       'detail',
       contactId,
     ] as const,
+  notes: (
+    customerId: number,
+    params?: { page?: number; pageSize?: number },
+  ) => [...CustomerKeys.all, 'notes', customerId, params] as const,
 };
 
 export const QuotationKeys = {
@@ -114,6 +118,8 @@ export const DriverKeys = {
 export const DocketKeys = {
   all: ['dockets'] as const,
   list: () => [...DocketKeys.all, 'list'] as const,
+  unassigned: () => [...DocketKeys.all, 'unassigned'] as const,
+  table: () => [...DocketKeys.all, 'table'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,
   byJobId: (jobId: number) => [...DocketKeys.all, 'by-job-id', jobId] as const,
   truckInspection: (docketId: number) =>
@@ -209,4 +215,31 @@ export const AccountingKeys = {
 export const DepartmentKeys = {
   all: ['departments'] as const,
   list: () => [...DepartmentKeys.all, 'list'] as const,
+};
+
+export const PolicyDocumentKeys = {
+  all: ['policy-documents'] as const,
+  list: () => [...PolicyDocumentKeys.all, 'list'] as const,
+  view: (id: number) => [...PolicyDocumentKeys.all, 'view', id] as const,
+};
+
+export const TextTemplateKeys = {
+  all: ['text-templates'] as const,
+  detail: (id: number) => [...TextTemplateKeys.all, 'detail', id] as const,
+};
+
+export const ExternalLinkKeys = {
+  all: ['external-links'] as const,
+  detail: (id: number) => [...ExternalLinkKeys.all, 'detail', id] as const,
+};
+
+export const QuoteContentLibraryKeys = {
+  all: ['quote-content-library'] as const,
+  list: (params?: { sortBy?: string; direction?: string }) =>
+    [...QuoteContentLibraryKeys.all, 'list', params] as const,
+};
+
+export const QuoteEditorContentKeys = {
+  all: ['quote-editor-content'] as const,
+  detail: (quoteId: number) => [...QuoteEditorContentKeys.all, quoteId] as const,
 };

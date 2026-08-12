@@ -57,7 +57,7 @@ type ActionType =
   | 'viewInvoice'
   | 'assign'
   | 'backToPending'
-  | 'backToPreparing'
+  // | 'backToPreparing'
   | 'retrySync'
   | 'print';
 
@@ -107,7 +107,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
       action: 'markCollected',
       separator: true,
     },
-    { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
+    // { label: 'Back to Preparing', icon: Undo2, action: 'backToPreparing' },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',

@@ -13,13 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type React from 'react';
-import {
-  type FormEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { type ZodError, z } from 'zod';
 import { formatAddressFromComponents } from '.';
 import { FormMessages } from '../form-messages';
@@ -50,8 +44,10 @@ interface AddressDialogProps {
 
 /**
  * Address Line 1 is optional — if blank it will be filled with the lat/lng
- * coordinate string before saving. Suburb (city), postal code, and country
- * are always required so that incomplete reverse-geocode results are caught.
+ * coordinate string before saving. Suburb (city) and country are always
+ * required so that incomplete reverse-geocode results are caught.
+ * Postal code is optional (e.g. Fiji has no postcode system) but must match the
+ * format regex when a value is provided.
  */
 export function createAddressSchema() {
   return z.object({
@@ -65,8 +61,10 @@ export function createAddressSchema() {
     region: z.string().optional(),
     postalCode: z
       .string()
-      .min(1, { message: 'Postal code is required' })
-      .regex(/^[a-zA-Z0-9\s-]{1,12}$/, 'Invalid postal code format'),
+      .optional()
+      .refine((value) => !value || /^[a-zA-Z0-9\s-]{1,12}$/.test(value), {
+        message: 'Invalid postal code format',
+      }),
     country: z.string().min(1, { message: 'Country is required' }),
   });
 }
@@ -386,9 +384,8 @@ export default function AddressDialog(
       draftAddress.city?.trim() || draftAddress.address1?.trim()
     );
     const hasAddress1 = !!draftAddress.address1?.trim();
-    const hasPostalCode = !!draftAddress.postalCode?.trim();
 
-    if (!hasCountry || !hasLocation || !hasAddress1 || !hasPostalCode) {
+    if (!hasCountry || !hasLocation || !hasAddress1) {
       return;
     }
 
@@ -446,7 +443,7 @@ export default function AddressDialog(
   /**
    * Handle form submission and save the address
    */
-  const handleSave = (e: FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setHasAttemptedSave(true);
@@ -540,7 +537,13 @@ export default function AddressDialog(
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
+      <DialogContent
+        className="flex w-full flex-col overflow-hidden"
+        style={{
+          maxWidth: 'min(95vw, 1100px)',
+          maxHeight: '95vh',
+        }}
+      >
         <DialogHeader className="pb-4">
           <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
@@ -554,10 +557,7 @@ export default function AddressDialog(
             <Loader2 className="size-6 animate-spin" />
           </div>
         ) : (
-          <form
-            onSubmit={handleSave}
-            className="flex-1 min-h-0 flex flex-col"
-          >
+          <form onSubmit={handleSave} className="flex-1 min-h-0 flex flex-col">
             {/* -mx-6 puts the scrollbar on the dialog border; px-6 keeps
                 the fields aligned with the header. */}
             <div className="flex-1 min-h-0 overflow-y-auto -mx-6 px-6">
@@ -635,7 +635,7 @@ export default function AddressDialog(
 
                 <div className="flex gap-4">
                   <div className="flex-1 flex flex-col gap-2">
-                    <Label htmlFor="postalCode">Postal Code*</Label>
+                    <Label htmlFor="postalCode">Postal Code</Label>
                     <Input
                       value={draftAddress.postalCode}
                       onChange={(e) =>

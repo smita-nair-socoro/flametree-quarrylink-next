@@ -1,9 +1,14 @@
 import { StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register Geist font
+// Register all four Geist variants needed for bold + italic RTE rendering
 Font.register({
   family: 'Geist',
-  src: '/fonts/Geist.ttf',
+  fonts: [
+    { src: '/fonts/GeistRegular.ttf' },
+    { src: '/fonts/GeistBold.ttf', fontWeight: 700 },
+    { src: '/fonts/GeistItalic.ttf', fontStyle: 'italic' },
+    { src: '/fonts/GeistBoldItalic.ttf', fontWeight: 700, fontStyle: 'italic' },
+  ],
 });
 
 // Disable word hyphenation - keeps words intact when wrapping
@@ -132,6 +137,70 @@ export const pdfStyles = StyleSheet.create({
     padding: 2,
   },
 
+  // Large logo template (left column: business name above a large logo)
+  headerTopLarge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+
+  // Fixed explicit widths (not flexGrow/maxWidth) - react-pdf's Yoga engine
+  // does not reliably size flexGrow/shrink-to-fit children inside a "fixed"
+  // repeating header the way CSS flexbox does; with an ambiguous width the
+  // info grid's flex:1 columns were collapsing to near-zero, wrapping every
+  // label onto its own line. Explicit percentages give Yoga a definite
+  // width to work with, matching the small/medium template's approach.
+  headerLeftLarge: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    width: '38%',
+  },
+
+  headerRightLarge: {
+    flexDirection: 'column',
+    width: '58%',
+    justifyContent: 'space-between',
+  },
+
+  headerRightTopRow: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+
+  // No fixed width/height: react-pdf renders it at its natural aspect
+  // ratio, capped so it never overflows the column or looks stretched.
+  // maxHeight is kept modest so the whole header still fits the default
+  // (non-large) header/page dimensions without needing extra page padding.
+  tenantLogoLarge: {
+    maxWidth: '100%',
+    maxHeight: 85,
+    marginBottom: 8,
+  },
+
+  initialsLogoLarge: {
+    width: 70,
+    height: 70,
+    marginBottom: 8,
+    backgroundColor: colors.white,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.black,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+
+  initialsTextLarge: {
+    fontSize: fontSize.xl,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.black,
+    textAlign: 'center',
+  },
+
   initialsText: {
     fontSize: fontSize.base,
     fontFamily: 'Geist',
@@ -142,6 +211,13 @@ export const pdfStyles = StyleSheet.create({
 
   brandName: {
     fontSize: fontSize.xl,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+
+  brandNameLarge: {
+    fontSize: fontSize.lg,
     fontFamily: 'Geist',
     fontWeight: 'bold',
     color: colors.white,
@@ -757,4 +833,121 @@ export const pdfStyles = StyleSheet.create({
   mb16: { marginBottom: 16 },
   mt8: { marginTop: 8 },
   mt16: { marginTop: 16 },
+
+  // Notes & Terms section
+  notesBox: {
+    borderWidth: 1,
+    borderColor: '#E9D5FF',
+    backgroundColor: '#FAF5FF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+  },
+
+  noteText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    marginBottom: 6,
+  },
+
+  termsBox: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termRow: {
+    flexDirection: 'row',
+    marginBottom: 4,
+  },
+
+  termNumber: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    width: 14,
+  },
+
+  termText: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+    flex: 1,
+  },
+
+  termCardContainer: {
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+  },
+
+  termCardTitle: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray900,
+    marginBottom: 4,
+  },
+
+  termCardBody: {
+    fontSize: fontSize.sm,
+    color: colors.gray700,
+    lineHeight: 1.4,
+  },
+
+  disclaimerText: {
+    fontSize: fontSize.xs,
+    color: colors.gray500,
+    marginBottom: 10,
+  },
+
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.gray300,
+    backgroundColor: colors.gray100,
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 6,
+  },
+
+  documentName: {
+    fontSize: fontSize.sm,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.gray800,
+    marginBottom: 2,
+  },
+
+  documentMeta: {
+    fontSize: fontSize.xs,
+    color: colors.gray600,
+  },
+
+  documentLink: {
+    fontSize: fontSize.xs,
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
+
+  // RTE (rich-text) inline/block rendering in PDF
+  rteListItem: {
+    flexDirection: 'row',
+    marginBottom: 2,
+  },
+  rteListMarker: {
+    width: 18,
+    flexShrink: 0,
+  },
+  rteLink: {
+    color: colors.blue,
+    textDecoration: 'underline',
+  },
 });

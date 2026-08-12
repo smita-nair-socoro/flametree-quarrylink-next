@@ -14,12 +14,6 @@ interface DocketStore {
 
   getDocketById: (id: number) => DocketDTO | undefined;
   getDocketsByStatus: (status: string) => DocketDTO[];
-
-  getDocketStats: () => {
-    total: number;
-    active: number;
-    archived: number;
-  };
 }
 
 export const useDocketStore = create<DocketStore>()(

@@ -6,10 +6,16 @@ import { CustomerInformation } from './customer-information';
 import { ProjectDetails } from './project-details';
 import { ProductsServices } from './products-services';
 import { SummaryPayment } from './summary-payment';
+import { TermsAndConditions } from './terms-and-conditions';
 import { ProceedActions } from './proceed-actions';
 import { QuoteFooter } from './quote-footer';
 import { ActionDialog } from '@/components/action-dialog';
-import { CircleX, CircleCheckBig } from 'lucide-react';
+import { CircleX, CircleCheckBig, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { QuoteStatusBanner } from './quote-status-banner';
 import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
@@ -51,8 +57,12 @@ export default function QuoteReviewDocument({
   const [declineReason, setDeclineReason] = useState<string>('');
   const [declineNotes, setDeclineNotes] = useState<string>('');
   const [showValidationError, setShowValidationError] = useState(false);
+  const [approvePoNumber, setApprovePoNumber] = useState('');
+  const [showApproveValidationError, setShowApproveValidationError] =
+    useState(false);
 
   const decisionMakerName = quoteData.quoteDto?.decisionMakerName || '';
+  const existingPoNumber = quoteData.quoteDto?.poNumber || '';
 
   // Check if we're in preview mode (no token means authenticated preview)
   const isPreviewMode = !token;
@@ -82,6 +92,11 @@ export default function QuoteReviewDocument({
     setApproveFullName(decisionMakerName);
     setDeclineFullName(decisionMakerName);
   }, [decisionMakerName]);
+
+  useEffect(() => {
+    if (!existingPoNumber) return;
+    setApprovePoNumber(existingPoNumber);
+  }, [existingPoNumber]);
 
   // Validation: Check if decline form is valid
   const isDeclineFormValid = useMemo(() => {
@@ -187,9 +202,55 @@ export default function QuoteReviewDocument({
             placeholder="Please type in your full name to approve"
           />
         </div>
+
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="approve-po-number"
+              className="text-base font-medium text-[#101828]"
+            >
+              Purchase Order Number*
+            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="right"
+                className="max-w-62.5"
+                backgroundClassName="bg-gray-900 text-white"
+                arrowClassName="bg-gray-900 fill-gray-900"
+              >
+                <p className="text-xs">
+                  Don&apos;t have a PO number? Enter N/A.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          <Input
+            id="approve-po-number"
+            value={approvePoNumber}
+            maxLength={20}
+            onChange={(e) => {
+              setApprovePoNumber(e.target.value);
+              setShowApproveValidationError(false);
+            }}
+            placeholder="Enter Purchase Order Number"
+          />
+          {showApproveValidationError && !approvePoNumber.trim() && (
+            <p className="text-xs text-[#E7000B]">
+              Purchase Order Number is required
+            </p>
+          )}
+        </div>
       </div>
     );
-  }, [quotationData, approveFullName]);
+  }, [
+    quotationData,
+    approveFullName,
+    approvePoNumber,
+    showApproveValidationError,
+  ]);
 
   const declineDialogDescription = useMemo(() => {
     const { project, navbar, customer } = quotationData;
@@ -380,12 +441,19 @@ export default function QuoteReviewDocument({
   };
 
   const handleApprove = async () => {
+    // PO Number is mandatory when a customer approves a quote.
+    if (!approvePoNumber.trim()) {
+      setShowApproveValidationError(true);
+      return;
+    }
+
     const composedDecisionMakerName = `customer-${approveFullName.trim()}`;
     updateQuoteStatus(
       {
         status: 'APPROVED',
         token,
         decisionMakerName: composedDecisionMakerName,
+        poNumber: approvePoNumber.trim(),
       },
       {
         onSuccess: () => {
@@ -462,6 +530,8 @@ export default function QuoteReviewDocument({
           setApproveDialogOpen(open);
           if (!open) {
             setApproveFullName('');
+            setApprovePoNumber('');
+            setShowApproveValidationError(false);
           }
         }}
         title="Approve Quote"
@@ -469,7 +539,7 @@ export default function QuoteReviewDocument({
         confirmText={isUpdatingStatus ? 'Approving...' : 'Approve Quote'}
         confirmVariant="default"
         confirmCustomColor="#008236"
-        confirmDisabled={isUpdatingStatus}
+        confirmDisabled={isUpdatingStatus || !approvePoNumber.trim()}
         onConfirmAction={handleApprove}
       />
 
@@ -532,6 +602,15 @@ export default function QuoteReviewDocument({
             {...quotationData.summary}
             currencyTax={quotationData.currencyTax}
             includeDeliveryPrices={quotationData.inclDeliveryCost}
+          />
+          {(quotationData.notes?.length > 0 ||
+            quotationData.terms?.length > 0 ||
+            quotationData.documents?.length > 0) && <Separator />}
+          {/* Notes & Terms */}
+          <TermsAndConditions
+            notes={quotationData.notes}
+            terms={quotationData.terms}
+            documents={quotationData.documents}
           />
           <div className="border-t-[3.75px] border-[rgba(142,81,255,1)] mt-8"></div>
           {/* Proceed Actions - only show if not in preview mode */}

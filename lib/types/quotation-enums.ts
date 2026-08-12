@@ -32,3 +32,9 @@ export enum TRUCK_RATE_TYPE {
   M3 = 'M3',
   LOAD = 'LOAD',
 }
+
+export enum LOGO_SIZE {
+  SMALL = 'SMALL',
+  MEDIUM = 'MEDIUM',
+  LARGE = 'LARGE',
+}

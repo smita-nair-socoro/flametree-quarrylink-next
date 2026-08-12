@@ -1,10 +1,14 @@
 import {
   QUOTE_ITEM_TYPE as QuoteItemType,
   QUOTE_STATUS as QuoteStatus,
+  LOGO_SIZE as LogoSize,
 } from './quotation-enums';
+import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
-import { CustomerDeliveryAddress } from './address';
+import { Address, CustomerDeliveryAddress } from './address';
 import { TenantLogoResponse } from './client';
+import { QuoteSettingItemType } from './term-conditions-enums';
+import { QuoteTermItem, QuoteDocument } from './terms-conditions';
 
 // DTO type for API response (uses camelCase from backend)
 export interface QuotationDTO {
@@ -13,6 +17,7 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   decisionMakerName?: string;
+  poNumber?: string;
   email: string;
   phone: string;
   customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
@@ -91,6 +96,75 @@ export interface QuotationLineItem {
   isDeleted: boolean;
 }
 
+/**
+ * Nested customer shape returned ONLY by GET /quote/{id}/preview (and the
+ * public link equivalent) — distinct from `CustomerWithAddressResponseDTO`,
+ * which is the shape used by the regular quotation CRUD endpoints
+ * (getById/getAll/getWithQuoteItems/create). Do not merge these: the two
+ * endpoints currently serialize the customer differently.
+ */
+export interface QuotePreviewCustomerDTO {
+  id?: number;
+  customerType: CUSTOMER_TYPE;
+  businessName?: string;
+  individualContactName?: string;
+  contactPersonPhone?: string;
+  contactPersonEmail?: string;
+  contactPersonFirstName?: string;
+  contactPersonLastName?: string;
+  billingAddressId?: number;
+  billingAddress: Address;
+  creditLimit: number;
+  accountManagerName?: string;
+  accountManagerSub: string;
+  accountManagerEmail?: string;
+  invoiceDueDateDayCount: number;
+  paymentTermType: string;
+  customerStatus: CUSTOMER_STATUS;
+  businessEmail?: string;
+  businessPhone?: string;
+  remainingCredit?: number;
+  paymentType: string;
+  abn?: string;
+  accSoftwareNotes?: string;
+  accSoftwareContactId?: string;
+  lastAccSoftwareSyncDirection?: string;
+  lastAccSoftwareSyncStatus?: string;
+  lastSyncedAt?: string;
+  version: number;
+  deleted: boolean;
+  createdBy: string;
+  createdAt: string;
+  updatedAt: string;
+  lastModifiedBy: string;
+}
+
+/** Line item shape returned by GET /quote/{id}/preview (and the public link equivalent). */
+export interface QuotePreviewLineItem
+  extends Omit<QuotationLineItem, 'isDeleted'> {
+  quarrySupplierProductId?: number;
+  requiredLoads: number;
+  isDeleted: boolean;
+  deleted?: boolean;
+}
+
+/** Quote DTO shape returned by GET /quote/{id}/preview (and the public link equivalent). */
+export interface QuotePreviewDto
+  extends Omit<
+    QuotationDTO,
+    | 'email'
+    | 'customerWithAddressResponseDto'
+    | 'totalTruckSellPrice'
+    | 'totalTruckCostPrice'
+    | 'grossProfit'
+    | 'grossProfitPercentage'
+    | 'quoteItems'
+  > {
+  customerWithAddressResponseDto: QuotePreviewCustomerDTO;
+  accountManagerEmail?: string;
+  quoteItems: QuotePreviewLineItem[];
+}
+
 export interface StripeTenantDetailsSnapshot {
   tenantName: string;
   businessName: string;
@@ -121,13 +195,33 @@ export interface TenantProfileSnapshot {
   taxType?: string;
   taxAmount?: string;
   timeZoneId?: string;
+  logoSize?: LogoSize;
+}
+
+export interface QuoteContentItem {
+  contentType: QuoteSettingItemType;
+  name: string;
+  sortOrder: number;
+  contentHtml?: string;
+  externalUrl?: string;
+  externalLinkText?: string;
+  originalFileName?: string;
+  mimeType?: string;
+  fileSizeBytes?: number;
+  viewUrl?: string;
+}
+
+export interface QuoteContent {
+  customerNotesHtml?: string;
+  items: QuoteContentItem[];
 }
 
 export interface PublicQuoteLinkResponse {
-  quoteDto: QuotationDTO;
+  quoteDto: QuotePreviewDto;
   stripeTenantDetailsSnapshot?: StripeTenantDetailsSnapshot;
   tenantLogoDto?: TenantLogoResponse;
   tenantProfile?: TenantProfileSnapshot;
+  content?: QuoteContent;
 }
 
 /** Quote summary returned after a public approve/decline decision. */
@@ -141,6 +235,7 @@ export interface PublicQuoteDecisionResponse {
   quoteStatus: QuoteStatus;
   declineReason?: string;
   decisionMakerName?: string;
+  poNumber?: string;
   customerResponseAt?: string;
   deliveryStartDate: string | null;
   expiryDate: string | null;
@@ -182,6 +277,7 @@ export interface QuotationDisplayData {
     status: QuoteStatus;
     tenantDetails?: StripeTenantDetailsSnapshot;
     logoUrl?: string;
+    logoSize?: LogoSize;
   };
   customer: {
     customerName: string;
@@ -196,8 +292,10 @@ export interface QuotationDisplayData {
   project: {
     type?: QuoteItemType;
     projectName: string;
-    deliveryDate: string;
-    deliveryWindow: string;
+    /** Omitted (undefined) when the quote has no estimated start date. */
+    deliveryDate?: string;
+    /** Omitted (undefined) when neither delivery window bound is set. */
+    deliveryWindow?: string;
     /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
     timeZone?: string;
   };
@@ -227,6 +325,9 @@ export interface QuotationDisplayData {
     validUntil: string;
     accountManager: string;
   };
+  notes: string[];
+  terms: QuoteTermItem[];
+  documents: QuoteDocument[];
   footer: {
     email: string;
     phone: string;

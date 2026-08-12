@@ -19,14 +19,41 @@ export const DriverAppAssignedDocketDetailQueryOptions = (
   queryFn: () => APIClient.driverApp.getAssignedDocketById(docketId),
 });
 
-export const useDriverAppOperationalUpdate = () =>
-  useMutation({
+export const useDriverAppOperationalUpdate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
     mutationFn: ({
       id,
       ...data
     }: { id: number } & DocketOperationalUpdateRequest) =>
       APIClient.driverApp.operationalUpdate(id, data),
+    onSuccess: (data, variables) => {
+      if (data?.docket) {
+        queryClient.setQueryData(
+          DriverAppKeys.assignedDocketDetail(variables.id),
+          data.docket,
+        );
+      } else {
+        queryClient.setQueryData<DocketDTO>(
+          DriverAppKeys.assignedDocketDetail(variables.id),
+          (old) =>
+            old
+              ? {
+                  ...old,
+                  actualLoadSize: variables.actualLoadSize ?? old.actualLoadSize,
+                }
+              : old,
+        );
+      }
+      queryClient.invalidateQueries({
+        queryKey: DriverAppKeys.assignedDocketDetail(variables.id),
+      });
+      queryClient.invalidateQueries({
+        queryKey: DriverAppKeys.assignedDockets(),
+      });
+    },
   });
+};
 
 export const useDriverAppUpdateDocketStatus = () => {
   const queryClient = useQueryClient();

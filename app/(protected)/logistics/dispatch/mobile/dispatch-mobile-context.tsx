@@ -3,12 +3,10 @@
 import * as React from 'react';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
-  DocketsInfiniteListQueryOptions,
-  getDocketItemsFromListResponse,
+  UnassignedDocketsInfiniteQueryOptions,
   useAssignDocket,
   useUnassignDocket,
 } from '@/lib/api/docket';
-import type { DocketDTO } from '@/lib/types/docket';
 import {
   SchedulerDriversQueryOptions,
   SchedulerTrucksQueryOptions,
@@ -36,7 +34,7 @@ import {
   isDispatchTruckResource,
   isDocketOnSelectedLocalDay,
   mapSchedulerAssignedDocketToBoardRow,
-  mapUnassignedDocketDtoToBoardRow,
+  mapUnassignedDocketListItemToBoardRow,
   assignmentDateDisplayForUnassign,
   resolveUnassignAssignmentLabels,
   sortDispatchDriverList,
@@ -234,7 +232,6 @@ export function DispatchMobileProvider({
   const allDatesQueryParams = React.useMemo(
     () => ({
       pageSize: 10,
-      statuses: [DOCKET_STATUS.UNASSIGNED],
       search: queueListSearch,
       ...getUnassignedQueueApiSortParams(queueListSortBy, queueListSortOrder),
     }),
@@ -250,27 +247,24 @@ export function DispatchMobileProvider({
     hasNextPage: hasNextUnassignedPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions(allDatesQueryParams),
+    ...UnassignedDocketsInfiniteQueryOptions(allDatesQueryParams),
     enabled: activeTab === 'queue' && queueDateScope === 'all_dates',
   });
 
   const allUnassignedFromApi = React.useMemo(() => {
     const pages = allDocketsPages?.pages ?? [];
     const seenIds = new Set<number>();
-    const raw: DocketDTO[] = [];
+    const rows: DispatchDocket[] = [];
 
     for (const page of pages) {
-      const items = getDocketItemsFromListResponse(page);
-      for (const docket of items) {
+      for (const docket of page?.content ?? []) {
         if (seenIds.has(docket.id)) continue;
         seenIds.add(docket.id);
-        raw.push(docket);
+        rows.push(mapUnassignedDocketListItemToBoardRow(docket));
       }
     }
 
-    return raw
-      .filter((d) => !assignedIdsSet.has(String(d.id)))
-      .map(mapUnassignedDocketDtoToBoardRow);
+    return rows.filter((d) => !assignedIdsSet.has(String(d.id)));
   }, [allDocketsPages, assignedIdsSet]);
 
   const isLoadingQueueThisDay =

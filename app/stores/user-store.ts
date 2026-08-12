@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 import { User } from '@/lib/types/user';
 
 interface UserStore {
-  user: User;
+  user: User | null;
   userName: string;
   userGroups: string[];
   selectedUser: User | null;
@@ -24,7 +24,7 @@ interface UserStore {
 export const useUserStore = create<UserStore>()(
   devtools(
     (set, get) => ({
-      user: {},
+      user: null,
       userName: '',
       userGroups: [],
       selectedUser: null,
@@ -44,7 +44,7 @@ export const useUserStore = create<UserStore>()(
       // Selectors
       getUserById: (id) => {
         const state = get();
-        return state.user.id === id;
+        return state.user?.id === id ? state.user : undefined;
       },
 
       getUserName: () => {
@@ -55,6 +55,16 @@ export const useUserStore = create<UserStore>()(
         const { userGroups } = get();
         return userGroups.some(
           (g) =>
+            g.toLowerCase() === 'super_admin' ||
+            g.toLowerCase() === 'superadmin',
+        );
+      },
+
+      isAdmin: () => {
+        const { userGroups } = get();
+        return userGroups.some(
+          (g) =>
+            g.toLowerCase() === 'admin' ||
             g.toLowerCase() === 'super_admin' ||
             g.toLowerCase() === 'superadmin',
         );
@@ -77,4 +87,9 @@ export const useIsSuperAdmin = () =>
       (g) =>
         g.toLowerCase() === 'super_admin' || g.toLowerCase() === 'superadmin',
     ),
+  );
+
+export const useIsAdmin = () =>
+  useUserStore((state) =>
+    state.userGroups.some((g) => g.toLowerCase() === 'admin'),
   );

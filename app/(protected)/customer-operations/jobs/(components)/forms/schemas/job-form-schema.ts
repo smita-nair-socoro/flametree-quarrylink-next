@@ -4,25 +4,54 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 const timeWithoutZoneRegex =
   /^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(\.\d{1,6})?)?$/;
 
+const validateDeliveryTimeWindow = (
+  data: {
+    deliveryStartDate?: Date;
+    deliveryWindowStart?: string;
+    deliveryWindowEnd?: string;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  if (
+    !data.deliveryStartDate &&
+    (data.deliveryWindowStart || data.deliveryWindowEnd)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Date is required when a time window is set',
+      path: ['deliveryStartDate'],
+    });
+  }
+};
+
 export const JobFormSchema = z.object({
   poNumber: z.string().optional(),
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),
-  deliveryStartDate: z.date({ message: 'Required' }),
+  deliveryStartDate: z.date().optional(),
   deliveryWindowStart: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
+    })
+    .or(z.literal(''))
+    .optional(),
   deliveryWindowEnd: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
-  receiptEmail: z.string().optional(),
+    })
+    .or(z.literal(''))
+    .optional(),
+  receiptEmail: z.string().refine(
+    (val) =>
+      val
+        .split(',')
+        .map((e) => e.trim())
+        .some(Boolean),
+    { message: 'At least one recipient email is required' },
+  ),
   phone: z.string().optional(),
   contactPersonName: z.string().optional(),
 });
@@ -30,12 +59,16 @@ export const JobFormSchema = z.object({
 export type JobFormValues = z.infer<typeof JobFormSchema>;
 
 export const getJobFormSchema = (isEditing: boolean) => {
-  if (isEditing) {
-    return JobFormSchema.extend({
+  const schema = isEditing
+    ? JobFormSchema.extend({
       contactPersonName: z
         .string()
-        .min(2, { message: 'Contact person name must be at least 2 characters.' })
-        .max(100, { message: "Contact person name can't be more than 100 characters" }),
+        .min(2, {
+          message: 'Contact person name must be at least 2 characters.',
+        })
+        .max(100, {
+          message: "Contact person name can't be more than 100 characters",
+        }),
       phone: z
         .string()
         .trim()
@@ -43,7 +76,7 @@ export const getJobFormSchema = (isEditing: boolean) => {
         .refine((v) => !v || isValidPhoneNumber(v), {
           message: 'Invalid phone number',
         }),
-    });
-  }
-  return JobFormSchema;
+    })
+    : JobFormSchema;
+  return schema.superRefine(validateDeliveryTimeWindow);
 };

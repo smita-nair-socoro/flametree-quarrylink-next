@@ -164,6 +164,20 @@ export function extractTimeLabel(timeStr?: string): string {
   return timeStr;
 }
 
+/** Format HH:mm (or a backend time/datetime string) as "9:00 AM". */
+export function formatTime12Hour(timeStr?: string): string {
+  const time = extractTimeLabel(timeStr);
+  if (!time) return '';
+
+  const [hourString, minute] = time.split(':');
+  const hour = Number(hourString);
+
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour % 12 || 12;
+
+  return `${displayHour}:${minute} ${period}`;
+}
+
 type FormatTimeRangeOptions = {
   /** When true, renders "9:00 AM - 5:00 PM". Default is 24h "09:00 - 17:00". */
   hour12?: boolean;
@@ -178,24 +192,14 @@ export function formatTimeRange(
   endDateString?: string | null,
   options?: FormatTimeRangeOptions,
 ): string {
-  if (!startDateString && !endDateString) return 'N/A';
-
   if (options?.hour12) {
-    if (!startDateString || !endDateString) return 'N/A';
-    try {
-      const start = toDate(startDateString);
-      const end = toDate(endDateString);
-      const formatTime = (date: Date) =>
-        date.toLocaleString('en-US', {
-          hour: 'numeric',
-          minute: '2-digit',
-          hour12: true,
-        });
-      return `${formatTime(start)} - ${formatTime(end)}`;
-    } catch {
-      return 'N/A';
-    }
+    const start = formatTime12Hour(startDateString ?? undefined);
+    const end = formatTime12Hour(endDateString ?? undefined);
+    // Avoid an orphaned "9:00 AM - " when only one side is set
+    return start && end ? `${start} - ${end}` : start || end;
   }
+
+  if (!startDateString && !endDateString) return 'N/A';
 
   const startTime = extractTimeLabel(startDateString ?? undefined);
   const endTime = extractTimeLabel(endDateString ?? undefined);
@@ -255,9 +259,7 @@ function formatRelativeDuration(
 
   const diffInMinutes = Math.floor(absDiff / 60);
   if (diffInMinutes < 60) {
-    return addSuffix(
-      `${diffInMinutes} min${diffInMinutes === 1 ? '' : 's'}`,
-    );
+    return addSuffix(`${diffInMinutes} min${diffInMinutes === 1 ? '' : 's'}`);
   }
 
   const diffInHours = Math.floor(diffInMinutes / 60);
@@ -339,12 +341,7 @@ export function getRelativeTimePastOrFuture(
   }
 
   const calendarDiffSec = getCalendarDayDiffInSeconds(now, target);
-  return formatRelativeDuration(
-    calendarDiffSec,
-    'ago',
-    'Just now',
-    'calendar',
-  );
+  return formatRelativeDuration(calendarDiffSec, 'ago', 'Just now', 'calendar');
 }
 
 /**

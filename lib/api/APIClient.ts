@@ -19,6 +19,10 @@ import {
   CustomerAttachmentDTO,
   AdditionalContactApiDTO,
   AdditionalContactsPage,
+  CustomerNoteDTO,
+  CustomerNotesPage,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
   SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
 import {
@@ -74,6 +78,8 @@ import {
   DuplicateDocketResponse,
   DocketsListResponse,
   DocketsPage,
+  DocketsTableResponse,
+  UnassignedDocketsPage,
 } from '../types/docket';
 import {
   JobDTO,
@@ -118,6 +124,18 @@ import {
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  PolicyDocumentItem,
+  PolicyDocumentMetadata,
+  PolicyDocumentViewDTO,
+  QuoteTextTemplateResponseDto,
+  QuoteTextTemplateRequestDto,
+  QuoteExternalLinkResponseDto,
+  QuoteExternalLinkRequestDto,
+  QuoteEditorContentResponseDto,
+  QuoteContentSelectionRequestDto,
+  QuoteContentLibraryResponseDto,
+} from '../types/terms-conditions';
 
 type RequestBody =
   | BodyInit
@@ -846,6 +864,37 @@ export const APIClient = {
       appClient.Delete(
         `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
       ),
+    getNotes: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<CustomerNotesPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    createNote: (customerId: number, data: CreateCustomerNoteRequest) =>
+      appClient.Post<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        { body: data },
+      ),
+    updateNote: (
+      customerId: number,
+      noteId: number,
+      data: UpdateCustomerNoteRequest,
+    ) =>
+      appClient.Put<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+        { body: data },
+      ),
+    deleteNote: (customerId: number, noteId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+      ),
   },
 
   quotations: {
@@ -867,17 +916,27 @@ export const APIClient = {
       token: string,
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
+      // PO Number is mandatory when a customer approves via this public endpoint (QLINK-3356).
+      if (status === 'APPROVED' && !poNumber?.trim()) {
+        throw new Error('Purchase Order Number is required to approve this quote.');
+      }
+
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
 
       return appClient.Put<PublicQuoteDecisionResponse>(
@@ -1001,17 +1060,22 @@ export const APIClient = {
       status: 'APPROVED' | 'DECLINED',
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,
@@ -1063,6 +1127,73 @@ export const APIClient = {
         },
       );
       return response;
+    },
+    /** Flat table projection for the customer-operations dockets page. */
+    getTable: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
+      ids?: number[];
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      const response = await appClient.Get<DocketsTableResponse>(
+        `/socoro/quarrylink/api/dockets/table`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
+          },
+        },
+      );
+      return response;
+    },
+    /** Paginated unassigned dockets for dispatch all-dates queue. */
+    getUnassignedAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      sort?: string[];
+    }) => {
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<UnassignedDocketsPage>(
+        `/socoro/quarrylink/api/dockets/unassigned-dockets`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            sort: params?.sort,
+          },
+        },
+      );
     },
     getByJobId: async (
       jobId: number,
@@ -1862,5 +1993,113 @@ export const APIClient = {
       }),
     deleteDepartment: (id: number) =>
       appClient.Delete<Department>(`/socoro/quarrylink/api/departments/${id}`),
+  },
+
+  policyDocuments: {
+    getAll: () =>
+      appClient.Get<PolicyDocumentItem | null>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+      ),
+    create: (metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', file);
+      return appClient.Post<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document`,
+        { body: formData },
+      );
+    },
+    update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
+      const formData = new FormData();
+      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append('file', file);
+      return appClient.Put<PolicyDocumentItem>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+        { body: formData },
+      );
+    },
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
+      ),
+    view: (id: number) =>
+      appClient.Get<PolicyDocumentViewDTO>(
+        `/socoro/quarrylink/api/quote-content-library/policy-document/${id}/view`,
+      ),
+  },
+
+  textTemplates: {
+    getAll: () =>
+      appClient.Get<QuoteTextTemplateResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+    create: (data: QuoteTextTemplateRequestDto) =>
+      appClient.Post<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteTextTemplateRequestDto) =>
+      appClient.Put<QuoteTextTemplateResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/text-template/${id}`,
+      ),
+  },
+
+  externalLinks: {
+    getAll: () =>
+      appClient.Get<QuoteExternalLinkResponseDto[]>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+      ),
+    getById: (id: number) =>
+      appClient.Get<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+    create: (data: QuoteExternalLinkRequestDto) =>
+      appClient.Post<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link`,
+        { body: data },
+      ),
+    update: (id: number, data: QuoteExternalLinkRequestDto) =>
+      appClient.Put<QuoteExternalLinkResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+        { body: data },
+      ),
+    delete: (id: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/quote-content-library/external-link/${id}`,
+      ),
+  },
+
+  quoteEditorContent: {
+    get: (quoteId: number) =>
+      appClient.Get<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+      ),
+    update: (quoteId: number, data: QuoteContentSelectionRequestDto) =>
+      appClient.Put<QuoteEditorContentResponseDto>(
+        `/socoro/quarrylink/api/quote/${quoteId}/content`,
+        { body: data },
+      ),
+  },
+
+  quoteContentLibrary: {
+    getAll: (params?: { sortBy?: string; direction?: string }) =>
+      appClient.Get<QuoteContentLibraryResponseDto>(
+        `/socoro/quarrylink/api/quote-content-library`,
+        {
+          queryString: {
+            sortBy: params?.sortBy,
+            direction: params?.direction,
+          },
+        },
+      ),
   },
 };

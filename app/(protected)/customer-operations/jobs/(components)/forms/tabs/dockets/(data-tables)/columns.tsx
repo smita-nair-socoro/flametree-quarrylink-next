@@ -62,6 +62,9 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
           ? 'READY'
           : row.original.docketStatus;
       if (docketStatus === 'INVOICED') {
+        if (!row.original.invoiceStatus) {
+          return <TableBadges names={[docketStatus]} visibleCount={1} />;
+        }
         if (row.original.invoiceStatus === 'FAILED') {
           return (
             <TableBadges
@@ -125,7 +128,13 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
     },
     cell: ({ row }) => {
       const docket = row.original;
-      return <DocketTableActions docket={docket} />;
+      return (
+        <DocketTableActions
+          docketId={docket.id}
+          status={docket.docketStatus}
+          invoiceStatus={docket.invoiceStatus}
+        />
+      );
     },
   },
 ];
