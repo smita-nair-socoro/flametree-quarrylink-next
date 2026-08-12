@@ -12,23 +12,54 @@ const requiredPhoneSchema = z
     message: 'Invalid phone number',
   });
 
+const requiredRecipientEmailSchema = z.string().refine(
+  (val) =>
+    val
+      .split(',')
+      .map((e) => e.trim())
+      .some(Boolean),
+  { message: 'At least one recipient email is required' },
+);
+
+const validateDeliveryTimeWindow = (
+  data: {
+    deliveryStartDate?: Date;
+    deliveryWindowStart?: string;
+    deliveryWindowEnd?: string;
+  },
+  ctx: z.RefinementCtx,
+) => {
+  if (
+    !data.deliveryStartDate &&
+    (data.deliveryWindowStart || data.deliveryWindowEnd)
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Date is required when a time window is set',
+      path: ['deliveryStartDate'],
+    });
+  }
+};
+
 export const QuotationFormSchema = z.object({
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),
-  deliveryStartDate: z.date({ message: 'Required' }),
+  deliveryStartDate: z.date().optional(),
   deliveryWindowStart: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
+    })
+    .or(z.literal(''))
+    .optional(),
   deliveryWindowEnd: z
     .string()
-    .nonempty({ message: 'Required' })
     .regex(timeWithoutZoneRegex, {
       message: 'Invalid time of day with timezone',
-    }),
+    })
+    .or(z.literal(''))
+    .optional(),
   expiryDate: z.date({ message: 'Required' }),
   // Create flow: phone is auto-filled from customer but not shown — skip format checks.
   phone: z.string().optional(),
@@ -38,15 +69,20 @@ export const QuotationFormSchema = z.object({
     .max(2000, { message: 'Must be 2000 characters or fewer' })
     .optional(),
   attachedItemIds: z.array(z.union([z.string(), z.number()])).optional(),
+  poNumber: z
+    .string()
+    .max(20, { message: 'Maximum 20 characters' })
+    .optional(),
 });
 
 export type QuotationFormValues = z.infer<typeof QuotationFormSchema>;
 
 export const getQuotationFormSchema = (isEditing: boolean) => {
-  if (isEditing) {
-    return QuotationFormSchema.extend({
+  const schema = isEditing
+    ? QuotationFormSchema.extend({
       phone: requiredPhoneSchema,
-    });
-  }
-  return QuotationFormSchema;
+      receiptEmail: requiredRecipientEmailSchema,
+    })
+    : QuotationFormSchema;
+  return schema.superRefine(validateDeliveryTimeWindow);
 };

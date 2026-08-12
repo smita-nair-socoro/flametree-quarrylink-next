@@ -40,6 +40,7 @@ export function quotationToFormValues(
       receiptEmail: '',
       customerNotes: '',
       attachedItemIds: [],
+      poNumber: '',
     };
   }
 
@@ -60,6 +61,7 @@ export function quotationToFormValues(
       ? parseCalendarDate(quotation.expiryDate)
       : undefined,
     receiptEmail: (quotation?.emailRecipients || []).join(','),
+    poNumber: quotation?.poNumber || '',
     phone: normalizePhoneNumber(
       quotation?.phone ||
         quotation?.customerWithAddressResponseDto?.phone ||

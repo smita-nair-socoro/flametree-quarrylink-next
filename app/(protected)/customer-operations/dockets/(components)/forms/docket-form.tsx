@@ -19,6 +19,7 @@ import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
 import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
 import { addNewRecord } from '@/lib/utils/pinned-records';
+import { mapDocketDtoToTableRow } from '@/lib/utils/docket-table-helpers';
 import { sortByLabel } from '@/lib/utils/sort-options';
 import { FormSelect, FormSelectOption } from '@/components/ui/form-select';
 import {
@@ -808,11 +809,14 @@ export default function DocketForm({
           const selectedLineItem = jobLineItems.find(
             (lineItem) => lineItem.id === values.jobLineItemId,
           );
-          addNewRecord('docket_main_data_table', {
-            ...newDocket,
-            job: selectedJobDetails ?? newDocket.job,
-            jobItem: selectedLineItem ?? newDocket.jobItem,
-          } as DocketDTO);
+          addNewRecord(
+            'docket_main_data_table',
+            mapDocketDtoToTableRow({
+              ...newDocket,
+              job: selectedJobDetails ?? newDocket.job,
+              jobItem: selectedLineItem ?? newDocket.jobItem,
+            } as DocketDTO),
+          );
         }
         notifySuccess('Docket created successfully');
         onSaved?.();

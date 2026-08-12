@@ -18,7 +18,7 @@ import DocketForm from './(components)/forms/docket-form';
 
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
-  DocketsListQueryOptions,
+  DocketsTableQueryOptions,
   DocketsByJobIdQueryOptions,
   DocketsByJobIdInfiniteQueryOptions,
   DocketsByDriverIdQueryOptions,
@@ -26,15 +26,22 @@ import {
   DocketsByTruckIdQueryOptions,
   DocketsByTruckIdInfiniteQueryOptions,
   DocketStatisticsQueryOptions,
-  DocketsInfiniteListQueryOptions,
-  getDocketItemsFromInfinitePages,
+  DocketsTableInfiniteQueryOptions,
+  getDocketTableRowsFromInfinitePages,
+  getDocketTableRowsFromTableResponse,
+  getDocketTableRowsFromDtoPayload,
   toDocketApiFilterParams,
   toDocketApiSortParams,
   getDocketsPageFromListResponse,
+  getDocketsTablePage,
   buildDocketFacetOptions,
 } from '@/lib/api/docket';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { DocketDTO, DocketsListResponse } from '@/lib/types/docket';
+import {
+  DocketsListResponse,
+  DocketsTableResponse,
+  DocketTableRow,
+} from '@/lib/types/docket';
 import type { DocketsPage } from '@/lib/types/docket';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { usePullFromAccSoftware } from '@/lib/api/invoices';
@@ -49,7 +56,10 @@ import {
 } from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
-import { useDocketActions } from '@/hooks/use-docket-actions';
+import {
+  DocketRowActionsProvider,
+  useDocketTableActionHost,
+} from './(components)/(data-tables)/docket/docket-table-action-host';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
@@ -152,13 +162,24 @@ export default function DocketsPage() {
     [],
   );
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'deliveryCollectionDate', desc: true },
+    { id: 'deliveryDate', desc: true },
   ]);
 
-  const apiSortParams = React.useMemo(
-    () => toDocketApiSortParams(sorting),
-    [sorting],
-  );
+  const apiSortParams = React.useMemo(() => {
+    const params = toDocketApiSortParams(sorting);
+    // Job/driver/truck list endpoints still use the nested DocketDTO field names.
+    if (linkedJobId || driverId || truckId) {
+      const nestedSortBy: Record<string, string> = {
+        deliveryDate: 'deliveryCollectionDate',
+        type: 'jobItemType',
+      };
+      return {
+        ...params,
+        sortBy: nestedSortBy[params.sortBy ?? ''] ?? params.sortBy,
+      };
+    }
+    return params;
+  }, [sorting, linkedJobId, driverId, truckId]);
 
   const apiFilterParams = React.useMemo(
     () => toDocketApiFilterParams(facetFilters),
@@ -178,7 +199,7 @@ export default function DocketsPage() {
   );
 
   const allDocketsQuery = useQuery({
-    ...DocketsListQueryOptions(listQueryParams),
+    ...DocketsTableQueryOptions(listQueryParams),
     enabled: !linkedJobId && !driverId && !truckId,
   });
 
@@ -226,27 +247,47 @@ export default function DocketsPage() {
     error,
   } = docketSourceQueries[activeDocketSource];
 
-  const docketsListResponse = React.useMemo((): DocketsListResponse | null => {
+  const docketsListResponse = React.useMemo(():
+    | DocketsListResponse
+    | DocketsTableResponse
+    | null => {
     if (
       docketsResponse &&
       typeof docketsResponse === 'object' &&
       'dockets' in docketsResponse
     ) {
-      return docketsResponse as DocketsListResponse;
+      return docketsResponse as DocketsListResponse | DocketsTableResponse;
     }
     return null;
   }, [docketsResponse]);
 
-  const docketPage = React.useMemo((): DocketsPage | null => {
-    if (!docketsResponse) return null;
-    if ('dockets' in (docketsResponse as object))
-      return getDocketsPageFromListResponse(
-        docketsResponse as DocketsListResponse,
+  const totalElements = React.useMemo(() => {
+    if (!docketsResponse) return 0;
+    if (activeDocketSource === 'default') {
+      return (
+        getDocketsTablePage(docketsResponse as DocketsTableResponse)
+          ?.totalElements ?? 0
       );
-    if ('content' in (docketsResponse as object))
-      return docketsResponse as DocketsPage;
-    return null;
-  }, [docketsResponse]);
+    }
+    const page = getDocketsPageFromListResponse(
+      docketsResponse as DocketsListResponse | DocketsPage,
+    );
+    return page?.totalElements ?? 0;
+  }, [docketsResponse, activeDocketSource]);
+
+  const totalPages = React.useMemo(() => {
+    if (!docketsResponse) return 1;
+    if (activeDocketSource === 'default') {
+      return (
+        getDocketsTablePage(docketsResponse as DocketsTableResponse)
+          ?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize))
+      );
+    }
+    const page = getDocketsPageFromListResponse(
+      docketsResponse as DocketsListResponse | DocketsPage,
+    );
+    return page?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+  }, [docketsResponse, activeDocketSource, totalElements, pageSize]);
 
   const facetOptions = React.useMemo(
     () => buildDocketFacetOptions(docketsListResponse),
@@ -268,7 +309,7 @@ export default function DocketsPage() {
     isFetchingNextPage,
     isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
-    ...DocketsInfiniteListQueryOptions(infiniteBaseParams),
+    ...DocketsTableInfiniteQueryOptions(infiniteBaseParams),
     enabled: isMobile && !linkedJobId && !driverId && !truckId && !idsFilter,
   });
 
@@ -310,31 +351,33 @@ export default function DocketsPage() {
   });
 
   const mobileItems = React.useMemo(
-    () => getDocketItemsFromInfinitePages(infiniteData?.pages),
+    () => getDocketTableRowsFromInfinitePages(infiniteData?.pages, 'table'),
     [infiniteData?.pages],
   );
   const driverMobileItems = React.useMemo(
-    () => getDocketItemsFromInfinitePages(driverInfiniteData?.pages),
+    () => getDocketTableRowsFromInfinitePages(driverInfiniteData?.pages, 'dto'),
     [driverInfiniteData?.pages],
   );
   const truckMobileItems = React.useMemo(
-    () => getDocketItemsFromInfinitePages(truckInfiniteData?.pages),
+    () => getDocketTableRowsFromInfinitePages(truckInfiniteData?.pages, 'dto'),
     [truckInfiniteData?.pages],
   );
   const jobMobileItems = React.useMemo(
-    () => getDocketItemsFromInfinitePages(jobInfiniteData?.pages),
+    () => getDocketTableRowsFromInfinitePages(jobInfiniteData?.pages, 'dto'),
     [jobInfiniteData?.pages],
   );
 
-  const items: DocketDTO[] = React.useMemo(() => {
-    return (docketPage?.content ?? []).map((docket) => ({
-      ...docket,
-    })) as DocketDTO[];
-  }, [docketPage]);
-
-  const totalElements = docketPage?.totalElements ?? items.length;
-  const totalPages =
-    docketPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
+  const items: DocketTableRow[] = React.useMemo(() => {
+    if (!docketsResponse) return [];
+    if (activeDocketSource === 'default') {
+      return getDocketTableRowsFromTableResponse(
+        docketsResponse as DocketsTableResponse,
+      );
+    }
+    return getDocketTableRowsFromDtoPayload(
+      docketsResponse as DocketsListResponse | DocketsPage,
+    );
+  }, [docketsResponse, activeDocketSource]);
 
   const handleSearchChange = React.useCallback((value: string) => {
     setSearch(value);
@@ -356,9 +399,7 @@ export default function DocketsPage() {
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
-      newSorting.length > 0
-        ? newSorting
-        : [{ id: 'deliveryCollectionDate', desc: true }],
+      newSorting.length > 0 ? newSorting : [{ id: 'deliveryDate', desc: true }],
     );
     setPageIndex(0);
   }, []);
@@ -417,7 +458,7 @@ export default function DocketsPage() {
     },
   ];
 
-  const { actions, viewDialog, confirmDialogs } = useDocketActions();
+  const { runAction, viewDialog, confirmDialogs } = useDocketTableActionHost();
 
   // Keep `ids` in the URL after auto-opening so an accidental dialog close
   // still shows just that docket instead of the full list.
@@ -430,11 +471,11 @@ export default function DocketsPage() {
     }
     if (autoOpenedIdRef.current === singleId) return;
 
-    const docket = items.find((d) => d.id === singleId);
-    if (docket) {
-      autoOpenedIdRef.current = singleId;
-      actions.view(docket);
-    }
+    const row = items.find((d) => d.id === singleId);
+    if (!row) return;
+
+    autoOpenedIdRef.current = singleId;
+    runAction(row.id, 'view');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idsFilter, items]);
 
@@ -464,29 +505,21 @@ export default function DocketsPage() {
     [facetOptions],
   );
 
-  const handleRowClick = (row: DocketDTO) => {
-    actions.view(row);
+  const handleRowClick = (row: DocketTableRow) => {
+    runAction(row.id, 'view');
   };
 
-  const renderDocketCard = React.useCallback((docket: DocketDTO) => {
-    const customer = docket.job?.customerDto;
-    const customerName =
-      customer?.customerType === 'BUSINESS'
-        ? customer?.businessName || 'N/A'
-        : customer?.individualContactName || customer?.contactName || 'N/A';
-    const productName = docket.jobItem?.product?.productName || '-';
-    const date = docket.deliveryCollectionDate
-      ? formatLocalDate(docket.deliveryCollectionDate.toString())
+  const renderDocketCard = React.useCallback((docket: DocketTableRow) => {
+    const date = docket.deliveryDate
+      ? formatLocalDate(docket.deliveryDate.toString())
       : '-';
-    const loadSize = docket.actualLoadSize || docket.plannedLoadSize || 0;
-    const uom = docket.jobItem?.productSellUom;
+    const loadSize = docket.actualLoadSize ?? docket.quantity ?? 0;
+    const uom = docket.quantityUom;
     const qty = uom
       ? `${formatNumberThousandSeparator(loadSize)} ${formatUomLabel(uom)}`
       : formatNumberThousandSeparator(loadSize);
     const displayStatus =
-      (docket.docketStatus as string) === 'READY_FOR_COLLECTION'
-        ? 'READY'
-        : docket.docketStatus;
+      docket.status === 'READY_FOR_COLLECTION' ? 'READY' : docket.status;
 
     return (
       <MobileCard
@@ -494,29 +527,32 @@ export default function DocketsPage() {
         description={
           <>
             <Hash className="h-3.5 w-3.5" />
-            <span className="truncate">{docket.job?.jobNumber || '-'}</span>
+            <span className="truncate">{docket.jobReference || '-'}</span>
           </>
         }
         badges={
           <>
             <TableBadges names={[displayStatus]} visibleCount={1} />
-            <TableBadges
-              names={[docket.jobItem?.jobItemType]}
-              visibleCount={1}
-            />
+            <TableBadges names={[docket.type]} visibleCount={1} />
           </>
         }
-        actions={<DocketTableActions docket={docket} />}
+        actions={
+          <DocketTableActions
+            docketId={docket.id}
+            status={docket.status}
+            invoiceStatus={docket.invoiceStatus}
+          />
+        }
         fields={[
           {
             icon: <User className="h-4 w-4" />,
             label: 'Customer',
-            value: customerName,
+            value: docket.customerName || 'N/A',
           },
           {
             icon: <Package className="h-4 w-4" />,
             label: 'Product',
-            value: productName,
+            value: docket.productName || '-',
           },
           {
             icon: <Calendar className="h-4 w-4" />,
@@ -670,7 +706,7 @@ export default function DocketsPage() {
           onRowClick={handleRowClick}
           mobileCardRenderer={renderDocketCard}
           mobileInfinite={mobileInfiniteProps}
-          defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
+          defaultSorting={[{ id: 'deliveryDate', desc: true }]}
           totalElements={totalElements}
           totalPages={totalPages}
           externalPageIndex={pageIndex}
@@ -687,51 +723,53 @@ export default function DocketsPage() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      {confirmDialogs}
-      {viewDialog}
-      <InvoiceDetailsDialog />
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-        <div>
-          <h1 className="text-2xl">Dockets</h1>
-        </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          {showSyncInvoice && (
-            <Button
-              onClick={handleSyncInvoiceFromAcumatica}
-              disabled={syncInvoice.isPending || isSyncDisabled}
-            >
-              <div className="flex items-center gap-2">
-                <RefreshCw
-                  className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
-                />
-                {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
-              </div>
-            </Button>
-          )}
+    <DocketRowActionsProvider runAction={runAction}>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        {confirmDialogs}
+        {viewDialog}
+        <InvoiceDetailsDialog />
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+          <div>
+            <h1 className="text-2xl">Dockets</h1>
+          </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <FormDialog
-              dialogTitle="Add New Docket"
-              dialogDescription="Fill in the required fields to add a new docket."
-              buttonTitle="Add Docket"
-            >
-              <DocketForm />
-            </FormDialog>
+            {showSyncInvoice && (
+              <Button
+                onClick={handleSyncInvoiceFromAcumatica}
+                disabled={syncInvoice.isPending || isSyncDisabled}
+              >
+                <div className="flex items-center gap-2">
+                  <RefreshCw
+                    className={`h-4 w-4 ${syncInvoice.isPending ? 'animate-spin' : ''}`}
+                  />
+                  {syncInvoice.isPending ? 'Syncing' : 'Sync Invoice'}
+                </div>
+              </Button>
+            )}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <FormDialog
+                dialogTitle="Add New Docket"
+                dialogDescription="Fill in the required fields to add a new docket."
+                buttonTitle="Add Docket"
+              >
+                <DocketForm />
+              </FormDialog>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Statistics Cards */}
-      <StatsCards
-        cards={statsCards}
-        mobileGridCols={1}
-        desktopGridCols={4}
-        isLoading={isStatisticsLoading}
-      />
+        {/* Statistics Cards */}
+        <StatsCards
+          cards={statsCards}
+          mobileGridCols={1}
+          desktopGridCols={4}
+          isLoading={isStatisticsLoading}
+        />
 
-      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {tableContent}
+        <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+          {tableContent}
+        </div>
       </div>
-    </div>
+    </DocketRowActionsProvider>
   );
 }

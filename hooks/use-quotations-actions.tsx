@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 import {
   // QuotationWithLineItemsQueryOptions,
   useConvertToDraft,
@@ -92,15 +93,13 @@ const getDialogConfigs = (
   isDeclineFormValid?: boolean,
   additionalRecipientEmails?: string[],
   setAdditionalRecipientEmails?: (emails: string[]) => void,
-  fixedCustomerEmail?: string,
+  isSendFormValid?: boolean,
+  approvePoNumber?: string,
+  setApprovePoNumber?: (poNumber: string) => void,
 ): Record<string, DialogConfig> => {
   const quotationNumber = quotationData?.quoteNumber;
   const projectName = quotationData?.projectName;
   const customerName = quotationData?.customerName;
-  const customerEmail =
-    fixedCustomerEmail ||
-    quotationData?.email ||
-    quotationData?.customerWithAddressResponseDto?.email;
   const totalSellPriceExGST = quotationData?.totalSellPrice || 0;
   const gst = totalSellPriceExGST * 0.1;
   const totalSellPrice = centsToDollars(totalSellPriceExGST + gst);
@@ -229,16 +228,21 @@ const getDialogConfigs = (
                     .filter(Boolean);
                   setAdditionalRecipientEmails?.(emails);
                 }}
-                fixedValues={customerEmail ? [customerEmail] : []}
                 label="Press Enter or comma to add email addresses for delivery receipts."
                 placeholder="Add email..."
               />
+              {!isSendFormValid && (
+                <p className="text-xs text-[#E7000B]">
+                  At least one recipient email is required
+                </p>
+              )}
             </div>
           </div>
         ),
         confirmText: 'Send Quote',
         confirmVariant: 'default',
         confirmCustomColor: '#F54900',
+        confirmDisabled: !isSendFormValid,
       },
     };
   } else if (selectedAction?.key === 'previewQuote') {
@@ -385,6 +389,22 @@ const getDialogConfigs = (
                   </span>
                 </div>
               </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="approve-po-number"
+                className="text-sm font-normal text-[#364153]"
+              >
+                PO Number
+              </label>
+              <Input
+                id="approve-po-number"
+                value={approvePoNumber ?? ''}
+                maxLength={20}
+                onChange={(e) => setApprovePoNumber?.(e.target.value)}
+                placeholder="Enter PO Number (optional)"
+              />
             </div>
           </div>
         ),
@@ -864,14 +884,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     React.useState(false);
   const [additionalRecipientEmails, setAdditionalRecipientEmails] =
     React.useState<string[]>([]);
-
-  const { data: sendDialogCustomer } = useQuery({
-    ...CustomerDetailQueryOptions(quotationData?.customerId ?? 0),
-    enabled:
-      !!quotationData?.customerId &&
-      selectedAction?.key === 'sendToCustomer',
-  });
-  const sendDialogCustomerEmail = sendDialogCustomer?.contactPersonEmail || '';
+  const [approvePoNumber, setApprovePoNumber] = React.useState<string>('');
 
   const user = useTenantStore((state) => state.user);
   const router = useRouter();
@@ -882,6 +895,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     if (declineReason === 'other' && !declineNotes.trim()) return false;
     return true;
   }, [declineReason, declineNotes]);
+
+  // Send-to-customer form validation
+  const isSendFormValid = React.useMemo(
+    () => additionalRecipientEmails.length > 0,
+    [additionalRecipientEmails],
+  );
   const [includeDeliveryPrices, setIncludeDeliveryPrices] = React.useState(
     quotationData?.inclDeliveryCost ?? false,
   );
@@ -912,19 +931,21 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     }
   }, [selectedAction?.key]);
 
-  // Reset recipient emails when send-to-customer dialog opens
+  // Pre-fill PO number when the approve dialog opens
+  React.useEffect(() => {
+    if (selectedAction?.key === 'approve') {
+      setApprovePoNumber(quotationData?.poNumber || '');
+    }
+  }, [selectedAction?.key, quotationData?.poNumber]);
+
+  // Reset recipient emails when send-to-customer dialog opens.
+  // Uses the recipients already saved on the quote rather than re-adding
+  // the customer's default contact email.
   React.useEffect(() => {
     if (selectedAction?.key === 'sendToCustomer') {
-      const existing = quotationData?.emailRecipients ?? [];
-      const emails = sendDialogCustomerEmail
-        ? [
-          sendDialogCustomerEmail,
-          ...existing.filter((e) => e !== sendDialogCustomerEmail),
-        ]
-        : existing;
-      setAdditionalRecipientEmails(emails);
+      setAdditionalRecipientEmails(quotationData?.emailRecipients ?? []);
     }
-  }, [selectedAction?.key, quotationData?.emailRecipients, sendDialogCustomerEmail]);
+  }, [selectedAction?.key, quotationData?.emailRecipients]);
 
   // Sync includeDeliveryPrices with backend value when quotation data changes
   React.useEffect(() => {
@@ -969,7 +990,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     isDeclineFormValid,
     additionalRecipientEmails,
     setAdditionalRecipientEmails,
-    sendDialogCustomerEmail,
+    isSendFormValid,
+    approvePoNumber,
+    setApprovePoNumber,
   );
 
   const createDialogAction = (actionKey: string) => {
@@ -1017,6 +1040,10 @@ export function useQuotationActions(quotationData?: Quotation | null) {
 
   // Extracted action handlers
   const handleSendToCustomer = async () => {
+    if (!isSendFormValid) {
+      return;
+    }
+
     if (!quotationId) {
       notifyError(extractErrorMessage('Unable to send quotation to customer'));
       return;
@@ -1059,10 +1086,12 @@ export function useQuotationActions(quotationData?: Quotation | null) {
         id: quotationId,
         status: 'APPROVED',
         decisionMakerName,
+        poNumber: approvePoNumber.trim() || undefined,
       });
       notifySuccess('Quotation Approved');
       setActiveDialog(null);
       setSelectedAction(null);
+      setApprovePoNumber('');
     } catch (error) {
       console.error('Failed to approve quotation:', error);
       notifyError(extractErrorMessage(error));

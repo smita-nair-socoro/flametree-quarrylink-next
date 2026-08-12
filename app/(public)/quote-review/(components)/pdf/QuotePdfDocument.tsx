@@ -8,7 +8,10 @@ import { ProjectDetailsPdf } from './ProjectDetailsPdf';
 import { ProductsTablePdf } from './ProductsTablePdf';
 import { SummaryPaymentPdf } from './SummaryPaymentPdf';
 import { TermsAndConditionsPdf } from './TermsAndConditionsPdf';
-import { QUOTE_STATUS } from '@/lib/types/quotation-enums';
+import {
+  QUOTE_STATUS,
+  LOGO_SIZE as LogoSize,
+} from '@/lib/types/quotation-enums';
 import {
   QuoteCurrencyTax,
   StripeTenantDetailsSnapshot,
@@ -25,6 +28,7 @@ export interface QuotationData {
     status: QUOTE_STATUS;
     logoUrl?: string;
     logoError?: boolean;
+    logoSize?: LogoSize;
   };
   customer: {
     customerName: string;
@@ -38,8 +42,8 @@ export interface QuotationData {
   };
   project: {
     projectName: string;
-    deliveryDate: string;
-    deliveryWindow: string;
+    deliveryDate?: string;
+    deliveryWindow?: string;
   };
   products: Array<{
     name: string;

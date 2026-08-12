@@ -137,6 +137,70 @@ export const pdfStyles = StyleSheet.create({
     padding: 2,
   },
 
+  // Large logo template (left column: business name above a large logo)
+  headerTopLarge: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+
+  // Fixed explicit widths (not flexGrow/maxWidth) - react-pdf's Yoga engine
+  // does not reliably size flexGrow/shrink-to-fit children inside a "fixed"
+  // repeating header the way CSS flexbox does; with an ambiguous width the
+  // info grid's flex:1 columns were collapsing to near-zero, wrapping every
+  // label onto its own line. Explicit percentages give Yoga a definite
+  // width to work with, matching the small/medium template's approach.
+  headerLeftLarge: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    width: '38%',
+  },
+
+  headerRightLarge: {
+    flexDirection: 'column',
+    width: '58%',
+    justifyContent: 'space-between',
+  },
+
+  headerRightTopRow: {
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    marginBottom: 16,
+  },
+
+  // No fixed width/height: react-pdf renders it at its natural aspect
+  // ratio, capped so it never overflows the column or looks stretched.
+  // maxHeight is kept modest so the whole header still fits the default
+  // (non-large) header/page dimensions without needing extra page padding.
+  tenantLogoLarge: {
+    maxWidth: '100%',
+    maxHeight: 85,
+    marginBottom: 8,
+  },
+
+  initialsLogoLarge: {
+    width: 70,
+    height: 70,
+    marginBottom: 8,
+    backgroundColor: colors.white,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: colors.black,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 2,
+  },
+
+  initialsTextLarge: {
+    fontSize: fontSize.xl,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.black,
+    textAlign: 'center',
+  },
+
   initialsText: {
     fontSize: fontSize.base,
     fontFamily: 'Geist',
@@ -147,6 +211,13 @@ export const pdfStyles = StyleSheet.create({
 
   brandName: {
     fontSize: fontSize.xl,
+    fontFamily: 'Geist',
+    fontWeight: 'bold',
+    color: colors.white,
+  },
+
+  brandNameLarge: {
+    fontSize: fontSize.lg,
     fontFamily: 'Geist',
     fontWeight: 'bold',
     color: colors.white,

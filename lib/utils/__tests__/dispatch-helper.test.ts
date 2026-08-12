@@ -946,7 +946,7 @@ describe('getUnassignedQueueApiSortParams', () => {
       sortOrder: 'asc',
     });
     expect(getUnassignedQueueApiSortParams('size', 'desc')).toEqual({
-      sortBy: 'actualLoadSize',
+      sortBy: 'plannedLoadSize',
       sortOrder: 'desc',
     });
     expect(getUnassignedQueueApiSortParams('customer')).toEqual({

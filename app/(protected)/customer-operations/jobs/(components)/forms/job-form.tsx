@@ -339,7 +339,7 @@ export default function JobForm({
                 name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Delivery Date*</FormLabel>
+                    <FormLabel>Delivery Date</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -359,7 +359,7 @@ export default function JobForm({
                 name="deliveryWindowStart"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window*</FormLabel>
+                    <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -380,7 +380,7 @@ export default function JobForm({
                 name="deliveryWindowEnd"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>End Time Window*</FormLabel>
+                    <FormLabel>End Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -401,13 +401,6 @@ export default function JobForm({
               control={jobForm.control}
               name="receiptEmail"
               render={({ field }) => {
-                const selectedCustomer = customers.find(
-                  (customer) => customer.id === jobForm.watch('customerId'),
-                );
-
-                const customerEmail = selectedCustomer?.contactPersonEmail;
-                const fixedValues = customerEmail ? [customerEmail] : [];
-
                 return (
                   <FormItem className="col-span-2 col-start-1">
                     <FormLabel>Receipt Email*</FormLabel>
@@ -419,7 +412,6 @@ export default function JobForm({
                             ? 'Select Customer First'
                             : 'Enter Receipt Emails'
                         }
-                        fixedValues={fixedValues}
                         label="Press Enter or comma to add email addresses for delivery receipts"
                         disabled={jobForm.watch('customerId') === 0 || (isEditing && !canEdit)}
                         {...field}

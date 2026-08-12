@@ -84,6 +84,10 @@ export const transformFormDataToQuoteDto = (
     lineItemsCount: additionalData.lineItemsCount ?? 0,
   };
 
+  if (formData.poNumber) {
+    transformed.poNumber = formData.poNumber as string;
+  }
+
   if (deliveryDate) {
     transformed.deliveryStartDate = `${formatCalendarDate(deliveryDate, 'yyyy-MM-dd')}T00:00:00.000`;
   }

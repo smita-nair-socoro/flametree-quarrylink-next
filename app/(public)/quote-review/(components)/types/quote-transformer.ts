@@ -131,6 +131,22 @@ export function transformQuoteData(
   } = apiResponse;
   const currencyTax = buildQuoteCurrencyTax(tenantProfile);
   const { notes, terms, documents } = mapQuoteContent(content);
+
+  // TEMP FIX: Flametree Quarry and MYOB Acumatica tenants store a dedicated
+  // quote-page logo variant alongside the standard one in S3 (same folder,
+  // different filename). Scoped to these tenants only until the backend
+  // returns a proper quote-page logo URL for all tenants.
+  const isFlametreeQuarry =
+    tenantProfile?.email === 'flametree@gmail.com' ||
+    tenantProfile?.tenantId?.includes('flametree-quarry');
+  const isMyobAcumatica =
+    tenantProfile?.tenantId?.toLowerCase().includes('myob-acumatica') ||
+    tenantProfile?.tenantName?.toLowerCase().includes('myob acumatica');
+  const rawLogoUrl = tenantLogoDto?.logoPublicS3Url;
+  const logoUrl =
+    (isFlametreeQuarry || isMyobAcumatica) && rawLogoUrl?.includes('logo.png')
+      ? rawLogoUrl.replace('logo.png', 'quote-page-logo.png')
+      : rawLogoUrl;
   const {
     quoteNumber,
     customerName,
@@ -232,7 +248,8 @@ export function transformQuoteData(
       accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
-      logoUrl: tenantLogoDto?.logoPublicS3Url,
+      logoUrl,
+      logoSize: tenantProfile?.logoSize,
     },
     customer: {
       customerName: customerDisplayName,
@@ -260,16 +277,21 @@ export function transformQuoteData(
         return undefined;
       })(),
       projectName: projectName || 'N/A',
-      deliveryDate: formatDateWithOrdinal(deliveryStartDate),
-      deliveryWindow: formatTimeRange(deliveryWindowStart, deliveryWindowEnd, {
-        hour12: true,
-      }),
+      deliveryDate: deliveryStartDate
+        ? formatDateWithOrdinal(deliveryStartDate)
+        : undefined,
+      deliveryWindow:
+        formatTimeRange(deliveryWindowStart, deliveryWindowEnd, {
+          hour12: true,
+        }) || undefined,
       timeZone: tenantProfile?.timeZoneId,
     },
     products,
     summary: {
       totalProducts: quoteItems?.length || 0,
-      estimatedDelivery: formatDateWithOrdinal(deliveryStartDate),
+      estimatedDelivery: deliveryStartDate
+        ? formatDateWithOrdinal(deliveryStartDate)
+        : '--',
       subtotal,
       gst,
       total,

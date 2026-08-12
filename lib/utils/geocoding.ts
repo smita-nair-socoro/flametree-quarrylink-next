@@ -1,5 +1,6 @@
 import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
 import type { AddressType } from '@/lib/types/address';
+import { Country } from 'country-state-city';
 
 interface GeocodingAddressComponent {
   long_name: string;
@@ -35,6 +36,18 @@ function getAddressComponent(
 ): string {
   const component = components.find((c) => c.types.includes(type));
   return component ? (useShortName ? component.short_name : component.long_name) : '';
+}
+
+/**
+ * Google's country long_name (e.g. "Fiji") doesn't always match the name
+ * used by the country-state-city package (e.g. "Fiji Islands"), which breaks
+ * the CountrySelect/state-lookup exact-match. Resolve via the ISO code
+ * (Google's country short_name) instead, since that's stable across both.
+ */
+function resolveCountryName(components: GeocodingAddressComponent[]): string {
+  const isoCode = getAddressComponent(components, 'country', true);
+  const byIsoCode = isoCode ? Country.getCountryByCode(isoCode)?.name : undefined;
+  return byIsoCode || getAddressComponent(components, 'country');
 }
 
 /**
@@ -124,7 +137,7 @@ export async function reverseGeocode(
     const region =
       getAddressComponent(components, 'administrative_area_level_1');
     const postalCode = getAddressComponent(components, 'postal_code');
-    const country = getAddressComponent(components, 'country');
+    const country = resolveCountryName(components);
 
     // If we have very little address information, use fallback format
     const hasMinimalInfo = !address1 && !city && !region;
@@ -355,7 +368,7 @@ export async function geocodePostalAddress(
         getAddressComponent(components, 'administrative_area_level_2');
       const region = getAddressComponent(components, 'administrative_area_level_1');
       const postalCode = getAddressComponent(components, 'postal_code');
-      const country = getAddressComponent(components, 'country');
+      const country = resolveCountryName(components);
 
       return {
         formattedAddress: result.formatted_address,

@@ -19,6 +19,10 @@ import {
   CustomerAttachmentDTO,
   AdditionalContactApiDTO,
   AdditionalContactsPage,
+  CustomerNoteDTO,
+  CustomerNotesPage,
+  CreateCustomerNoteRequest,
+  UpdateCustomerNoteRequest,
   SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
 import {
@@ -74,6 +78,8 @@ import {
   DuplicateDocketResponse,
   DocketsListResponse,
   DocketsPage,
+  DocketsTableResponse,
+  UnassignedDocketsPage,
 } from '../types/docket';
 import {
   JobDTO,
@@ -866,6 +872,37 @@ export const APIClient = {
       appClient.Delete(
         `/socoro/quarrylink/api/customer/${customerId}/additional-contacts/${contactId}`,
       ),
+    getNotes: (
+      customerId: number,
+      params?: { page?: number; pageSize?: number },
+    ) =>
+      appClient.Get<CustomerNotesPage>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    createNote: (customerId: number, data: CreateCustomerNoteRequest) =>
+      appClient.Post<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes`,
+        { body: data },
+      ),
+    updateNote: (
+      customerId: number,
+      noteId: number,
+      data: UpdateCustomerNoteRequest,
+    ) =>
+      appClient.Put<CustomerNoteDTO>(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+        { body: data },
+      ),
+    deleteNote: (customerId: number, noteId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/customer/${customerId}/notes/${noteId}`,
+      ),
   },
 
   quotations: {
@@ -887,17 +924,27 @@ export const APIClient = {
       token: string,
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
+      // PO Number is mandatory when a customer approves via this public endpoint (QLINK-3356).
+      if (status === 'APPROVED' && !poNumber?.trim()) {
+        throw new Error('Purchase Order Number is required to approve this quote.');
+      }
+
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
 
       return appClient.Put<PublicQuoteDecisionResponse>(
@@ -1021,17 +1068,22 @@ export const APIClient = {
       status: 'APPROVED' | 'DECLINED',
       declineReason?: string,
       decisionMakerName?: string,
+      poNumber?: string,
     ) => {
       const body: {
         status: string;
         declineReason?: string;
         decisionMakerName?: string;
+        poNumber?: string;
       } = { status };
       if (status === 'DECLINED' && declineReason) {
         body.declineReason = declineReason;
       }
       if (decisionMakerName !== undefined) {
         body.decisionMakerName = decisionMakerName;
+      }
+      if (status === 'APPROVED' && poNumber !== undefined) {
+        body.poNumber = poNumber;
       }
       return appClient.Put<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${id}/decision`,
@@ -1083,6 +1135,73 @@ export const APIClient = {
         },
       );
       return response;
+    },
+    /** Flat table projection for the customer-operations dockets page. */
+    getTable: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      statuses?: string[];
+      types?: string[];
+      customerIds?: number[];
+      productIds?: number[];
+      ids?: number[];
+    }) => {
+      const isPaginated =
+        params?.page !== undefined || params?.pageSize !== undefined;
+      const pageSize = params?.pageSize ?? params?.size;
+
+      const response = await appClient.Get<DocketsTableResponse>(
+        `/socoro/quarrylink/api/dockets/table`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: isPaginated
+              ? (pageSize?.toString() ?? '10')
+              : (params?.size?.toString() ?? '1000'),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            types: params?.types,
+            customerIds: params?.customerIds?.map(String),
+            productIds: params?.productIds?.map(String),
+            ids: params?.ids?.map(String),
+          },
+        },
+      );
+      return response;
+    },
+    /** Paginated unassigned dockets for dispatch all-dates queue. */
+    getUnassignedAll: async (params?: {
+      page?: number;
+      pageSize?: number;
+      size?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      sort?: string[];
+    }) => {
+      const pageSize = params?.pageSize ?? params?.size;
+
+      return appClient.Get<UnassignedDocketsPage>(
+        `/socoro/quarrylink/api/dockets/unassigned-dockets`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: pageSize?.toString(),
+            size: pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            sort: params?.sort,
+          },
+        },
+      );
     },
     getByJobId: async (
       jobId: number,

@@ -260,6 +260,40 @@ export interface AdditionalContactsPage {
   size?: number;
 }
 
+export interface CustomerNoteDTO {
+  id: number;
+  customerId: number;
+  authorSub?: string;
+  authorName: string;
+  body: string;
+  edited: boolean;
+  createdAt: string;
+  updatedAt: string;
+  canEdit: boolean;
+  canDelete: boolean;
+}
+
+export interface CreateCustomerNoteRequest {
+  body: string;
+  authorName: string;
+}
+
+export interface UpdateCustomerNoteRequest {
+  body: string;
+}
+
+export interface CustomerNotesPage {
+  content: CustomerNoteDTO[];
+  totalElements: number;
+  totalPages: number;
+  number?: number;
+  size?: number;
+  numberOfElements?: number;
+  first?: boolean;
+  last?: boolean;
+  empty?: boolean;
+}
+
 export interface AdditionalContactDTO {
   id?: number;
   customerId?: number;

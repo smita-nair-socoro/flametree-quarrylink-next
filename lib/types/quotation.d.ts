@@ -1,6 +1,7 @@
 import {
   QUOTE_ITEM_TYPE as QuoteItemType,
   QUOTE_STATUS as QuoteStatus,
+  LOGO_SIZE as LogoSize,
 } from './quotation-enums';
 import { CUSTOMER_STATUS, CUSTOMER_TYPE } from './customer-enums';
 import { CustomerWithAddressResponseDTO } from './customer';
@@ -16,6 +17,7 @@ export interface QuotationDTO {
   customerId: number;
   customerName: string;
   decisionMakerName?: string;
+  poNumber?: string;
   email: string;
   phone: string;
   customerWithAddressResponseDto: CustomerWithAddressResponseDTO;
@@ -193,6 +195,7 @@ export interface TenantProfileSnapshot {
   taxType?: string;
   taxAmount?: string;
   timeZoneId?: string;
+  logoSize?: LogoSize;
 }
 
 export interface QuoteContentItem {
@@ -232,6 +235,7 @@ export interface PublicQuoteDecisionResponse {
   quoteStatus: QuoteStatus;
   declineReason?: string;
   decisionMakerName?: string;
+  poNumber?: string;
   customerResponseAt?: string;
   deliveryStartDate: string | null;
   expiryDate: string | null;
@@ -273,6 +277,7 @@ export interface QuotationDisplayData {
     status: QuoteStatus;
     tenantDetails?: StripeTenantDetailsSnapshot;
     logoUrl?: string;
+    logoSize?: LogoSize;
   };
   customer: {
     customerName: string;
@@ -287,8 +292,10 @@ export interface QuotationDisplayData {
   project: {
     type?: QuoteItemType;
     projectName: string;
-    deliveryDate: string;
-    deliveryWindow: string;
+    /** Omitted (undefined) when the quote has no estimated start date. */
+    deliveryDate?: string;
+    /** Omitted (undefined) when neither delivery window bound is set. */
+    deliveryWindow?: string;
     /** IANA timezone id from the tenant profile, e.g. "Australia/Sydney". */
     timeZone?: string;
   };

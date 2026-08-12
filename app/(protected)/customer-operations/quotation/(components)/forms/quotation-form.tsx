@@ -100,10 +100,11 @@ export default function QuotationForm({
 
   const quotationForm = useForm<QuotationFormValues>({
     resolver: zodResolver(getQuotationFormSchema(isEditing)),
-    defaultValues: quotationToFormValues(
-      isEditing ? selectedQuotation : null,
-      isEditing,
-    ),
+    defaultValues: {
+      ...quotationToFormValues(isEditing ? selectedQuotation : null, isEditing),
+      // Duplicated quotes should not carry over the original's PO number.
+      ...(isDuplicate ? { poNumber: '' } : {}),
+    },
   });
 
   const createQuotation = useCreateQuotation();
@@ -200,7 +201,10 @@ export default function QuotationForm({
             normalizePhoneNumber(selectedCustomer.contactPersonPhone || '') ||
               '',
           );
-          quotationForm.setValue('receiptEmail', '');
+          quotationForm.setValue(
+            'receiptEmail',
+            selectedCustomer.contactPersonEmail || '',
+          );
 
           quotationForm.setValue(
             'accountManagerSub',
@@ -240,15 +244,12 @@ export default function QuotationForm({
     console.log('[QuotationForm] Validation passed, submitting:', values);
     const selectedCustomer = customers.find((c) => c.id === values.customerId);
     const customerEmail = selectedCustomer?.contactPersonEmail || '';
-    const receiptEmails = [
-      customerEmail,
-      ...(values.receiptEmail
-        ? values.receiptEmail
-            .split(',')
-            .map((e) => e.trim())
-            .filter(Boolean)
-        : []),
-    ].filter(Boolean);
+    const receiptEmails = values.receiptEmail
+      ? values.receiptEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
+      : [];
     const submitCustomer = customers.find((c) => c.id === values.customerId);
     const customerName =
       submitCustomer?.customerType === 'BUSINESS'
@@ -661,17 +662,31 @@ export default function QuotationForm({
               )}
             />
 
+            <FormField
+              control={quotationForm.control}
+              name="poNumber"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel>PO Number</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      placeholder="Enter PO Number"
+                      maxLength={20}
+                      {...field}
+                      disabled={isEditing && !canEdit}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {isEditing && (
               <FormField
                 control={quotationForm.control}
                 name="receiptEmail"
                 render={({ field }) => {
-                  const selectedCustomer = customers.find(
-                    (c) => c.id === quotationForm.watch('customerId'),
-                  );
-                  const customerEmail = selectedCustomer?.contactPersonEmail;
-                  const fixedValues = customerEmail ? [customerEmail] : [];
-
                   return (
                     <FormItem
                       className={
@@ -687,7 +702,6 @@ export default function QuotationForm({
                               ? 'Select Customer First'
                               : 'Enter Recipient Emails'
                           }
-                          fixedValues={fixedValues}
                           validate={(s) =>
                             /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
                               s,
@@ -767,7 +781,7 @@ export default function QuotationForm({
                 name="deliveryStartDate"
                 render={({ field }) => (
                   <FormItem className="col-span-2">
-                    <FormLabel>Estimated Start Date*</FormLabel>
+                    <FormLabel>Estimated Start Date</FormLabel>
                     <FormControl>
                       <DatePicker
                         value={field.value}
@@ -787,7 +801,7 @@ export default function QuotationForm({
                 name="deliveryWindowStart"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>Start Time Window*</FormLabel>
+                    <FormLabel>Start Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
@@ -808,7 +822,7 @@ export default function QuotationForm({
                 name="deliveryWindowEnd"
                 render={({ field, fieldState }) => (
                   <FormItem>
-                    <FormLabel>End Time Window*</FormLabel>
+                    <FormLabel>End Time Window</FormLabel>
                     <FormControl>
                       <TimeWindowPicker
                         value={field.value}
