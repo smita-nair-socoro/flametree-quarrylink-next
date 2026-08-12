@@ -66,7 +66,7 @@ export default function UserRolesPage() {
           },
         ]
       : []),
-    ...(isSuperAdmin || isAdmin
+    ...(isSuperAdmin
       ? [
           {
             name: 'Fee Recovery',
