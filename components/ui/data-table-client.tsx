@@ -106,6 +106,7 @@ interface DataTableProps<TData, TValue> {
   facetDefinition?: FacetDefinition[];
   searchPlaceHolder?: string;
   simpleTable?: boolean;
+  enablePagination?: boolean;
   tableId?: string; // Unique identifier for sessionStorage
   useColumnSizing?: boolean; // Optional prop to enable column sizing
   onRowClick?: (row: TData) => void; // Optional row click handler
@@ -203,6 +204,7 @@ export function DataTableClient<TData, TValue>({
   facetDefinition = [],
   searchPlaceHolder = 'Filter..',
   simpleTable = false,
+  enablePagination = true,
   tableId = 'default-table', // Default tableId if not provided
   useColumnSizing = false, // Default to false to maintain existing behavior
   onRowClick,
@@ -725,7 +727,9 @@ export function DataTableClient<TData, TValue>({
     data: tableData,
     columns: tableColumns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+    getPaginationRowModel: enablePagination
+      ? getPaginationRowModel()
+      : undefined,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
@@ -742,7 +746,7 @@ export function DataTableClient<TData, TValue>({
     },
     enableRowPinning: true,
 
-    manualPagination: !!onPaginationChange,
+    manualPagination: enablePagination && !!onPaginationChange,
     manualFiltering: !!(onSearchChange || onFacetFiltersChange),
     manualSorting: !!onSortingChange,
     pageCount: totalPages,
@@ -763,9 +767,9 @@ export function DataTableClient<TData, TValue>({
 
     enableRowSelection: enableRowSelection
       ? (row: Row<TData>) => {
-          if (!rowSelectionFilter) return true;
-          return rowSelectionFilter(row.original);
-        }
+        if (!rowSelectionFilter) return true;
+        return rowSelectionFilter(row.original);
+      }
       : undefined,
 
     state: {
@@ -1104,7 +1108,7 @@ export function DataTableClient<TData, TValue>({
                     (columnFilters.find((f) => f.id === filter.column)
                       ?.value as string[]) || []
                   }
-                  onFilterChange={() => {}}
+                  onFilterChange={() => { }}
                 />
               ))}
               {columnFilters.length > 0 && (
@@ -1206,12 +1210,12 @@ export function DataTableClient<TData, TValue>({
                                         onClick={() => {
                                           const newValues = isSelected
                                             ? currentFilterValues.filter(
-                                                (v) => v !== option.value,
-                                              )
+                                              (v) => v !== option.value,
+                                            )
                                             : [
-                                                ...currentFilterValues,
-                                                option.value,
-                                              ];
+                                              ...currentFilterValues,
+                                              option.value,
+                                            ];
                                           handleTempFilterChange(
                                             filter.column,
                                             newValues,
@@ -1237,10 +1241,10 @@ export function DataTableClient<TData, TValue>({
                                         </div>
                                         {filter.counts?.[option.value] !=
                                           null && (
-                                          <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
-                                            {filter.counts[option.value]}
-                                          </span>
-                                        )}
+                                            <span className="text-xs text-muted-foreground bg-gray-100 px-2 py-1 rounded">
+                                              {filter.counts[option.value]}
+                                            </span>
+                                          )}
                                       </button>
                                     );
                                   })}
@@ -1414,40 +1418,40 @@ export function DataTableClient<TData, TValue>({
                             simpleTable && 'border-b-0 font-medium',
                             !simpleTable && 'first:pl-4 last:pr-4 py-2',
                             !simpleTable &&
-                              headerIndex === 0 &&
-                              'rounded-tl-md',
+                            headerIndex === 0 &&
+                            'rounded-tl-md',
                             !simpleTable &&
-                              headerIndex === hg.headers.length - 1 &&
-                              'rounded-tr-md',
+                            headerIndex === hg.headers.length - 1 &&
+                            'rounded-tr-md',
                             // Only force right-alignment on "Actions" columns (or non-simple tables where we expect an actions column)
                             ((header.column.id === 'actions' &&
                               headerIndex === hg.headers.length - 1) ||
                               (!simpleTable &&
                                 headerIndex === hg.headers.length - 1)) &&
-                              'w-auto text-right',
+                            'w-auto text-right',
                           )}
                           style={
                             useColumnSizing
                               ? {
-                                  width: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                  minWidth: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                  maxWidth: header.column.columnDef.size
-                                    ? `${header.column.columnDef.size}px`
-                                    : undefined,
-                                }
+                                width: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                                minWidth: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                                maxWidth: header.column.columnDef.size
+                                  ? `${header.column.columnDef.size}px`
+                                  : undefined,
+                              }
                               : undefined
                           }
                         >
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                         </TableHead>
                       ))}
                     </TableRow>
@@ -1470,12 +1474,12 @@ export function DataTableClient<TData, TValue>({
                               : 'bg-white hover:bg-gray-100',
                             !simpleTable && onRowClick && 'cursor-pointer',
                             row.getIsSelected() &&
-                              'bg-[#EFF6FF]! hover:bg-blue-100!',
+                            'bg-[#EFF6FF]! hover:bg-blue-100!',
                             isNewRecord &&
-                              !isSyncError &&
-                              'bg-yellow-50! hover:bg-yellow-100! border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
+                            !isSyncError &&
+                            'bg-yellow-50! hover:bg-yellow-100! border-l-4 border-l-yellow-400 animate-in fade-in duration-500',
                             isSyncError &&
-                              'bg-[#FEF2F2]! hover:bg-[#FEE2E2]! border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
+                            'bg-[#FEF2F2]! hover:bg-[#FEE2E2]! border-l-4 border-l-[#B11E1B] animate-in fade-in duration-500',
                           )}
                           onClick={(e) => {
                             // Prevent row click if clicking on buttons or interactive elements
@@ -1518,25 +1522,25 @@ export function DataTableClient<TData, TValue>({
                                 !simpleTable && 'first:pl-4 last:pr-4 py-2',
                                 ((cell.column.id === 'actions' &&
                                   cellIndex ===
-                                    row.getVisibleCells().length - 1) ||
+                                  row.getVisibleCells().length - 1) ||
                                   (!simpleTable &&
                                     cellIndex ===
-                                      row.getVisibleCells().length - 1)) &&
-                                  'w-auto text-right',
+                                    row.getVisibleCells().length - 1)) &&
+                                'w-auto text-right',
                               )}
                               style={
                                 useColumnSizing
                                   ? {
-                                      width: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                      minWidth: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                      maxWidth: cell.column.columnDef.size
-                                        ? `${cell.column.columnDef.size}px`
-                                        : undefined,
-                                    }
+                                    width: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                    minWidth: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                    maxWidth: cell.column.columnDef.size
+                                      ? `${cell.column.columnDef.size}px`
+                                      : undefined,
+                                  }
                                   : undefined
                               }
                             >
@@ -1584,103 +1588,103 @@ export function DataTableClient<TData, TValue>({
           </div>
 
           {/* Pagination Controls */}
-          {/* {!simpleTable && ( */}
-          <div className="overflow-x-auto">
-            <div className="min-w-full py-2">
-              <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-                <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                  <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                    Total Records:{' '}
-                    <span className="text-accent-foreground ml-2">
-                      {formatNumberThousandSeparatorWithoutDecimal(
-                        totalElements ??
+          {enablePagination && (
+            <div className="overflow-x-auto">
+              <div className="min-w-full py-2">
+                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
+                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Total Records:{' '}
+                      <span className="text-accent-foreground ml-2">
+                        {formatNumberThousandSeparatorWithoutDecimal(
+                          totalElements ??
                           table.getFilteredRowModel().rows.length,
-                      )}
-                    </span>
-                  </p>
+                        )}
+                      </span>
+                    </p>
 
-                  <Separator
-                    orientation="vertical"
-                    className="text-accent-foreground"
-                  />
+                    <Separator
+                      orientation="vertical"
+                      className="text-accent-foreground"
+                    />
 
-                  <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                    Rows per page
-                  </p>
-                  <Select
-                    value={paginationSize}
-                    onValueChange={handlePaginationSizeChange}
-                  >
-                    <SelectTrigger className="h-8 w-20">
-                      <SelectValue placeholder={pageSizeTriggerContent} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {paginationSizeSelect.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Page nav */}
-                {table.getPageCount() > 1 && (
-                  <div className="flex items-center space-x-4">
-                    <div className="flex min-w-25 items-center justify-center whitespace-nowrap text-sm font-medium">
-                      Page {effectivePagination.pageIndex + 1} of{' '}
-                      {table.getPageCount()}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        className="hidden h-8 w-8 p-0 lg:flex"
-                        onClick={() => table.setPageIndex(0)}
-                        disabled={!table.getCanPreviousPage()}
-                      >
-                        <span className="sr-only">First page</span>
-                        <ChevronsLeft size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => table.previousPage()}
-                        disabled={!table.getCanPreviousPage()}
-                      >
-                        <span className="sr-only">Previous page</span>
-                        <ChevronLeft size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                      >
-                        <span className="sr-only">Next page</span>
-                        <ChevronRight size={15} />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        className="hidden h-8 w-8 p-0 lg:flex"
-                        onClick={() =>
-                          table.setPageIndex(table.getPageCount() - 1)
-                        }
-                        disabled={!table.getCanNextPage()}
-                      >
-                        <span className="sr-only">Last page</span>
-                        <ChevronsRight size={15} />
-                      </Button>
-                    </div>
+                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+                      Rows per page
+                    </p>
+                    <Select
+                      value={paginationSize}
+                      onValueChange={handlePaginationSizeChange}
+                    >
+                      <SelectTrigger className="h-8 w-20">
+                        <SelectValue placeholder={pageSizeTriggerContent} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {paginationSizeSelect.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+
+                  {/* Page nav */}
+                  {table.getPageCount() > 1 && (
+                    <div className="flex items-center space-x-4">
+                      <div className="flex min-w-25 items-center justify-center whitespace-nowrap text-sm font-medium">
+                        Page {effectivePagination.pageIndex + 1} of{' '}
+                        {table.getPageCount()}
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex"
+                          onClick={() => table.setPageIndex(0)}
+                          disabled={!table.getCanPreviousPage()}
+                        >
+                          <span className="sr-only">First page</span>
+                          <ChevronsLeft size={15} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => table.previousPage()}
+                          disabled={!table.getCanPreviousPage()}
+                        >
+                          <span className="sr-only">Previous page</span>
+                          <ChevronLeft size={15} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={() => table.nextPage()}
+                          disabled={!table.getCanNextPage()}
+                        >
+                          <span className="sr-only">Next page</span>
+                          <ChevronRight size={15} />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="hidden h-8 w-8 p-0 lg:flex"
+                          onClick={() =>
+                            table.setPageIndex(table.getPageCount() - 1)
+                          }
+                          disabled={!table.getCanNextPage()}
+                        >
+                          <span className="sr-only">Last page</span>
+                          <ChevronsRight size={15} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-          {/* )} */}
+          )}
         </>
       )}
     </div>
