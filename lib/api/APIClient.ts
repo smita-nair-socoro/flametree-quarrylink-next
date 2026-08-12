@@ -584,6 +584,13 @@ export const APIClient = {
       appClient.Get<ProductDetails>(
         `/socoro/quarrylink/api/product/${productId}/quarry-supplier`,
       ),
+    getByIdWithQuarrySupplierProductForCustomer: (
+      productId: number,
+      customerId: number,
+    ) =>
+      appClient.Get<ProductDetails>(
+        `/socoro/quarrylink/api/product/${productId}/${customerId}/quarry-supplier`,
+      ),
     createProduct: (data: Partial<Product>) =>
       appClient.Post<Product>('/socoro/quarrylink/api/product', {
         body: data,
