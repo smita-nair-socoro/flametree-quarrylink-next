@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import { NewJobLineItemFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-line-item-form-schema';
 import {
-  ProductDetailWithQuarrySupplierProductQueryOptions,
+  ProductDetailWithQuarrySupplierProductForCustomerQueryOptions,
 } from '@/lib/api/product';
 import {
   useProductsForForm,
@@ -333,9 +333,12 @@ export function useJobLineItemFormState({
       }));
   }, [deliveryAddresses, billingAddressFormatted]);
 
-  // Product details (to get quarry/supplier list and QSPs)
+  // Product details (to get quarry/supplier list and QSPs, scoped to the job's customer)
   const productDetailsQuery = useQuery(
-    ProductDetailWithQuarrySupplierProductQueryOptions(selectedProductId),
+    ProductDetailWithQuarrySupplierProductForCustomerQueryOptions(
+      selectedProductId,
+      customerId,
+    ),
   );
 
   // Quarry/supplier options

@@ -245,6 +245,25 @@ export const ProductDetailWithQuarrySupplierProductQueryOptions = (
     enabled: !!productId,
   });
 
+export const ProductDetailWithQuarrySupplierProductForCustomerQueryOptions = (
+  productId: number,
+  customerId: number,
+) =>
+  queryOptions({
+    queryKey: ProductKeys.detailWithQuarrySupplierProductForCustomer(
+      productId,
+      customerId,
+    ),
+    queryFn: () =>
+      APIClient.products.getByIdWithQuarrySupplierProductForCustomer(
+        productId,
+        customerId,
+      ),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!productId && !!customerId,
+  });
+
 export const ProductReportingQueryOptions = () =>
   queryOptions({
     queryKey: ProductKeys.reporting(),

@@ -7,6 +7,15 @@ export const ProductKeys = {
     [...ProductKeys.all, 'detail', id, 'material'] as const,
   detailWithQuarrySupplierProduct: (id: number) =>
     [...ProductKeys.all, 'detail', id, 'quarry-supplier-product'] as const,
+  detailWithQuarrySupplierProductForCustomer: (
+    id: number,
+    customerId: number,
+  ) =>
+    [
+      ...ProductKeys.detailWithQuarrySupplierProduct(id),
+      'customer',
+      customerId,
+    ] as const,
   reporting: () => [...ProductKeys.all, 'reporting'] as const,
 };
 

@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { NewQuotationLineItemFormSchema } from '@/app/(protected)/customer-operations/quotation/(components)/forms/schemas/line-item-quotation-schema';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import {
-  ProductDetailWithQuarrySupplierProductQueryOptions,
+  ProductDetailWithQuarrySupplierProductForCustomerQueryOptions,
 } from '@/lib/api/product';
 import {
   useProductsForForm,
@@ -324,9 +324,12 @@ export function useLineItemFormState({
       }));
   }, [deliveryAddresses, billingAddressFormatted]);
 
-  // Product details (to get quarry/supplier list and QSPs)
+  // Product details (to get quarry/supplier list and QSPs, scoped to the quote's customer)
   const productDetailsQuery = useQuery(
-    ProductDetailWithQuarrySupplierProductQueryOptions(selectedProductId),
+    ProductDetailWithQuarrySupplierProductForCustomerQueryOptions(
+      selectedProductId,
+      customerId,
+    ),
   );
 
   // Quarry/supplier options
