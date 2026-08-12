@@ -157,7 +157,6 @@ export interface JobItem {
   selectedSellUnit: string;
   selectedTruckRateType: string;
   selectedTruckType: string;
-  deleted?: boolean;
   version: number;
 }
 

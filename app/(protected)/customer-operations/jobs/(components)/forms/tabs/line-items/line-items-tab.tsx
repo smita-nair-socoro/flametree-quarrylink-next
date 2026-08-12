@@ -76,10 +76,7 @@ export default function LineItemsTab({
   });
 
   const jobLineItems = React.useMemo(
-    () =>
-      (jobDetails?.jobItems?.content ?? []).filter(
-        (jobLineItem) => !jobLineItem.deleted,
-      ),
+    () => jobDetails?.jobItems?.content ?? [],
     [jobDetails?.jobItems],
   );
   const totalElements = jobDetails?.jobItems?.totalElements ?? 0;
