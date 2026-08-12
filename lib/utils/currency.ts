@@ -1,8 +1,19 @@
 import { getCurrencyLocale } from './tenant-config-helper';
 
+const CENTS_SCALE = 100;
+/** Corrects IEEE 754 artifacts before truncation (e.g. 10 * 0.18 -> 1.80, not 1.79). */
+const TRUNCATION_EPSILON = 1e-8;
+
+function truncateToCents(amount: number): number {
+  const scaled = amount * CENTS_SCALE;
+  const adjusted =
+    scaled >= 0 ? scaled + TRUNCATION_EPSILON : scaled - TRUNCATION_EPSILON;
+  return Math.trunc(adjusted);
+}
+
 /**
  * Convert a dollar‐amount (string or number) to integer cents.
- * Rounds to the nearest cent.
+ * Truncates to the nearest cent.
  * @throws if the input isn’t a valid number.
  */
 export function dollarsToCents(value: string | number): number {
@@ -11,12 +22,12 @@ export function dollarsToCents(value: string | number): number {
     throw new TypeError(`Invalid dollar amount: ${value}`);
   }
   // Truncate to 2 decimal places to match the requirement (e.g., 0.325 -> 32 cents)
-  return Math.trunc(Number(n + 'e2'));
+  return truncateToCents(n);
 }
 
 export function roundToTwoDecimals(num: number): number {
   // Truncate to 2 decimal places as requested (e.g., 0.325 -> 0.32)
-  return Number(Math.trunc(Number(num + 'e2')) + 'e-2');
+  return truncateToCents(num) / CENTS_SCALE;
 }
 
 export function centsToDollars(cents: number): string {
