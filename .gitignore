@@ -63,7 +63,17 @@ dist/
 nbdist/
 nbactions.xml
 nb-configuration.xml
+# Keep ad-hoc local notes private while allowing curated project knowledge.
 docs/*
+!docs/project-context.md
+!docs/architecture.md
+!docs/business-rules.md
+!docs/decisions.md
+!docs/gotchas.md
+!docs/active/
+!docs/active/**
+!docs/archive/
+!docs/archive/**
 CLAUDE.md
 .claude/*
 public/config.json
