@@ -1,3 +1,8 @@
+import type {
+  EFFECTIVE_SOURCE,
+  RECOVERY_MODE,
+} from '../types/fee-recovery-enums';
+
 export const ProductKeys = {
   all: ['products'] as const,
   list: (filters?: { page?: number; perPage?: number; search?: string }) =>
@@ -226,6 +231,23 @@ export const DepartmentKeys = {
   list: () => [...DepartmentKeys.all, 'list'] as const,
 };
 
+export const FeeRecoveryKeys = {
+  all: ['fee-recovery'] as const,
+  screen: (params?: {
+    page?: number;
+    size?: number;
+    sort?: string[];
+    search?: string;
+    effectiveSource?: EFFECTIVE_SOURCE;
+    recoveryMode?: RECOVERY_MODE;
+  }) => [...FeeRecoveryKeys.all, 'screen', params] as const,
+  settings: () => [...FeeRecoveryKeys.all, 'settings'] as const,
+  customerOverride: (customerId: number) =>
+    [...FeeRecoveryKeys.all, 'customer-overrides', customerId] as const,
+  customerEffective: (customerId: number) =>
+    [...FeeRecoveryKeys.all, 'customers', customerId, 'effective'] as const,
+};
+
 export const PolicyDocumentKeys = {
   all: ['policy-documents'] as const,
   list: () => [...PolicyDocumentKeys.all, 'list'] as const,
@@ -250,5 +272,6 @@ export const QuoteContentLibraryKeys = {
 
 export const QuoteEditorContentKeys = {
   all: ['quote-editor-content'] as const,
-  detail: (quoteId: number) => [...QuoteEditorContentKeys.all, quoteId] as const,
+  detail: (quoteId: number) =>
+    [...QuoteEditorContentKeys.all, quoteId] as const,
 };

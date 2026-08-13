@@ -3,6 +3,10 @@
 import { TriangleAlert } from 'lucide-react';
 import { JobItem } from '@/lib/types/job';
 
+interface CannotDeleteJobLineItemContentProps {
+  blockingDocketIds?: number[];
+}
+
 export function CannotDeleteJobLineItemDescription({
   jobItem,
 }: {
@@ -37,7 +41,12 @@ export function CannotDeleteJobLineItemDescription({
   );
 }
 
-export function CannotDeleteJobLineItemContent() {
+export function CannotDeleteJobLineItemContent({
+  blockingDocketIds = [],
+}: Readonly<CannotDeleteJobLineItemContentProps>) {
+  const docketsHref = `/customer-operations/dockets/?ids=${blockingDocketIds.join(',')}`;
+  const docketLabel = blockingDocketIds.length === 1 ? 'docket' : 'dockets';
+
   return (
     <div className="flex flex-col gap-5">
       <span className="text-[14px] font-normal text-gray-700">
@@ -52,6 +61,16 @@ export function CannotDeleteJobLineItemContent() {
             <span className="text-[16px] text-[#F54900] font-medium">
               Active Dockets Found
             </span>
+            {blockingDocketIds.length > 0 && (
+              <a
+                href={docketsHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[14px] text-[#155DFC] font-medium underline"
+              >
+                {blockingDocketIds.length} active {docketLabel}
+              </a>
+            )}
             <span className="text-[14px] font-normal text-[#CA3500]">
               Line items can only be removed when there are no active dockets
               associated with them. Invoice, cancel or void the active dockets

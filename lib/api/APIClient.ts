@@ -94,6 +94,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
   JobsListResponse,
+  DeleteJobItemResponse,
 } from '../types/job';
 import {
   HaulierCreateDTO,
@@ -124,6 +125,13 @@ import {
 import { Department } from '../types/department';
 import { ChecklistTemplate } from '../types/checklist-template';
 import { ChecklistSubmission } from '../types/checklist-submission';
+import {
+  FeeRecoverySettingsDto,
+  CustomerFeeRecoverySettingsDto,
+  FeeRecoveryScreenResponseDto,
+  CustomerEffectiveFeeRecoveryDto,
+} from '../types/fee-recovery';
+import { EFFECTIVE_SOURCE, RECOVERY_MODE } from '../types/fee-recovery-enums';
 import {
   PolicyDocumentItem,
   PolicyDocumentMetadata,
@@ -1533,7 +1541,7 @@ export const APIClient = {
       });
     },
     deleteJobItem: (id: number) => {
-      return appClient.Delete<JobItem>(
+      return appClient.Delete<DeleteJobItemResponse>(
         `/socoro/quarrylink/api/job-items/${id}`,
       );
     },
@@ -2009,7 +2017,10 @@ export const APIClient = {
       ),
     create: (metadata: PolicyDocumentMetadata, file: File) => {
       const formData = new FormData();
-      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+      );
       formData.append('file', file);
       return appClient.Post<PolicyDocumentItem>(
         `/socoro/quarrylink/api/quote-content-library/policy-document`,
@@ -2018,7 +2029,10 @@ export const APIClient = {
     },
     update: (id: number, metadata: PolicyDocumentMetadata, file: File) => {
       const formData = new FormData();
-      formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+      formData.append(
+        'metadata',
+        new Blob([JSON.stringify(metadata)], { type: 'application/json' }),
+      );
       formData.append('file', file);
       return appClient.Put<PolicyDocumentItem>(
         `/socoro/quarrylink/api/quote-content-library/policy-document/${id}`,
@@ -2107,6 +2121,66 @@ export const APIClient = {
             direction: params?.direction,
           },
         },
+      ),
+  },
+  feeRecovery: {
+    getScreen: (params?: {
+      page?: number;
+      size?: number;
+      sort?: string[];
+      search?: string;
+      effectiveSource?: EFFECTIVE_SOURCE;
+      recoveryMode?: RECOVERY_MODE;
+    }) =>
+      appClient.Get<FeeRecoveryScreenResponseDto>(
+        `/socoro/quarrylink/api/fee-recovery`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            size: params?.size?.toString(),
+            sort: params?.sort?.join(','),
+            search: params?.search?.trim() || undefined,
+            effectiveSource: params?.effectiveSource,
+            recoveryMode: params?.recoveryMode,
+          },
+        },
+      ),
+    getSettings: () =>
+      appClient.Get<FeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/settings`,
+      ),
+    updateSettings: (
+      data: Pick<
+        FeeRecoverySettingsDto,
+        'recoveryMode' | 'feeAmount' | 'invoiceLineDescription'
+      >,
+    ) =>
+      appClient.Put<FeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/settings`,
+        { body: data },
+      ),
+    getCustomerOverride: (customerId: number) =>
+      appClient.Get<CustomerFeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+      ),
+    updateCustomerOverride: (
+      customerId: number,
+      data: Pick<
+        FeeRecoverySettingsDto,
+        'recoveryMode' | 'feeAmount' | 'invoiceLineDescription'
+      >,
+    ) =>
+      appClient.Put<CustomerFeeRecoverySettingsDto>(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+        { body: data },
+      ),
+    deleteCustomerOverride: (customerId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/fee-recovery/customer-overrides/${customerId}`,
+      ),
+    getCustomerEffective: (customerId: number) =>
+      appClient.Get<CustomerEffectiveFeeRecoveryDto>(
+        `/socoro/quarrylink/api/fee-recovery/customers/${customerId}/effective`,
       ),
   },
 };

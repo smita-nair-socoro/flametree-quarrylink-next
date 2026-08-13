@@ -50,7 +50,10 @@ import {
   DataTableClient,
   FacetDefinition,
 } from '@/components/ui/data-table-client';
-import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 import { getDocketColumns } from './(components)/(data-tables)/docket/columns';
 import { DocketTableActions } from './(components)/(data-tables)/docket/docket-table-actions';
 import {
@@ -283,9 +286,7 @@ export default function DocketsPage() {
     const page = getDocketsPageFromListResponse(
       docketsResponse as DocketsListResponse | DocketsPage,
     );
-    return (
-      page?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize))
-    );
+    return page?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
   }, [docketsResponse, activeDocketSource, totalElements, pageSize]);
 
   const facetOptions = React.useMemo(
@@ -399,9 +400,7 @@ export default function DocketsPage() {
 
   const handleSortingChange = React.useCallback((newSorting: SortingState) => {
     setSorting(
-      newSorting.length > 0
-        ? newSorting
-        : [{ id: 'deliveryDate', desc: true }],
+      newSorting.length > 0 ? newSorting : [{ id: 'deliveryDate', desc: true }],
     );
     setPageIndex(0);
   }, []);

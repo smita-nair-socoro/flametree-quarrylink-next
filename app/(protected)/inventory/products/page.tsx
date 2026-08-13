@@ -3,7 +3,15 @@
 import React from 'react';
 import { ProductDetails } from '@/lib/types/product';
 import { productColumns } from './(components)/(data-tables)/products/columns';
-import { Gem, PackageX, TrendingUp, Package, Tag, Box, RefreshCw } from 'lucide-react';
+import {
+  Gem,
+  PackageX,
+  TrendingUp,
+  Package,
+  Tag,
+  Box,
+  RefreshCw,
+} from 'lucide-react';
 import { FormDialog } from '@/components/form-dialog';
 import ProductForm from './(components)/forms/product-form';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
@@ -17,6 +25,7 @@ import {
   toProductApiSortParams,
   buildProductFacetOptions,
   isProductsListResponse,
+  usePullFromAccSoftware,
 } from '@/lib/api/product';
 import {
   LinkedProductsListQueryOptions,
@@ -26,9 +35,10 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { usePullFromAccSoftware } from '@/lib/api/product';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+} from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -257,8 +267,9 @@ export default function ProductsPage() {
     {
       title: 'Unavailable Products',
       value: reportingData?.unavailableProductsCount || 0,
-      description: `${reportingData?.unavailableProductsPercentOfInventory || 0
-        }% of inventory`,
+      description: `${
+        reportingData?.unavailableProductsPercentOfInventory || 0
+      }% of inventory`,
       icon: PackageX,
       iconBgColor: 'bg-[#FFE2E2]',
       iconColor: 'text-[#9F0712]',
@@ -267,8 +278,9 @@ export default function ProductsPage() {
     {
       title: 'Average Product Margin',
       value: `${reportingData?.averageProductMarginThisMonth || 0}%`,
-      description: `${reportingData?.averageProductMarginChangeVsLastMonth || 0
-        }% last month`,
+      description: `${
+        reportingData?.averageProductMarginChangeVsLastMonth || 0
+      }% last month`,
       icon: TrendingUp,
       iconBgColor: 'bg-[#D0FAE5]',
       iconColor: 'text-[#00A63E]',
@@ -277,8 +289,9 @@ export default function ProductsPage() {
     {
       title: 'Total Products',
       value: reportingData?.totalProducts || 0,
-      description: `+${reportingData?.productsAddedThisMonth || 0
-        } added this month`,
+      description: `+${
+        reportingData?.productsAddedThisMonth || 0
+      } added this month`,
       icon: Package,
       iconBgColor: 'bg-[#CEFAFE]',
       iconColor: 'text-[#0891B2]',
@@ -430,13 +443,15 @@ export default function ProductsPage() {
           </Button>
         ) : (
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <FormDialog dialogTitle="Add New Product" buttonTitle="Add Product" hideButton={readOnly}>
+            <FormDialog
+              dialogTitle="Add New Product"
+              buttonTitle="Add Product"
+              hideButton={readOnly}
+            >
               <ProductForm />
             </FormDialog>
           </div>
         )}
-
-
       </div>
       <StatsCards cards={statsCards} />
       <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">

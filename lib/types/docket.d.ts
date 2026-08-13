@@ -9,6 +9,17 @@ import { TruckDTO } from './truck';
 import { TRUCK_BUSINESS_TYPE, TRUCK_STATUS } from './truck-enums';
 import { HaulierDTO } from './haulier';
 import { INVOICE_STATUS } from './invoice-enums';
+import { RECOVERY_MODE, EFFECTIVE_SOURCE } from './fee-recovery-enums';
+
+/** Platform fee frozen onto the docket, as returned by GET /dockets/{id}. */
+export interface DocketPlatformFeeDto {
+  mode: RECOVERY_MODE;
+  configuredAmount: number;
+  customerChargeAmount: number;
+  description: string;
+  source: EFFECTIVE_SOURCE;
+  frozen: boolean;
+}
 
 export interface Docket {
   id: number;
@@ -309,6 +320,7 @@ export interface DocketDTO {
   createdAt: string;
   updatedAt: string;
   lastModifiedBy: string;
+  platformFee?: DocketPlatformFeeDto;
 }
 
 /** Response from GET /driver-app/assigned */

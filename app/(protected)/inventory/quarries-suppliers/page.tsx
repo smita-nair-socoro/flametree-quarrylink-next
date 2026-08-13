@@ -29,11 +29,13 @@ import {
   FacetDefinition,
 } from '@/components/ui/data-table-client';
 import { centsToDollars } from '@/lib/utils/currency';
+import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
 import { QuarrySupplierTableActions } from './(components)/(data-tables)/quarries/quarry-supplier-table-actions';
 
 export default function QuarriesSuppliersPage() {
+  const { currencySymbol } = useTenantCurrencyTax();
   const setSelectedQuarrySupplier = useQuarrySupplierStore(
     (state) => state.setSelectedQuarrySupplier,
   );
@@ -74,7 +76,7 @@ export default function QuarriesSuppliersPage() {
   const quarriesChange = reportingData?.quarriesMonthlyProfitValueChangeVsLastMonth ?? 0;
 
   const formatValueChange = (value: number) =>
-    `${value > 0 ? '+' : value < 0 ? '-' : ''}$${centsToDollars(Math.abs(value))} vs last month`;
+    `${value > 0 ? '+' : value < 0 ? '-' : ''}${currencySymbol}${centsToDollars(Math.abs(value))} vs last month`;
 
   const changeColor = (value: number) => {
     if (value > 0) return 'text-[#00A63E]';
@@ -86,7 +88,7 @@ export default function QuarriesSuppliersPage() {
   const statsCards: StatsCardData[] = [
     {
       title: 'Monthly Value - Suppliers',
-      value: `$${centsToDollars(
+      value: `${currencySymbol}${centsToDollars(
         reportingData?.supplierTotalMonthlyProfitValueOfQuotedProducts || 0,
       )}`,
       description: formatValueChange(suppliersChange),
@@ -98,7 +100,7 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Top Supplier',
       value: reportingData?.topSupplierOfTheMonth || 'QuarryLink-Supplier',
-      description: `$${centsToDollars(
+      description: `${currencySymbol}${centsToDollars(
         reportingData?.topSupplierQuotedProfitValueThisMonth || 0,
       )} this month`,
       icon: Building,
@@ -108,7 +110,7 @@ export default function QuarriesSuppliersPage() {
     },
     {
       title: 'Monthly Value - Quarries',
-      value: `$${centsToDollars(
+      value: `${currencySymbol}${centsToDollars(
         reportingData?.quarriesTotalMonthlyProfitValueOfQuotedProducts || 0,
       )}`,
       description: formatValueChange(quarriesChange),
@@ -120,7 +122,7 @@ export default function QuarriesSuppliersPage() {
     {
       title: 'Top Quarry',
       value: reportingData?.topQuarryOfTheMonth || 'QuarryLink-Quarry',
-      description: `$${centsToDollars(
+      description: `${currencySymbol}${centsToDollars(
         reportingData?.topQuarryQuotedProfitValueThisMonth || 0,
       )} this month`,
       icon: Factory,

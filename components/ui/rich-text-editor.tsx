@@ -30,6 +30,16 @@ import {
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+/**
+ * Tiptap serializes a blank line as a content-less `<p></p>`. Renderers
+ * outside the editor (sanitizers, the PDF converter, email clients) treat a
+ * fully-empty element as void and collapse it, silently dropping the blank
+ * line. Forcing a `<br>` inside makes the paragraph non-empty so it survives.
+ */
+function preserveEmptyParagraphs(html: string): string {
+  return html.replace(/<p([^>]*)>\s*<\/p>/g, '<p$1><br></p>');
+}
+
 interface RichTextEditorProps {
   /** HTML string. Empty string when the editor has no content. */
   value: string;
@@ -67,7 +77,7 @@ export function RichTextEditor({
     ],
     content: value,
     onUpdate: ({ editor }) => {
-      onChange(editor.isEmpty ? '' : editor.getHTML());
+      onChange(editor.isEmpty ? '' : preserveEmptyParagraphs(editor.getHTML()));
     },
     editorProps: {
       attributes: {
@@ -78,10 +88,17 @@ export function RichTextEditor({
   });
 
   // Keep the editor in sync if the form value is changed externally (e.g. reset).
+  // Compare against a normalized `value` too: legacy saved content may still
+  // contain bare `<p></p>` (pre-dating the preserveEmptyParagraphs fix above),
+  // which would otherwise never match the editor's own normalized output and
+  // force a needless setContent reset (losing cursor/undo state) on every render.
   React.useEffect(() => {
     if (!editor) return;
-    const editorHtml = editor.isEmpty ? '' : editor.getHTML();
-    if (value !== editorHtml) {
+    const normalizedValue = value ? preserveEmptyParagraphs(value) : value;
+    const editorHtml = editor.isEmpty
+      ? ''
+      : preserveEmptyParagraphs(editor.getHTML());
+    if (normalizedValue !== editorHtml) {
       editor.commands.setContent(value);
     }
   }, [editor, value]);

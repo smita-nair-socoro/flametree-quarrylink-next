@@ -3,6 +3,7 @@ import { CustomerDTO, CustomerWithAddressResponseDTO } from './customer';
 import { CustomerDeliveryAddress } from './address';
 import { QuarrySupplier } from './quarry-supplier';
 import { INVOICE_STATUS } from './invoice-enums';
+import { RECOVERY_MODE, EFFECTIVE_SOURCE } from './fee-recovery-enums';
 
 export interface JobDTO {
   id: number;
@@ -159,6 +160,13 @@ export interface JobItem {
   version: number;
 }
 
+export interface DeleteJobItemResponse {
+  deleted: boolean;
+  message: string;
+  blockingJobIds?: number[];
+  blockingDocketIds?: number[];
+}
+
 /** Paginated job items from GET /job/{id}/job-items. */
 export interface JobItemsPage {
   content: JobItem[];
@@ -172,6 +180,14 @@ export interface JobItemsPage {
   size?: number;
 }
 
+/** Fee recovery for the job's customer, as returned by GET /job/{id}/job-items. */
+export interface JobFeeRecoveryDto {
+  mode: RECOVERY_MODE;
+  feeAmount: number;
+  invoiceLineDescription: string;
+  source: EFFECTIVE_SOURCE;
+}
+
 export interface JobDetails extends JobDTO {
   jobItems?: JobItemsPage;
   totalProductCostPrice?: number;
@@ -182,6 +198,7 @@ export interface JobDetails extends JobDTO {
   lastModifiedBy?: string;
   createdAt?: string;
   updatedAt?: string;
+  feeRecovery?: JobFeeRecoveryDto;
 }
 
 export interface SettleJobResponse {

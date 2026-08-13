@@ -431,6 +431,24 @@ export const pdfStyles = StyleSheet.create({
     lineHeight: 1.4,
   },
 
+  // Digital platform fee notice
+  feeNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E4D4FF',
+    backgroundColor: '#F5F0FF',
+    marginBottom: 12,
+  },
+
+  feeNoticeText: {
+    fontSize: fontSize.sm,
+    fontWeight: 'medium',
+    color: '#8E51FF',
+  },
+
   // Grid layouts
   twoColumn: {
     flexDirection: 'row',

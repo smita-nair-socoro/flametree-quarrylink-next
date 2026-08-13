@@ -66,6 +66,9 @@ export interface QuotationData {
     total: number;
     productSubtotal?: number;
     deliverySubtotal?: number;
+    showDigitalPlatformFee?: boolean;
+    digitalPlatformFeeLabel?: string;
+    digitalPlatformFeeAmount?: number;
   };
   inclDeliveryCost?: boolean;
   currencyTax: QuoteCurrencyTax;

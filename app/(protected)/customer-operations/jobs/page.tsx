@@ -344,13 +344,17 @@ export default function CustomersPage() {
               defaultSorting={[{ id: 'jobNumber', desc: true }]}
               onRowClick={handleRowClick}
               mobileCardRenderer={renderJobCard}
-              mobileInfinite={!idsFilter ? {
-                items: mobileItems,
-                hasNextPage,
-                isFetchingNextPage,
-                isLoading: infiniteIsFetching,
-                fetchNextPage,
-              } : undefined}
+              mobileInfinite={
+                !idsFilter
+                  ? {
+                      items: mobileItems,
+                      hasNextPage,
+                      isFetchingNextPage,
+                      isLoading: infiniteIsFetching,
+                      fetchNextPage,
+                    }
+                  : undefined
+              }
               totalElements={totalElements}
               totalPages={totalPages}
               externalPageIndex={pageIndex}

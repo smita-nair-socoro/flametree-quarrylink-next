@@ -35,10 +35,12 @@ import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useTenantCurrencyTax,
+  useAccountingSoftwareProvider,
+} from '@/lib/utils/tenant-config-helper';
 import { formatCustomerStatus } from '@/lib/utils/customer-helper';
 import { CustomerTableActions } from './(components)/(data-tables)/customer/customer-table-actions';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
 
 import {
   DataTableClient,
@@ -215,8 +217,9 @@ export default function CustomersPage() {
     {
       title: 'Total Customers',
       value: reportingData?.totalCustomers || 0,
-      description: `+${reportingData?.totalCustomersChangePercentThisMonth || 0
-        } this month`,
+      description: `+${
+        reportingData?.totalCustomersChangePercentThisMonth || 0
+      } this month`,
       icon: Users,
       iconBgColor: 'bg-[#DBEAFE]',
       iconColor: 'text-[#193CB8]',
@@ -225,8 +228,9 @@ export default function CustomersPage() {
     {
       title: 'Active Customers',
       value: reportingData?.totalActiveCustomers || 0,
-      description: `${reportingData?.activeCustomersPercentOfTotal || 0
-        }% of total`,
+      description: `${
+        reportingData?.activeCustomersPercentOfTotal || 0
+      }% of total`,
       icon: UserCheck,
       iconBgColor: 'bg-[#DCFCE7]',
       iconColor: 'text-[#016630]',
@@ -235,8 +239,9 @@ export default function CustomersPage() {
     {
       title: 'Active Business Customers',
       value: reportingData?.totalActiveBusinessCustomers || 0,
-      description: `${reportingData?.businessCustomerQuotesPercent || 0
-        }% requested quotes`,
+      description: `${
+        reportingData?.businessCustomerQuotesPercent || 0
+      }% requested quotes`,
       icon: Activity,
       iconBgColor: 'bg-[#F3E8FF]',
       iconColor: 'text-[#8E51FF]',
@@ -245,8 +250,9 @@ export default function CustomersPage() {
     {
       title: 'Active Individual Customers',
       value: reportingData?.totalActiveIndividualCustomers || 0,
-      description: `${reportingData?.individualCustomerQuotesPercent || 0
-        }% requested quotes`,
+      description: `${
+        reportingData?.individualCustomerQuotesPercent || 0
+      }% requested quotes`,
       icon: Building2,
       iconBgColor: 'bg-[#FCE7F3]',
       iconColor: 'text-[#DB2777]',
@@ -280,7 +286,6 @@ export default function CustomersPage() {
       let contactName: string;
       let customerEmail: string;
       if (customer.customerType === CUSTOMER_TYPE.BUSINESS) {
-
         displayName = customer.businessName ?? '';
         customerEmail = customer.businessEmail ?? '';
         const first = customer.contactPersonFirstName ?? '';
@@ -413,9 +418,7 @@ export default function CustomersPage() {
         {readOnly ? (
           <Button
             onClick={handleSyncCustomerFromAcumatica}
-            disabled={
-              syncCustomerFromAcumatica.isPending || isSyncDisabled
-            }
+            disabled={syncCustomerFromAcumatica.isPending || isSyncDisabled}
           >
             <div className="flex items-center gap-2">
               <RefreshCw

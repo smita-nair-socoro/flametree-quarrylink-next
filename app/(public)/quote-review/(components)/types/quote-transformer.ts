@@ -18,6 +18,7 @@ import {
 } from '@/lib/utils/number';
 import { formatDateWithOrdinal, formatTimeRange } from '@/lib/utils/date';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
 import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_LABEL,
@@ -128,6 +129,7 @@ export function transformQuoteData(
     tenantLogoDto,
     tenantProfile,
     content,
+    feeRecoveryPreview,
   } = apiResponse;
   const currencyTax = buildQuoteCurrencyTax(tenantProfile);
   const { notes, terms, documents } = mapQuoteContent(content);
@@ -207,6 +209,12 @@ export function transformQuoteData(
   const gst = Math.round(subtotal * (currencyTax.taxPercentage / 100));
   // Total is subtotal + tax
   const total = subtotal + gst;
+
+  const showDigitalPlatformFee =
+    feeRecoveryPreview?.mode === RECOVERY_MODE.RECOVER;
+  const digitalPlatformFeeLabel =
+    feeRecoveryPreview?.invoiceLineDescription || 'digital platform fee';
+  const digitalPlatformFeeAmount = feeRecoveryPreview?.feeAmount || 0;
 
   const customerBillingAddress = formatAustralianAddress(
     customerWithAddressResponseDto?.billingAddress?.formattedAddress,
@@ -297,6 +305,9 @@ export function transformQuoteData(
       total,
       productSubtotal,
       deliverySubtotal,
+      showDigitalPlatformFee,
+      digitalPlatformFeeLabel,
+      digitalPlatformFeeAmount,
     },
     proceedActions: {
       validUntil: formatDateWithOrdinal(expiryDate),

@@ -41,14 +41,6 @@ import {
   useState,
 } from 'react';
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
-import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -62,6 +54,7 @@ import {
   X,
   Check,
 } from 'lucide-react';
+import { TablePaginationFooter } from './table-pagination-footer';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -72,7 +65,6 @@ import { DataTableFacetedFilter } from '../table-faceted-filter';
 import { useFacets } from '@/hooks/useFacets';
 import { InputIcon } from './input-icon';
 import { Input } from './input';
-import { Separator } from './separator';
 import { cn, getSessionStorage, setSessionStorage } from '@/lib/utils';
 import {
   usePinnedRecordsStore,
@@ -1589,101 +1581,25 @@ export function DataTableClient<TData, TValue>({
 
           {/* Pagination Controls */}
           {enablePagination && (
-            <div className="overflow-x-auto">
-              <div className="min-w-full py-2">
-                <div className="flex flex-col items-center justify-between sm:flex-row sm:space-x-6">
-                  <div className="mb-4 flex h-5 items-center space-x-2 sm:mb-0">
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Total Records:{' '}
-                      <span className="text-accent-foreground ml-2">
-                        {formatNumberThousandSeparatorWithoutDecimal(
-                          totalElements ??
-                          table.getFilteredRowModel().rows.length,
-                        )}
-                      </span>
-                    </p>
-
-                    <Separator
-                      orientation="vertical"
-                      className="text-accent-foreground"
-                    />
-
-                    <p className="whitespace-nowrap text-sm font-medium text-muted-foreground">
-                      Rows per page
-                    </p>
-                    <Select
-                      value={paginationSize}
-                      onValueChange={handlePaginationSizeChange}
-                    >
-                      <SelectTrigger className="h-8 w-20">
-                        <SelectValue placeholder={pageSizeTriggerContent} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {paginationSizeSelect.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Page nav */}
-                  {table.getPageCount() > 1 && (
-                    <div className="flex items-center space-x-4">
-                      <div className="flex min-w-25 items-center justify-center whitespace-nowrap text-sm font-medium">
-                        Page {effectivePagination.pageIndex + 1} of{' '}
-                        {table.getPageCount()}
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          className="hidden h-8 w-8 p-0 lg:flex"
-                          onClick={() => table.setPageIndex(0)}
-                          disabled={!table.getCanPreviousPage()}
-                        >
-                          <span className="sr-only">First page</span>
-                          <ChevronsLeft size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => table.previousPage()}
-                          disabled={!table.getCanPreviousPage()}
-                        >
-                          <span className="sr-only">Previous page</span>
-                          <ChevronLeft size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => table.nextPage()}
-                          disabled={!table.getCanNextPage()}
-                        >
-                          <span className="sr-only">Next page</span>
-                          <ChevronRight size={15} />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          className="hidden h-8 w-8 p-0 lg:flex"
-                          onClick={() =>
-                            table.setPageIndex(table.getPageCount() - 1)
-                          }
-                          disabled={!table.getCanNextPage()}
-                        >
-                          <span className="sr-only">Last page</span>
-                          <ChevronsRight size={15} />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <TablePaginationFooter
+              totalElements={
+                totalElements ?? table.getFilteredRowModel().rows.length
+              }
+              pageIndex={effectivePagination.pageIndex}
+              pageCount={table.getPageCount()}
+              pageSize={paginationSize}
+              pageSizeOptions={paginationSizeSelect}
+              pageSizeTriggerContent={pageSizeTriggerContent}
+              onPageSizeChange={handlePaginationSizeChange}
+              onFirstPage={() => table.setPageIndex(0)}
+              onPreviousPage={() => table.previousPage()}
+              onNextPage={() => table.nextPage()}
+              onLastPage={() => table.setPageIndex(table.getPageCount() - 1)}
+              canPreviousPage={table.getCanPreviousPage()}
+              canNextPage={table.getCanNextPage()}
+              hideEdgeButtonsOnMobile
+              showPageNav={table.getPageCount() > 1}
+            />
           )}
         </>
       )}

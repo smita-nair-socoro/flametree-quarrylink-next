@@ -148,6 +148,12 @@ input:-webkit-autofill:active {
     min-width: 44px;
   }
 
+  /* Fee-recovery override switches need to stay compact next to their labels */
+  .fee-recovery-overrides button[data-slot="switch"] {
+    min-height: unset;
+    min-width: unset;
+  }
+
   /* Enhanced touch area for radio/checkboxes */
   input[type="radio"],
   input[type="checkbox"] {

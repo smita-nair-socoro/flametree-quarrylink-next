@@ -40,7 +40,8 @@ import { formatLocalDate } from '@/lib/utils/date';
 export default function QuotationsPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { currencyCode, taxLabel, formatCentsToCurrency } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, formatCentsToCurrency } =
+    useTenantCurrencyTax();
   // Use React Query to fetch quotations data
   const {
     data: quotationsData,
@@ -141,7 +142,9 @@ export default function QuotationsPage() {
     },
     {
       title: 'Total Quote Value',
-      value: formatCentsToCurrency(reportingData?.totalValueOfQuotesRaisedThisMonth || 0),
+      value: formatCentsToCurrency(
+        reportingData?.totalValueOfQuotesRaisedThisMonth || 0,
+      ),
       description: formatValueChange(quotesValueChange),
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
@@ -216,7 +219,9 @@ export default function QuotationsPage() {
   // Mobile card renderer
   const renderQuotationCard = React.useCallback(
     (quotation: Quotation) => {
-      const formattedTotal = formatCentsToCurrency(quotation.totalSellPrice ?? 0);
+      const formattedTotal = formatCentsToCurrency(
+        quotation.totalSellPrice ?? 0,
+      );
       const expiryDate = quotation.expiryDate || '-';
       const formattedExpiryDate =
         expiryDate === '-' ? '-' : formatLocalDate(expiryDate);

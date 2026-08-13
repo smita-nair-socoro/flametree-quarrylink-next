@@ -27,6 +27,9 @@ import {
   normalizeDeliveryTimeWindowEnd,
   normalizeDeliveryTimeWindowStart,
 } from '@/lib/utils/time';
+import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
+
+const DEFAULT_DIGITAL_PLATFORM_FEE_LABEL = 'Digital Platform Fee';
 
 export const EMPTY_DOCKET_FORM_VALUES = {
   jobId: 0,
@@ -643,13 +646,31 @@ export function useDocketFormState({
       centsToDollarsNum(details.truckSell) * calculatedTruckQty,
     );
 
+    // Editing a docket: the fee was frozen at creation time on the docket
+    // itself. Creating one: the fee comes from the job's (customer's)
+    // current fee-recovery settings.
+    const platformFee = selectedDocket?.platformFee;
+    const feeRecovery = selectedJobDetails?.feeRecovery;
+    const showDigitalPlatformFee = isEditing
+      ? platformFee?.mode === RECOVERY_MODE.RECOVER
+      : feeRecovery?.mode === RECOVERY_MODE.RECOVER;
+    const digitalPlatformFee = showDigitalPlatformFee
+      ? (isEditing ? platformFee?.customerChargeAmount : feeRecovery?.feeAmount) || 0
+      : 0;
+    const digitalPlatformFeeLabel =
+      (isEditing ? platformFee?.description : feeRecovery?.invoiceLineDescription) ||
+      DEFAULT_DIGITAL_PLATFORM_FEE_LABEL;
+
     const subtotal = roundToTwoDecimals(productSell + truckSell);
     const gst = roundToTwoDecimals(subtotal * (taxPercentage / 100));
-    const total = roundToTwoDecimals(subtotal + gst);
+    const total = roundToTwoDecimals(subtotal + gst + digitalPlatformFee);
 
     return {
       productSell,
       truckSell,
+      digitalPlatformFee,
+      digitalPlatformFeeLabel,
+      showDigitalPlatformFee,
       subtotal,
       gst,
       total,
@@ -662,7 +683,9 @@ export function useDocketFormState({
     jobLineItemId,
     isEditing,
     selectedDocket?.docketStatus,
+    selectedDocket?.platformFee,
     taxPercentage,
+    selectedJobDetails?.feeRecovery,
   ]);
 
   const mapMarkers = React.useMemo<MapMarker[]>(
