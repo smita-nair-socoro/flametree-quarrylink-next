@@ -299,7 +299,7 @@ export function transformQuoteData(
       totalProducts: quoteItems?.length || 0,
       estimatedDelivery: deliveryStartDate
         ? formatDateWithOrdinal(deliveryStartDate)
-        : '--',
+        : '',
       subtotal,
       gst,
       total,
