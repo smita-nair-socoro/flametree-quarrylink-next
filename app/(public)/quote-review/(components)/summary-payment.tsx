@@ -61,10 +61,12 @@ export function SummaryPayment({
               items
             </p>
 
-            <p className="text-[#0A0A0A] text-sm">
-              <span className="font-bold">Estimated Date:</span>{' '}
-              {estimatedDelivery}
-            </p>
+            {estimatedDelivery && (
+              <p className="text-[#0A0A0A] text-sm">
+                <span className="font-bold">Estimated Date:</span>{' '}
+                {estimatedDelivery}
+              </p>
+            )}
           </div>
         </div>
 

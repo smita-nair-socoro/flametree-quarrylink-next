@@ -59,10 +59,12 @@ export const SummaryPaymentPdf: React.FC<SummaryPaymentPdfProps> = ({
               <Text style={styles.summaryLabel}>Total Products:</Text>{' '}
               {totalProducts} items
             </Text>
-            <Text style={styles.summaryText}>
-              <Text style={styles.summaryLabel}>Estimated Date:</Text>{' '}
-              {estimatedDelivery}
-            </Text>
+            {estimatedDelivery && (
+              <Text style={styles.summaryText}>
+                <Text style={styles.summaryLabel}>Estimated Date:</Text>{' '}
+                {estimatedDelivery}
+              </Text>
+            )}
           </View>
         </View>
 
