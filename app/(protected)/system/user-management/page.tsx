@@ -22,13 +22,11 @@ import BrandingTab from './(components)/tabs/branding-tab';
 import IntegrationTab from './(components)/tabs/integration-tab';
 import FeeRecoveryTab from './(components)/tabs/fee-recovery-tab';
 import QuoteSettingsTab from './(components)/tabs/quote-settings-tab';
-import { useIsSuperAdmin, useUserStore } from '@/app/stores/user-store';
+import { useIsAdmin, useIsSuperAdmin } from '@/app/stores/user-store';
 
 export default function UserRolesPage() {
   const isSuperAdmin = useIsSuperAdmin();
-  const userGroups = useUserStore((s) => s.userGroups);
-  const isAdmin =
-    !isSuperAdmin && userGroups.some((g) => g.toLowerCase().includes('admin'));
+  const isAdmin = useIsAdmin();
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get('tab') ?? undefined;
 
