@@ -94,8 +94,8 @@ export async function proxyRequest(
   };
 
   if (req.method !== "GET" && req.method !== "HEAD") {
-    const body = await req.text();
-    if (body) {
+    const body = await req.arrayBuffer();
+    if (body.byteLength > 0) {
       init.body = body;
     }
   }
