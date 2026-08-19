@@ -77,3 +77,6 @@ docs/*
 CLAUDE.md
 .claude/*
 public/config.json
+test-results/
+playwright-report/
+
