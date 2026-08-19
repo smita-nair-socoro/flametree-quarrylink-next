@@ -31,7 +31,7 @@ async function createBearerToken(
 
   return new SignJWT({
     sub: claims.sub as string,
-    username: claims.email as string | undefined,
+    username: claims.sub as string | undefined,
     email: claims.email as string | undefined,
     name: typeof claims.name === "string" ? claims.name : undefined,
     role: (claims.role as string | undefined)?.toLowerCase(),
