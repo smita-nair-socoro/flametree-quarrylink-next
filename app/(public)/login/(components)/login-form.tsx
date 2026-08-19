@@ -21,7 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { signIn } from 'aws-amplify/auth';
+import { signIn as nextAuthSignIn } from 'next-auth/react';
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { notifySuccess, notifyError } from '@/lib/toast';
@@ -78,12 +78,19 @@ export function LoginForm({
     setIsLoading(true);
 
     try {
-      const { isSignedIn, nextStep } = await signIn({
-        username: values.email,
+      const result = await nextAuthSignIn('credentials', {
+        email: values.email,
         password: values.password,
+        redirect: false,
       });
 
-      if (isSignedIn) {
+      if (result?.error) {
+        // NextAuth credentials provider returns error string on failure
+        form.setError('email', {
+          type: 'manual',
+          message: 'Invalid email or password. Please check your credentials.',
+        });
+      } else {
         // Refresh the auth context to update the user state
         await refreshUser();
 
@@ -93,93 +100,10 @@ export function LoginForm({
 
         // Redirect to the intended destination
         router.push(getSafeRedirectUrl(searchParams));
-      } else {
-        // Handle additional steps like MFA or NEW_PASSWORD_REQUIRED
-        console.log('Additional authentication step required:', nextStep);
-
-        if (
-          nextStep.signInStep === 'CONFIRM_SIGN_IN_WITH_NEW_PASSWORD_REQUIRED'
-        ) {
-          setTempPassword(values.password);
-          setShowNewPasswordModal(true);
-        } else {
-          notifyError('Additional authentication step required');
-        }
       }
     } catch (error: unknown) {
       console.error('Sign in error:', error);
-
-      const errorObj = error as { name?: string; message?: string };
-
-      // Handle specific Cognito errors
-      if (errorObj.name === 'NotAuthorizedException') {
-        const errorMessage = errorObj.message || '';
-
-        // Check for specific new user scenarios
-        if (
-          errorMessage.includes('Password attempts exceeded') ||
-          errorMessage.includes('User account has expired')
-        ) {
-          // These are account-specific issues, show new user modal
-          setShowNewUserInfoModal(true);
-        } else if (errorMessage.includes('User is disabled')) {
-          // Account is disabled - show specific error
-          form.setError('email', {
-            type: 'manual',
-            message:
-              'Your account has been disabled. Please contact your administrator for assistance.',
-          });
-        } else if (errorMessage.includes('Incorrect username or password')) {
-          // AWS Cognito returns this for both wrong password AND non-existent email
-          // We can't distinguish between them for security reasons, so show a generic message
-          // that covers both scenarios
-          form.setError('email', {
-            type: 'manual',
-            message:
-              'Invalid email or password. Please check your credentials.',
-          });
-
-          // Track attempts for potential password issues
-          const newAttempts = wrongPasswordAttempts + 1;
-          setWrongPasswordAttempts(newAttempts);
-
-          // After multiple attempts, suggest forgot password which will help determine if email exists
-          if (newAttempts >= 2) {
-            form.setError('email', {
-              type: 'manual',
-              message:
-                'Invalid email or password. Try "Forgot password?" if you need help.',
-            });
-          }
-        } else {
-          // Other authorization errors
-          notifyError('Authentication failed. Please try again.');
-        }
-      } else if (errorObj.name === 'UserNotConfirmedException') {
-        notifyError('Please verify your email address');
-      } else if (errorObj.name === 'UserNotFoundException') {
-        // User doesn't exist - could be typo in email or they need to be invited
-        form.setError('email', {
-          type: 'manual',
-          message: 'No account found with this email address.',
-        });
-      } else if (errorObj.name === 'InvalidParameterException') {
-        // This often happens with new users who haven't set their permanent password
-        const errorMessage = errorObj.message || '';
-        if (
-          errorMessage.includes('password') ||
-          errorMessage.includes('temporary')
-        ) {
-          setShowNewUserInfoModal(true);
-        } else {
-          notifyError('Invalid input. Please check your details.');
-        }
-      } else if (errorObj.name === 'PasswordResetRequiredException') {
-        // User needs to reset their password
-        setShowNewUserInfoModal(true);
-      } else {
-        notifyError('Sign in failed. Please try again.');
-      }
+      notifyError('Sign in failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

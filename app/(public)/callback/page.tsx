@@ -2,57 +2,29 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser } from 'aws-amplify/auth';
-import { useAuth } from '@/hooks/use-auth';
+import { useSession } from 'next-auth/react';
 import { getSafeRedirectUrl } from '@/lib/utils/redirect-helpers';
 
 export default function CallbackPage() {
   const router = useRouter();
-  const { refreshUser } = useAuth();
+  const { data: session, status } = useSession();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      try {
-        // Check if there's an error in the URL params (OAuth failure)
-        const urlParams = new URLSearchParams(window.location.search);
-        const error = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+    if (status === 'loading') return;
 
-        if (error) {
-          console.error('OAuth error:', error, errorDescription);
-          setError(errorDescription || 'Authentication failed');
-          setTimeout(() => router.replace('/login'), 3000);
-          return;
-        }
-
-        // Check if user is authenticated after OAuth flow
-        const user = await getCurrentUser();
-        if (user) {
-          // Refresh the auth context
-          await refreshUser();
-
-          // Get redirect URL from sessionStorage (set before OAuth redirect) or use dynamic default
-          const redirectUrl =
-            sessionStorage.getItem('oauth_redirect_url') ||
-            getSafeRedirectUrl();
-          sessionStorage.removeItem('oauth_redirect_url'); // Clean up
-
-          // Redirect to intended destination
-          router.replace(redirectUrl);
-        } else {
-          // No user found, redirect to login
-          router.replace('/login');
-        }
-      } catch (error) {
-        console.error('Callback processing error:', error);
-        // If there's an error getting the user, redirect to login
-        router.replace('/login');
-      }
-    };
-
-    handleOAuthCallback();
-  }, [router, refreshUser]);
+    if (session?.user) {
+      // Get redirect URL from sessionStorage (set before redirect) or use default
+      const redirectUrl =
+        sessionStorage.getItem('oauth_redirect_url') ||
+        getSafeRedirectUrl();
+      sessionStorage.removeItem('oauth_redirect_url');
+      router.replace(redirectUrl);
+    } else {
+      // No session, redirect to login
+      router.replace('/login');
+    }
+  }, [session, status, router]);
 
   if (error) {
     return (

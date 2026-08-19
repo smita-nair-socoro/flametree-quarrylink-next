@@ -1,0 +1,22 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env*
+.env.local
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+dist
+out
+coverage
+.test-results
+playwright-report
+playwright/.cache
+# Exclude lock files so Docker uses npm install (resolves platform-specific deps correctly)
+package-lock.json
+bun.lock
+yarn.lock

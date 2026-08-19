@@ -298,19 +298,25 @@ export async function HttpClient<T = unknown>(
 
   // Public endpoints (e.g. token-based quote links) must work for unauthenticated visitors, so skip the token requirement entirely.
   if (!config.skipAuth) {
-    const authUser = await getUser(); // ✅ Properly awaited
+    // With the NextAuth proxy approach, the browser sends cookies automatically.
+    // The proxy route (app/socoro/quarrylink/api/[...path] or
+    // app/quarrylink/tenant-fusion/api/[...path]) extracts the NextAuth session,
+    // creates a signed JWT, and forwards the request to the upstream service
+    // with the Authorization and X-Tenant-ID headers.
+    //
+    // We still call getUser()/getTenantId() for backward compatibility, but
+    // they are no-ops — the proxy handles auth server-side.
+    await getUser();
     const tenantId = await getTenantId();
 
-    if (authUser?.access_token) {
-      init.headers = {
-        ...init.headers,
-        Authorization: `Bearer ${authUser.access_token}`,
-        // X-Tenant-ID is non-simple and triggers a CORS preflight; omit it for tenant-fusion whose CORS policy rejects it.
-        ...(config.omitTenantHeaders ? {} : { 'X-Tenant-ID': tenantId || '' }),
-      };
-    } else {
-      return Promise.reject(new Error('Token expired or invalid.'));
-    }
+    // Set a placeholder Authorization header so the APIClient's internal
+    // checks pass. The proxy will replace this with the real JWT.
+    init.headers = {
+      ...init.headers,
+      Authorization: 'Bearer proxy-managed',
+      // X-Tenant-ID is non-simple and triggers a CORS preflight; omit it for tenant-fusion whose CORS policy rejects it.
+      ...(config.omitTenantHeaders ? {} : { 'X-Tenant-ID': tenantId || '' }),
+    };
   }
 
   if (config.body) {

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { confirmResetPassword } from 'aws-amplify/auth';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   Dialog,
@@ -85,37 +84,13 @@ export function ResetPasswordConfirmationModal({
     setIsLoading(true);
 
     try {
-      await confirmResetPassword({
-        username: email,
-        confirmationCode: values.confirmationCode,
-        newPassword: values.newPassword,
-      });
-
-      notifySuccess(
-        'Password reset successfully! You can now sign in with your new password.'
-      );
+      // Password reset is handled by an administrator in the NextAuth setup.
+      notifyError('Please contact your administrator to reset your password.');
       onSuccess();
       handleClose();
     } catch (error: unknown) {
       console.error('Password confirmation error:', error);
-
-      const errorObj = error as { name?: string };
-
-      if (errorObj.name === 'CodeMismatchException') {
-        notifyError('Invalid confirmation code. Please try again.');
-        form.setError('confirmationCode', {
-          type: 'manual',
-          message: 'Invalid confirmation code',
-        });
-      } else if (errorObj.name === 'ExpiredCodeException') {
-        notifyError(
-          'Confirmation code has expired. Please request a new password reset.'
-        );
-      } else if (errorObj.name === 'LimitExceededException') {
-        notifyError('Too many attempts. Please try again later.');
-      } else {
-        notifyError('Failed to reset password. Please try again.');
-      }
+      notifyError('Failed to reset password. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -2,52 +2,45 @@ import { clsx, type ClassValue } from 'clsx';
 import { compareAsc } from 'date-fns';
 import { parseBackendDateTime } from './date';
 import { twMerge } from 'tailwind-merge';
-import { getCurrentUser, fetchAuthSession } from 'aws-amplify/auth';
-import { getRuntimeConfig } from '@/app/stores/runtimeConfigStore';
-import { jwtDecode } from 'jwt-decode';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Returns empty string so that all API requests go to the same origin.
+ * The Next.js proxy routes (app/socoro/quarrylink/api/[...path],
+ * app/quarrylink/tenant-fusion/api/[...path]) forward requests to the
+ * orchestrator / tenant-fusion service with the proper JWT and tenant headers.
+ */
 export function baseUrl(): string {
-  return getRuntimeConfig().API_URL || '';
+  return '';
 }
 
+/**
+ * Returns a dummy user object. The actual JWT is created server-side by the
+ * proxy route from the NextAuth session cookie. This function exists only for
+ * backward compatibility with the APIClient's HttpClient which checks for
+ * `access_token` before making requests.
+ */
 export async function getUser() {
-  try {
-    const [user, session] = await Promise.all([
-      getCurrentUser(),
-      fetchAuthSession(),
-    ]);
-
-    // Return user info with tokens from session
-    return {
-      ...user,
-      access_token: session.tokens?.accessToken?.toString(),
-      id_token: session.tokens?.idToken?.toString(),
-    };
-  } catch (error) {
-    console.error('Failed to get user or session:', error);
-    return null;
-  }
+  return {
+    access_token: 'proxy-managed',
+    id_token: 'proxy-managed',
+  };
 }
 
+/**
+ * Returns the tenant ID from localStorage (set by the useAuth hook after
+ * the NextAuth session is loaded). The proxy route also looks up the tenant
+ * ID from the database, so this is a fallback for display purposes only.
+ */
 export async function getTenantId() {
+  if (typeof window === 'undefined') return '';
   try {
-    const session = await fetchAuthSession();
-    const idToken = session.tokens?.idToken?.toString();
-    if (!idToken) return '';
-
-    type CognitoIdTokenClaims = Record<string, unknown> & {
-      'custom:tenant_id': string;
-    };
-
-    const decoded = jwtDecode<CognitoIdTokenClaims>(idToken);
-    return decoded['custom:tenant_id'] ?? '';
-  } catch (error) {
-    console.error('Failed to get user:', error);
-    return null;
+    return localStorage.getItem('tenantId') || '';
+  } catch {
+    return '';
   }
 }
 

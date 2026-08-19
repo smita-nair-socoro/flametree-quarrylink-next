@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { resetPassword } from 'aws-amplify/auth';
 import { notifySuccess, notifyError } from '@/lib/toast';
 import {
   Dialog,
@@ -58,26 +57,14 @@ export function ForgotPasswordModal({
     setIsLoading(true);
 
     try {
-      await resetPassword({ username: values.email });
-      setIsEmailSent(true);
-      notifySuccess('Password reset email sent successfully!');
-      // Transition to confirmation modal after a longer delay to let users read the message
-      setTimeout(() => {
-        onCodeSent(values.email);
-        handleClose();
-      }, 4000);
+      // Password reset is handled by an administrator in the NextAuth setup.
+      // This is a placeholder — in a production system you would call a
+      // custom API endpoint to trigger a password reset email.
+      notifyError('Please contact your administrator to reset your password.');
+      handleClose();
     } catch (error: unknown) {
       console.error('Reset password error:', error);
-
-      const errorObj = error as { name?: string };
-
-      if (errorObj.name === 'UserNotFoundException') {
-        notifyError('No account found with this email address');
-      } else if (errorObj.name === 'LimitExceededException') {
-        notifyError('Too many requests. Please try again later.');
-      } else {
-        notifyError('Failed to send reset email. Please try again.');
-      }
+      notifyError('Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);
     }

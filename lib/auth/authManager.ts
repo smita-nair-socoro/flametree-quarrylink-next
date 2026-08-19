@@ -1,14 +1,16 @@
 'use client';
 
-import { signOut } from 'aws-amplify/auth';
+import { signOut as nextAuthSignOut } from 'next-auth/react';
 
 export const SCOPE = 'email openid phone profile';
 
 export async function handleLogout() {
   try {
-    await signOut();
+    await nextAuthSignOut({ redirect: false });
     // Redirect to login page after successful logout
     if (typeof window !== 'undefined') {
+      sessionStorage.clear();
+      localStorage.removeItem('tenantId');
       window.location.href = '/login';
     }
   } catch (error) {

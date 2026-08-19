@@ -4,32 +4,20 @@ const nextConfig: NextConfig = {
   /* config options here */
 
   /**
-   * Static Site Export Configuration
-   * Enables static HTML export for deployment to S3 + CloudFront
-   * - Generates static HTML files during `next build`
-   * - No server-side rendering or API routes
-   * - All dynamic data must be fetched client-side
-   * - Dynamic routes ([param]) require generateStaticParams or won't work
+   * Standalone output for Docker deployment
+   * Produces a minimal self-contained .next/standalone directory
    */
-  output: 'export',
+  output: 'standalone',
 
   /**
-   * Disable Image Optimization for static export
-   * The default Next.js Image Optimization API requires a server
-   * For static export, images are served as-is without optimization
+   * Disable Image Optimization for deployment on Render
    */
   images: {
     unoptimized: true,
   },
 
-  // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
+  // Optional: Change links `/me` -> `/me/` and emit `/me/index.html` -> `/me/index.html`
   trailingSlash: true,
-
-  // Optional: Prevent automatic `/me` -> `/me/`, instead preserve `href`
-  // skipTrailingSlashRedirect: true,
-
-  // Optional: Change the output directory `out` -> `dist`
-  // distDir: 'dist',
 };
 
 export default nextConfig;
