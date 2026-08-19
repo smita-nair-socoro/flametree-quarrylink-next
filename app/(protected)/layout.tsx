@@ -28,7 +28,7 @@ export default function ProtectedLayout({
   const pathname = usePathname();
 
   const userId = auth.user?.userId || '';
-  const { data: currentUser, isPending: isUserDetailPending } = useQuery(
+  const { data: currentUser, isPending: isUserDetailPending, isError: isUserDetailError } = useQuery(
     UserDetailQueryOptions(userId),
   );
 
@@ -100,7 +100,7 @@ export default function ProtectedLayout({
     return null;
   }
 
-  if (userId && isUserDetailPending && !currentUser) {
+  if (userId && isUserDetailPending && !currentUser && !isUserDetailError) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="flex flex-col items-center space-y-4">

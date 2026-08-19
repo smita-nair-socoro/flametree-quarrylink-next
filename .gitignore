@@ -80,3 +80,4 @@ public/config.json
 test-results/
 playwright-report/
 
+*.js

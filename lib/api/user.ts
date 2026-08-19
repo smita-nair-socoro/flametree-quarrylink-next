@@ -63,6 +63,14 @@ export const UserDetailQueryOptions = (userId: string) =>
     queryFn: () => APIClient.users.getById(userId),
     staleTime: 5_000,
     enabled: !!userId,
+    retry: (failureCount, error) => {
+      // Don't retry 404s — the user doesn't exist in the orchestrator DB
+      if (error && typeof error === 'object' && 'response' in error) {
+        const response = (error as { response?: { status?: number } }).response;
+        if (response?.status === 404) return false;
+      }
+      return failureCount < 3;
+    },
   });
 
 /**
