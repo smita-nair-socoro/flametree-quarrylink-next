@@ -79,9 +79,10 @@ export async function proxyRequest(
     );
   }
 
+  const incomingContentType = req.headers.get("content-type") || "";
   const headers: Record<string, string> = {
     Accept: "*/*",
-    "Content-Type": "application/json",
+    "Content-Type": incomingContentType || "application/json",
     "x-requested-with": "XMLHttpRequest",
     "X-Tenant-ID": tenantId,
     Authorization: `Bearer ${bearerToken}`,
