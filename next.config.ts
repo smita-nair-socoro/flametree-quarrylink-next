@@ -15,9 +15,6 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
-
-  // Optional: Change links `/me` -> `/me/` and emit `/me/index.html` -> `/me/index.html`
-  trailingSlash: true,
 };
 
 export default nextConfig;
