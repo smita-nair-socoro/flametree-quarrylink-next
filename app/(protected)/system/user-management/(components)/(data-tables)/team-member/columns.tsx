@@ -65,12 +65,12 @@ export const createTeamMemberColumns = (
   },
   {
     id: 'role',
-    accessorFn: (row) => getRoleLabel(row.groups),
+    accessorFn: (row) => getRoleLabel({ role: row.role, groups: row.groups }),
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Role" />;
     },
     cell: ({ row }) => {
-      const formattedRole = getRoleLabel(row.original.groups);
+      const formattedRole = getRoleLabel({ role: row.original.role, groups: row.original.groups });
       return (
         <Tooltip delayDuration={300}>
           <TooltipTrigger asChild>

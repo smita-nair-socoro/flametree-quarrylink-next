@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { User } from '@/lib/types/user';
+import { isUserSuperAdmin, resolveBackendRole } from '@/lib/utils/user-helper';
 
 interface UserStore {
   user: User | null;
@@ -52,22 +53,14 @@ export const useUserStore = create<UserStore>()(
         return state.userName;
       },
       isSuperAdmin: () => {
-        const { userGroups } = get();
-        return userGroups.some(
-          (g) =>
-            g.toLowerCase() === 'super_admin' ||
-            g.toLowerCase() === 'superadmin',
-        );
+        const { user, userGroups } = get();
+        return isUserSuperAdmin({ role: user?.role, groups: userGroups });
       },
 
       isAdmin: () => {
-        const { userGroups } = get();
-        return userGroups.some(
-          (g) =>
-            g.toLowerCase() === 'admin' ||
-            g.toLowerCase() === 'super_admin' ||
-            g.toLowerCase() === 'superadmin',
-        );
+        const { user, userGroups } = get();
+        const backend = resolveBackendRole(user?.role, userGroups);
+        return backend === 'ADMIN' || backend === 'SUPER_ADMIN';
       },
     }),
     { name: 'user-store' },
@@ -83,13 +76,11 @@ export const useUserLoading = () => useUserStore((state) => state.isLoading);
 
 export const useIsSuperAdmin = () =>
   useUserStore((state) =>
-    state.userGroups.some(
-      (g) =>
-        g.toLowerCase() === 'super_admin' || g.toLowerCase() === 'superadmin',
-    ),
+    isUserSuperAdmin({ role: state.user?.role, groups: state.userGroups }),
   );
 
 export const useIsAdmin = () =>
-  useUserStore((state) =>
-    state.userGroups.some((g) => g.toLowerCase() === 'admin'),
-  );
+  useUserStore((state) => {
+    const backend = resolveBackendRole(state.user?.role, state.userGroups);
+    return backend === 'ADMIN' || backend === 'SUPER_ADMIN';
+  });

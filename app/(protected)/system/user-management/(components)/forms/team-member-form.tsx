@@ -92,7 +92,7 @@ export function EditTeamMemberForm({
   const fullName = initialData?.name?.trim() || 'Unnamed User';
 
   const defaultValues = React.useMemo<EditTeamMemberFormValues>(() => {
-    const role = getRoleValueFromGroups(initialData?.groups);
+    const role = getRoleValueFromGroups({ role: initialData?.role, groups: initialData?.groups });
 
     return {
       full_name: fullName,
@@ -122,7 +122,7 @@ export function EditTeamMemberForm({
     form.reset(defaultValues);
   }, [form, defaultValues]);
 
-  const isTargetSuperAdmin = isUserSuperAdmin(initialData?.groups);
+  const isTargetSuperAdmin = isUserSuperAdmin({ role: initialData?.role, groups: initialData?.groups });
 
   // Only block role change when a non-super-admin is editing a super admin
   const disableRoleChange = !isSuperAdmin && isTargetSuperAdmin;

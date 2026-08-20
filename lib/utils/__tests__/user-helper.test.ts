@@ -47,6 +47,14 @@ describe('isUserSuperAdmin', () => {
     expect(isUserSuperAdmin([])).toBe(false);
     expect(isUserSuperAdmin(['user'])).toBe(false);
   });
+
+  test('returns true when role is SUPER_ADMIN even if groups do not include super_admin', () => {
+    expect(isUserSuperAdmin({ role: 'SUPER_ADMIN', groups: ['admin'] })).toBe(true);
+  });
+
+  test('returns false when role is ADMIN and groups do not include super_admin', () => {
+    expect(isUserSuperAdmin({ role: 'ADMIN', groups: ['admin'] })).toBe(false);
+  });
 });
 
 describe('getRoleLabel', () => {
@@ -82,9 +90,9 @@ describe('getRoleValueFromGroups', () => {
     expect(getRoleValueFromGroups(['driver'])).toBe('USER');
   });
 
-  test('returns empty string for empty/missing groups', () => {
-    expect(getRoleValueFromGroups(undefined)).toBe('');
-    expect(getRoleValueFromGroups([])).toBe('');
+  test('returns USER for empty/missing groups', () => {
+    expect(getRoleValueFromGroups(undefined)).toBe('USER');
+    expect(getRoleValueFromGroups([])).toBe('USER');
   });
 });
 
@@ -93,8 +101,8 @@ describe('getHighestRole', () => {
     expect(getHighestRole(['super_admin'])).toBe(Role.SUPERADMIN);
   });
 
-  test('maps admin groups to USER role for now', () => {
-    expect(getHighestRole(['admin'])).toBe(Role.USER);
+  test('maps admin groups to ADMIN role', () => {
+    expect(getHighestRole(['admin'])).toBe(Role.ADMIN);
   });
 
   test('defaults to USER role for missing/other groups', () => {

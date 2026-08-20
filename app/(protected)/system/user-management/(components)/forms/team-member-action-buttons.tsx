@@ -32,7 +32,7 @@ export function TeamMemberActionButtons({
 
   if (!teamMember) return null;
 
-  const isTargetSuperAdmin = isUserSuperAdmin(teamMember.groups);
+  const isTargetSuperAdmin = isUserSuperAdmin({ role: teamMember.role, groups: teamMember.groups });
   const isTargetSelf =
     !!currentUserSub && String(teamMember.sub) === String(currentUserSub);
   const canDelete = !isTargetSelf && (isSuperAdmin || !isTargetSuperAdmin);

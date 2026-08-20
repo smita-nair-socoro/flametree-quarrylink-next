@@ -87,7 +87,7 @@ export default function TeamAdminTab() {
         sub: user.sub,
         tenant_id: user.tenantId || '',
         email: user.email,
-        role: getHighestRole(user.groups),
+        role: getHighestRole({ role: user.role, groups: user.groups }),
         invited_by: 'System', // API doesn't provide this, using placeholder
         expires_at: user.createdAt
           ? toLocalDateTime(
@@ -154,7 +154,7 @@ export default function TeamAdminTab() {
   // Handle row click to open member details
   const handleRowClick = (member: User) => {
     // Admins cannot edit Super Admins
-    if (!isSuperAdmin && isUserSuperAdmin(member.groups)) return;
+    if (!isSuperAdmin && isUserSuperAdmin({ role: member.role, groups: member.groups })) return;
     setSelectedTeamMember(member);
     setSelectedTeamMemberForActions(member);
     actions.viewEdit();
@@ -174,12 +174,12 @@ export default function TeamAdminTab() {
     (user: User, onViewDetails?: () => void) => {
       // Admins cannot view/edit Super Admins — suppress the detail handler
       const effectiveOnViewDetails =
-        !isSuperAdmin && isUserSuperAdmin(user.groups)
+        !isSuperAdmin && isUserSuperAdmin({ role: user.role, groups: user.groups })
           ? undefined
           : onViewDetails;
       const initials = getInitials(user.name, user.email);
       const color = getAvatarColor(user.name || user.email || '');
-      const roleLabel = getRoleLabel(user.groups);
+      const roleLabel = getRoleLabel({ role: user.role, groups: user.groups });
 
       return (
         <div

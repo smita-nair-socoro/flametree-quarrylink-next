@@ -11,6 +11,7 @@ export interface User {
   tenantId?: string;
   phone?: string;
   groups: string[]; // Array of group names like ["super_admin", "admin"]
+  role?: string; // "USER", "ADMIN", "SUPER_ADMIN", "DRIVER", etc.
 
   // Optional fields
   id?: number; // For backward compatibility

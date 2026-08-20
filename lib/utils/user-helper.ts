@@ -17,37 +17,74 @@ export function getAvatarColor(name: string): { bg: string; text: string } {
   return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
 }
 
-export function isUserSuperAdmin(groups: string[] | undefined): boolean {
-  if (!groups?.length) return false;
-  const g = groups.join(',').toLowerCase();
-  return g.includes('super_admin') || g.includes('superadmin');
+export function isUserSuperAdmin(
+  groupsOrSource?: string[] | { role?: string | null; groups?: string[] | null } | null,
+  role?: string | null,
+): boolean {
+  if (groupsOrSource && !Array.isArray(groupsOrSource)) {
+    return resolveBackendRole(groupsOrSource.role, groupsOrSource.groups) === 'SUPER_ADMIN';
+  }
+  return resolveBackendRole(role, groupsOrSource ?? undefined) === 'SUPER_ADMIN';
 }
 
-/** Display label: 'Super Admin' | 'Admin' | 'Driver' | 'User' */
-export function getRoleLabel(groups: string[] | undefined): string {
-  if (!groups || !Array.isArray(groups) || groups.length === 0) return 'User';
-  const g = groups.join(',').toLowerCase();
-  if (g.includes('super_admin') || g.includes('superadmin')) return 'Super Admin';
-  if (g.includes('driver')) return 'Driver';
-  if (g.includes('admin')) return 'Admin';
-  return 'User';
-}
+/** Canonical backend role from role field and/or groups. */
+export function resolveBackendRole(
+  role?: string | null,
+  groups?: string[] | null,
+): string {
+  if (role === 'SUPER_ADMIN' || role === 'ADMIN' || role === 'USER' || role === 'DRIVER') {
+    return role;
+  }
 
-/** Form value string: 'SUPERADMIN' | 'ADMIN' | 'USER' */
-export function getRoleValueFromGroups(groups: string[] | undefined): string {
-  if (!groups || !Array.isArray(groups) || groups.length === 0) return '';
+  if (!groups?.length) return 'USER';
   const g = groups.join(',').toLowerCase();
-  if (g.includes('super_admin') || g.includes('superadmin')) return 'SUPERADMIN';
+  if (g.includes('super_admin') || g.includes('superadmin')) return 'SUPER_ADMIN';
+  if (g.includes('driver')) return 'DRIVER';
   if (g.includes('admin')) return 'ADMIN';
   return 'USER';
 }
 
+/** Display label: 'Super Admin' | 'Admin' | 'Driver' | 'User' */
+export function getRoleLabel(
+  groupsOrSource?: string[] | { role?: string | null; groups?: string[] | null } | null,
+  role?: string | null,
+): string {
+  const backend = Array.isArray(groupsOrSource) || groupsOrSource == null
+    ? resolveBackendRole(role, groupsOrSource ?? undefined)
+    : resolveBackendRole(groupsOrSource.role, groupsOrSource.groups);
+  switch (backend) {
+    case 'SUPER_ADMIN':
+      return 'Super Admin';
+    case 'ADMIN':
+      return 'Admin';
+    case 'DRIVER':
+      return 'Driver';
+    default:
+      return 'User';
+  }
+}
+
+/** Form value string: 'SUPERADMIN' | 'ADMIN' | 'USER' */
+export function getRoleValueFromGroups(
+  groupsOrSource?: string[] | { role?: string | null; groups?: string[] | null } | null,
+  role?: string | null,
+): string {
+  const backend = Array.isArray(groupsOrSource) || groupsOrSource == null
+    ? resolveBackendRole(role, groupsOrSource ?? undefined)
+    : resolveBackendRole(groupsOrSource.role, groupsOrSource.groups);
+  if (backend === 'SUPER_ADMIN') return 'SUPERADMIN';
+  if (backend === 'ADMIN') return 'ADMIN';
+  return 'USER';
+}
+
 /** Role enum value for pending-invitation logic */
-export function getHighestRole(groups: string[] | undefined): Role {
-  if (!groups || !Array.isArray(groups)) return Role.USER;
-  const g = groups.join(',').toLowerCase();
-  if (g.includes('super_admin') || g.includes('superadmin')) return Role.SUPERADMIN;
-  if (g.includes('admin')) return Role.USER; // Map admin to USER for now
+export function getHighestRole(
+  groupsOrSource?: string[] | { role?: string | null; groups?: string[] | null } | null,
+  role?: string | null,
+): Role {
+  const formValue = getRoleValueFromGroups(groupsOrSource, role);
+  if (formValue === 'SUPERADMIN') return Role.SUPERADMIN;
+  if (formValue === 'ADMIN') return Role.ADMIN;
   return Role.USER;
 }
 

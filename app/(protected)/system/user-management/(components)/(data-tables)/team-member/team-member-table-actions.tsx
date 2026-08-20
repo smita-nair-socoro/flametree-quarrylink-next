@@ -31,7 +31,7 @@ export function TeamMemberTableActions({
   const isSuperAdmin = useUserStore((state) => state.isSuperAdmin());
   const currentUserSub = useUserStore((state) => state.user?.sub);
 
-  const isTargetSuperAdmin = isUserSuperAdmin(teamMember.groups);
+  const isTargetSuperAdmin = isUserSuperAdmin({ role: teamMember.role, groups: teamMember.groups });
   const isTargetSelf =
     !!currentUserSub && String(teamMember.sub) === String(currentUserSub);
 
