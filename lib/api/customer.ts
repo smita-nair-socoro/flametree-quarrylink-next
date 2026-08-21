@@ -3,10 +3,12 @@ import {
   keepPreviousData,
   queryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { CustomerKeys } from './keys';
+import { SyncStatusResponse } from '../types/sync';
 import {
   CustomerDTO,
   ArchiveCustomerResponseDTO,
@@ -652,3 +654,14 @@ export const usePullFromAccSoftware = () => {
     mutationFn: () => APIClient.customers.syncAllFromAccSoftware(),
   });
 };
+
+export const useCustomerSyncStatus = (enabled: boolean) =>
+  useQuery({
+    queryKey: [...CustomerKeys.all, 'sync-status'],
+    queryFn: () => APIClient.customers.getSyncStatus() as Promise<SyncStatusResponse>,
+    enabled,
+    refetchInterval: (query) => {
+      const state = query.state.data?.state;
+      return state === 'IN_PROGRESS' ? 2000 : false;
+    },
+  });

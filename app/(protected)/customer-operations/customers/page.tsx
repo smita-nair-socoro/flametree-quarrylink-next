@@ -29,12 +29,14 @@ import {
   buildCustomerFacetOptions,
   isCustomersListResponse,
   usePullFromAccSoftware,
+  useCustomerSyncStatus,
 } from '@/lib/api/customer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { SyncProgressBar } from '@/components/sync-progress-bar';
 import {
   useTenantCurrencyTax,
   useAccountingSoftwareProvider,
@@ -58,6 +60,19 @@ export default function CustomersPage() {
   const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const syncCustomerFromAcumatica = usePullFromAccSoftware();
+
+  // Track whether a sync has been triggered during this page session so we
+  // only start polling the status endpoint after the user clicks Sync.
+  const [isSyncing, setIsSyncing] = React.useState(false);
+  const { data: customerSyncStatus } = useCustomerSyncStatus(isSyncing);
+
+  // Stop polling and reset the syncing flag once the sync reaches a terminal state.
+  React.useEffect(() => {
+    if (customerSyncStatus && (customerSyncStatus.state === 'COMPLETED' || customerSyncStatus.state === 'FAILED')) {
+      const timer = setTimeout(() => setIsSyncing(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [customerSyncStatus]);
 
   const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
   const syncCooldownTimeoutRef = React.useRef<ReturnType<
@@ -85,7 +100,8 @@ export default function CustomersPage() {
 
     try {
       await syncCustomerFromAcumatica.mutateAsync();
-      notifySuccess('Customers synced from Acumatica successfully');
+      setIsSyncing(true);
+      notifySuccess('Customer sync started');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -410,6 +426,7 @@ export default function CustomersPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
+      <SyncProgressBar syncStatus={customerSyncStatus} entityType="Customer" />
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>

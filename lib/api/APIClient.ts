@@ -25,6 +25,7 @@ import {
   UpdateCustomerNoteRequest,
   SyncAllFromAccSoftwareResponse,
 } from '../types/customer';
+import { SyncStatusResponse } from '../types/sync';
 import {
   Quarry,
   QuarryReporting,
@@ -555,6 +556,10 @@ export const APIClient = {
       appClient.Put<PullFromAccSoftwareResponse>(
         `/socoro/quarrylink/api/product/pull-from-acc-software`,
       ),
+    getSyncStatus: () =>
+      appClient.Get<SyncStatusResponse>(
+        `/socoro/quarrylink/api/product/sync-status`,
+      ),
     reporting: () =>
       appClient.Get<ProductReporting>(
         `/socoro/quarrylink/api/product/reporting`,
@@ -733,6 +738,10 @@ export const APIClient = {
     syncAllFromAccSoftware: () =>
       appClient.Put<SyncAllFromAccSoftwareResponse>(
         `/socoro/quarrylink/api/customer/sync-all-from-acc-software`,
+      ),
+    getSyncStatus: () =>
+      appClient.Get<SyncStatusResponse>(
+        `/socoro/quarrylink/api/customer/sync-status`,
       ),
     reporting: () =>
       appClient.Get<CustomerReporting>(

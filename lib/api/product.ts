@@ -3,11 +3,13 @@ import {
   keepPreviousData,
   queryOptions,
   useMutation,
+  useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { ProductKeys } from './keys';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
+import { SyncStatusResponse } from '../types/sync';
 import {
   Product,
   ProductListItem,
@@ -335,3 +337,14 @@ export const usePullFromAccSoftware = () => {
     mutationFn: () => APIClient.products.pullFromAccSoftware(),
   });
 };
+
+export const useProductSyncStatus = (enabled: boolean) =>
+  useQuery({
+    queryKey: [...ProductKeys.all, 'sync-status'],
+    queryFn: () => APIClient.products.getSyncStatus() as Promise<SyncStatusResponse>,
+    enabled,
+    refetchInterval: (query) => {
+      const state = query.state.data?.state;
+      return state === 'IN_PROGRESS' ? 2000 : false;
+    },
+  });

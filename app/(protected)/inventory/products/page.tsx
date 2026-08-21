@@ -26,6 +26,7 @@ import {
   buildProductFacetOptions,
   isProductsListResponse,
   usePullFromAccSoftware,
+  useProductSyncStatus,
 } from '@/lib/api/product';
 import {
   LinkedProductsListQueryOptions,
@@ -51,6 +52,7 @@ import { ProductTableActions } from './(components)/(data-tables)/products/produ
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { SyncProgressBar } from '@/components/sync-progress-bar';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -61,6 +63,19 @@ export default function ProductsPage() {
   const readOnly = accSoftwareProvider === 'MYOB_ACUMATICA';
 
   const syncProductFromAcumatica = usePullFromAccSoftware();
+
+  // Track whether a sync has been triggered during this page session so we
+  // only start polling the status endpoint after the user clicks Sync.
+  const [isSyncing, setIsSyncing] = React.useState(false);
+  const { data: productSyncStatus } = useProductSyncStatus(isSyncing);
+
+  // Stop polling and reset the syncing flag once the sync reaches a terminal state.
+  React.useEffect(() => {
+    if (productSyncStatus && (productSyncStatus.state === 'COMPLETED' || productSyncStatus.state === 'FAILED')) {
+      const timer = setTimeout(() => setIsSyncing(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [productSyncStatus]);
 
   const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
   const syncCooldownTimeoutRef = React.useRef<ReturnType<
@@ -88,7 +103,8 @@ export default function ProductsPage() {
 
     try {
       await syncProductFromAcumatica.mutateAsync();
-      notifySuccess('Products synced from Acumatica successfully');
+      setIsSyncing(true);
+      notifySuccess('Product sync started');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -427,6 +443,7 @@ export default function ProductsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
+      <SyncProgressBar syncStatus={productSyncStatus} entityType="Product" />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
         {readOnly ? (
