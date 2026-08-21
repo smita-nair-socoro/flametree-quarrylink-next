@@ -222,7 +222,18 @@ export function usePolicyDocumentFormState({
   const onSubmit = (values: PolicyDocumentFormValues) => {
     if (!values.file) return;
 
-    const metadata = { name: values.name, defaultItem: true };
+    // Set defaultItem=true only if this is the first policy document,
+    // or if the document being replaced was already the default.
+    // The backend will unset any existing default before inserting.
+    const hasExistingDefault = policyDocumentItems.some(
+      (item) => item.defaultItem,
+    );
+    const isReplacingDefault =
+      isReplacing && currentDocument?.defaultItem === true;
+    const defaultItem =
+      policyDocumentItems.length === 0 || !hasExistingDefault || isReplacingDefault;
+
+    const metadata = { name: values.name, defaultItem };
     const file = values.file;
     const onSettled = {
       onSuccess: () => {
