@@ -29,14 +29,17 @@ import {
   buildCustomerFacetOptions,
   isCustomersListResponse,
   usePullFromAccSoftware,
-  useCustomerSyncStatus,
 } from '@/lib/api/customer';
+import { CustomerKeys } from '@/lib/api/keys';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useCustomerActions } from '@/hooks/use-customer-actions';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { SyncProgressBar } from '@/components/sync-progress-bar';
+import { useSyncStatus } from '@/hooks/use-sync-status';
+import { APIClient } from '@/lib/api/APIClient';
+import { SyncStatusResponse } from '@/lib/types/sync';
 import {
   useTenantCurrencyTax,
   useAccountingSoftwareProvider,
@@ -61,18 +64,18 @@ export default function CustomersPage() {
 
   const syncCustomerFromAcumatica = usePullFromAccSoftware();
 
-  // Track whether a sync has been triggered during this page session so we
-  // only start polling the status endpoint after the user clicks Sync.
-  const [isSyncing, setIsSyncing] = React.useState(false);
-  const { data: customerSyncStatus } = useCustomerSyncStatus(isSyncing);
-
-  // Stop polling and reset the syncing flag once the sync reaches a terminal state.
-  React.useEffect(() => {
-    if (customerSyncStatus && (customerSyncStatus.state === 'COMPLETED' || customerSyncStatus.state === 'FAILED')) {
-      const timer = setTimeout(() => setIsSyncing(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [customerSyncStatus]);
+  // Sync status: always checks on mount (so page refresh during an
+  // in-progress sync re-detects it), polls every 30s while IN_PROGRESS,
+  // and auto-refreshes the customer list when the sync completes.
+  const {
+    syncStatus: customerSyncStatus,
+    wasInProgress: customerSyncWasInProgress,
+    triggerSync: triggerCustomerSync,
+  } = useSyncStatus({
+    queryKey: [...CustomerKeys.all, 'sync-status'],
+    fetchFn: () => APIClient.customers.getSyncStatus() as Promise<SyncStatusResponse>,
+    invalidateKeys: [CustomerKeys.list(), CustomerKeys.all],
+  });
 
   const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
   const syncCooldownTimeoutRef = React.useRef<ReturnType<
@@ -100,12 +103,12 @@ export default function CustomersPage() {
 
     try {
       await syncCustomerFromAcumatica.mutateAsync();
-      setIsSyncing(true);
+      triggerCustomerSync();
       notifySuccess('Customer sync started');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
-  }, [syncCustomerFromAcumatica, isSyncDisabled]);
+  }, [syncCustomerFromAcumatica, isSyncDisabled, triggerCustomerSync]);
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -426,7 +429,7 @@ export default function CustomersPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
-      <SyncProgressBar syncStatus={customerSyncStatus} entityType="Customer" />
+      <SyncProgressBar syncStatus={customerSyncStatus} entityType="Customer" wasInProgress={customerSyncWasInProgress} />
 
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <div>

@@ -26,8 +26,8 @@ import {
   buildProductFacetOptions,
   isProductsListResponse,
   usePullFromAccSoftware,
-  useProductSyncStatus,
 } from '@/lib/api/product';
+import { ProductKeys } from '@/lib/api/keys';
 import {
   LinkedProductsListQueryOptions,
   LinkedProductsInfiniteListQueryOptions,
@@ -53,6 +53,9 @@ import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { SyncProgressBar } from '@/components/sync-progress-bar';
+import { useSyncStatus } from '@/hooks/use-sync-status';
+import { APIClient } from '@/lib/api/APIClient';
+import { SyncStatusResponse } from '@/lib/types/sync';
 
 export default function ProductsPage() {
   const router = useRouter();
@@ -64,18 +67,18 @@ export default function ProductsPage() {
 
   const syncProductFromAcumatica = usePullFromAccSoftware();
 
-  // Track whether a sync has been triggered during this page session so we
-  // only start polling the status endpoint after the user clicks Sync.
-  const [isSyncing, setIsSyncing] = React.useState(false);
-  const { data: productSyncStatus } = useProductSyncStatus(isSyncing);
-
-  // Stop polling and reset the syncing flag once the sync reaches a terminal state.
-  React.useEffect(() => {
-    if (productSyncStatus && (productSyncStatus.state === 'COMPLETED' || productSyncStatus.state === 'FAILED')) {
-      const timer = setTimeout(() => setIsSyncing(false), 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [productSyncStatus]);
+  // Sync status: always checks on mount (so page refresh during an
+  // in-progress sync re-detects it), polls every 30s while IN_PROGRESS,
+  // and auto-refreshes the product list when the sync completes.
+  const {
+    syncStatus: productSyncStatus,
+    wasInProgress: productSyncWasInProgress,
+    triggerSync: triggerProductSync,
+  } = useSyncStatus({
+    queryKey: [...ProductKeys.all, 'sync-status'],
+    fetchFn: () => APIClient.products.getSyncStatus() as Promise<SyncStatusResponse>,
+    invalidateKeys: [ProductKeys.list(), ProductKeys.all],
+  });
 
   const [isSyncDisabled, setIsSyncDisabled] = React.useState(false);
   const syncCooldownTimeoutRef = React.useRef<ReturnType<
@@ -103,12 +106,12 @@ export default function ProductsPage() {
 
     try {
       await syncProductFromAcumatica.mutateAsync();
-      setIsSyncing(true);
+      triggerProductSync();
       notifySuccess('Product sync started');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
-  }, [syncProductFromAcumatica, isSyncDisabled]);
+  }, [syncProductFromAcumatica, isSyncDisabled, triggerProductSync]);
   const { formatCentsToCurrency } = useTenantCurrencyTax();
 
   const linkedProductIdsParam = searchParams.get('linkedProductIds');
@@ -443,7 +446,7 @@ export default function ProductsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {confirmDialogs}
       {viewDialog}
-      <SyncProgressBar syncStatus={productSyncStatus} entityType="Product" />
+      <SyncProgressBar syncStatus={productSyncStatus} entityType="Product" wasInProgress={productSyncWasInProgress} />
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
         <h1 className="text-2xl">Products</h1>
         {readOnly ? (

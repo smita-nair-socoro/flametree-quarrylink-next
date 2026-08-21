@@ -8,10 +8,26 @@ import { SyncStatusResponse } from '@/lib/types/sync';
 interface SyncProgressBarProps {
   syncStatus?: SyncStatusResponse;
   entityType: 'Product' | 'Customer';
+  /**
+   * Whether the sync was observed as IN_PROGRESS during this session.
+   * When false (e.g. page loaded and sync was already COMPLETED), the
+   * COMPLETED/FAILED bars are not shown — only IN_PROGRESS is.
+   */
+  wasInProgress?: boolean;
 }
 
-export function SyncProgressBar({ syncStatus, entityType }: SyncProgressBarProps) {
+export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }: SyncProgressBarProps) {
   if (!syncStatus || syncStatus.state === 'IDLE') {
+    return null;
+  }
+
+  // On a fresh page load where the sync was already completed/failed before
+  // we loaded, don't show the completion bar — only show it if we witnessed
+  // the sync in progress during this session.
+  if (
+    (syncStatus.state === 'COMPLETED' || syncStatus.state === 'FAILED') &&
+    !wasInProgress
+  ) {
     return null;
   }
 
