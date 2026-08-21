@@ -47,6 +47,21 @@ async function createBearerToken(
     .sign(secret);
 }
 
+/**
+ * Public endpoint patterns that bypass authentication.
+ * These endpoints are called by unauthenticated users (e.g. customers
+ * viewing a quote via a public link). The backend resolves the tenant
+ * from the token parameter, so no X-Tenant-ID or Authorization header
+ * is needed.
+ */
+const PUBLIC_ENDPOINT_PATTERNS = [
+  /^quote\/public\//,
+];
+
+function isPublicEndpoint(pathString: string): boolean {
+  return PUBLIC_ENDPOINT_PATTERNS.some((pattern) => pattern.test(pathString));
+}
+
 export async function proxyRequest(
   req: NextRequest,
   pathSegments: string[],
@@ -58,6 +73,57 @@ export async function proxyRequest(
 
   // Build the target URL: upstreamBaseUrl + pathPrefix + path + searchParams
   const targetUrl = `${upstreamBaseUrl}${pathPrefix}/${pathString}${searchParams}`;
+
+  // Public endpoints (e.g. quote/public/link) bypass authentication.
+  // The backend resolves the tenant from the token parameter.
+  if (isPublicEndpoint(pathString)) {
+    const incomingContentType = req.headers.get("content-type") || "";
+    const publicHeaders: Record<string, string> = {
+      Accept: "*/*",
+      "Content-Type": incomingContentType || "application/json",
+    };
+
+    const publicInit: RequestInit = {
+      method: req.method,
+      headers: publicHeaders,
+    };
+
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      const body = await req.arrayBuffer();
+      if (body.byteLength > 0) {
+        publicInit.body = body;
+      }
+    }
+
+    try {
+      const response = await fetch(targetUrl, publicInit);
+      const contentType = response.headers.get("content-type") || "";
+
+      if (!contentType.includes("application/json")) {
+        const blob = await response.blob();
+        return new NextResponse(blob, {
+          status: response.status,
+          headers: {
+            "Content-Type": contentType,
+            "Content-Disposition":
+              response.headers.get("content-disposition") || "",
+          },
+        });
+      }
+
+      const data = await response.text();
+      return new NextResponse(data, {
+        status: response.status,
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch (error) {
+      console.error("Proxy error (public):", error);
+      return NextResponse.json(
+        { error: "Failed to reach upstream service" },
+        { status: 502 },
+      );
+    }
+  }
 
   const token = await getToken({
     req,
