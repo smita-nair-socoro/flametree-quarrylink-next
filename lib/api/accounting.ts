@@ -45,6 +45,19 @@ export const useConnectMyobAcumatica = () =>
       APIClient.myobAcumatica.connect(userEmail),
   });
 
+export const useDisconnectMyobAcumatica = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationKey: MyobAcumaticaKeys.disconnect(),
+    mutationFn: () => APIClient.myobAcumatica.disconnect(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: MyobAcumaticaKeys.status(),
+      });
+    },
+  });
+};
+
 export const useMyobAcumaticaStatus = () =>
   useQuery({
     queryKey: MyobAcumaticaKeys.status(),

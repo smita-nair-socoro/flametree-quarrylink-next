@@ -1863,6 +1863,13 @@ export const APIClient = {
         { omitTenantHeaders: true },
       );
     },
+    disconnect: async () => {
+      const tenantId = await getTenantId();
+      return appClient.Post<void>(
+        `/quarrylink/tenant-fusion/api/myob-acumatica/internal/${tenantId}/disconnect`,
+        { omitTenantHeaders: true },
+      );
+    },
   },
 
   invoices: {

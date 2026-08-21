@@ -2,7 +2,7 @@
 import * as React from 'react';
 import { ActionDialog } from '@/components/action-dialog';
 import { ArrowRight, FileText, ShieldCheck, Unplug, CircleUser } from 'lucide-react';
-import { useConnectMyobAcumatica, useMyobAcumaticaStatus } from '@/lib/api/accounting';
+import { useConnectMyobAcumatica, useDisconnectMyobAcumatica, useMyobAcumaticaStatus } from '@/lib/api/accounting';
 import { useAuth } from '@/hooks/use-auth';
 
 export function useMyobAcumaticaIntegrationActions() {
@@ -13,6 +13,7 @@ export function useMyobAcumaticaIntegrationActions() {
   const [showDisconnectModal, setShowDisconnectModal] = React.useState(false);
 
   const connectMyobAcumatica = useConnectMyobAcumatica();
+  const disconnectMyobAcumatica = useDisconnectMyobAcumatica();
 
   const actions = {
     connect: () => setShowConnectModal(true),
@@ -32,7 +33,12 @@ export function useMyobAcumaticaIntegrationActions() {
   };
 
   const handleDisconnect = () => {
-    setShowDisconnectModal(false);
+    disconnectMyobAcumatica.mutate(undefined, {
+      onSuccess: () => {
+        setShowDisconnectModal(false);
+        refetchStatus();
+      },
+    });
   };
 
   const connectDialog = (
@@ -100,6 +106,7 @@ export function useMyobAcumaticaIntegrationActions() {
       confirmText="Disconnect"
       confirmVariant="destructive"
       confirmIcon={<Unplug className="w-4 h-4" />}
+      confirmDisabled={disconnectMyobAcumatica.isPending}
       onConfirmAction={handleDisconnect}
     />
   );

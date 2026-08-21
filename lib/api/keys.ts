@@ -200,6 +200,7 @@ export const MyobBusinessKeys = {
 export const MyobAcumaticaKeys = {
   all: ['myob-acumatica'] as const,
   connect: () => [...MyobAcumaticaKeys.all, 'connect'] as const,
+  disconnect: () => [...MyobAcumaticaKeys.all, 'disconnect'] as const,
   status: () => [...MyobAcumaticaKeys.all, 'status'] as const,
 };
 

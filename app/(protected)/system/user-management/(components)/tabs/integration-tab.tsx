@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, CheckCircle } from 'lucide-react';
+import { ArrowRight, CheckCircle, Unplug } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useXeroIntegrationActions } from '@/hooks/use-xero-integration-actions';
 import { useMyobBusinessIntegrationActions } from '@/hooks/use-myob-business-integration-actions';
@@ -146,6 +146,7 @@ function MyobAcumaticaIntegrationCard() {
     isConnected: myobConnected,
     actions: myobActions,
     connectDialog: myobConnectDialog,
+    disconnectDialog: myobDisconnectDialog,
   } = useMyobAcumaticaIntegrationActions();
 
   return (
@@ -185,7 +186,7 @@ function MyobAcumaticaIntegrationCard() {
               </div>
             </div>
 
-            {!myobConnected && (
+            {!myobConnected ? (
               <Button
                 size="sm"
                 className="bg-[#6B2D8B] hover:bg-[#5B247B] rounded-lg w-full max-w-40 sm:w-auto mt-2.5"
@@ -194,6 +195,16 @@ function MyobAcumaticaIntegrationCard() {
                 Connect to MYOB
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                className="rounded-lg w-full max-w-40 sm:w-auto mt-2.5 text-[#D42422] border-[#D42422] hover:bg-[#FEF2F2]"
+                onClick={myobActions.disconnect}
+              >
+                <Unplug className="w-3.5 h-3.5" />
+                Disconnect
+              </Button>
             )}
           </div>
 
@@ -201,6 +212,7 @@ function MyobAcumaticaIntegrationCard() {
         </CardContent>
       </Card>
       {myobConnectDialog}
+      {myobDisconnectDialog}
     </>
   );
 }
