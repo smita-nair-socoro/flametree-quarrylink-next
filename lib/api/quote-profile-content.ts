@@ -126,9 +126,8 @@ export const useDeleteTextTemplate = () => {
   });
 };
 
-// Returns the single tenant policy document, or null if none exists yet.
-// There's only ever one per tenant, so this doubles as both the "does a
-// document already exist" check and the detail fetch for the replace dialog.
+// Returns all active tenant policy documents (up to 2).
+// Used to check how many documents exist and to populate the replace dialog.
 export const PolicyDocumentQueryOptions = () =>
   queryOptions({
     queryKey: PolicyDocumentKeys.list(),

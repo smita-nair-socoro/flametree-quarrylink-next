@@ -18,7 +18,8 @@ export default function QuoteSettingsTab() {
   const {
     items,
     actions,
-    documentItem,
+    documentItems,
+    hasMaxPolicyDocuments,
     textTemplateDialog,
     externalLinkDialog,
     policyDocumentDialog,
@@ -53,9 +54,10 @@ export default function QuoteSettingsTab() {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => actions.add(QuoteSettingItemType.POLICY_DOCUMENT)}
+              disabled={hasMaxPolicyDocuments}
             >
               <Upload className="h-4 w-4 mr-2" />
-              {documentItem ? 'Replace PDF document' : 'Add PDF document'}
+              {hasMaxPolicyDocuments ? 'Max 2 documents reached' : 'Add PDF document'}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => actions.add(QuoteSettingItemType.EXTERNAL_LINK)}

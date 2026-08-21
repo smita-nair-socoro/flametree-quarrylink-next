@@ -56,11 +56,11 @@ export function useQuoteSettingsActions() {
     [libraryData],
   );
 
-  // Existence check only — derive from the already-fetched library list
-  // instead of a separate request.
-  const documentItem = items.find(
+  // Derive policy document items from the already-fetched library list.
+  const documentItems = items.filter(
     (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
   );
+  const hasMaxPolicyDocuments = documentItems.length >= 2;
 
   const updateTextTemplate = useUpdateTextTemplate();
   const deleteTextTemplate = useDeleteTextTemplate();
@@ -265,12 +265,14 @@ export function useQuoteSettingsActions() {
   const policyDocumentDialog = policyDocumentDialogOpen ? (
     <FormDialog
       dialogTitle={
-        documentItem ? 'Replace Policy Document' : 'Upload Policy Document'
+        documentItems.length >= 2
+          ? 'Replace Policy Document'
+          : 'Upload Policy Document'
       }
       dialogDescription={
-        documentItem
-          ? 'Uploading a new PDF will replace the current document. Only one policy document is allowed in your library.'
-          : 'Upload a single PDF policy document. Customers can view and download it from quotes.'
+        documentItems.length >= 2
+          ? 'A maximum of 2 policy documents are allowed. Uploading will replace an existing document.'
+          : 'Upload a PDF policy document. Customers can view and download it from quotes. Up to 2 documents allowed.'
       }
       open={policyDocumentDialogOpen}
       onOpenChangeAction={(open) => setPolicyDocumentDialogOpen(open)}
@@ -304,8 +306,8 @@ export function useQuoteSettingsActions() {
       description: <RemoveDocumentDescription item={removeTarget} />,
       content: (
         <RemoveDocumentContent
-          fileName={removeTargetDocument?.originalFileName}
-          fileSizeBytes={removeTargetDocument?.fileSizeBytes}
+          fileName={removeTargetDocument?.find((d) => d.id === removeTarget.id)?.originalFileName}
+          fileSizeBytes={removeTargetDocument?.find((d) => d.id === removeTarget.id)?.fileSizeBytes}
         />
       ),
     };
@@ -329,7 +331,8 @@ export function useQuoteSettingsActions() {
   return {
     items,
     actions,
-    documentItem,
+    documentItems,
+    hasMaxPolicyDocuments,
     textTemplateDialog,
     externalLinkDialog,
     policyDocumentDialog,

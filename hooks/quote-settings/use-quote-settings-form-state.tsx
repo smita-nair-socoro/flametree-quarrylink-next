@@ -186,9 +186,10 @@ export function usePolicyDocumentFormState({
   const { data: libraryData, isPending: isLoadingList } = useQuery(
     QuoteContentLibraryListQueryOptions(),
   );
-  const isReplacing = (libraryData?.items ?? []).some(
+  const policyDocumentItems = (libraryData?.items ?? []).filter(
     (item) => item.type === QuoteSettingItemType.POLICY_DOCUMENT,
   );
+  const isReplacing = policyDocumentItems.length >= 2;
 
   // Only fetch full detail once we know one exists — this endpoint 500s
   // instead of returning null when there's no active document.
@@ -199,7 +200,8 @@ export function usePolicyDocumentFormState({
     });
   // Disabling the query above doesn't clear its cached data, so once the
   // document is deleted and isReplacing flips to false, ignore the stale value.
-  const currentDocument = isReplacing ? currentDocumentData : undefined;
+  // currentDocumentData is now a list; take the first item for the replace form.
+  const currentDocument = isReplacing ? currentDocumentData?.[0] : undefined;
   const isLoadingDetail = isLoadingList || (isReplacing && isLoadingDocument);
 
   const createPolicyDocument = useCreatePolicyDocument();
