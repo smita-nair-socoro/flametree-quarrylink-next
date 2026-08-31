@@ -24,7 +24,7 @@ export function PricingConfigurationTable({
   watch,
   readOnly = false
 }: PricingConfigurationTableProps) {
-  const { exTaxLabel } = useTenantCurrencyTax();
+  const { exTaxLabel, unitPriceDecimalPlaces } = useTenantCurrencyTax();
 
   const calculateMargin = (costPrice: number, sellPrice: number): number => {
     if (!sellPrice || sellPrice <= 0) return 0;
@@ -72,16 +72,16 @@ export function PricingConfigurationTable({
     {
       key: 'costPrice',
       type: 'currency',
-      placeholder: '0.00',
-      decimalPlaces: 2,
+      placeholder: unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00',
+      decimalPlaces: unitPriceDecimalPlaces,
       thousandSeparator: true,
       className: 'md:w-25',
     },
     {
       key: 'sellPrice',
       type: 'currency',
-      placeholder: '0.00',
-      decimalPlaces: 2,
+      placeholder: unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00',
+      decimalPlaces: unitPriceDecimalPlaces,
       thousandSeparator: true,
       className: 'md:w-25',
     },

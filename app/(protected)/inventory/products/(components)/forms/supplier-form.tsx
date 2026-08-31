@@ -1,6 +1,6 @@
 'use client';
 
-import { formatDollars } from '@/lib/utils/currency';
+import { dollarsToCents, formatDollars } from '@/lib/utils/currency';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -43,7 +43,7 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { useAccountingIntegrationConnection } from '@/hooks/use-accounting-integration-connection';
 import { useGetDepartments } from '@/lib/api/department';
-import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 
 interface FormProps {
@@ -80,6 +80,7 @@ export default function SupplierForm({
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const accountingSoftware = useAccountingSoftwareProvider();
+  const { unitPriceDecimalPlaces } = useTenantCurrencyTax();
   const { accountingSoftwareLabel, showAccountingMapping } =
     useAccountingIntegrationConnection();
   const showDepartmentMapping =
@@ -412,8 +413,9 @@ export default function SupplierForm({
           processedValues[field] &&
           typeof processedValues[field] === 'number'
         ) {
-          processedValues[field] = Math.round(
-            (processedValues[field] as number) * 100,
+          processedValues[field] = dollarsToCents(
+            processedValues[field] as number,
+            unitPriceDecimalPlaces,
           );
         }
       });

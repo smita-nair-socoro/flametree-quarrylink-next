@@ -52,7 +52,7 @@ export function CompareSupplierTable({
   const [sortCost, setSortCost] = React.useState<'asc' | 'desc'>('asc');
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const isPricingTab = activeTab !== 'Truck Rates';
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, unitPriceDecimalPlaces } = useTenantCurrencyTax();
 
   const tnMeta = React.useMemo(() => computePricingMeta(data, 'tn'), [data]);
   const m3Meta = React.useMemo(() => computePricingMeta(data, 'm3'), [data]);
@@ -68,24 +68,24 @@ export function CompareSupplierTable({
   }, [data]);
 
   const tnColumns = React.useMemo(
-    () => createPricingColumns('tn', tnMeta, currencyCode, taxLabel),
-    [tnMeta, currencyCode, taxLabel],
+    () => createPricingColumns('tn', tnMeta, currencyCode, taxLabel, unitPriceDecimalPlaces),
+    [tnMeta, currencyCode, taxLabel, unitPriceDecimalPlaces],
   );
   const m3Columns = React.useMemo(
-    () => createPricingColumns('m3', m3Meta, currencyCode, taxLabel),
-    [m3Meta, currencyCode, taxLabel],
+    () => createPricingColumns('m3', m3Meta, currencyCode, taxLabel, unitPriceDecimalPlaces),
+    [m3Meta, currencyCode, taxLabel, unitPriceDecimalPlaces],
   );
   const kgColumns = React.useMemo(
-    () => createPricingColumns('kg', kgMeta, currencyCode, taxLabel),
-    [kgMeta, currencyCode, taxLabel],
+    () => createPricingColumns('kg', kgMeta, currencyCode, taxLabel, unitPriceDecimalPlaces),
+    [kgMeta, currencyCode, taxLabel, unitPriceDecimalPlaces],
   );
   const bulkaColumns = React.useMemo(
-    () => createPricingColumns('bulka', bulkaMeta, currencyCode, taxLabel),
-    [bulkaMeta, currencyCode, taxLabel],
+    () => createPricingColumns('bulka', bulkaMeta, currencyCode, taxLabel, unitPriceDecimalPlaces),
+    [bulkaMeta, currencyCode, taxLabel, unitPriceDecimalPlaces],
   );
   const truckColumns = React.useMemo(
-    () => createTruckRateColumns(lowestTn, currencyCode, taxLabel),
-    [lowestTn, currencyCode, taxLabel],
+    () => createTruckRateColumns(lowestTn, currencyCode, taxLabel, unitPriceDecimalPlaces),
+    [lowestTn, currencyCode, taxLabel, unitPriceDecimalPlaces],
   );
 
   // Desktop: Tab component handles both nav + content together

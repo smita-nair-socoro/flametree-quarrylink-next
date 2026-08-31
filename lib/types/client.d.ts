@@ -116,6 +116,8 @@ export interface TenantInternalDetails {
   /** Tax label, e.g. "GST". Backfilled to "GST". */
   taxType?: string;
   timeZoneId?: string;
+  /** Unit-rate decimal places. 2 is current behaviour; 4 matches Acumatica rates. */
+  unitPriceDecimalPlaces?: number;
 }
 
 export interface TenantLogoUploadResponse {

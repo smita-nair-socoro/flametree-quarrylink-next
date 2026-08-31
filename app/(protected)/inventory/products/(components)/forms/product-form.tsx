@@ -73,7 +73,7 @@ export default function ProductForm({
   onDirtyChange,
 }: FormProps) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
-  const { currencyCode, taxLabel } = useTenantCurrencyTax();
+  const { currencyCode, taxLabel, unitPriceDecimalPlaces } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
 
   const accSoftwareProvider = useAccountingSoftwareProvider();
@@ -768,6 +768,7 @@ export default function ProductForm({
                       currencyCode,
                       taxLabel,
                       readOnly,
+                      unitPriceDecimalPlaces,
                     )}
                     data={
                       isEditing || productJustCreated

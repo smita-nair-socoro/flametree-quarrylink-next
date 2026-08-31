@@ -17,7 +17,7 @@ interface TruckRatesTableProps {
 }
 
 export function TruckRatesTable({ control, readOnly = false }: TruckRatesTableProps) {
-  const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
+  const { currencySymbol, exTaxLabel, unitPriceDecimalPlaces } = useTenantCurrencyTax();
 
   // Headers configuration
   const headers: FormTableHeader[] = [
@@ -92,8 +92,8 @@ export function TruckRatesTable({ control, readOnly = false }: TruckRatesTablePr
     {
       key: 'truck',
       type: 'currency',
-      placeholder: '0.00',
-      decimalPlaces: 2,
+      placeholder: unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00',
+      decimalPlaces: unitPriceDecimalPlaces,
       thousandSeparator: true,
       className: 'w-30',
     },

@@ -91,6 +91,7 @@ export function createPricingColumns(
   meta: PricingMeta,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
+  unitPriceDecimalPlaces: number = 2,
 ): ColumnDef<QuarriesWithProduct>[] {
   const { lowestCost, bestMargin } = meta;
 
@@ -157,7 +158,7 @@ export function createPricingColumns(
           <div>
             <p className="font-medium text-[#101828]">
               {getCurrencySymbol(currencyCode)}
-              {cost ? centsToDollars(cost) : '0.00'}
+              {cost ? centsToDollars(cost, unitPriceDecimalPlaces) : unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00'}
             </p>
             {isLowest && (
               <p className="text-xs text-green-600 font-medium">Lowest</p>
@@ -190,7 +191,7 @@ export function createPricingColumns(
         return (
           <div>
             {getCurrencySymbol(currencyCode)}
-            {sell ? centsToDollars(sell) : '0.00'}
+            {sell ? centsToDollars(sell, unitPriceDecimalPlaces) : unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00'}
           </div>
         );
       },

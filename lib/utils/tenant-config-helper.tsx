@@ -81,11 +81,14 @@ export function getCurrencyLocale(): string {
 export function formatCurrency(
   amount: number,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
+  fractionDigits: number = 2,
 ): string {
   return new Intl.NumberFormat(getCurrencyLocale(), {
     style: 'currency',
     currency: currencyCode,
     currencyDisplay: 'narrowSymbol',
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
   }).format(amount);
 }
 
@@ -195,9 +198,11 @@ export interface TenantCurrencyTax {
   currencySymbol: string;
   taxLabel: string;
   taxPercentage: number;
+  unitPriceDecimalPlaces: number;
   exTaxLabel: string;
   taxRateLabel: string;
   formatCurrency: (amount: number) => string;
+  formatUnitPrice: (amount: number) => string;
   formatCentsToCurrency: (cents: number) => string;
 }
 
@@ -211,6 +216,7 @@ export function useTenantCurrencyTax(): TenantCurrencyTax {
     currencyCode: storeCurrencyCode,
     taxLabel: storeTaxLabel,
     taxPercentage: storeTaxPercentage,
+    unitPriceDecimalPlaces: storeUnitPriceDecimalPlaces,
   } = useTenantStore();
 
   const currencyCode = (
@@ -218,15 +224,20 @@ export function useTenantCurrencyTax(): TenantCurrencyTax {
   ).toUpperCase();
   const taxLabel = storeTaxLabel || DEFAULT_TAX_LABEL;
   const taxPercentage = storeTaxPercentage ?? DEFAULT_TAX_PERCENTAGE;
+  const unitPriceDecimalPlaces =
+    storeUnitPriceDecimalPlaces === 4 ? 4 : 2;
 
   return {
     currencyCode,
     currencySymbol: getCurrencySymbol(currencyCode),
     taxLabel,
     taxPercentage,
+    unitPriceDecimalPlaces,
     exTaxLabel: getExTaxLabel(taxLabel),
     taxRateLabel: getTaxRateLabel(taxLabel, taxPercentage),
     formatCurrency: (amount: number) => formatCurrency(amount, currencyCode),
+    formatUnitPrice: (amount: number) =>
+      formatCurrency(amount, currencyCode, unitPriceDecimalPlaces),
     formatCentsToCurrency: (cents: number) =>
       formatCentsToCurrency(cents, currencyCode),
   };

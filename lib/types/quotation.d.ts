@@ -197,6 +197,7 @@ export interface TenantProfileSnapshot {
   taxAmount?: string;
   timeZoneId?: string;
   logoSize?: LogoSize;
+  unitPriceDecimalPlaces?: number;
 }
 
 export interface QuoteContentItem {

@@ -4,6 +4,7 @@ import {
   centsToDollarsNum,
   dollarsToCents,
   formatDollars,
+  formatUnitPrice,
   roundToTwoDecimals,
 } from '../currency';
 
@@ -40,6 +41,11 @@ describe('dollarsToCents', () => {
       'Invalid dollar amount: NaN',
     );
   });
+
+  test('preserves four decimal dollar rates as fractional cents', () => {
+    expect(dollarsToCents('2.2450', 4)).toBe(224.5);
+    expect(dollarsToCents(2.25, 4)).toBe(225);
+  });
 });
 
 describe('roundToTwoDecimals', () => {
@@ -71,6 +77,14 @@ describe('formatDollars', () => {
   });
 });
 
+describe('formatUnitPrice', () => {
+  test('includes trailing zeros at the tenant scale', () => {
+    expect(formatUnitPrice(2.25, 2)).toBe('2.25');
+    expect(formatUnitPrice(2.25, 4)).toBe('2.2500');
+    expect(formatUnitPrice(2.245, 4)).toBe('2.2450');
+  });
+});
+
 describe('centsToDollars', () => {
   test('converts cents to a formatted dollar string', () => {
     expect(centsToDollars(10000)).toBe('100.00');
@@ -98,5 +112,10 @@ describe('centsToDollarsNum', () => {
     expect(() => centsToDollarsNum(Number.NaN)).toThrow(
       'Invalid cents amount: NaN',
     );
+  });
+
+  test('preserves four decimal dollar rates', () => {
+    expect(centsToDollarsNum(224.5, 4)).toBe(2.245);
+    expect(centsToDollarsNum(225, 4)).toBe(2.25);
   });
 });

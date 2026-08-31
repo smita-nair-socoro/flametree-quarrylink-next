@@ -45,7 +45,7 @@ import {
   CustomerDeliveryAddress,
 } from '@/lib/types/address';
 import { toAddressPayload, toAddressType } from '@/lib/utils/address-helper';
-import { DEFAULT_TAX_PERCENTAGE, useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { DEFAULT_TAX_PERCENTAGE, useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { sortByLabel } from '@/lib/utils/sort-options';
 
 type FormValues = z.infer<typeof NewQuotationLineItemFormSchema>;
@@ -97,6 +97,7 @@ export function useLineItemFormState({
   taxPercentage = DEFAULT_TAX_PERCENTAGE,
   loadMoreEnabled = false,
 }: Props) {
+  const { unitPriceDecimalPlaces } = useTenantCurrencyTax();
   const isEditing = Boolean(id && id > 0);
   const isReadOnly = isEditing && !canEdit;
 
@@ -137,23 +138,23 @@ export function useLineItemFormState({
       productCostUom: isEditing ? (selectedLineItem?.productCostUom ?? '') : '',
       productCostQty: isEditing ? (selectedLineItem?.productCostQty ?? 0) : 0,
       productCostPrice: isEditing
-        ? centsToDollarsNum(selectedLineItem?.productCostPrice || 0)
+        ? centsToDollarsNum(selectedLineItem?.productCostPrice || 0, unitPriceDecimalPlaces)
         : 0,
       productSellUom: isEditing ? (selectedLineItem?.productSellUom ?? '') : '',
       productSellQty: isEditing ? (selectedLineItem?.productSellQty ?? 0) : 0,
       productSellPrice: isEditing
-        ? centsToDollarsNum(selectedLineItem?.productSellPrice || 0)
+        ? centsToDollarsNum(selectedLineItem?.productSellPrice || 0, unitPriceDecimalPlaces)
         : 0,
       truckType: isEditing ? (selectedLineItem?.truckType ?? '') : '',
       truckCostUom: isEditing ? (selectedLineItem?.truckCostUom ?? '') : '',
       truckCostQty: isEditing ? (selectedLineItem?.truckCostQty ?? 0) : 0,
       truckCostPrice: isEditing
-        ? centsToDollarsNum(selectedLineItem?.truckCostPrice || 0)
+        ? centsToDollarsNum(selectedLineItem?.truckCostPrice || 0, unitPriceDecimalPlaces)
         : 0,
       truckSellUom: isEditing ? (selectedLineItem?.truckSellUom ?? '') : '',
       truckSellQty: isEditing ? (selectedLineItem?.truckSellQty ?? 0) : 0,
       truckSellPrice: isEditing
-        ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0)
+        ? centsToDollarsNum(selectedLineItem?.truckSellPrice || 0, unitPriceDecimalPlaces)
         : 0,
       totalProductCostPrice: isEditing
         ? centsToDollarsNum(selectedLineItem?.totalProductCostPrice || 0)
@@ -169,7 +170,7 @@ export function useLineItemFormState({
         : 0,
       grossProfit: isEditing ? (selectedLineItem?.grossProfit ?? 0) : 0,
     };
-  }, [isEditing, selectedLineItem, selectedQuotation?.quoteItems]);
+  }, [isEditing, selectedLineItem, selectedQuotation?.quoteItems, unitPriceDecimalPlaces]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(NewQuotationLineItemFormSchema),
@@ -699,16 +700,16 @@ export function useLineItemFormState({
     let price = 0;
     switch (productCostUom) {
       case 'TN':
-        price = centsToDollarsNum(qsp.perTnCostPrice || 0);
+        price = centsToDollarsNum(qsp.perTnCostPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'M3':
-        price = centsToDollarsNum(qsp.perM3CostPrice || 0);
+        price = centsToDollarsNum(qsp.perM3CostPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'KG_20':
-        price = centsToDollarsNum(qsp.per20kgCostPrice || 0);
+        price = centsToDollarsNum(qsp.per20kgCostPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'BULKA':
-        price = centsToDollarsNum(qsp.perBulkaCostPrice || 0);
+        price = centsToDollarsNum(qsp.perBulkaCostPrice || 0, unitPriceDecimalPlaces);
         break;
       default:
         price = 0;
@@ -742,16 +743,16 @@ export function useLineItemFormState({
     let price = 0;
     switch (productSellUom) {
       case 'TN':
-        price = centsToDollarsNum(qsp.perTnSellPrice || 0);
+        price = centsToDollarsNum(qsp.perTnSellPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'M3':
-        price = centsToDollarsNum(qsp.perM3SellPrice || 0);
+        price = centsToDollarsNum(qsp.perM3SellPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'KG_20':
-        price = centsToDollarsNum(qsp.per20kgSellPrice || 0);
+        price = centsToDollarsNum(qsp.per20kgSellPrice || 0, unitPriceDecimalPlaces);
         break;
       case 'BULKA':
-        price = centsToDollarsNum(qsp.perBulkaSellPrice || 0);
+        price = centsToDollarsNum(qsp.perBulkaSellPrice || 0, unitPriceDecimalPlaces);
         break;
       default:
         price = 0;
@@ -789,25 +790,25 @@ export function useLineItemFormState({
     let rate = 0;
     switch (truckCostUom) {
       case 'TN':
-        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'M3':
-        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'HOURLY':
-        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'LOAD':
-        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'KM':
-        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'KG_20':
-        rate = centsToDollarsNum(qsp.kg20TruckRate || 0);
+        rate = centsToDollarsNum(qsp.kg20TruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'BULKA':
-        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0);
+        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0, unitPriceDecimalPlaces);
         break;
       default:
         rate = 0;
@@ -841,25 +842,25 @@ export function useLineItemFormState({
     let rate = 0;
     switch (truckSellUom) {
       case 'TN':
-        rate = centsToDollarsNum(qsp.tnTruckRate || 0);
+        rate = centsToDollarsNum(qsp.tnTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'M3':
-        rate = centsToDollarsNum(qsp.m3TruckRate || 0);
+        rate = centsToDollarsNum(qsp.m3TruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'HOURLY':
-        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0);
+        rate = centsToDollarsNum(qsp.hourlyTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'LOAD':
-        rate = centsToDollarsNum(qsp.loadTruckRate || 0);
+        rate = centsToDollarsNum(qsp.loadTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'KM':
-        rate = centsToDollarsNum(qsp.kmTruckRate || 0);
+        rate = centsToDollarsNum(qsp.kmTruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'KG_20':
-        rate = centsToDollarsNum(qsp.kg20TruckRate || 0);
+        rate = centsToDollarsNum(qsp.kg20TruckRate || 0, unitPriceDecimalPlaces);
         break;
       case 'BULKA':
-        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0);
+        rate = centsToDollarsNum(qsp.bulkaTruckRate || 0, unitPriceDecimalPlaces);
         break;
       default:
         rate = 0;
@@ -1111,20 +1112,20 @@ export function useLineItemFormState({
       densityTonnagePerM3: values.densityTonnagePerM3,
       productCostUom: values.productCostUom,
       productCostQty: values.productCostQty,
-      productCostPrice: dollarsToCents(values.productCostPrice),
+      productCostPrice: dollarsToCents(values.productCostPrice, unitPriceDecimalPlaces),
       totalProductCostPrice: dollarsToCents(values.totalProductCostPrice),
       productSellUom: values.productSellUom,
       productSellQty: values.productSellQty,
-      productSellPrice: dollarsToCents(values.productSellPrice),
+      productSellPrice: dollarsToCents(values.productSellPrice, unitPriceDecimalPlaces),
       totalProductSellPrice: dollarsToCents(values.totalProductSellPrice),
       truckType: values.truckType || undefined,
       truckCostUom: values.truckCostUom,
       truckCostQty: values.truckCostQty,
-      truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0),
+      truckCostPrice: dollarsToCents(values.truckCostPrice ?? 0, unitPriceDecimalPlaces),
       totalTruckCostPrice: dollarsToCents(values.totalTruckCostPrice),
       truckSellUom: values.truckSellUom,
       truckSellQty: values.truckSellQty,
-      truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0),
+      truckSellPrice: dollarsToCents(values.truckSellPrice ?? 0, unitPriceDecimalPlaces),
       totalTruckSellPrice: dollarsToCents(values.totalTruckSellPrice),
       grossProfit: dollarsToCents(values.grossProfit || 0),
       totalQuantityRequired: values.productSellQty,

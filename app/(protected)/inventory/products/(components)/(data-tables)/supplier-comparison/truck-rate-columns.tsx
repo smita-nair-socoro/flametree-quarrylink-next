@@ -20,12 +20,21 @@ import {
 
 // ─── Column factory ───────────────────────────────────────────────────────────
 
-function rateCell(val: number, available: boolean, currencyCode: string) {
+function rateCell(
+  val: number,
+  available: boolean,
+  currencyCode: string,
+  unitPriceDecimalPlaces: number = 2,
+) {
   if (!available) return <span className="text-gray-400">N/A</span>;
   return (
     <span>
       {getCurrencySymbol(currencyCode)}
-      {val ? centsToDollars(val) : '0.00'}
+      {val
+        ? centsToDollars(val, unitPriceDecimalPlaces)
+        : unitPriceDecimalPlaces === 4
+          ? '0.0000'
+          : '0.00'}
     </span>
   );
 }
@@ -34,6 +43,7 @@ export function createTruckRateColumns(
   lowestTn: number | null,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
+  unitPriceDecimalPlaces: number = 2,
 ): ColumnDef<QuarriesWithProduct>[] {
   return [
     {
@@ -82,7 +92,7 @@ export function createTruckRateColumns(
           <div>
             <p className="font-medium text-[#101828]">
               {getCurrencySymbol(currencyCode)}
-              {tn ? centsToDollars(tn) : '0.00'}
+              {tn ? centsToDollars(tn, unitPriceDecimalPlaces) : unitPriceDecimalPlaces === 4 ? '0.0000' : '0.00'}
             </p>
             {isLowest && (
               <p className="text-xs text-green-600 font-medium">Lowest</p>
@@ -98,7 +108,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="m³ Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.m3TruckRate, row.original.availableForTruckRateM3, currencyCode),
+        rateCell(row.original.m3TruckRate, row.original.availableForTruckRateM3, currencyCode, unitPriceDecimalPlaces),
     },
     {
       id: 'truck_kg_rate',
@@ -107,7 +117,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title={`kg Rate ${getExTaxLabel(taxLabel)}`} />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.kg20TruckRate, row.original.availableForTruckRate20kg, currencyCode),
+        rateCell(row.original.kg20TruckRate, row.original.availableForTruckRate20kg, currencyCode, unitPriceDecimalPlaces),
     },
     {
       id: 'truck_bulka_rate',
@@ -116,7 +126,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Bulka Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.bulkaTruckRate, row.original.availableForTruckRateBulka, currencyCode),
+        rateCell(row.original.bulkaTruckRate, row.original.availableForTruckRateBulka, currencyCode, unitPriceDecimalPlaces),
     },
     {
       id: 'truck_hourly_rate',
@@ -125,7 +135,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Hourly Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.hourlyTruckRate, row.original.availableForTruckRateHour, currencyCode),
+        rateCell(row.original.hourlyTruckRate, row.original.availableForTruckRateHour, currencyCode, unitPriceDecimalPlaces),
     },
     {
       id: 'truck_load_rate',
@@ -134,7 +144,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Load Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.loadTruckRate, row.original.availableForTruckRateLoad, currencyCode),
+        rateCell(row.original.loadTruckRate, row.original.availableForTruckRateLoad, currencyCode, unitPriceDecimalPlaces),
     },
     {
       id: 'truck_distance_rate',
@@ -143,7 +153,7 @@ export function createTruckRateColumns(
         <TableClientSortableHeader column={column} title="Dist. Rate" />
       ),
       cell: ({ row }) =>
-        rateCell(row.original.kmTruckRate, row.original.availableForTruckRateKm, currencyCode),
+        rateCell(row.original.kmTruckRate, row.original.availableForTruckRateKm, currencyCode, unitPriceDecimalPlaces),
     },
   ];
 }

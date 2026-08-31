@@ -68,6 +68,7 @@ export default function QuoteLineItemForm({
     exTaxLabel,
     taxRateLabel,
     formatCurrency,
+    unitPriceDecimalPlaces,
   } = useTenantCurrencyTax();
   const {
     isEditing,
@@ -524,7 +525,7 @@ export default function QuoteLineItemForm({
                             onValueChange={(value) =>
                               field.onChange(value === '' ? 0 : value)
                             }
-                            decimalPlaces={2}
+                            decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
                             disabled={isReadOnly}
                             unit={
@@ -635,7 +636,7 @@ export default function QuoteLineItemForm({
                             onValueChange={(value) =>
                               field.onChange(value === '' ? 0 : value)
                             }
-                            decimalPlaces={2}
+                            decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
                             disabled={isReadOnly}
                             unit={
@@ -787,7 +788,7 @@ export default function QuoteLineItemForm({
                               onValueChange={(value) =>
                                 field.onChange(value === '' ? 0 : value)
                               }
-                              decimalPlaces={2}
+                              decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
                               disabled={isReadOnly}
                               unit={
@@ -906,7 +907,7 @@ export default function QuoteLineItemForm({
                               onValueChange={(value) =>
                                 field.onChange(value === '' ? 0 : value)
                               }
-                              decimalPlaces={2}
+                              decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
                               disabled={isReadOnly}
                               unit={

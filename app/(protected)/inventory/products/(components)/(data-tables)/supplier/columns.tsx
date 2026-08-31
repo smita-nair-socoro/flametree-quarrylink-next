@@ -25,6 +25,7 @@ export const supplierColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
   readOnly: boolean = false,
+  unitPriceDecimalPlaces: number = 2,
 ): ColumnDef<QuarrySupplierProduct>[] => [
     {
       id: 'name',
@@ -95,7 +96,7 @@ export const supplierColumns = (
         return (
           <div>
             {getCurrencySymbol(currencyCode)}
-            {centsToDollars(costPrice)}
+            {centsToDollars(costPrice, unitPriceDecimalPlaces)}
           </div>
         );
       },
@@ -124,7 +125,7 @@ export const supplierColumns = (
         return (
           <div>
             {getCurrencySymbol(currencyCode)}
-            {centsToDollars(sellPrice)}
+            {centsToDollars(sellPrice, unitPriceDecimalPlaces)}
           </div>
         );
       },

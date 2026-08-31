@@ -65,7 +65,7 @@ export default function JobLineItemForm({
   const accountingSoftware = useAccountingSoftwareProvider();
 
   const [productSelectOpen, setProductSelectOpen] = React.useState(false);
-  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency } =
+  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency, unitPriceDecimalPlaces } =
     useTenantCurrencyTax();
   const {
     isEditing,
@@ -566,7 +566,7 @@ export default function JobLineItemForm({
                             onValueChange={(value) =>
                               field.onChange(value === '' ? 0 : value)
                             }
-                            decimalPlaces={2}
+                            decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
                             disabled={isReadOnly}
                             unit={
@@ -679,7 +679,7 @@ export default function JobLineItemForm({
                             onValueChange={(value) =>
                               field.onChange(value === '' ? 0 : value)
                             }
-                            decimalPlaces={2}
+                            decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
                             disabled={isReadOnly}
                             unit={
@@ -822,7 +822,7 @@ export default function JobLineItemForm({
                               onValueChange={(value) =>
                                 field.onChange(value === '' ? 0 : value)
                               }
-                              decimalPlaces={2}
+                              decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
                               disabled={isReadOnly}
                               unit={
@@ -938,7 +938,7 @@ export default function JobLineItemForm({
                               onValueChange={(value) =>
                                 field.onChange(value === '' ? 0 : value)
                               }
-                              decimalPlaces={2}
+                              decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
                               disabled={isReadOnly}
                               unit={
