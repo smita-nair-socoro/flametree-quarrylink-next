@@ -17,8 +17,13 @@ test.describe('Jobs - API', () => {
     const res = await apiClient.jobs.list('page=0&perPage=5');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
-    // Should be array or paginated object
-    expect(Array.isArray(data) || data.items !== undefined || data.content !== undefined).toBeTruthy();
+    // Job list is wrapped as { jobs: { content, pageable, ... } }
+    expect(
+      Array.isArray(data) ||
+        data.items !== undefined ||
+        data.content !== undefined ||
+        data.jobs !== undefined,
+    ).toBeTruthy();
   });
 });
 
@@ -82,11 +87,14 @@ test.describe('Jobs - Attachments', () => {
     test.skip((await row.count()) === 0, 'No jobs available to open');
 
     await row.locator('td').first().click();
-    await expect(page.getByText('Attachments', { exact: true })).toBeVisible({
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 15000 });
+    await dialog.getByText('Audit Information').scrollIntoViewIfNeeded();
+    await expect(dialog.getByText('Attachments', { exact: true })).toBeVisible({
       timeout: 15000,
     });
     await expect(
-      page.getByRole('button', { name: /Add Attachment \(\d+ of 3\)/ }),
+      dialog.getByRole('button', { name: /Add Attachment \(\d+ of 3\)/ }),
     ).toBeVisible();
   });
 
@@ -100,7 +108,10 @@ test.describe('Jobs - Attachments', () => {
     test.skip((await row.count()) === 0, 'No jobs available to open');
 
     await row.locator('td').first().click();
-    const addButton = page.getByRole('button', {
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible({ timeout: 15000 });
+    await dialog.getByText('Audit Information').scrollIntoViewIfNeeded();
+    const addButton = dialog.getByRole('button', {
       name: /Add Attachment \(\d+ of 3\)/,
     });
     await expect(addButton).toBeVisible({ timeout: 15000 });
