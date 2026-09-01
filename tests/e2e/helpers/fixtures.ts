@@ -144,6 +144,8 @@ export class ApiClient {
   // -- Dockets --
   dockets = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/docket${params ? `?${params}` : ''}`),
+    table: (params?: string) =>
+      this.get(`/socoro/quarrylink/api/dockets/table${params ? `?${params}` : ''}`),
   };
 
   // -- Quotations --
