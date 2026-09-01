@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Requested by** | Flame Tree (first tenant to ask; feature is being built for all tenants) |
+| **Client** | Flame Tree |
 | **Prepared** | 31 August 2026 |
 | **Status** | Ready for build |
 | **Audience** | Developer (Cursor) |
@@ -18,21 +18,11 @@ Four related additions to the **Jobs** table:
 3. A **PO** column showing the customer's purchase order number.
 4. A filter for that column.
 
-**The complication worth reading before you build:** Flame Tree have said a job will always have one quarry and one PO. **The platform does not guarantee that.** A job holds multiple line items, and each line item carries its own PO and its own supplying quarry. So both columns must handle multiple values per job from day one — see §5.
+**The complication worth reading before you build:** Flame Tree have said a job will always have one quarry and one PO. **The platform does not guarantee that.** A job holds multiple line items, and each line item carries its own PO and its own supplying quarry. So both columns must handle multiple values per job from day one — see §4.
 
 ---
 
-## 2. Why this differs from the base platform
-
-This is a **base platform change**, not a tenant customisation. It is recorded against Flame Tree because they requested it.
-
-- Build for **all tenants**, **on by default**.
-- No feature flag, no per-tenant toggle.
-- No data migration — the values already exist on line items; this is surfacing them.
-
----
-
-## 3. What already exists
+## 2. What already exists
 
 The Jobs table today has:
 
@@ -45,9 +35,17 @@ The Jobs table today has:
 
 **Everything new below follows these existing patterns.** New filters are chips of the same kind; new columns join Show/Hide Columns like any other. Nothing about the current table's behaviour changes.
 
+### 2.1 Internal transfer jobs are not in this table
+
+The Jobs page carries **two tabs**: **Jobs** and **Internal Transfers**. Everything in this spec describes the **Jobs** tab only.
+
+Internal transfer jobs have no customer, no PO and no line-item quarry — every column here would be empty or meaningless for them. They live on their own tab with their own columns, specified in `spec-internal-transfer-dockets.md` §3.4.
+
+**This is a filter on the data, not a branch in the logic.** The Jobs tab excludes internal transfer jobs at the query, so the aggregation in §4 never encounters one. Do not write a job-type conditional inside the column logic — there is nothing for it to handle.
+
 ---
 
-## 4. Where the data comes from
+## 3. Where the data comes from
 
 Both values live on the **job line item**, not the job.
 
@@ -65,11 +63,11 @@ Each column shows the **distinct** values across all line items on that job.
 
 ---
 
-## 5. Multi-value display — applies to both columns
+## 4. Multi-value display — applies to both columns
 
 This is the core of the build. Both columns behave identically.
 
-### 5.1 The display rule
+### 4.1 The display rule
 
 Show the **first distinct value**, then a count badge of how many *other* distinct values exist.
 
@@ -85,17 +83,19 @@ Show the **first distinct value**, then a count badge of how many *other* distin
 
 Same for quarry/supplier: `Sabeto`, `Sabeto +1`, `Sabeto +2`.
 
-### 5.2 Which value leads
+### 4.2 Which value leads
 
 **Line item order** — the value from the first line item on the job, in the order line items appear inside the job. Staff cross-referencing against the job itself see the same order.
 
-### 5.3 Distinct values only
+### 4.3 Distinct values only
 
 If three line items all carry `PO1234`, the cell reads `PO1234` with **no badge**. The count is of distinct values, not line items.
 
 Matching is on the stored value. `PO1234` and `po1234` should be treated as the same value for counting and display purposes; case-insensitive comparison, but display the value as stored on the first line item.
 
-### 5.4 The hover
+**This matters for PO only.** PO is free text, so casing varies with whoever typed it. **Quarry / Supplier is a controlled list** selected from a dropdown, so the same value is always the same string — no casing variance is possible and no case-insensitive handling is needed there.
+
+### 4.4 The hover
 
 Hovering the cell reveals the **full list of distinct values**, one per line, in the same line item order.
 
@@ -104,29 +104,29 @@ Hovering the cell reveals the **full list of distinct values**, one per line, in
 - Must also be reachable by keyboard focus, not hover alone.
 - No tooltip when there is only one value or none.
 
-### 5.5 Truncation
+### 4.5 Truncation
 
 Long values truncate with an ellipsis to keep column widths stable. **The count badge must never be truncated** — it is the signal that there is more to see. Truncated values are shown in full in the tooltip.
 
 ---
 
-## 6. The Quarry / Supplier column
+## 5. The Quarry / Supplier column
 
 - Header: `Quarry / Supplier`.
 - Position: **immediately after Customer.**
 - Visible by default.
 - Available in Show/Hide Columns.
-- Sortable, on the leading value (§5.2), ascending/descending.
-- Display rules exactly as §5.
+- Sortable, on the leading value (§4.2), ascending/descending.
+- Display rules exactly as §4.
 
-## 7. The PO column
+## 6. The PO column
 
 - Header: `PO`.
 - Position: **immediately after Project Name.**
 - Visible by default.
 - Available in Show/Hide Columns.
-- Sortable, on the leading value (§5.2), ascending/descending.
-- Display rules exactly as §5.
+- Sortable, on the leading value (§4.2), ascending/descending.
+- Display rules exactly as §4.
 
 Resulting column order:
 
@@ -144,24 +144,32 @@ Resulting column order:
 
 ---
 
-## 8. Filters
+## 7. Filters
 
 Both new filters are **chips above the table**, matching the existing `+ Status` / `+ Customer` / `+ Account Manager` pattern in appearance and behaviour.
 
-### 8.1 Quarry / Supplier filter
+### 7.1 Quarry / Supplier filter
 
 - Chip label: `Quarry / Supplier`.
 - Multi-select list of quarries/suppliers.
 - The list is short and stable, so a plain list is fine — no search field needed.
 
-### 8.2 PO filter
+### 7.2 PO filter
 
 - Chip label: `PO`.
 - Multi-select dropdown of PO numbers.
 - **Must include a type-to-narrow search field at the top of the dropdown.** PO numbers accumulate indefinitely; a plain list stops being usable within a couple of years.
-- The dropdown lists distinct PO numbers across all jobs, not only the current page.
+- The dropdown offers distinct PO numbers across all jobs, not only the current page.
 
-### 8.3 Matching semantics — important
+**Populating this dropdown is its own performance problem, separate from applying the filter.** Enumerating distinct POs across every job in a multi-year database is a real query cost paid before anyone has filtered anything. Three requirements:
+
+1. **Do not load the list on page load.** Populate it when the dropdown is opened, not before.
+2. **The search field queries the server, it does not filter a preloaded list.** Typing sends a contains-match and returns a capped set of results — 50 is ample. This means the full distinct set is *never* enumerated, which is the only version of this that still works in five years.
+3. **Index the PO column** so both the type-ahead and the filter query are served by an index rather than a scan.
+
+Point 2 is the one that matters. A search field over a fully preloaded list only helps once the expensive part has already happened.
+
+### 7.3 Matching semantics — important
 
 **A job matches if *any* of its line items match.** A job with line items carrying `PO1234` and `PO5678` appears when filtering on either. Every PO on a job is filterable, not just the one displayed in the cell.
 
@@ -169,34 +177,42 @@ Same for quarry/supplier: a job supplied from two quarries appears under both.
 
 Within one filter, multiple selections are **OR**. Across different filters, **AND** — consistent with how the existing filters combine.
 
-### 8.4 Filtering does not change the display
+### 7.4 Filtering does not change the display
 
-A job matched on its second PO still displays its **first** PO in the cell, per §5.2. The cell always shows the job's leading value; it does not reorder to show whatever matched. Consistent rows beat clever ones — and the `+N` badge plus hover tell the reader why the row is there.
+A job matched on its second PO still displays its **first** PO in the cell, per §4.2. The cell always shows the job's leading value; it does not reorder to show whatever matched. Consistent rows beat clever ones — and the `+N` badge plus hover tell the reader why the row is there.
 
 ---
 
-## 9. Global search
+## 8. Global search
 
 The existing **Search jobs…** box must also match against **PO number** and **quarry / supplier**, in addition to whatever it searches today.
 
-Same any-line-item semantics as §8.3. Partial matches, consistent with the box's current behaviour — staff paste a PO out of an email and expect the job to surface.
+Same any-line-item semantics as §7.3. Partial matches, consistent with the box's current behaviour — staff paste a PO out of an email and expect the job to surface.
 
 ---
 
-## 10. Rules and edge cases
+## 9. Rules and edge cases
 
 1. **No line items on the job.** Both cells show `—`. The job still appears in unfiltered lists.
 2. **Line items with the value blank.** Blank values are excluded from the distinct list and from the count. A job with three line items where only one has a PO shows that PO with **no badge**.
 3. **All values blank.** Cell shows `—`, same as having none.
-4. **Sorting rows with `—`.** Empty values sort last in ascending order, regardless of direction preference elsewhere — the point of sorting is to find populated rows.
-5. **Pagination and filtering are server-side.** Both new filters and the search additions must work across the full result set, not just the loaded page. Counts and pagination update accordingly.
-6. **Existing saved views, filters or URLs must not break.** Adding columns and filter options must not invalidate any persisted table state.
-7. **Column preferences persist** as they do for existing columns — if a user hides the PO column, it stays hidden for them.
-8. **Performance — developer's call.** Both columns aggregate across line items for every row, and both filters query across line items. The approach is left to the developer, but it should not be a per-row query in a loop, and it should be sanity-checked against a tenant with a large job history before this is called done.
+4. **Sorting rows with `—`.** Empty values sort **last in both directions** — ascending and descending. They are never pinned to the top. The point of sorting these columns is to find populated rows, and that holds whichever way the arrow points.
+5. **Tiebreak when leading values are equal.** Two jobs both leading with `Sabeto` are ordered by **Job Number descending** — the table's existing default order. Job Number is unique, so this fully determines row order with no third level needed.
+
+   **Never leave the tiebreak to database return order.** It looks stable in testing and shuffles in production as rows are updated, which reads to users as rows jumping around while they page through results.
+6. **Pagination and filtering are server-side.** Both new filters and the search additions must work across the full result set, not just the loaded page. Counts and pagination update accordingly.
+7. **Existing saved views, filters or URLs must not break.** Adding columns and filter options must not invalidate any persisted table state.
+8. **Column preferences persist** as they do for existing columns — if a user hides the PO column, it stays hidden for them.
+9. **Performance — three separate costs, not one.** Check each:
+   - **Column aggregation** — distinct values across line items for every row in the page. Must not be a per-row query in a loop.
+   - **Filter application** — matching jobs by any line item value once a filter is selected.
+   - **PO dropdown population** — enumerating distinct POs across the whole database, paid before any filter is applied. See §7.2; this is the one most likely to be missed because it happens before the user does anything.
+
+   The approach is left to the developer, but all three should be sanity-checked against a database with a large job history before this is called done.
 
 ---
 
-## 11. Acceptance criteria
+## 10. Acceptance criteria
 
 **Columns**
 
@@ -205,6 +221,8 @@ Same any-line-item semantics as §8.3. Partial matches, consistent with the box'
 - [ ] Both columns appear in Show/Hide Columns and can be toggled
 - [ ] Headers read exactly `Quarry / Supplier` and `PO`, matching the Line Items table
 - [ ] Both columns are sortable ascending and descending on the leading value
+- [ ] Empty values sort last in **both** ascending and descending order
+- [ ] Rows with equal leading values are ordered by Job Number descending, never by database return order
 - [ ] A user's show/hide preference for the new columns persists across sessions
 
 **Multi-value display**
@@ -225,6 +243,10 @@ Same any-line-item semantics as §8.3. Partial matches, consistent with the box'
 - [ ] A `Quarry / Supplier` filter chip appears alongside the existing chips and multi-selects
 - [ ] A PO filter chip appears alongside the existing chips and multi-selects
 - [ ] The PO dropdown has a working type-to-narrow search field
+- [ ] The PO list is populated on dropdown open, not on page load
+- [ ] The search field queries the server and returns a capped result set, rather than filtering a preloaded list
+- [ ] The full distinct PO set is never enumerated in one go
+- [ ] The PO column is indexed
 - [ ] The PO dropdown lists distinct POs across all jobs, not just the current page
 - [ ] Filtering on any PO belonging to a job returns that job, including POs not shown in the cell
 - [ ] Filtering on any quarry / supplier on a job returns that job
@@ -238,15 +260,21 @@ Same any-line-item semantics as §8.3. Partial matches, consistent with the box'
 - [ ] Searching a quarry / supplier name in Search jobs… returns the job
 - [ ] Existing search behaviour is unchanged
 
+**Tabs**
+
+- [ ] The Jobs page carries Jobs and Internal Transfers tabs
+- [ ] The Jobs tab excludes internal transfer jobs at the query
+- [ ] No job-type conditional exists inside the column aggregation logic
+
 **Regressions**
 
 - [ ] Existing columns, filters, sorting and pagination are unaffected
 - [ ] Jobs with no line items render correctly and remain listable
-- [ ] Table performance on a tenant with a large job history is not materially degraded
+- [ ] Table performance with a large job history is not materially degraded
 
 ---
 
-## 12. Decisions taken
+## 11. Decisions taken
 
 | # | Question | Decision |
 |---|---|---|
@@ -258,11 +286,10 @@ Same any-line-item semantics as §8.3. Partial matches, consistent with the box'
 | 6 | Which value leads the cell | Line item order |
 | 7 | Global search | Matches both PO and quarry / supplier |
 | 8 | Multiple identical values | Counted once — distinct values only |
-| 9 | Tenant scope | All tenants, on by default, no flag |
 
 ---
 
-## 13. Out of scope
+## 12. Out of scope
 
 - Surfacing quarry / supplier or PO anywhere other than the Jobs table
 - Editing quarry / supplier or PO from the Jobs table
