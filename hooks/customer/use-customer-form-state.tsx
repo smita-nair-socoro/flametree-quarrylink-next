@@ -230,10 +230,12 @@ export function useCustomerFormState({
   const { data: allUsers = [] } = useQuery(UsersListQueryOptions());
   const users = React.useMemo(
     () =>
-      allUsers.filter(
-        (user) =>
-          !user.groups.some((group) => group.toLowerCase().includes('driver')),
-      ),
+      allUsers.filter((user) => {
+        const groups = Array.isArray(user.groups) ? user.groups : [];
+        return !groups.some((group) =>
+          String(group).toLowerCase().includes('driver'),
+        );
+      }),
     [allUsers],
   );
   const accountManagerOptions = React.useMemo(

@@ -6,7 +6,7 @@
 | **Prepared** | 1 September 2026 |
 | **Status** | Ready for build — no open items |
 | **Audience** | Developer (Cursor) |
-| **Related** | `spec-payments-tab.md` (adds an Internal Transfers sub-tab) · `spec-job-list-quarry-and-po-columns.md` (§3.4 below) · `spec-decimal-precision-acumatica-balancing.md` (journal amounts follow those rules) |
+| **Related** | `spec-payments-tab.md` (adds an Internal Transfers sub-tab) · `spec-job-list-quarry-and-po-columns.md` (the Jobs tab, §3.4 below) · `spec-decimal-precision-acumatica-balancing.md` (journal amounts follow those rules) |
 
 ---
 
@@ -61,17 +61,35 @@ Dockets **inherit the job's From Site and To Site and display them read-only.** 
 
 If material needs to move a different direction or between a different pair of sites, that is a different job.
 
-### 3.4 How internal transfer jobs appear in the Jobs list
+### 3.4 Internal transfer jobs live on their own tab
 
-Per `spec-job-list-quarry-and-po-columns.md`:
+**Internal transfer jobs are not listed in the main Jobs table.** The Jobs page carries two tabs:
 
-| Column | Shows |
+| Tab | Contents |
 |---|---|
-| Customer | `Internal Transfer` — not blank, not a dash |
-| Quarry / Supplier | The job's **From Site** |
-| PO | `—` |
+| **Jobs** | Customer jobs, as today — with the Quarry / Supplier and PO columns from `spec-job-list-quarry-and-po-columns.md` |
+| **Internal Transfers** | Internal transfer jobs only |
 
-Customer filters must not return internal transfer jobs when filtering by a real customer, and must not error on them.
+**Why separate rather than mixed in.** An internal transfer job has no customer, no PO and no line-item quarry. Listing it in the Jobs table would mean either empty cells across three columns, or placeholder values invented to fill them — and it would force a job-type branch into the column aggregation logic. Splitting the tabs means each table shows real data for every row, and neither needs to know about the other's job type.
+
+**The Jobs tab excludes internal transfer jobs at the query.** Do not write a job-type conditional inside the column logic — there is nothing for it to handle.
+
+#### Internal Transfers tab columns
+
+| Column | Notes |
+|---|---|
+| Job Number | |
+| From Site | |
+| To Site | |
+| Dockets | Count of transfer dockets on the job |
+| Status | Existing job status |
+| Account Manager | |
+| *(actions)* | Row menu, as the Jobs tab has |
+
+- Sortable columns, consistent with the Jobs tab.
+- Keyword search across job number, from site and to site.
+- No Customer, PO or Quarry / Supplier columns — none of them apply.
+- No KPI cards.
 
 ---
 
@@ -265,12 +283,14 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 - [ ] A job's sites cannot be changed once dockets exist
 - [ ] The job never produces an invoice or cash sale and never appears in their selection screens
 
-**Jobs list**
+**Jobs page tabs**
 
-- [ ] Customer column shows `Internal Transfer`
-- [ ] Quarry / Supplier column shows the From Site
-- [ ] PO column shows `—`
-- [ ] Customer filters do not error on these rows and do not return them for a real customer
+- [ ] The Jobs page carries Jobs and Internal Transfers tabs
+- [ ] Internal transfer jobs appear only on the Internal Transfers tab
+- [ ] The Jobs tab excludes them at the query, with no job-type conditional in the column logic
+- [ ] The Internal Transfers tab shows Job Number, From Site, To Site, Dockets, Status, Account Manager and row actions
+- [ ] Its columns are sortable and keyword search covers job number, from site and to site
+- [ ] No Customer, PO or Quarry / Supplier columns appear on that tab
 
 **Docket**
 
@@ -368,11 +388,12 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 | 10 | Docket fields | The full existing field set, minus the site pickers |
 | 11 | Summary block | Renamed **Transfer Summary** |
 | 12 | Stock | None — Flame Tree have no Stockpile module. Journal only |
-| 13 | Visibility | Job level and a third Payments sub-tab |
+| 13 | Visibility | Own tab on the Jobs page, job level, and a third Payments sub-tab |
 | 14 | Pre-completion changes | Allowed and normal. The journal only exists on completion, so nothing needs unwinding before then |
 | 15 | Corrections after completion | **Void**, gated by the existing `Void Transactions` permission — reverses the journal, audited. **No void report, no emails** |
 | 16 | What a void leaves behind | A terminal, immutable `VOID` docket. The redo is a **new docket with a new reference**, not the old one reopened |
 | 17 | Void / sync race | Void and cancel commit together; the worker re-checks at dispatch; an escaped push falls through to the `Synced` reversal path |
+| 18 | Where transfer jobs are listed | Their own **Internal Transfers** tab on the Jobs page, not mixed into the Jobs table |
 
 ---
 

@@ -306,6 +306,7 @@ export interface JobAttachmentDTO {
   fileName: string;
   category: string;
   uploadedAt: string;
+  uploadedBy?: string;
   fileExtension: string;
   fileSizeBytes: number;
 }

@@ -62,6 +62,43 @@ function isPublicEndpoint(pathString: string): boolean {
   return PUBLIC_ENDPOINT_PATTERNS.some((pattern) => pattern.test(pathString));
 }
 
+const NULL_BODY_STATUSES = new Set([101, 204, 205, 304]);
+
+async function toProxyResponse(response: Response): Promise<NextResponse> {
+  const contentType = response.headers.get("content-type") || "";
+  const headers: Record<string, string> = {};
+
+  if (contentType) {
+    headers["Content-Type"] = contentType;
+  }
+
+  const contentDisposition = response.headers.get("content-disposition");
+  if (contentDisposition) {
+    headers["Content-Disposition"] = contentDisposition;
+  }
+
+  if (NULL_BODY_STATUSES.has(response.status)) {
+    return new NextResponse(null, {
+      status: response.status,
+      headers,
+    });
+  }
+
+  if (contentType.includes("application/json")) {
+    const data = await response.text();
+    return new NextResponse(data, {
+      status: response.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const blob = await response.blob();
+  return new NextResponse(blob, {
+    status: response.status,
+    headers,
+  });
+}
+
 export async function proxyRequest(
   req: NextRequest,
   pathSegments: string[],
@@ -97,25 +134,7 @@ export async function proxyRequest(
 
     try {
       const response = await fetch(targetUrl, publicInit);
-      const contentType = response.headers.get("content-type") || "";
-
-      if (!contentType.includes("application/json")) {
-        const blob = await response.blob();
-        return new NextResponse(blob, {
-          status: response.status,
-          headers: {
-            "Content-Type": contentType,
-            "Content-Disposition":
-              response.headers.get("content-disposition") || "",
-          },
-        });
-      }
-
-      const data = await response.text();
-      return new NextResponse(data, {
-        status: response.status,
-        headers: { "Content-Type": "application/json" },
-      });
+      return await toProxyResponse(response);
     } catch (error) {
       console.error("Proxy error (public):", error);
       return NextResponse.json(
@@ -125,11 +144,17 @@ export async function proxyRequest(
     }
   }
 
-  const token = await getToken({
-    req,
-    secret: process.env.AUTH_SECRET,
-    cookieName: "__Secure-authjs.session-token",
-  });
+  const token =
+    (await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+      cookieName: "__Secure-authjs.session-token",
+    })) ??
+    (await getToken({
+      req,
+      secret: process.env.AUTH_SECRET,
+      cookieName: "authjs.session-token",
+    }));
 
   if (!token?.sub) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -168,26 +193,7 @@ export async function proxyRequest(
 
   try {
     const response = await fetch(targetUrl, init);
-    const contentType = response.headers.get("content-type") || "";
-
-    // Pass through non-JSON responses (images, files, etc.)
-    if (!contentType.includes("application/json")) {
-      const blob = await response.blob();
-      return new NextResponse(blob, {
-        status: response.status,
-        headers: {
-          "Content-Type": contentType,
-          "Content-Disposition":
-            response.headers.get("content-disposition") || "",
-        },
-      });
-    }
-
-    const data = await response.text();
-    return new NextResponse(data, {
-      status: response.status,
-      headers: { "Content-Type": "application/json" },
-    });
+    return await toProxyResponse(response);
   } catch (error) {
     console.error("Proxy error:", error);
     return NextResponse.json(
