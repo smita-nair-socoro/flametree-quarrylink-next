@@ -478,7 +478,7 @@ export function useJobActions(jobData?: JobDetails | null) {
         useSelectedJob: true,
       }}
     >
-      <JobForm canEdit={canEdit} />
+      <JobForm id={selectedJob?.id} canEdit={canEdit} />
     </FormDialog>
   ) : null;
 
