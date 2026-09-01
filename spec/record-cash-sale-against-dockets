@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Requested by** | Flame Tree (first tenant to ask; feature is being built for all tenants) |
+| **Client** | Flame Tree |
 | **Prepared** | 31 August 2026 |
 | **Status** | Ready for build — no open items |
 | **Audience** | Developer (Cursor) |
@@ -33,7 +33,7 @@ The material this spec was built from contains three contradictions. **These are
 |---|---|---|
 | **Delivery dockets** | The flow diagram states *"DD can ONLY be invoiced. No cash sale allowed."* | **Wrong — superseded.** Delivery dockets **can** be cash sold, on the same terms as collection dockets. **The flow diagram is out of date and should be updated.** |
 | **Receipt prefix** | Body text says `CC-0000` | **`CS-` prefix**, matching every screenshot |
-| **Payment types** | Variously "Cash / EFTPOS", then EFT / Cash / EFTPOS, then five types | **Configurable per tenant** from a master list of five — see §8 |
+| **Payment types** | Variously "Cash / EFTPOS", then EFT / Cash / EFTPOS, then five types | **Five types** — see §8 |
 
 ---
 
@@ -124,7 +124,7 @@ Keep it compact — docket number, type, amount, one per line. For a single-dock
 
 ### 6.2 Payment type selection
 
-The payment type is chosen from the **Confirm Sale** dropdown. The list is the tenant's enabled payment types (§8).
+The payment type is chosen from the **Confirm Sale** dropdown. The list is the five types at §8.
 
 **A payment type must be selected before the sale can be recorded.** If the user activates the button without choosing, either present the type list rather than submitting, or block with a clear prompt. Do not default silently to Cash — a wrong payment type cannot be corrected later (§12).
 
@@ -142,7 +142,7 @@ The payment type is chosen from the **Confirm Sale** dropdown. The list is the t
 
 | Field | Value |
 |---|---|
-| Reference | Sequential, `CS-` prefix, **one continuous sequence per tenant** |
+| Reference | Sequential, `CS-` prefix, **one continuous sequence** |
 | Job | Linked job ID |
 | Dockets | Included docket IDs — one-to-many |
 | Total amount received | Sum of included docket totals |
@@ -175,11 +175,9 @@ Creating the receipt and updating the dockets is **one transaction**. A partial 
 
 `Cash` · `EFTPOS` · `EFT` · `Credit Card` · `M-PAISA`
 
-**Configurable per tenant.** Each tenant enables the types it actually accepts; only enabled types appear in the Confirm Sale dropdown. M-PAISA is a Fijian mobile money service and should not be presented to tenants who don't use it.
+All five appear in the Confirm Sale dropdown. Flame Tree operate in Fiji and accept all of them, M-PAISA included.
 
-- Configuration lives in tenant settings.
-- At least one type must be enabled.
-- Disabling a type does not alter existing receipts — historical values still display correctly, including for types since disabled.
+The list is fixed in code for this implementation. No configuration screen, no enable/disable toggles.
 
 **No connection to POS or bank.** The payment type is recorded for visibility and for Acumatica. QuarryLink does not process, verify or reconcile the payment itself.
 
@@ -224,7 +222,9 @@ Shown on the Cash Sales table (§10.1), in View Details (§11), and on the Payme
 
 ### 9.3 Where failures are surfaced
 
-Failures surface in the **Payments → Cash Payments** table filtered by `Failed` — see `spec-payments-tab.md`. That table carries reference, job, customer, amount, payment type, sync status and a Retry action, mirroring the pattern already used for invoices.
+Failures surface in the **Payments → Cash Payments** table with its **`Failed only` toggle** switched on — see `spec-payments-tab.md` §5.5. That table carries reference, job, customer, amount, payment type, sync status and a Retry action, mirroring the pattern already used for invoices.
+
+**This is a hard dependency.** The toggle is the only way to isolate failures — sync status is not in the keyword search and there is no filter chip for it. If the toggle is not built, nothing in this section works.
 
 What that table must provide for this purpose:
 
@@ -234,7 +234,7 @@ What that table must provide for this purpose:
 
 **Retry is the single most valuable control in this section.** Most permanent rejections are fixable *in Acumatica* — reopen the period, map the customer, correct the account — and then the same payload succeeds. Without a manual retry, every one of those becomes a developer ticket. With it, they become a five-minute job for whoever administers Acumatica.
 
-**Scope:** each tenant sees only their own unsynced receipts. There is no cross-tenant support view in this build.
+**Scope:** unsynced receipts for this implementation only. There is no cross-client support view.
 
 ### 9.4 Making failures impossible to ignore
 
@@ -364,10 +364,18 @@ The design principle: **a correction is an entry in the audit trail, not a hole 
 
 - Available from the receipt's `⋯` menu, Admins and Super Admins only.
 - Changes **only** the payment type. Amount, dockets, customer, date and reference are untouched.
-- Requires the user to select the corrected type from the tenant's enabled list.
+- Requires the user to select the corrected type from the five at §8.
 - **Records an audit entry**: previous type, new type, who changed it, when.
 - View Details shows the current type, and that it was amended, with the history available.
-- Pushes the corrected payment method to Acumatica. If the receipt is not yet `Synced`, the pending payload is updated rather than a second push raised.
+- Pushes the corrected payment method to Acumatica. Behaviour depends on the receipt's sync state:
+
+| Sync state | On amend |
+|---|---|
+| `Synced` | Push the correction to Acumatica |
+| `Not synced` | Update the pending payload. Do not raise a second push |
+| `Failed` | **Reset to `Not synced` and queue a fresh push.** Do not leave it `Failed` awaiting a separate Retry |
+
+**Why `Failed` re-queues automatically:** a wrong payment type is a plausible *cause* of a permanent rejection — an unmapped payment method in Acumatica, for instance. Someone amending a failed receipt is most likely fixing the thing that broke it, so making them then hunt for Retry as a second step is a trap. Amend and re-attempt are one action.
 - Amending does not change docket status — the dockets stay Cash Sale throughout.
 
 ### 12.2 Void
@@ -406,7 +414,7 @@ Voiding releases dockets and reverses a payment record. The person taking cash a
 
 **1. A `Void Transactions` permission**
 
-- Granted **independently of the Admin role**, so a tenant can have six Admins and two people who can void.
+- Granted **independently of the Admin role**, so there can be six Admins and two people who can void.
 - Not granted by default to any role on rollout — it must be assigned deliberately.
 - **This one permission covers every void in the product**, not just cash sales — internal transfer voids are gated by the same right (`spec-internal-transfer-dockets.md` §13). One void permission, not one per feature.
 - **Amend Payment Type** stays with Admins and Super Admins; it is a lower-consequence action that changes no financial position and releases no dockets.
@@ -444,7 +452,7 @@ Once a docket carries a financial outcome, its available actions narrow:
 |---|---|
 | Collection docket, Collected | Invoice · Cash Sale |
 | Delivery docket, Delivered | Invoice · Cash Sale |
-| Any docket, Cash Sale | Cash Receipts only |
+| Any docket, Cash Sale | View Receipt only |
 | Any docket, Invoiced | View Invoice only |
 
 Action menus must reflect this exactly. An invoiced docket offering a Cash Sale button is the bug this table exists to prevent.
@@ -457,6 +465,10 @@ Action menus must reflect this exactly. An invoiced docket offering a Cash Sale 
 
 1. **Concurrency.** Two users confirming against overlapping dockets simultaneously: the first commits, the second is rejected with the §3.1 message naming the affected dockets. Enforced server-side.
 2. **Zero-value dockets.** A docket totalling $0.00 is still eligible if otherwise valid. Recording a $0.00 cash sale is odd but not invalid — do not block it, and do not treat $0.00 as an error state.
+
+   **Confirm what Acumatica does with a zero-value payment before building the push.** If it accepts one, push as normal. **If it rejects zero-value payments, do not push at all** — leave the receipt `Not synced`, record the reason, and let it sit. That state already covers "not applicable" (§9.2), so no new status is needed.
+
+   What must not happen is pushing a zero-value payment that Acumatica always rejects, producing a permanently `Failed` receipt that no retry can ever clear.
 3. **Empty selection.** The Cash Sale action is disabled when nothing is selected.
 4. **All dockets ineligible.** If a job has no eligible dockets, the selection screen shows an empty state rather than an empty table with no explanation.
 5. **Cancel discards.** Nothing is recorded and no docket status changes.
@@ -505,7 +517,6 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | **`Void Transactions` must be assigned deliberately** | The permission defaults to nobody. If it is never granted, the only correction path is unavailable and unrecoverable receipts return as a problem. Assign it to at least one person — ideally not the person taking payment — as part of go-live. |
 | **Delivery dockets now in scope** | This widens the feature well beyond the original story and invalidates the flow diagram. Anyone working from that diagram will build the wrong eligibility rules. |
 | **Mixed docket types on one receipt** | Reporting that assumes a cash sale is collection-only will be wrong. Worth checking any existing reporting before release. |
-| **Per-tenant payment types** | A new configuration surface. Ensure a sensible default so no tenant lands with an empty dropdown. |
 
 ---
 
@@ -514,20 +525,22 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | # | Question | Decision |
 |---|---|---|
 | 1 | Delivery dockets | **Eligible** — flow diagram superseded |
-| 2 | Payment types | Five-type master list, configurable per tenant |
+| 2 | Payment types | Cash, EFTPOS, EFT, Credit Card and M-PAISA — fixed in code, no configuration screen |
 | 3 | Corrections | Admin-only **Amend Payment Type** and **Void**, both audited. No editing, no deletion, no un-void |
 | 4 | Acumatica | In scope, pushed on confirm |
 | 5 | Push failure | Record locally; classify transient vs permanent; retry transient only; surface the rest as `Failed` with a manual retry |
 | 6 | Mixed docket types | Allowed on one receipt, same job only |
-| 7 | Receipt reference | `CS-` prefix, sequential per tenant |
-| 8 | Permissions | Recording a cash sale: same as invoicing. Amend Payment Type: Admin / Super Admin. Void: the `Void Transactions` permission, which covers every void in the product |
+| 7 | Receipt reference | `CS-` prefix, one continuous sequence |
+| 8 | Permissions | Recording a cash sale: same as invoicing. Amend Payment Type: Admin / Super Admin. Void: the `Void Transactions` permission, which covers every void |
 | 9 | Partial payment | Not supported |
 | 10 | Cross-job | Prohibited |
 | 11 | Sync visibility | **In-app only — an alert badge and a notification banner. No emails.** Failed records surface in the Payments → Cash Payments table — see `spec-payments-tab.md` |
-| 12 | Cross-tenant support view | Out of scope — each tenant works their own failures |
-| 13 | Void oversight | The `Void Transactions` permission plus VOID rows in the existing tables. **No void report, no emails** — nothing additional is built |
-| 14 | Bulk/individual dropdown | Not needed — one selection produces one receipt |
-| 15 | Mixed tender | Different dockets by different methods: supported via separate receipts. One docket split across methods: not supported |
+| 12 | Void oversight | The `Void Transactions` permission plus VOID rows in the existing tables. **No void report, no emails** — nothing additional is built |
+| 13 | Bulk/individual dropdown | Not needed — one selection produces one receipt |
+| 14 | Mixed tender | Different dockets by different methods: supported via separate receipts. One docket split across methods: not supported |
+| 15 | Finding failures | The `Failed only` toggle on the Payments → Cash Payments table — a hard dependency on `spec-payments-tab.md` §5.5 |
+| 16 | Amend on a `Failed` receipt | Resets to `Not synced` and re-queues automatically — no separate Retry click |
+| 17 | Zero-value pushes | Confirm Acumatica's behaviour first. If it rejects zero-value payments, skip the push and leave the receipt `Not synced` |
 
 ---
 
@@ -566,13 +579,13 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] The docket list appears for single-docket cash sales too
 - [ ] The amount cannot be edited or reduced
 - [ ] Confirm Sale requires an explicit payment type selection
-- [ ] Only the tenant's enabled payment types appear
+- [ ] All five payment types appear in the dropdown
 - [ ] Cancel records nothing and changes no docket
 
 **On confirm**
 
 - [ ] A receipt is created with reference, job, dockets, total, payment type, recorded date, recorded by and audit fields
-- [ ] References are sequential per tenant with a `CS-` prefix and never reused
+- [ ] References are sequential with a `CS-` prefix and never reused
 - [ ] Every included docket is marked Cash Sale
 - [ ] Invoicing actions disappear from included dockets
 - [ ] A second cash sale cannot be recorded against an included docket
@@ -588,8 +601,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] Acumatica's error text is stored and displayed against the receipt
 - [ ] Transient retries stop at a defined ceiling and reclassify as `Failed`
 - [ ] Each receipt shows a `Synced` / `Not synced` / `Failed` badge
-- [ ] Failed receipts are findable by filtering the Payments → Cash Payments table
-- [ ] That table shows only the current tenant's receipts
+- [ ] Failed receipts are findable via the `Failed only` toggle on the Payments → Cash Payments table
 - [ ] Retry re-attempts the push and succeeds once the cause is fixed in Acumatica
 - [ ] An alert badge shows the count of failed receipts on the Payments area and the job's Cash Sales tab
 - [ ] A notification banner appears whenever at least one record is `Failed`, linking to the filtered table
@@ -612,7 +624,10 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] **No emails are sent on void**
 - [ ] Amend Payment Type changes the type and nothing else
 - [ ] Amending records previous type, new type, user and timestamp
-- [ ] Amending pushes the corrected method to Acumatica, updating a pending payload rather than raising a second push
+- [ ] Amending a `Synced` receipt pushes the correction to Acumatica
+- [ ] Amending a `Not synced` receipt updates the pending payload rather than raising a second push
+- [ ] Amending a `Failed` receipt resets it to `Not synced` and queues a fresh push automatically
+- [ ] No separate Retry click is needed after amending a failed receipt
 - [ ] Amending does not change docket status
 - [ ] Void requires a reason to be given
 - [ ] Void creates a reversal record and never deletes or alters the original
@@ -657,8 +672,9 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 
 **Restrictions**
 
-- [ ] A cash-sold docket offers Cash Receipts only
+- [ ] A cash-sold docket offers View Receipt only
 - [ ] An invoiced docket offers View Invoice only
+- [ ] A zero-value cash sale is not blocked, and its push behaviour matches Acumatica's confirmed handling
 - [ ] No action menu offers Cash Sale on an ineligible docket
 
 ---
@@ -671,7 +687,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - Partial payments
 - Splitting a single docket across multiple payment methods
 - Multiple payment types on one receipt
-- A cross-tenant sync failure view for QuarryLink support
+- A cross-client sync failure view for QuarryLink support
 - **Email alerts of any kind** — for sync failures, voids or anything else in this spec
 - **A void report or any other new reporting surface** — voids are reviewed in the existing tables
 - Any in-app notification system — visibility is the alert badge and banner only
