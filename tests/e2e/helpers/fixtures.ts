@@ -118,6 +118,22 @@ export class ApiClient {
     });
   }
 
+  private async postMultipart(
+    path: string,
+    file: { name: string; mimeType: string; buffer: Buffer },
+  ) {
+    return this.request.post(`${BASE_URL}${path}`, {
+      headers: { Cookie: this.cookie },
+      multipart: {
+        file: {
+          name: file.name,
+          mimeType: file.mimeType,
+          buffer: file.buffer,
+        },
+      },
+    });
+  }
+
   // -- Products --
   products = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/product${params ? `?${params}` : ''}`),
@@ -139,6 +155,26 @@ export class ApiClient {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/job${params ? `?${params}` : ''}`),
     attachments: (jobId: number) =>
       this.get(`/socoro/quarrylink/api/job/${jobId}/attachments`),
+    uploadAttachment: (
+      jobId: number,
+      params: {
+        category: string;
+        fileName: string;
+        file: { name: string; mimeType: string; buffer: Buffer };
+      },
+    ) =>
+      this.postMultipart(
+        `/socoro/quarrylink/api/job/${jobId}/attachments?category=${encodeURIComponent(params.category)}&fileName=${encodeURIComponent(params.fileName)}`,
+        params.file,
+      ),
+    deleteAttachment: (jobId: number, attachmentId: number) =>
+      this.delete(
+        `/socoro/quarrylink/api/job/${jobId}/attachments/${attachmentId}`,
+      ),
+    downloadAttachment: (jobId: number, attachmentId: number) =>
+      this.get(
+        `/socoro/quarrylink/api/job/${jobId}/attachments/${attachmentId}`,
+      ),
   };
 
   // -- Dockets --
