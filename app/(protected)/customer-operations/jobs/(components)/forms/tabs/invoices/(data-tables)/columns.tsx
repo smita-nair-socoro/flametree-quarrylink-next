@@ -12,6 +12,7 @@ import { DateCell } from '@/components/date-cell';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { INVOICE_STATUS } from '@/lib/types/invoice-enums';
 import { InvoiceTableActions } from './invoice-table-actions';
+import { InvoiceAccountingSyncCell } from './invoice-accounting-sync-cell';
 import { HelpCircle } from 'lucide-react';
 import {
   DEFAULT_CURRENCY_CODE,
@@ -107,6 +108,18 @@ export const getInvoicesColumns = (
       );
     },
     meta: 'Status',
+  },
+  {
+    id: 'accountingSync',
+    accessorFn: (row) => row.accountingSync ?? row.status,
+    enableSorting: false,
+    header: () => {
+      return <div>Accounting Sync</div>;
+    },
+    cell: ({ row }) => {
+      return <InvoiceAccountingSyncCell invoice={row.original} />;
+    },
+    meta: 'Accounting Sync',
   },
   {
     id: 'actions',

@@ -98,6 +98,13 @@ import {
   DeleteJobItemResponse,
   JobAttachmentDTO,
 } from '../types/job';
+import type {
+  PaymentsCashSale,
+  PaymentsInternalTransfer,
+  PaymentsInvoice,
+  PaymentsInvoiceStatistics,
+  PaymentsPage,
+} from '../types/payments';
 import {
   HaulierCreateDTO,
   HaulierDTO,
@@ -1582,6 +1589,36 @@ export const APIClient = {
       ),
     statistics: () =>
       appClient.Get<JobStatistics>(`/socoro/quarrylink/api/job/statistics`),
+    getInternalTransfers: async (params?: {
+      page?: number;
+      pageSize?: number;
+      search?: string;
+      sortBy?: string;
+      sortOrder?: string;
+      statuses?: string[];
+    }) => {
+      return appClient.Get<JobsListResponse>(
+        `/socoro/quarrylink/api/job/internal-transfers`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+          },
+        },
+      );
+    },
+    createInternalTransfer: (data: {
+      fromSiteId: number;
+      toSiteId: number;
+      notes?: string;
+    }) =>
+      appClient.Post<JobDTO>(`/socoro/quarrylink/api/job/internal-transfers`, {
+        body: data,
+      }),
     getAttachments: (jobId: number) =>
       appClient.Get<JobAttachmentDTO[]>(
         `/socoro/quarrylink/api/job/${jobId}/attachments`,
@@ -1908,6 +1945,67 @@ export const APIClient = {
     },
   },
 
+  payments: {
+    cashSales: (params?: {
+      search?: string;
+      fromDate?: string;
+      toDate?: string;
+      failedOnly?: boolean;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<PaymentsPage<PaymentsCashSale>>(
+        `/socoro/quarrylink/api/payments/cash-sales`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            failedOnly: params?.failedOnly ? 'true' : undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    internalTransfers: (params?: {
+      search?: string;
+      fromDate?: string;
+      toDate?: string;
+      failedOnly?: boolean;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<PaymentsPage<PaymentsInternalTransfer>>(
+        `/socoro/quarrylink/api/payments/internal-transfers`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            failedOnly: params?.failedOnly ? 'true' : undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    failedCount: () =>
+      appClient.Get<{ failedCount: number }>(
+        `/socoro/quarrylink/api/payments/failed-count`,
+      ),
+    retryInternalTransferJournal: (journalId: number) =>
+      appClient.Put<void>(
+        `/socoro/quarrylink/api/payments/internal-transfers/journals/${journalId}/retry`,
+      ),
+  },
+
   invoices: {
     pullFromAccSoftware: () =>
       appClient.Put<PullFromAccSoftwareResponse>(
@@ -1945,6 +2043,39 @@ export const APIClient = {
       appClient.Post<CreateInvoiceResponseDTO>(
         `/socoro/quarrylink/api/invoices`,
         { body: data },
+      ),
+    listPayments: (params?: {
+      search?: string;
+      fromDate?: string;
+      toDate?: string;
+      failedOnly?: boolean;
+      sortBy?: string;
+      sortOrder?: string;
+      page?: number;
+      pageSize?: number;
+    }) =>
+      appClient.Get<PaymentsPage<PaymentsInvoice>>(
+        `/socoro/quarrylink/api/invoices`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+            fromDate: params?.fromDate,
+            toDate: params?.toDate,
+            failedOnly: params?.failedOnly ? 'true' : undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+          },
+        },
+      ),
+    statistics: () =>
+      appClient.Get<PaymentsInvoiceStatistics>(
+        `/socoro/quarrylink/api/invoices/statistics`,
+      ),
+    retryOne: (invoiceId: number) =>
+      appClient.Put<RetrySyncResponse>(
+        `/socoro/quarrylink/api/invoices/${invoiceId}/retry`,
       ),
     retrySync: (jobId: number) =>
       appClient.Put<RetrySyncResponse>(

@@ -249,6 +249,10 @@ export function useJobFormState({
     onDirtyChange?.(jobForm.formState.isDirty);
   }, [jobForm.formState.isDirty, onDirtyChange]);
 
+  const isInternalTransfer =
+    jobDetails?.jobType === 'INTERNAL_TRANSFER' ||
+    selectedJob?.jobType === 'INTERNAL_TRANSFER';
+
   const tabs = React.useMemo(
     () => [
       {
@@ -259,12 +263,16 @@ export function useJobFormState({
         name: 'Dockets',
         content: <DocketsTab selectedJob={jobDetails ?? null} />,
       },
-      {
-        name: 'Invoices',
-        content: <InvoicesTab jobId={jobId} />,
-      },
+      ...(!isInternalTransfer
+        ? [
+            {
+              name: 'Invoices',
+              content: <InvoicesTab jobId={jobId} />,
+            },
+          ]
+        : []),
     ],
-    [jobDetails, jobId],
+    [jobDetails, jobId, isInternalTransfer],
   );
 
   const onSubmit = React.useCallback(
@@ -384,5 +392,6 @@ export function useJobFormState({
     tabs,
     isPending,
     onSubmit,
+    isInternalTransfer,
   };
 }
