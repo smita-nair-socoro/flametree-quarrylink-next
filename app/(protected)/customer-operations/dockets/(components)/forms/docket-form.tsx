@@ -78,6 +78,7 @@ import { STOP_REASON_LABELS } from '@/hooks/docket/stop-transit-content';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
+import { getDocketSignOffCopy } from '@/lib/utils/docket-sign-off';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
 const truckTypeOptions: FormSelectOption[] = sortByLabel(
@@ -258,6 +259,28 @@ export default function DocketForm({
       : currentStatus === DOCKET_STATUS.PREPARING ||
       currentStatus === DOCKET_STATUS.READY ||
       currentStatus === DOCKET_STATUS.COLLECTED);
+
+  const hasDeliveryProof = !!(
+    selectedDocket?.signatureImage ||
+    selectedDocket?.unloadedPhotos?.length ||
+    selectedDocket?.receivedPhotos?.length ||
+    selectedDocket?.receiverName
+  );
+  const showDeliverySignOff =
+    isEditing &&
+    isDelivery &&
+    (currentStatus === DOCKET_STATUS.DELIVERED ||
+      currentStatus === DOCKET_STATUS.INVOICED) &&
+    hasDeliveryProof;
+  const showCollectionSignOff =
+    isEditing &&
+    !isDelivery &&
+    !!selectedDocket?.deliveredAt &&
+    (currentStatus === DOCKET_STATUS.COLLECTED ||
+      currentStatus === DOCKET_STATUS.INVOICED ||
+      currentStatus === DOCKET_STATUS.CASH_SALE);
+  const showSignOff = showDeliverySignOff || showCollectionSignOff;
+  const signOffCopy = getDocketSignOffCopy(!isDelivery);
 
   const ASSIGNED_STATUSES = new Set([
     DOCKET_STATUS.ASSIGNED,
@@ -1946,16 +1969,7 @@ export default function DocketForm({
               })()}
 
               {/* Sign Off Section */}
-              {isEditing &&
-                isDelivery &&
-                (currentStatus === DOCKET_STATUS.DELIVERED ||
-                  currentStatus === DOCKET_STATUS.INVOICED) &&
-                !!(
-                  selectedDocket?.signatureImage ||
-                  selectedDocket?.unloadedPhotos?.length ||
-                  selectedDocket?.receivedPhotos?.length ||
-                  selectedDocket?.receiverName
-                ) && (
+              {showSignOff && (
                   <div className="border rounded-md p-4 flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -1966,7 +1980,7 @@ export default function DocketForm({
                       </div>
                       {selectedDocket?.deliveredAt && (
                         <span className="text-sm text-muted-foreground">
-                          Delivered at{' '}
+                          {signOffCopy.atPrefix}{' '}
                           {format(
                             new Date(selectedDocket.deliveredAt),
                             'hh:mm a',
@@ -1975,10 +1989,11 @@ export default function DocketForm({
                       )}
                     </div>
 
+                    {signOffCopy.showReceiverOnSite ? (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col gap-1">
                         <span className="text-sm text-muted-foreground">
-                          Receiver Name
+                          {signOffCopy.nameLabel}
                         </span>
                         <span
                           className={cn(
@@ -2007,18 +2022,35 @@ export default function DocketForm({
                         </span>
                       </div>
                     </div>
+                    ) : (
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm text-muted-foreground">
+                        {signOffCopy.nameLabel}
+                      </span>
+                      <span
+                        className={cn(
+                          'font-semibold',
+                          selectedDocket?.receiverName
+                            ? 'text-base'
+                            : 'text-sm text-[#99A1AF]',
+                        )}
+                      >
+                        {selectedDocket?.receiverName ?? 'N/A'}
+                      </span>
+                    </div>
+                    )}
 
                     <div className="grid grid-cols-3 gap-4">
                       <div className="flex flex-col gap-2">
                         <span className="text-sm text-muted-foreground">
-                          Unloaded Photo
+                          {signOffCopy.photo1Label}
                         </span>
                         {selectedDocket?.unloadedPhotos?.[0] ? (
                           <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.unloadedPhotos[0]}
-                              alt="Unloaded"
+                              alt={signOffCopy.photo1Label}
                               className="w-full h-full object-cover"
                             />
                             <button
@@ -2026,7 +2058,7 @@ export default function DocketForm({
                               onClick={() =>
                                 setPreviewImage({
                                   src: selectedDocket.unloadedPhotos![0],
-                                  title: 'Unloaded Photo',
+                                  title: signOffCopy.photo1Label,
                                 })
                               }
                               className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
@@ -2042,7 +2074,7 @@ export default function DocketForm({
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
                             <ImageOff className="w-5 h-5 text-[#99A1AF]" />
                             <span className="text-xs text-[#99A1AF]">
-                              No photo provided
+                              {signOffCopy.emptyPhotoPlaceholder}
                             </span>
                           </div>
                         )}
@@ -2050,14 +2082,14 @@ export default function DocketForm({
 
                       <div className="flex flex-col gap-2">
                         <span className="text-sm text-muted-foreground">
-                          Receipt Photo
+                          {signOffCopy.photo2Label}
                         </span>
                         {selectedDocket?.receivedPhotos?.[0] ? (
                           <div className="relative rounded-md overflow-hidden aspect-video bg-gray-100">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.receivedPhotos[0]}
-                              alt="Receipt"
+                              alt={signOffCopy.photo2Label}
                               className="w-full h-full object-cover"
                             />
                             <button
@@ -2065,7 +2097,7 @@ export default function DocketForm({
                               onClick={() =>
                                 setPreviewImage({
                                   src: selectedDocket.receivedPhotos![0],
-                                  title: 'Receipt Photo',
+                                  title: signOffCopy.photo2Label,
                                 })
                               }
                               className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center gap-1.5 hover:bg-black/40 transition-colors"
@@ -2081,7 +2113,7 @@ export default function DocketForm({
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
                             <ImageOff className="w-5 h-5 text-[#99A1AF]" />
                             <span className="text-xs text-[#99A1AF]">
-                              No photo provided
+                              {signOffCopy.emptyPhotoPlaceholder}
                             </span>
                           </div>
                         )}
@@ -2089,7 +2121,7 @@ export default function DocketForm({
 
                       <div className="flex flex-col gap-2">
                         <span className="text-sm text-muted-foreground">
-                          Receiver Signature
+                          {signOffCopy.signatureLabel}
                         </span>
                         {selectedDocket?.signatureImage ? (
                           <button
@@ -2097,7 +2129,7 @@ export default function DocketForm({
                             onClick={() =>
                               setPreviewImage({
                                 src: selectedDocket.signatureImage!,
-                                title: 'Receiver Signature',
+                                title: signOffCopy.signatureLabel,
                               })
                             }
                             className="rounded-md overflow-hidden border border-gray-200 bg-white aspect-video flex items-center justify-center w-full hover:opacity-80 transition-opacity"
@@ -2105,7 +2137,7 @@ export default function DocketForm({
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img
                               src={selectedDocket.signatureImage}
-                              alt="Receiver signature"
+                              alt={signOffCopy.signatureLabel}
                               className="max-h-full max-w-full object-contain p-2"
                             />
                           </button>
@@ -2113,7 +2145,7 @@ export default function DocketForm({
                           <div className="flex flex-col items-center justify-center gap-2 rounded-md bg-gray-100 aspect-video">
                             <FileX className="w-5 h-5 text-[#99A1AF]" />
                             <span className="text-xs text-[#99A1AF]">
-                              No signature provided
+                              {signOffCopy.emptySignaturePlaceholder}
                             </span>
                           </div>
                         )}

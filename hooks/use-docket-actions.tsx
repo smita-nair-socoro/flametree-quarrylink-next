@@ -20,6 +20,10 @@ import {
   MarkCollectedContent,
 } from '@/hooks/docket/mark-collected-content';
 import {
+  collectionProofSchema,
+  hasAnyCollectionProof,
+} from '@/lib/utils/collection-proof';
+import {
   MarkReadyDescription,
   MarkReadyContent,
 } from '@/hooks/docket/mark-ready-content';
@@ -126,6 +130,7 @@ interface DialogConfig {
   subtitle?: string;
   hideSeparator?: boolean;
   buttonContainerClass?: string;
+  closeOnConfirm?: boolean;
 }
 
 /**
@@ -151,6 +156,8 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
   const [receiverOnSite, setReceiverOnSite] = React.useState(false);
   const [receiverName, setReceiverName] = React.useState('');
   const [receiverSignature, setReceiverSignature] = React.useState('');
+  const [emptyProofConfirming, setEmptyProofConfirming] = React.useState(false);
+  const [collectorNameError, setCollectorNameError] = React.useState('');
   const [stopReason, setStopReason] = React.useState('');
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
@@ -272,6 +279,8 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
     setReceiverOnSite(false);
     setReceiverName('');
     setReceiverSignature('');
+    setEmptyProofConfirming(false);
+    setCollectorNameError('');
 
     setStopReason('');
     setStopNotes('');
@@ -395,16 +404,56 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
 
   const handleMarkCollected = async () => {
     if (actionDocketId == null) return;
+
+    const proof = {
+      photo1: unloadedPhoto,
+      photo2: receiptPhoto,
+      collectorName: receiverName,
+      collectorSignature: receiverSignature,
+    };
+    const parsed = collectionProofSchema.safeParse(proof);
+    if (!parsed.success) {
+      setCollectorNameError(
+        parsed.error.issues[0]?.message ?? "Enter the collector's name.",
+      );
+      return;
+    }
+    setCollectorNameError('');
+
+    if (!hasAnyCollectionProof(proof) && !emptyProofConfirming) {
+      setEmptyProofConfirming(true);
+      return;
+    }
+
     try {
-      await updateDocketStatusMutation.mutateAsync({
+      const signatureFile = receiverSignature
+        ? dataURLtoFile(receiverSignature, 'signature.png')
+        : null;
+
+      const updated = await updateDocketStatusMutation.mutateAsync({
         docketId: actionDocketId,
         docketStatus: DOCKET_STATUS.COLLECTED,
+        receiverName: receiverName.trim() || undefined,
+        signatureImage: signatureFile,
+        unloadedPhoto,
+        receiptPhoto,
       });
       updateSelectedDocketIfMatching({
         docketStatus: DOCKET_STATUS.COLLECTED,
+        deliveredAt: updated?.deliveredAt ?? selectedDocket?.deliveredAt,
+        receiverName: updated?.receiverName ?? (receiverName.trim() || undefined),
+        signatureImage: updated?.signatureImage,
+        unloadedPhotos: updated?.unloadedPhotos,
+        receivedPhotos: updated?.receivedPhotos,
       });
       notifySuccess('Docket marked as Collected');
       setActiveDialog(null);
+      setUnloadedPhoto(null);
+      setReceiptPhoto(null);
+      setReceiverName('');
+      setReceiverSignature('');
+      setEmptyProofConfirming(false);
+      setCollectorNameError('');
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
@@ -756,10 +805,44 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
       markCollected: {
         title: 'Mark as Collected',
         description: <MarkCollectedDescription docket={effectiveDocket} />,
-        content: <MarkCollectedContent docket={effectiveDocket} />,
+        content: (
+          <MarkCollectedContent
+            docket={effectiveDocket}
+            photo1={unloadedPhoto}
+            onPhoto1Change={(file) => {
+              setUnloadedPhoto(file);
+              setEmptyProofConfirming(false);
+            }}
+            photo2={receiptPhoto}
+            onPhoto2Change={(file) => {
+              setReceiptPhoto(file);
+              setEmptyProofConfirming(false);
+            }}
+            collectorName={receiverName}
+            onCollectorNameChange={(value) => {
+              setReceiverName(value);
+              setCollectorNameError('');
+              setEmptyProofConfirming(false);
+            }}
+            collectorSignature={receiverSignature}
+            onCollectorSignatureChange={(value) => {
+              setReceiverSignature(value);
+              setEmptyProofConfirming(false);
+            }}
+            onClearSignature={() => {
+              setReceiverSignature('');
+              setCollectorNameError('');
+            }}
+            collectorNameError={collectorNameError}
+            emptyProofConfirming={emptyProofConfirming}
+            onDismissEmptyProofConfirm={() => setEmptyProofConfirming(false)}
+          />
+        ),
         confirmText: 'Mark as Collected',
         confirmCustomColor: '#008236',
         cancelText: 'Cancel',
+        preventOutsideClose: true,
+        closeOnConfirm: false,
       },
       stop: {
         title: 'Stop Transit',
@@ -886,6 +969,8 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
       receiverName,
       receiverOnSite,
       receiverSignature,
+      emptyProofConfirming,
+      collectorNameError,
       stopNotes,
       stopReason,
       unloadedPhoto,
@@ -983,6 +1068,14 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
           if (!open) {
             if (key === 'assign') resetAssignState();
             if (key === 'duplicate') resetDuplicateState();
+            if (key === 'markCollected') {
+              setUnloadedPhoto(null);
+              setReceiptPhoto(null);
+              setReceiverName('');
+              setReceiverSignature('');
+              setEmptyProofConfirming(false);
+              setCollectorNameError('');
+            }
             setActiveDialog(null);
           }
         }}
@@ -1007,6 +1100,7 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
         cancelText={config.cancelText}
         cancelButtonClass={config.cancelButtonClass}
         preventOutsideClose={config.preventOutsideClose}
+        closeOnConfirm={config.closeOnConfirm}
         customWidth={config.customWidth}
         titleClassName={config.titleClassName}
         subtitle={waitingForDocketDetail ? undefined : config.subtitle}

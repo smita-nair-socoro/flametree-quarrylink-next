@@ -57,6 +57,7 @@ tests/e2e/
 ├── products.spec.ts         # Product list, reporting, sync status, UI
 ├── jobs.spec.ts             # Job list, pagination, UI
 ├── dockets.spec.ts          # Docket list, date filtering, UI
+├── proof-of-collection.spec.ts  # Mark as Collected modal, proof capture, Sign Off labels
 ├── quotations.spec.ts       # Quote list, content library, policy docs (max 2)
 ├── logistics.spec.ts        # Drivers, trucks, hauliers, scheduler, dispatch
 ├── inventory.spec.ts        # Quarries, materials, stockpile, weigh-bridge, production
@@ -67,12 +68,13 @@ tests/e2e/
 └── run-e2e-docker.sh        # Docker runner (Linux/Mac)
 ```
 
-~70 tests across 12 feature files, covering:
+Tests across 13 feature files, covering:
 - Authentication (login, session, logout, protected routes)
 - Customers (list, reporting, sync status, UI)
 - Products (list, reporting, sync status, UI)
 - Jobs (list, pagination, UI)
 - Dockets (list, date filtering, UI)
+- Proof of Collection (Mark as Collected modal, validation, photos, Sign Off labels)
 - Quotations (list, content library, policy documents max 2)
 - Logistics (drivers, trucks, hauliers, scheduler, dispatch, schedule)
 - Inventory (quarries, materials, stockpile, weigh-bridge, production)
