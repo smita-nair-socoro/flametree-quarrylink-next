@@ -312,7 +312,7 @@ Each row's `⋯` menu offers:
 | **View Details** | All users |
 | **Download Receipt** | All users |
 | **Amend Payment Type** | Admins and Super Admins (§12.1) |
-| **Void** | Holders of the `Void Cash Sale` permission (§12.5) |
+| **Void** | Holders of the `Void Transactions` permission (§12.5) |
 | **Retry Sync** | Admins and Super Admins, and only when the receipt is not `Synced` (§9.3) |
 
 On a voided receipt, only **View Details** and **Download Receipt** remain.
@@ -374,7 +374,7 @@ The design principle: **a correction is an entry in the audit trail, not a hole 
 
 For a receipt recorded against the wrong dockets, recorded in error, or one Acumatica will never accept.
 
-- Available from the receipt's `⋯` menu, to users holding the **Void Cash Sale** permission (§12.5).
+- Available from the receipt's `⋯` menu, to users holding the **Void Transactions** permission (§12.5).
 - **Requires a reason.** A short selectable list plus free text: *Recorded in error* · *Wrong dockets selected* · *Customer to be invoiced instead* · *Acumatica rejection — unrecoverable* · *Other*.
 - Creates a **reversal record**. The original receipt is never deleted or altered.
 - The original remains listed and viewable, badged **`VOID`**, showing who voided it, when and why.
@@ -402,27 +402,23 @@ A void whose reversal fails to reach Acumatica is itself a sync failure and must
 
 ### 12.5 Void controls — segregation of duties
 
-Voiding releases dockets and reverses a payment record. The person taking cash at a counter should not necessarily also be the person who can make a recorded payment disappear. Three controls, all required.
+Voiding releases dockets and reverses a payment record. The person taking cash at a counter should not necessarily also be the person who can make a recorded payment disappear. Two controls, both required.
 
-**1. A separate `Void Cash Sale` permission**
+**1. A `Void Transactions` permission**
 
 - Granted **independently of the Admin role**, so a tenant can have six Admins and two people who can void.
 - Not granted by default to any role on rollout — it must be assigned deliberately.
+- **This one permission covers every void in the product**, not just cash sales — internal transfer voids are gated by the same right (`spec-internal-transfer-dockets.md` §13). One void permission, not one per feature.
 - **Amend Payment Type** stays with Admins and Super Admins; it is a lower-consequence action that changes no financial position and releases no dockets.
 
-**2. Voids visible in the tables**
+**2. Voids visible in the existing tables**
 
 - A voided receipt stays listed, de-emphasised and badged **`VOID`**, on both the job's Cash Sales tab and the Payments → Cash Payments table.
-- The receipt shows who voided it, when, and the reason given.
-- No email is sent. Oversight is via the report below.
+- **View Details on a voided receipt shows both `Payment Received By` and who voided it**, along with the date and the reason given. Anyone reviewing a void can see whether the same person did both, without a separate screen.
 
-**3. A void report**
+**No void report is built.** The tables already carry every fact a report would: what was voided, when, by whom, why, and who recorded the original. Building a second surface to restate that is work for no additional information.
 
-- Lists every void with reference, amount, customer, date, who recorded the original sale, who voided it, and the reason.
-- Filterable by date range and by user.
-- **Flags rows where the voider is the same person who recorded the original sale.** Not blocked — at Flame Tree's size that will often be unavoidable — but made visible, because self-reviewed corrections are what an auditor looks for first.
-
-Together these give segregation of duties where a tenant wants it, and visibility everywhere else. The permission split is the preventive control; the report is the detective one.
+The permission is the preventive control; the VOID rows in the tables are the record.
 
 ---
 
@@ -505,8 +501,8 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | Risk | Note |
 |---|---|
 | **Nothing pushes a sync failure to anyone** | Visibility is in-app only, by deliberate choice — the client already receives too many emails. The badge and banner make failures visible **to whoever opens the Payments area**, and nobody is told otherwise. Name a person at Flame Tree with Acumatica admin rights, and make a daily glance at Payments part of their routine, before go-live. |
-| **Void oversight is detective, not preventive** | Without a push on void, the void report is only seen if someone looks at it. Combined with the `Void Cash Sale` permission being narrowly granted, that is a reasonable position — but it depends on the permission actually being restricted. |
-| **`Void Cash Sale` must be assigned deliberately** | The permission defaults to nobody. If it is never granted, the only correction path is unavailable and unrecoverable receipts return as a problem. Assign it to at least one person — ideally not the person taking payment — as part of go-live. |
+| **Nothing surfaces a void proactively** | No email, no report. A void is visible in the tables to anyone who looks. That is a deliberate choice to avoid building extra, and it puts the whole weight of the control on `Void Transactions` being granted narrowly. If that permission ends up widely held, there is effectively no oversight of voids at all. |
+| **`Void Transactions` must be assigned deliberately** | The permission defaults to nobody. If it is never granted, the only correction path is unavailable and unrecoverable receipts return as a problem. Assign it to at least one person — ideally not the person taking payment — as part of go-live. |
 | **Delivery dockets now in scope** | This widens the feature well beyond the original story and invalidates the flow diagram. Anyone working from that diagram will build the wrong eligibility rules. |
 | **Mixed docket types on one receipt** | Reporting that assumes a cash sale is collection-only will be wrong. Worth checking any existing reporting before release. |
 | **Per-tenant payment types** | A new configuration surface. Ensure a sensible default so no tenant lands with an empty dropdown. |
@@ -524,12 +520,12 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | 5 | Push failure | Record locally; classify transient vs permanent; retry transient only; surface the rest as `Failed` with a manual retry |
 | 6 | Mixed docket types | Allowed on one receipt, same job only |
 | 7 | Receipt reference | `CS-` prefix, sequential per tenant |
-| 8 | Permissions | Recording a cash sale: same as invoicing. Amend Payment Type: Admin / Super Admin. Void: a separate `Void Cash Sale` permission |
+| 8 | Permissions | Recording a cash sale: same as invoicing. Amend Payment Type: Admin / Super Admin. Void: the `Void Transactions` permission, which covers every void in the product |
 | 9 | Partial payment | Not supported |
 | 10 | Cross-job | Prohibited |
 | 11 | Sync visibility | **In-app only — an alert badge and a notification banner. No emails.** Failed records surface in the Payments → Cash Payments table — see `spec-payments-tab.md` |
 | 12 | Cross-tenant support view | Out of scope — each tenant works their own failures |
-| 13 | Void oversight | Separate permission, VOID badging in both tables, and a void report flagging self-voids. No emails |
+| 13 | Void oversight | The `Void Transactions` permission plus VOID rows in the existing tables. **No void report, no emails** — nothing additional is built |
 | 14 | Bulk/individual dropdown | Not needed — one selection produces one receipt |
 | 15 | Mixed tender | Different dockets by different methods: supported via separate receipts. One docket split across methods: not supported |
 
@@ -607,12 +603,12 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 **Corrections**
 
 - [ ] Amend Payment Type is available to Admins and Super Admins
-- [ ] Void is gated by a separate `Void Cash Sale` permission, grantable independently of Admin
-- [ ] `Void Cash Sale` is granted to no role by default
-- [ ] An Admin without `Void Cash Sale` can amend a payment type but cannot void
+- [ ] Void is gated by a separate `Void Transactions` permission, grantable independently of Admin
+- [ ] `Void Transactions` is granted to no role by default
+- [ ] An Admin without `Void Transactions` can amend a payment type but cannot void
 - [ ] A voided receipt shows de-emphasised and badged VOID in both the job tab and the Payments table
-- [ ] A void report lists every void with the original recorder and the voider
-- [ ] The void report flags rows where the voider recorded the original sale
+- [ ] View Details on a voided receipt shows who recorded it, who voided it, when and why
+- [ ] No separate void report is built
 - [ ] **No emails are sent on void**
 - [ ] Amend Payment Type changes the type and nothing else
 - [ ] Amending records previous type, new type, user and timestamp
@@ -640,7 +636,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] Keyword search matches reference, payment type, received by and amount, partially
 - [ ] The `⋯` menu offers View Details and Download Receipt to all users
 - [ ] Amend Payment Type and Retry Sync appear only for Admins and Super Admins
-- [ ] Void appears only for users holding `Void Cash Sale`
+- [ ] Void appears only for users holding `Void Transactions`
 - [ ] Retry Sync appears only on receipts that are not `Synced`
 - [ ] A voided receipt's menu offers View Details and Download Receipt only
 
@@ -677,6 +673,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - Multiple payment types on one receipt
 - A cross-tenant sync failure view for QuarryLink support
 - **Email alerts of any kind** — for sync failures, voids or anything else in this spec
+- **A void report or any other new reporting surface** — voids are reviewed in the existing tables
 - Any in-app notification system — visibility is the alert badge and banner only
 - POS or bank integration, payment processing or verification
 - Cash sales spanning multiple jobs
