@@ -18,7 +18,7 @@ An **Internal Transfer job type** holds a From Site and a To Site. Only **intern
 
 Transfers are valued at **cost price**, moving value without creating internal profit. On completion, QuarryLink **creates a GL journal transaction in Acumatica via the API** — cost out of the source site, cost in to the destination site.
 
-Completed transfers are corrected by a permission-gated **Void** (§12), which reverses the journal.
+Completed transfers are corrected by a permission-gated **Void** (§12). Voiding is terminal — it reverses the journal and closes the docket permanently; a redo is a new docket.
 
 ---
 
@@ -143,10 +143,23 @@ Transfers are valued at **cost price**, using the same mechanism as the existing
 **Consequences to hold onto:**
 
 - **No revenue is created anywhere** by an internal transfer. Nothing about this feature should appear in revenue reporting.
-- **Tax applies as it would on any other supply**, calculated on the cost value.
+- **No tax applies** — see §5.1.
 - Amounts follow the precision and rounding rules in `spec-decimal-precision-acumatica-balancing.md`.
 
 **Missing cost price.** If a product has no cost price for the source site, the docket cannot be valued. Block creation with a clear message naming the product and site, rather than writing a zero-value transfer that quietly journals nothing.
+
+### 5.1 No tax on an internal transfer
+
+**Flame Tree's sites are all part of one legal entity.** Material moving between them is not a supply from one party to another — it is stock changing location within a single business.
+
+**No VAT, no GST, no tax of any kind is calculated, stored or sent** for an internal transfer.
+
+- The docket carries no tax line.
+- The Transfer Summary shows no tax.
+- **The journal payload carries no tax figure** and needs no tax account.
+- The journal is two-sided and balances at cost, with nothing left over to post anywhere.
+
+This is a deliberate departure from how a delivery or collection docket is treated. A supply to a customer is taxable; moving your own stock between your own yards is not.
 
 ---
 
@@ -161,11 +174,11 @@ On completion of an internal transfer docket, QuarryLink **creates a GL journal 
 | **From Site** | **Credit** — cost out |
 | **To Site** | **Debit** — cost in |
 
-Cost out, cost in. Equal and opposite, at cost price. No margin, no revenue.
+Cost out, cost in. Equal and opposite, at cost price. **No margin, no revenue, no tax leg.** Two sides, and they balance — there is no third amount to post anywhere.
 
 ### 6.2 Account codes
 
-**Acumatica derives the accounts.** QuarryLink sends the transfer with the identifying information — from site, to site, product, quantity, cost value, tax — and Acumatica's own rules determine which GL accounts are used.
+**Acumatica derives the accounts.** QuarryLink sends the transfer with the identifying information — from site, to site, product, quantity and cost value — and Acumatica's own rules determine which GL accounts are used. **No tax figure is sent** (§5.1).
 
 QuarryLink holds **no account code configuration** for this. Do not build an account mapping table.
 
@@ -275,7 +288,8 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 
 - [ ] Dockets are valued at cost price for the product at the source site
 - [ ] A product with no cost price blocks creation with a message naming the product and site
-- [ ] Tax is calculated on the cost value
+- [ ] No tax is calculated, stored, displayed or sent anywhere for an internal transfer
+- [ ] The Transfer Summary shows no tax line
 - [ ] Amounts follow the agreed precision and rounding rules
 - [ ] No revenue is recorded anywhere as a result of an internal transfer
 
@@ -284,6 +298,8 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 - [ ] Completing a docket creates a GL journal transaction in Acumatica
 - [ ] The From Site is credited and the To Site debited, at cost, equal and opposite
 - [ ] QuarryLink sends identifiers and lets Acumatica derive the accounts
+- [ ] The journal payload contains no tax figure
+- [ ] The journal balances on two sides with no third leg
 - [ ] No account mapping configuration exists in QuarryLink
 - [ ] Journal creation and docket completion commit together
 - [ ] A failed journal push does not prevent docket completion
@@ -311,10 +327,16 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 - [ ] Void requires a reason
 - [ ] Void creates a reversal record and never deletes or alters the original
 - [ ] The voided docket stays listed, badged VOID, showing who, when and why
-- [ ] The docket returns to its pre-completion state and can be completed again
+- [ ] **A voided docket is terminal — it cannot be edited, re-completed or returned to a pre-completion state**
+- [ ] Redoing a transfer means raising a **new docket with a new reference**
 - [ ] The voided reference is never reused
+- [ ] No successor link is built between a voided docket and its replacement
 - [ ] Voiding a `Synced` transfer pushes a reversing journal to Acumatica
 - [ ] Voiding a `Not synced` or `Failed` transfer cancels the pending push and sends nothing
+- [ ] The void and the push cancellation commit in one transaction
+- [ ] The sync worker re-checks docket state at dispatch and aborts if it is VOID
+- [ ] A journal that escapes despite the void falls through to the `Synced` path and a reversing journal is pushed
+- [ ] No sequence of void and retry can leave Acumatica holding an unreversed journal
 - [ ] A failed reversing journal shows as `Failed` and is retryable
 - [ ] Void commits transactionally across reversal, docket state and journal
 - [ ] A voided docket cannot be un-voided
@@ -342,13 +364,15 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 | 6 | Valuation | **Cost price.** No margin, no revenue created |
 | 7 | Journal | Cost credited out of From Site, debited in to To Site |
 | 8 | Account codes | Acumatica derives them — no mapping in QuarryLink |
-| 9 | Tax | Applies as normal, calculated on the cost value |
+| 9 | Tax | **None.** One legal entity, so an internal movement is not a taxable supply. No tax calculated, stored or sent |
 | 10 | Docket fields | The full existing field set, minus the site pickers |
 | 11 | Summary block | Renamed **Transfer Summary** |
 | 12 | Stock | None — Flame Tree have no Stockpile module. Journal only |
 | 13 | Visibility | Job level and a third Payments sub-tab |
 | 14 | Pre-completion changes | Allowed and normal. The journal only exists on completion, so nothing needs unwinding before then |
-| 15 | Corrections after completion | **Void**, gated by the existing `Void Transactions` permission — reverses the journal, returns the docket to pre-completion, audited. **No void report, no emails** |
+| 15 | Corrections after completion | **Void**, gated by the existing `Void Transactions` permission — reverses the journal, audited. **No void report, no emails** |
+| 16 | What a void leaves behind | A terminal, immutable `VOID` docket. The redo is a **new docket with a new reference**, not the old one reopened |
+| 17 | Void / sync race | Void and cancel commit together; the worker re-checks at dispatch; an escaped push falls through to the `Synced` reversal path |
 
 ---
 
@@ -364,7 +388,7 @@ The design principle is the same: **a correction is an entry in the audit trail,
 
 | Docket state | Corrections |
 |---|---|
-| **Before completion** | **Edit the docket normally** — product, quantity, times, notes. No journal exists, nothing to unwind. No special permission, no void, no audit ceremony |
+| **Before completion** | **Edit the docket under the platform's existing docket editing rules.** No journal exists, nothing to unwind. Nothing new is introduced — no special permission, no void, no audit ceremony |
 | **After completion** | The journal exists and stock has moved. **Void** is the only correction path |
 
 Do not gate ordinary pre-completion editing behind any of the machinery below. A quantity being corrected before the load is signed off is routine data entry, not a financial correction.
@@ -379,13 +403,26 @@ Gated by the existing **`Void Transactions`** permission — the same right that
 
 ### 12.3 What Void does
 
+**Voiding does not reopen the docket. It closes it permanently and you raise a new one.**
+
+This is the part most likely to be got wrong, so it is stated as a data-model requirement rather than a behaviour:
+
+| | |
+|---|---|
+| **The voided docket** | Terminal state. Immutable. Badged **`VOID`** forever. Reference retired and never reused. It is an audit record, not a draft |
+| **The redo** | A **new internal transfer docket with a new reference**, raised on the same job like any other |
+
+A voided docket is never edited, never re-completed, and never returns to a pre-completion state. Nothing about it changes after the void except that it is voided.
+
+**The mechanics:**
+
 - Available from the docket's `⋯` menu and from the Payments → Internal Transfers row.
 - **Requires a reason.** A short selectable list plus free text: *Recorded in error* · *Wrong product* · *Wrong quantity* · *Wrong job* · *Acumatica rejection — unrecoverable* · *Other*.
 - Creates a **reversal record**. The original docket is never deleted or altered.
 - The original remains listed and viewable, badged **`VOID`**, showing who voided it, when and why.
-- **Returns the docket to its pre-completion state**, so it can be corrected and completed again, or left as is.
-- The docket reference is **retired, never reused**.
-- **A void cannot be undone.** Re-complete the docket correctly instead.
+- **A void cannot be undone.** Raise a new docket instead.
+
+**No link between the voided docket and its replacement is required.** Both sit on the same job in date order, one badged `VOID` and one live, which is enough to follow. Do not build a successor relationship.
 
 ### 12.4 Void and Acumatica
 
@@ -397,6 +434,16 @@ Gated by the existing **`Void Transactions`** permission — the same right that
 
 A void whose reversing journal fails to reach Acumatica is itself a sync failure and must appear as `Failed` alongside the rest (§6.3). It must not silently leave the two systems disagreeing.
 
+**The race, and how to settle it.** A retry could fire between the void being actioned and the pending push being cancelled, sending the journal to Acumatica moments before or after the void lands.
+
+**Do not try to guarantee the cancellation wins.** Guarantee instead that both outcomes converge on the same correct end state:
+
+1. **Void and cancel in one transaction.** Setting the docket to `VOID` and marking the queued push cancelled commit together.
+2. **The sync worker re-checks state at dispatch.** Immediately before sending — inside whatever lock claims the job — it re-reads the docket. If it is `VOID`, it aborts and sends nothing.
+3. **If a push escapes anyway** — already in flight, unrecallable — **fall through to the `Synced` path.** The journal landed, so push the reversing journal as though the transfer had been `Synced` at the point of voiding.
+
+Step 3 is the one that actually makes this safe. Steps 1 and 2 shrink the window; step 3 means it doesn't matter if something slips through. The two systems end up agreeing either way — either nothing was ever sent, or a journal and its reversal were both sent.
+
 ### 12.5 Oversight
 
 Voided transfers stay listed, de-emphasised and badged **`VOID`**, on the job's dockets and in the Payments → Internal Transfers table. Opening one shows who completed the original docket, who voided it, when, and the reason.
@@ -405,9 +452,10 @@ Voided transfers stay listed, de-emphasised and badged **`VOID`**, on the job's 
 
 ### 12.6 What is still not possible
 
-- Editing a **completed** docket's product, quantity or value — void it instead (pre-completion editing is normal, §12.1)
+- Editing a **completed** docket's product, quantity or value — void it and raise a new one (pre-completion editing follows existing rules, §12.1)
 - Changing the job a docket belongs to
 - Deleting a docket or a journal
+- Editing a voided docket, in any way, for any reason
 - Un-voiding
 - Voiding by a user without `Void Transactions`
 
@@ -433,7 +481,9 @@ Voided transfers stay listed, de-emphasised and badged **`VOID`**, on the job's 
 - Invoicing or cash sale of internal transfer dockets
 - Transfers to or from anything other than Flame Tree's own sites
 - Changes to how delivery or collection dockets work
-- Editing a completed docket, or un-voiding
+- Editing a completed or voided docket, or un-voiding
 - Email alerts of any kind
 - A void report or any other new reporting surface
 - Reporting beyond the Payments sub-tab
+- Tax handling of any kind on an internal transfer
+- A successor link between a voided docket and its replacement
