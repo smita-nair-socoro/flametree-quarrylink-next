@@ -7,7 +7,7 @@ import {
   AddJobAttachmentContent,
   AddJobAttachmentDescription,
 } from '@/hooks/job/add-job-attachment-content';
-import { jobAttachmentFormSchema } from '../../schemas/job-attachment-form-schema';
+import { jobAttachmentFormSchema } from '@/app/(protected)/customer-operations/jobs/(components)/forms/schemas/job-attachment-form-schema';
 import { useUploadJobAttachment } from '@/lib/api/job';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';

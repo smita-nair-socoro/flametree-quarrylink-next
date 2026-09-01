@@ -85,6 +85,31 @@ export const getJobAttachmentColumns = (
     meta: 'Date Uploaded',
   },
   {
+    id: 'uploadedBy',
+    accessorFn: (row) => row.uploadedBy,
+    header: ({ column }) => {
+      return (
+        <TableClientSortableHeader column={column} title="Uploaded By" />
+      );
+    },
+    cell: (info) => {
+      const value = (info.getValue() as string) || 'N/A';
+      return (
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div className="block w-[140px] truncate sm:w-[160px] md:w-[180px]">
+              {value}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent variant="white">
+            <p>{value}</p>
+          </TooltipContent>
+        </Tooltip>
+      );
+    },
+    meta: 'Uploaded By',
+  },
+  {
     id: 'actions',
     header: () => {
       return <div></div>;
