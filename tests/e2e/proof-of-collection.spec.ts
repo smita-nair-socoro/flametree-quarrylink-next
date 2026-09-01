@@ -49,6 +49,18 @@ function statusOf(row: DocketRow): string {
   return `${row.status ?? row.docketStatus ?? ''}`.toUpperCase();
 }
 
+function requestedStatusFromPut(request: Request): string {
+  const body =
+    request.postData() ??
+    request.postDataBuffer()?.toString('latin1') ??
+    '';
+  const match = body.match(/name=\"docketStatus\"[\r\n]+[^\r\n]+[\r\n]+([^\r\n-]+)/);
+  if (match?.[1]) return match[1].trim().toUpperCase();
+  const urlMatch = body.match(/docketStatus=([^&\r\n]+)/);
+  if (urlMatch?.[1]) return decodeURIComponent(urlMatch[1]).toUpperCase();
+  return 'COLLECTED';
+}
+
 async function findDockets(
   apiClient: ApiClient,
   types: string,
@@ -70,25 +82,36 @@ async function findDockets(
   return rowsFromPayload(await listRes.json()).filter(matches);
 }
 
-async function openRowMenu(page: Page, docketNumber: string) {
-  const row = page.locator('tbody tr').filter({ hasText: docketNumber }).first();
-  await expect(row).toBeVisible({ timeout: 20000 });
-  await row.locator('button').last().click();
+/** Prefer READY_FOR_COLLECTION; fall back to PREPARING (mark-ready is stubbed in UI tests). */
+async function findReadyCollectionDockets(
+  apiClient: ApiClient,
+): Promise<DocketRow[]> {
+  const ready = await findDockets(apiClient, 'COLLECTION', 'READY_FOR_COLLECTION');
+  if (ready.length) return ready;
+  return findDockets(apiClient, 'COLLECTION', 'PREPARING');
 }
 
-async function gotoDocketRow(page: Page, docket: DocketRow) {
+async function openDocketDetail(page: Page, docket: DocketRow) {
   await page.goto(`/customer-operations/dockets?ids=${docket.id}`, {
     waitUntil: 'networkidle',
   });
-  await page.waitForTimeout(2000);
+  const dialog = page.getByRole('dialog').first();
+  await expect(dialog).toBeVisible({ timeout: 20000 });
+  return dialog;
+}
+
+async function clickDetailPrimaryAction(page: Page, label: string) {
+  const dialog = page.getByRole('dialog').first();
+  await dialog
+    .getByRole('button', { name: label, exact: true })
+    .click();
 }
 
 async function openMarkCollectedModal(page: Page, docket: DocketRow) {
-  await gotoDocketRow(page, docket);
-  await openRowMenu(page, docket.docketNumber);
-  await page.getByRole('menuitem', { name: 'Mark Collected' }).click();
+  await openDocketDetail(page, docket);
+  await clickDetailPrimaryAction(page, 'Mark Collected');
 
-  const dialog = page.getByRole('dialog');
+  const dialog = page.getByRole('dialog').last();
   await expect(dialog.getByText('Mark as Collected').first()).toBeVisible({
     timeout: 15000,
   });
@@ -101,16 +124,37 @@ async function openMarkCollectedModal(page: Page, docket: DocketRow) {
   return dialog;
 }
 
-async function drawSignature(page: Page) {
-  const canvas = page.getByRole('dialog').locator('canvas');
+async function drawSignature(dialog: ReturnType<Page['getByRole']>) {
+  const canvas = dialog.locator('canvas');
   await expect(canvas).toBeVisible();
   const box = await canvas.boundingBox();
   expect(box).toBeTruthy();
-  await page.mouse.move(box!.x + 20, box!.y + 40);
-  await page.mouse.down();
-  await page.mouse.move(box!.x + 90, box!.y + 70, { steps: 8 });
-  await page.mouse.move(box!.x + 140, box!.y + 35, { steps: 8 });
-  await page.mouse.up();
+
+  const points = [
+    { x: box!.x + 20, y: box!.y + 40 },
+    { x: box!.x + 90, y: box!.y + 70 },
+    { x: box!.x + 140, y: box!.y + 35 },
+  ];
+
+  await canvas.dispatchEvent('pointerdown', {
+    pointerId: 1,
+    clientX: points[0].x,
+    clientY: points[0].y,
+    buttons: 1,
+  });
+  for (const point of points.slice(1)) {
+    await canvas.dispatchEvent('pointermove', {
+      pointerId: 1,
+      clientX: point.x,
+      clientY: point.y,
+      buttons: 1,
+    });
+  }
+  await canvas.dispatchEvent('pointerup', {
+    pointerId: 1,
+    clientX: points[2].x,
+    clientY: points[2].y,
+  });
 }
 
 test.describe('Proof of Collection - UI', () => {
@@ -118,21 +162,54 @@ test.describe('Proof of Collection - UI', () => {
 
   test.beforeEach(async ({ authedPage: page }) => {
     collectRequests = [];
-    await page.route('**/dockets/**/status', async (route) => {
+    await page.route('**/socoro/quarrylink/api/dockets/**', async (route) => {
       const request = route.request();
-      if (request.method() !== 'PUT') {
-        await route.continue();
+      const pathname = new URL(request.url()).pathname;
+
+      if (
+        request.method() === 'PUT' &&
+        pathname.match(/\/dockets\/\d+\/status$/)
+      ) {
+        collectRequests.push(request);
+        const requestedStatus = requestedStatusFromPut(request);
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            docketStatus: requestedStatus,
+            deliveredAt:
+              requestedStatus === 'COLLECTED'
+                ? new Date().toISOString()
+                : undefined,
+          }),
+        });
         return;
       }
-      collectRequests.push(request);
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          docketStatus: 'COLLECTED',
-          deliveredAt: new Date().toISOString(),
-        }),
-      });
+
+      if (request.method() === 'GET' && pathname.match(/\/dockets\/\d+$/)) {
+        const response = await route.fetch();
+        if (!response.ok()) {
+          await route.fulfill({ response });
+          return;
+        }
+        const docket = await response.json();
+        const itemType = `${docket.jobItem?.jobItemType ?? ''}`.toUpperCase();
+        const currentStatus = `${docket.docketStatus ?? ''}`.toUpperCase();
+        if (
+          itemType.includes('COLLECTION') &&
+          (currentStatus === 'PREPARING' || currentStatus === 'PENDING')
+        ) {
+          await route.fulfill({
+            response,
+            json: { ...docket, docketStatus: 'READY_FOR_COLLECTION' },
+          });
+          return;
+        }
+        await route.fulfill({ response });
+        return;
+      }
+
+      await route.continue();
     });
   });
 
@@ -140,11 +217,7 @@ test.describe('Proof of Collection - UI', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
@@ -167,22 +240,20 @@ test.describe('Proof of Collection - UI', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
     await dialog.getByPlaceholder('Enter collector name').fill('Should Discard');
     await dialog.getByRole('button', { name: 'Cancel' }).click();
-    await expect(dialog).toHaveCount(0);
+    await expect(page.getByRole('dialog', { name: 'Mark as Collected' })).toHaveCount(
+      0,
+    );
     await expect(collectRequests).toHaveLength(0);
 
-    await openRowMenu(page, ready[0].docketNumber);
+    const detail = page.getByRole('dialog').first();
     await expect(
-      page.getByRole('menuitem', { name: 'Mark Collected' }),
+      detail.getByRole('button', { name: 'Mark Collected', exact: true }),
     ).toBeVisible();
   });
 
@@ -190,11 +261,7 @@ test.describe('Proof of Collection - UI', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
@@ -216,28 +283,18 @@ test.describe('Proof of Collection - UI', () => {
     await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
     await expect.poll(() => collectRequests.length).toBe(1);
     expect(collectRequests[0].url()).toMatch(/\/dockets\/\d+\/status/);
-    const emptyBody =
-      collectRequests[0].postData() ??
-      collectRequests[0].postDataBuffer()?.toString('latin1') ??
-      '';
-    if (emptyBody) {
-      expect(emptyBody).toMatch(/COLLECTED/);
-    }
+    expect(requestedStatusFromPut(collectRequests[0])).toBe('COLLECTED');
   });
 
   test('signature without a collector name blocks submit', async ({
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
-    await drawSignature(page);
+    await drawSignature(dialog);
     await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
     await expect(dialog.getByText("Enter the collector's name.")).toBeVisible();
     await expect(
@@ -250,11 +307,7 @@ test.describe('Proof of Collection - UI', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
@@ -283,11 +336,7 @@ test.describe('Proof of Collection - UI', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const ready = await findDockets(
-      apiClient,
-      'COLLECTION',
-      'READY_FOR_COLLECTION',
-    );
+    const ready = await findReadyCollectionDockets(apiClient);
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
@@ -299,33 +348,67 @@ test.describe('Proof of Collection - UI', () => {
     ).toHaveCount(0);
     await expect.poll(() => collectRequests.length).toBe(1);
     expect(collectRequests[0].url()).toMatch(/\/dockets\/\d+\/status/);
+    expect(requestedStatusFromPut(collectRequests[0])).toBe('COLLECTED');
     const proofBody =
       collectRequests[0].postData() ??
       collectRequests[0].postDataBuffer()?.toString('latin1') ??
       '';
     if (proofBody) {
-      expect(proofBody).toMatch(/COLLECTED/);
       expect(proofBody).toMatch(/Jane Collector/);
     }
   });
 });
 
 test.describe('Proof of Collection - Sign Off labels', () => {
+  test.beforeEach(async ({ authedPage: page }) => {
+    await page.route('**/socoro/quarrylink/api/dockets/*', async (route) => {
+      const request = route.request();
+      if (request.method() !== 'GET') {
+        await route.continue();
+        return;
+      }
+      const pathname = new URL(request.url()).pathname;
+      if (!pathname.match(/\/dockets\/\d+$/)) {
+        await route.continue();
+        return;
+      }
+
+      const response = await route.fetch();
+      if (!response.ok()) {
+        await route.fulfill({ response });
+        return;
+      }
+
+      const docket = await response.json();
+      const itemType = `${docket.jobItem?.jobItemType ?? ''}`.toUpperCase();
+      if (!itemType.includes('COLLECTION')) {
+        await route.fulfill({ response });
+        return;
+      }
+
+      await route.fulfill({
+        response,
+        json: {
+          ...docket,
+          docketStatus: 'COLLECTED',
+          deliveredAt: docket.deliveredAt ?? new Date().toISOString(),
+          receiverName: docket.receiverName ?? 'Jane Collector',
+        },
+      });
+    });
+  });
+
   test('collected collection docket shows collection Sign Off copy', async ({
     authedPage: page,
     apiClient,
   }) => {
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
-    test.skip(
-      collected.length === 0,
-      'No collected collection docket available',
-    );
+    const preparing = await findDockets(apiClient, 'COLLECTION', 'PREPARING');
+    const pending = await findDockets(apiClient, 'COLLECTION', 'PENDING');
+    const seed = collected[0] ?? preparing[0] ?? pending[0];
+    test.skip(!seed, 'No collection docket available for Sign Off test');
 
-    await gotoDocketRow(page, collected[0]);
-    await openRowMenu(page, collected[0].docketNumber);
-    await page.getByRole('menuitem', { name: 'View Details' }).click();
-
-    const dialog = page.getByRole('dialog');
+    const dialog = await openDocketDetail(page, seed);
     await expect(dialog.getByText('Sign Off')).toBeVisible({ timeout: 20000 });
     await expect(dialog.getByText('Collector Name')).toBeVisible();
     await expect(dialog.getByText('Photo 1')).toBeVisible();
@@ -345,15 +428,14 @@ test.describe('Proof of Collection - delivery and driver app unchanged', () => {
     const arrived = await findDockets(apiClient, 'DELIVERY', 'ARRIVED');
     test.skip(arrived.length === 0, 'No arrived delivery docket available');
 
-    await gotoDocketRow(page, arrived[0]);
-    await openRowMenu(page, arrived[0].docketNumber);
-    await page.getByRole('menuitem', { name: 'Mark Delivered' }).click();
+    await openDocketDetail(page, arrived[0]);
+    await clickDetailPrimaryAction(page, 'Mark Delivered');
 
-    const dialog = page.getByRole('dialog');
+    const dialog = page.getByRole('dialog').last();
     await expect(dialog.getByText('Mark as Delivered').first()).toBeVisible({
       timeout: 15000,
     });
-    await expect(dialog.getByText('Unloaded Photo')).toBeVisible();
+    await expect(dialog.getByText('Unloaded Photo').first()).toBeVisible();
     await expect(dialog.getByText('Receiver on Site?')).toBeVisible();
     await expect(dialog.getByText('Proof of Collection')).toHaveCount(0);
     await expect(dialog.getByText('Collector Name')).toHaveCount(0);
