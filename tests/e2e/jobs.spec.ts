@@ -51,3 +51,68 @@ test.describe('Jobs - UI', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 });
+
+test.describe('Jobs - Attachments', () => {
+  test('GET /job/{id}/attachments returns a list of at most 3 files', async ({
+    apiClient,
+  }) => {
+    const listRes = await apiClient.jobs.list('page=1&pageSize=5');
+    expect(listRes.ok()).toBeTruthy();
+    const listData = await listRes.json();
+    const jobs =
+      listData.jobs?.content ?? listData.content ?? listData.items ?? [];
+
+    test.skip(jobs.length === 0, 'No jobs available to list attachments');
+
+    const jobId = jobs[0].id;
+    const res = await apiClient.jobs.attachments(jobId);
+    expect(res.ok()).toBeTruthy();
+    const attachments = await res.json();
+    expect(Array.isArray(attachments)).toBeTruthy();
+    expect(attachments.length).toBeLessThanOrEqual(3);
+  });
+
+  test('job detail shows Attachments section with 3-file cap count', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(5000);
+
+    const row = page.locator('table tbody tr').first();
+    test.skip((await row.count()) === 0, 'No jobs available to open');
+
+    await row.locator('td').first().click();
+    await expect(page.getByText('Attachments', { exact: true })).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(
+      page.getByRole('button', { name: /Add Attachment \(\d+ of 3\)/ }),
+    ).toBeVisible();
+  });
+
+  test('Add Attachment modal lists job categories and accepted types', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(5000);
+
+    const row = page.locator('table tbody tr').first();
+    test.skip((await row.count()) === 0, 'No jobs available to open');
+
+    await row.locator('td').first().click();
+    const addButton = page.getByRole('button', {
+      name: /Add Attachment \(\d+ of 3\)/,
+    });
+    await expect(addButton).toBeVisible({ timeout: 15000 });
+
+    if (await addButton.isDisabled()) {
+      test.skip(true, 'Job already has 3 attachments');
+    }
+
+    await addButton.click();
+    await expect(page.getByText('Select category...')).toBeVisible();
+    await expect(
+      page.getByText('PDF, Word, Excel (xlsx), JPEG, JPG, PNG, .eml'),
+    ).toBeVisible();
+  });
+});

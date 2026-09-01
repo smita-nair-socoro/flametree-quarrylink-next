@@ -33,6 +33,10 @@ Create and edit modes intentionally differ in some forms:
 
 Preserve these differences unless the product and API requirements explicitly change.
 
+## Job Attachments
+
+Jobs may have at most three attachments, each no larger than 10 MB. Categories are Purchase Order, Quote / Contract, Site Map / Access, Permit / Approval, Safety Documentation, Correspondence, and Other. Attachments belong to the job only and can be added or deleted in any job status. Anyone who can edit the job can add and delete attachments.
+
 ## Canonical Evidence
 
 * `app/(protected)/layout.tsx`

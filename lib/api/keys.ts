@@ -109,6 +109,8 @@ export const JobKeys = {
   items: (jobId: number) => [...JobKeys.all, 'items', jobId] as const,
   item: (jobItemId: number) => [...JobKeys.all, 'item', jobItemId] as const,
   statistics: () => [...JobKeys.all, 'statistics'] as const,
+  attachments: (jobId: number) =>
+    [...JobKeys.all, 'attachments', jobId] as const,
 };
 
 export const UserKeys = {

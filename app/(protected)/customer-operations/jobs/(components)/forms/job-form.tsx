@@ -29,6 +29,7 @@ import { AuditInformation } from '@/components/audit-information';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
+import { JobAttachmentsSection } from './job-attachments-section';
 import { startOfDay } from 'date-fns';
 
 interface FormProps {
@@ -437,6 +438,8 @@ export default function JobForm({
               />
             </div>
           )}
+
+          {isEditing && id ? <JobAttachmentsSection jobId={id} /> : null}
 
           {isEditing && (
             <AuditInformation

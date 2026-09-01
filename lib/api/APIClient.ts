@@ -96,6 +96,7 @@ import {
   CreateInvoiceResponseDTO,
   JobsListResponse,
   DeleteJobItemResponse,
+  JobAttachmentDTO,
 } from '../types/job';
 import {
   HaulierCreateDTO,
@@ -1586,6 +1587,37 @@ export const APIClient = {
       ),
     statistics: () =>
       appClient.Get<JobStatistics>(`/socoro/quarrylink/api/job/statistics`),
+    getAttachments: (jobId: number) =>
+      appClient.Get<JobAttachmentDTO[]>(
+        `/socoro/quarrylink/api/job/${jobId}/attachments`,
+      ),
+    uploadAttachment: (
+      jobId: number,
+      params: { category: string; fileName: string; file: File },
+    ) => {
+      const formData = new FormData();
+      formData.append('file', params.file);
+      return appClient.Post<JobAttachmentDTO>(
+        `/socoro/quarrylink/api/job/${jobId}/attachments`,
+        {
+          body: formData,
+          queryString: {
+            category: params.category,
+            fileName: params.fileName,
+          },
+        },
+      );
+    },
+    getAttachment: async (jobId: number, attachmentId: number) => {
+      const response = await appClient.Get<Response>(
+        `/socoro/quarrylink/api/job/${jobId}/attachments/${attachmentId}`,
+      );
+      return response.blob();
+    },
+    deleteAttachment: (jobId: number, attachmentId: number) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/job/${jobId}/attachments/${attachmentId}`,
+      ),
   },
 
   drivers: {

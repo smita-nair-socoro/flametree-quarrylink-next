@@ -301,6 +301,15 @@ export interface JobStatistics {
   pausedJobs: number;
 }
 
+export interface JobAttachmentDTO {
+  id: number;
+  fileName: string;
+  category: string;
+  uploadedAt: string;
+  fileExtension: string;
+  fileSizeBytes: number;
+}
+
 export interface JobsPage {
   content: JobDTO[];
   totalElements: number;

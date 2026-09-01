@@ -466,3 +466,63 @@ export const usePauseJob = () => {
     },
   });
 };
+
+export const JobAttachmentsQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: JobKeys.attachments(jobId),
+    queryFn: () => APIClient.jobs.getAttachments(jobId),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+    enabled: !!jobId,
+  });
+
+export type UploadJobAttachmentParams = {
+  jobId: number;
+  category: string;
+  fileName: string;
+  file: File;
+};
+
+export const useUploadJobAttachment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      category,
+      fileName,
+      file,
+    }: UploadJobAttachmentParams) =>
+      APIClient.jobs.uploadAttachment(jobId, {
+        category,
+        fileName,
+        file,
+      }),
+
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: JobKeys.attachments(variables.jobId),
+      });
+    },
+  });
+};
+
+export const useDeleteJobAttachment = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      attachmentId,
+    }: {
+      jobId: number;
+      attachmentId: number;
+    }) => APIClient.jobs.deleteAttachment(jobId, attachmentId),
+
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: JobKeys.attachments(variables.jobId),
+      });
+    },
+  });
+};
