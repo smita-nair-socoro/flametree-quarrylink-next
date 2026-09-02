@@ -5,6 +5,7 @@ import { __iconNode as fileXIconNode } from 'lucide-react/dist/esm/icons/file-x'
 import { __iconNode as circleCheckIconNode } from 'lucide-react/dist/esm/icons/circle-check';
 import { docketPdfStyles as styles, colors } from './styles';
 import { LucidePdfIcon } from './LucidePdfIcon';
+import { getDocketSignOffCopy } from '@/lib/utils/docket-sign-off';
 
 // Pre-resolved, display-ready data (images as base64 data URLs)
 export interface DocketPdfData {
@@ -101,6 +102,7 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
   data,
 }) => {
   const { job, product, delivery, assignment, signOff } = data;
+  const signOffCopy = getDocketSignOffCopy(data.docketType === 'collection');
 
   return (
     <Document>
@@ -239,39 +241,48 @@ export const DocketPdfDocument: React.FC<{ data: DocketPdfData }> = ({
                 </Text>
               ) : null}
             </View>
-            <View style={styles.fieldRow}>
-              <View style={styles.fieldRowItem}>
-                <Text style={styles.label}>Receiver Name</Text>
+            {data.docketType === 'collection' ? (
+              <View style={styles.fieldGroup}>
+                <Text style={styles.label}>{signOffCopy.nameLabel}</Text>
                 <Text style={styles.value}>{signOff.receiverName || '—'}</Text>
               </View>
-              <View style={styles.fieldRowItem}>
-                <Text style={styles.label}>Receiver On Site</Text>
-                <Text style={styles.valueRegular}>
-                  {signOff.receiverOnSite == null
-                    ? '—'
-                    : signOff.receiverOnSite
-                      ? 'Yes'
-                      : 'No'}
-                </Text>
+            ) : (
+              <View style={styles.fieldRow}>
+                <View style={styles.fieldRowItem}>
+                  <Text style={styles.label}>Receiver Name</Text>
+                  <Text style={styles.value}>
+                    {signOff.receiverName || '—'}
+                  </Text>
+                </View>
+                <View style={styles.fieldRowItem}>
+                  <Text style={styles.label}>Receiver On Site</Text>
+                  <Text style={styles.valueRegular}>
+                    {signOff.receiverOnSite == null
+                      ? '—'
+                      : signOff.receiverOnSite
+                        ? 'Yes'
+                        : 'No'}
+                  </Text>
+                </View>
               </View>
-            </View>
+            )}
             <View style={styles.photoRow}>
               <PhotoCell
-                label="Unloaded Photo"
+                label={signOffCopy.photo1Label}
                 src={signOff.unloadedPhoto}
-                placeholder="No photo provided"
+                placeholder={signOffCopy.emptyPhotoPlaceholder}
                 icon={<ImageOffIcon />}
               />
               <PhotoCell
-                label="Receipt Photo"
+                label={signOffCopy.photo2Label}
                 src={signOff.receiptPhoto}
-                placeholder="No photo provided"
+                placeholder={signOffCopy.emptyPhotoPlaceholder}
                 icon={<ImageOffIcon />}
               />
               <PhotoCell
-                label="Receiver Signature"
+                label={signOffCopy.signatureLabel}
                 src={signOff.signature}
-                placeholder="No signature provided"
+                placeholder={signOffCopy.emptySignaturePlaceholder}
                 icon={<FileXIcon />}
                 last
               />
