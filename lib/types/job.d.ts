@@ -136,6 +136,7 @@ export interface JobItem {
   quarrySupplier: Partial<QuarrySupplier>;
   quarrySupplierName: string;
   densityTonnagePerM3: number;
+  poNumber?: string;
 
   totalQuantityRequired: number;
   allocatedQuantity: number;

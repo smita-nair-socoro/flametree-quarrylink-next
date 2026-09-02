@@ -6,7 +6,7 @@ import type { SortingState } from '@tanstack/react-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { FormDialog } from '@/components/form-dialog';
-import InternalTransferJobForm from '../forms/internal-transfer-job-form';
+import InternalTransferJobForm from './forms/internal-transfer-job-form';
 import { JobDTO } from '@/lib/types/job';
 import {
   InternalTransferJobsListQueryOptions,
@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/job';
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
-import { JobTableActions } from '../(data-tables)/job/job-table-actions';
+import { JobTableActions } from './(data-tables)/job/job-table-actions';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { useSearchParams } from 'next/navigation';
 import { JobItemsQueryOptions } from '@/lib/api/job';
