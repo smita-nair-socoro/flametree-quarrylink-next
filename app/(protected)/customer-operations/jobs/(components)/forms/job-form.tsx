@@ -71,6 +71,7 @@ export default function JobForm({
     tabs,
     isPending,
     onSubmit,
+    isInternalTransfer,
   } = useJobFormState({
     id,
     onDirtyChange,
@@ -181,76 +182,107 @@ export default function JobForm({
               className,
             )}
           >
-            <FormField
-              control={jobForm.control}
-              name="poNumber"
-              render={({ field }) => (
-                <FormItem className="col-span-2 col-start-1">
-                  <FormLabel>PO Number</FormLabel>
+            {isInternalTransfer ? (
+              <>
+                <FormField
+                  control={jobForm.control}
+                  name="projectName"
+                  render={() => (
+                    <FormItem
+                      className={
+                        isEditing && isDesktop
+                          ? 'col-span-1 col-start-1'
+                          : 'col-span-2'
+                      }
+                    >
+                      <FormLabel>From Site</FormLabel>
+                      <FormControl>
+                        <Input
+                          className="w-full"
+                          value={jobDetails?.fromSiteName ?? ''}
+                          disabled
+                          readOnly
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-2'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>To Site</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      placeholder="Enter PO Number"
-                      {...field}
-                      disabled={isEditing && !canEdit}
+                      value={jobDetails?.toSiteName ?? ''}
+                      disabled
+                      readOnly
                     />
                   </FormControl>
-                  <FormMessage />
                 </FormItem>
-              )}
-            />
+              </>
+            ) : (
+              <>
+                <FormSelect
+                  control={jobForm.control}
+                  name="customerId"
+                  label="Customer*"
+                  searchLabel="Customer"
+                  options={customerOptions}
+                  placeholder="Select Customer"
+                  formItemClassName={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                  onDropdownOpenChange={setCustomerSelectOpen}
+                  searchValue={customerSearch}
+                  onSearchChange={onCustomerSearchChange}
+                  isSearchingOptions={isSearchingCustomers}
+                  onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
+                  hasMoreOptions={hasMoreCustomerOptions}
+                  isLoadingMoreOptions={isLoadingMoreCustomerOptions}
+                  disabled={isEditing}
+                  autoSelectForOnlyOneOption={!isEditing}
+                />
 
-            <FormSelect
-              control={jobForm.control}
-              name="customerId"
-              label="Customer*"
-              searchLabel="Customer"
-              options={customerOptions}
-              placeholder="Select Customer"
-              formItemClassName={
-                isEditing && isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
-              }
-              onDropdownOpenChange={setCustomerSelectOpen}
-              searchValue={customerSearch}
-              onSearchChange={onCustomerSearchChange}
-              isSearchingOptions={isSearchingCustomers}
-              onOptionsListScrollEnd={onCustomerOptionsScrollEnd}
-              hasMoreOptions={hasMoreCustomerOptions}
-              isLoadingMoreOptions={isLoadingMoreCustomerOptions}
-              disabled={isEditing}
-              autoSelectForOnlyOneOption={!isEditing}
-            />
-
-            <FormField
-              control={jobForm.control}
-              name="accountManagerSub"
-              render={() => {
-                const accountManagerName =
-                  customers.find((c) => c.id === jobForm.watch('customerId'))
-                    ?.accountManagerName || '';
-                return (
-                  <FormItem
-                    className={
-                      isEditing && isDesktop
-                        ? 'col-span-1 col-start-2'
-                        : 'col-span-2'
-                    }
-                  >
-                    <FormLabel>Account Manager*</FormLabel>
-                    <FormControl>
-                      <Input
-                        className="w-full"
-                        value={accountManagerName}
-                        placeholder="Select Customer First"
-                        disabled
-                        readOnly
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+                <FormField
+                  control={jobForm.control}
+                  name="accountManagerSub"
+                  render={() => {
+                    const accountManagerName =
+                      customers.find(
+                        (c) => c.id === jobForm.watch('customerId'),
+                      )?.accountManagerName || '';
+                    return (
+                      <FormItem
+                        className={
+                          isEditing && isDesktop
+                            ? 'col-span-1 col-start-2'
+                            : 'col-span-2'
+                        }
+                      >
+                        <FormLabel>Account Manager*</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="w-full"
+                            value={accountManagerName}
+                            placeholder="Select Customer First"
+                            disabled
+                            readOnly
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }}
+                />
+              </>
+            )}
 
             <FormField
               control={jobForm.control}
@@ -263,7 +295,7 @@ export default function JobForm({
                       className="w-full"
                       placeholder="Enter Project Name"
                       {...field}
-                      disabled={isEditing && !canEdit}
+                      disabled={isInternalTransfer || (isEditing && !canEdit)}
                     />
                   </FormControl>
                   <FormMessage />

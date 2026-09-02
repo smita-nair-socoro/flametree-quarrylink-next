@@ -55,13 +55,17 @@ export function VoidDocketContent({
   onVoidReasonChange,
   voidNotes,
   onVoidNotesChange,
+  reasons,
 }: {
   voidReason: string;
   onVoidReasonChange: (value: string) => void;
   voidNotes: string;
   onVoidNotesChange: (value: string) => void;
+  reasons?: { value: string; label: string }[];
 }) {
-  const notesRequired = voidReason === 'other';
+  const options = reasons ?? VOID_REASONS;
+  const notesRequired =
+    voidReason === 'other' || voidReason === 'Other';
 
   return (
     <div className="flex flex-col gap-6">
@@ -71,7 +75,7 @@ export function VoidDocketContent({
         </label>
         <SelectOptions
           searchLabel="void reason"
-          options={VOID_REASONS}
+          options={options}
           value={voidReason}
           onChange={(value) => onVoidReasonChange(String(value))}
           placeholder="Select a reason..."

@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { DocketDTO } from '@/lib/types/docket';
 import { DocketsByJobIdQueryOptions, getDocketItemsFromListResponse } from '@/lib/api/docket';
 import { DataTableClient } from '@/components/ui/data-table-client';
@@ -14,6 +13,7 @@ import { cn } from '@/lib/utils';
 
 import { InvoiceActions } from '../../../invoice-actions';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { isInvoiceEligible } from '@/lib/utils/docket-financial-eligibility';
 
 interface FormProps {
   jobId: number;
@@ -34,12 +34,7 @@ export default function InvoiceForm({
   );
 
   const invoiceEligibleDockets = React.useMemo(
-    () =>
-      docketList.filter(
-        (docket) =>
-          docket.docketStatus === DOCKET_STATUS.DELIVERED ||
-          docket.docketStatus === DOCKET_STATUS.COLLECTED,
-      ),
+    () => docketList.filter(isInvoiceEligible),
     [docketList],
   );
 
@@ -169,6 +164,7 @@ export default function InvoiceForm({
         key={activeTab}
         columns={getCreateInvoiceColumns(currencyCode, taxLabel)}
         data={items}
+        searchPlaceHolder="Search dockets by keyword…"
         defaultSorting={[{ id: 'docketNumber', desc: false }]}
         enableRowSelection={true}
         onRowSelectionChange={handlRowSelectionChange}
@@ -179,6 +175,13 @@ export default function InvoiceForm({
           />
         }
       />
+      {allCount === 0 ? (
+        <p className="text-sm text-muted-foreground mt-4">
+          No eligible dockets on this job. Collection dockets must be Collected
+          and delivery dockets must be Delivered, and not already invoiced or
+          cash sold.
+        </p>
+      ) : null}
     </div>
   );
 }

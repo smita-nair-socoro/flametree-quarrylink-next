@@ -64,6 +64,14 @@ import {
   UnassignDocketContent,
 } from '@/hooks/docket/unassign-docket-content';
 import { InvoiceDocketIndividualModal } from '@/hooks/docket/invoice-docket-individual-modal';
+import { CashSaleConfirmDialog } from '@/components/cash-sale-confirm-dialog';
+import { CashSaleReceiptActions } from '@/components/cash-sale-receipt-actions';
+import { isInternalTransferDocket } from '@/lib/utils/docket-financial-eligibility';
+import { APIClient } from '@/lib/api/APIClient';
+import {
+  INTERNAL_TRANSFER_VOID_REASONS,
+  PaymentsCashSale,
+} from '@/lib/types/payments';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useDocketStore } from '@/app/stores/docket-store';
 import { useTenantStore } from '@/app/stores/tenant-store';
@@ -105,6 +113,7 @@ export type DocketActionKey =
   // | 'backToPreparing'
   | 'cashSale'
   | 'cashReceipts'
+  | 'viewJournal'
   | 'duplicate'
   | 'print';
 
@@ -162,6 +171,9 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
   const [stopNotes, setStopNotes] = React.useState('');
   const [voidReason, setVoidReason] = React.useState('');
   const [voidNotes, setVoidNotes] = React.useState('');
+  const [cashSaleOpen, setCashSaleOpen] = React.useState(false);
+  const [viewingReceipt, setViewingReceipt] =
+    React.useState<PaymentsCashSale | null>(null);
   const setSelectedDocket = useDocketStore((state) => state.setSelectedDocket);
   const businessName = useTenantStore((state) => state.businessName);
   const selectedDocket = useDocketStore((s) => {
@@ -550,7 +562,9 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
 
   const isVoidFormValid = React.useMemo(() => {
     if (!voidReason) return false;
-    if (voidReason === 'other') return Boolean(voidNotes.trim());
+    if (voidReason === 'other' || voidReason === 'Other') {
+      return Boolean(voidNotes.trim());
+    }
     return true;
   }, [voidNotes, voidReason]);
 
@@ -878,6 +892,14 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
             onVoidReasonChange={setVoidReason}
             voidNotes={voidNotes}
             onVoidNotesChange={setVoidNotes}
+            reasons={
+              isInternalTransferDocket(effectiveDocket)
+                ? INTERNAL_TRANSFER_VOID_REASONS.map((reason) => ({
+                    value: reason,
+                    label: reason,
+                  }))
+                : undefined
+            }
           />
         ),
         confirmText: 'Void Docket',
@@ -1035,11 +1057,26 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
     },
     startPreparing: createDialogAction('startPreparing'),
     cashSale: () => {
-      console.log('Cash sale confirmed:', effectiveDocket);
+      setCashSaleOpen(true);
     },
     invoice: createDialogAction('invoice'),
-    cashReceipts: () => {
-      console.log('Cash receipts confirmed:', effectiveDocket);
+    cashReceipts: async () => {
+      const docket = await ensureDocketDetail();
+      if (!docket) return;
+      try {
+        const receipt = await APIClient.payments.cashSaleByDocket(docket.id);
+        setViewingReceipt(receipt);
+      } catch (error) {
+        notifyError(extractErrorMessage(error));
+      }
+    },
+    viewJournal: () => {
+      const number = effectiveDocket?.docketNumber;
+      window.location.assign(
+        `/customer-operations/payments?tab=internal-transfers${
+          number ? `&search=${encodeURIComponent(number)}` : ''
+        }`,
+      );
     },
     viewInvoice: async () => {
       const docket = await ensureDocketDetail();
@@ -1144,12 +1181,6 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
             case 'duplicate':
               await handleDuplicateDocket();
               break;
-            case 'cashSale':
-              console.log('Cash sale confirmed:', effectiveDocket);
-              break;
-            case 'cashReceipts':
-              console.log('Cash receipts confirmed:', effectiveDocket);
-              break;
             case 'unassign':
               await handleUnassignDocket();
               break;
@@ -1171,7 +1202,16 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
   const viewDialog = viewOpen ? (
     <FormDialog
       id={effectiveDocket?.id}
-      dialogTitle="View / Edit Docket"
+      dialogTitle={
+        isInternalTransferDocket(effectiveDocket)
+          ? 'Internal Transfer Docket'
+          : 'View / Edit Docket'
+      }
+      headerSubtitle={
+        isInternalTransferDocket(effectiveDocket)
+          ? 'Track material moving between your sites. No customer sale or invoice is created.'
+          : undefined
+      }
       open={viewOpen}
       onOpenChangeAction={(open) => {
         setViewOpen(open);
@@ -1210,6 +1250,23 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
         }}
         docket={effectiveDocket}
       />,
+      <CashSaleConfirmDialog
+        key="cashSaleConfirm"
+        open={cashSaleOpen}
+        onOpenChange={setCashSaleOpen}
+        dockets={effectiveDocket ? [effectiveDocket] : []}
+      />,
+      viewingReceipt ? (
+        <CashSaleReceiptActions
+          key={`receipt-${viewingReceipt.id}`}
+          receipt={viewingReceipt}
+          hideMenu
+          defaultDetailsOpen
+          onDetailsOpenChange={(open) => {
+            if (!open) setViewingReceipt(null);
+          }}
+        />
+      ) : null,
     ],
     viewDialog,
     isDialogOpen: activeDialog !== null,

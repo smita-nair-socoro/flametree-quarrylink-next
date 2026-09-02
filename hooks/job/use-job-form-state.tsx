@@ -34,11 +34,11 @@ import { addNewRecord } from '@/lib/utils/pinned-records';
 import LineItemsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/line-items/line-items-tab';
 import DocketsTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/dockets/dockets-tab';
 import InvoicesTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/invoices/invoices-tab';
+import CashSalesTab from '@/app/(protected)/customer-operations/jobs/(components)/forms/tabs/cash-sales/cash-sales-tab';
 import { useJobStore } from '@/app/stores/job-store';
 
 export const EMPTY_JOB_FORM_VALUES = {
   customerId: 0,
-  poNumber: '',
   projectName: '',
   deliveryWindowStart: '',
   deliveryWindowEnd: '',
@@ -179,7 +179,6 @@ export function useJobFormState({
     jobForm.reset({
       ...currentValues,
       customerId: jobDetails.customerId,
-      poNumber: jobDetails.poNumber || '',
       projectName: jobDetails.projectName || '',
       deliveryStartDate: deliveryDate,
       deliveryWindowStart: startWindow,
@@ -249,6 +248,10 @@ export function useJobFormState({
     onDirtyChange?.(jobForm.formState.isDirty);
   }, [jobForm.formState.isDirty, onDirtyChange]);
 
+  const isInternalTransfer =
+    jobDetails?.jobType === 'INTERNAL_TRANSFER' ||
+    selectedJob?.jobType === 'INTERNAL_TRANSFER';
+
   const tabs = React.useMemo(
     () => [
       {
@@ -259,12 +262,20 @@ export function useJobFormState({
         name: 'Dockets',
         content: <DocketsTab selectedJob={jobDetails ?? null} />,
       },
-      {
-        name: 'Invoices',
-        content: <InvoicesTab jobId={jobId} />,
-      },
+      ...(!isInternalTransfer
+        ? [
+            {
+              name: 'Invoices',
+              content: <InvoicesTab jobId={jobId} />,
+            },
+            {
+              name: 'Cash Sales',
+              content: <CashSalesTab jobId={jobId} />,
+            },
+          ]
+        : []),
     ],
-    [jobDetails, jobId],
+    [jobDetails, jobId, isInternalTransfer],
   );
 
   const onSubmit = React.useCallback(
@@ -299,7 +310,6 @@ export function useJobFormState({
         const payload = {
           customerId: values.customerId,
           projectName: values.projectName,
-          poNumber: values.poNumber,
           contactPersonName: newContactPersonName,
           contactPersonPhone: values.phone,
           emailRecipients,
@@ -384,5 +394,6 @@ export function useJobFormState({
     tabs,
     isPending,
     onSubmit,
+    isInternalTransfer,
   };
 }

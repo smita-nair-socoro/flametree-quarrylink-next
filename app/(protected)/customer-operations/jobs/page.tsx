@@ -30,6 +30,9 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
+import { Tab } from '@/components/ui/tabs';
+import { InternalTransferJobsTab } from './(components)/internal-transfer-jobs-tab';
+import { FailedSyncBanner } from '@/components/failed-sync-banner';
 import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
@@ -64,6 +67,10 @@ export default function CustomersPage() {
     [facetFilters],
   );
 
+  const jobsTab =
+    searchParams.get('tab') === 'internal-transfers'
+      ? 'internal-transfers'
+      : 'jobs';
   const idsParam = searchParams.get('ids');
   const idsFilter = React.useMemo(() => {
     if (!idsParam) return undefined;
@@ -297,78 +304,118 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-2xl">Jobs</h1>
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <FormDialog
-            dialogTitle="Add New Job"
-            dialogDescription="Fill in the required fields to add a new job."
-            buttonTitle="Add Job"
-          >
-            <JobForm />
-          </FormDialog>
-        </div>
       </div>
-
-      {/* Statistics Cards */}
-      <StatsCards cards={statsCards} mobileGridCols={1} desktopGridCols={4} />
-
-      <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
-        {isLoading && !jobsList ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-              <p>Loading jobs...</p>
-            </div>
-          </div>
-        ) : (
-          <>
-            {idsFilter && (
-              <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
-                <div className="mt-1 text-sm text-muted-foreground">
-                  <span>Showing filtered jobs</span>
+      <FailedSyncBanner />
+      <Tab
+        value={jobsTab}
+        onValueChange={(value) => {
+          const params = new URLSearchParams(searchParams.toString());
+          if (value === 'internal-transfers') {
+            params.set('tab', 'internal-transfers');
+          } else {
+            params.delete('tab');
+          }
+          const query = params.toString();
+          router.replace(
+            query
+              ? `/customer-operations/jobs?${query}`
+              : '/customer-operations/jobs',
+          );
+        }}
+        className="w-full"
+        tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
+        tabsTriggerClassName="h-8 flex-1 justify-center"
+        enableDropdownOnMobile
+        tabs={[
+          {
+            name: 'Jobs',
+            value: 'jobs',
+            content: (
+              <div className="flex flex-col gap-4">
+                <div className="flex justify-end">
+                  <FormDialog
+                    dialogTitle="Add New Job"
+                    dialogDescription="Fill in the required fields to add a new job."
+                    buttonTitle="Add Job"
+                  >
+                    <JobForm />
+                  </FormDialog>
                 </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => router.push('/customer-operations/jobs')}
-                >
-                  Reset Filter
-                </Button>
+                <StatsCards
+                  cards={statsCards}
+                  mobileGridCols={1}
+                  desktopGridCols={4}
+                />
+                <div className="min-h-[100vh] flex-1 rounded-xl md:min-h-min">
+                  {isLoading && !jobsList ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
+                        <p>Loading jobs...</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {idsFilter && (
+                        <div className="flex flex-row sm:flex-row sm:items-center gap-5 mb-3">
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            <span>Showing filtered jobs</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() =>
+                              router.push('/customer-operations/jobs')
+                            }
+                          >
+                            Reset Filter
+                          </Button>
+                        </div>
+                      )}
+                      <DataTableClient
+                        tableId="job_main_data_table"
+                        data={items ?? []}
+                        columns={jobColumns}
+                        facetDefinition={facetDefs}
+                        searchPlaceHolder="Search jobs..."
+                        defaultSorting={[{ id: 'jobNumber', desc: true }]}
+                        onRowClick={handleRowClick}
+                        mobileCardRenderer={renderJobCard}
+                        mobileInfinite={
+                          !idsFilter
+                            ? {
+                                items: mobileItems,
+                                hasNextPage,
+                                isFetchingNextPage,
+                                isLoading: infiniteIsFetching,
+                                fetchNextPage,
+                              }
+                            : undefined
+                        }
+                        totalElements={totalElements}
+                        totalPages={totalPages}
+                        externalPageIndex={pageIndex}
+                        externalPageSize={pageSize}
+                        externalSorting={sorting}
+                        onPaginationChange={handlePaginationChange}
+                        onSearchChange={handleSearchChange}
+                        onFacetFiltersChange={handleFacetFiltersChange}
+                        onSortingChange={handleSortingChange}
+                        isLoading={isFetching}
+                      />
+                    </>
+                  )}
+                </div>
               </div>
-            )}
-            <DataTableClient
-              tableId="job_main_data_table"
-              data={items ?? []}
-              columns={jobColumns}
-              facetDefinition={facetDefs}
-              searchPlaceHolder="Search jobs..."
-              defaultSorting={[{ id: 'jobNumber', desc: true }]}
-              onRowClick={handleRowClick}
-              mobileCardRenderer={renderJobCard}
-              mobileInfinite={
-                !idsFilter
-                  ? {
-                      items: mobileItems,
-                      hasNextPage,
-                      isFetchingNextPage,
-                      isLoading: infiniteIsFetching,
-                      fetchNextPage,
-                    }
-                  : undefined
-              }
-              totalElements={totalElements}
-              totalPages={totalPages}
-              externalPageIndex={pageIndex}
-              externalPageSize={pageSize}
-              externalSorting={sorting}
-              onPaginationChange={handlePaginationChange}
-              onSearchChange={handleSearchChange}
-              onFacetFiltersChange={handleFacetFiltersChange}
-              onSortingChange={handleSortingChange}
-              isLoading={isFetching}
-            />
-          </>
-        )}
-      </div>
+            ),
+          },
+          {
+            name: 'Internal Transfers',
+            value: 'internal-transfers',
+            content: <InternalTransferJobsTab />,
+          },
+        ]}
+      />
     </div>
   );
 }

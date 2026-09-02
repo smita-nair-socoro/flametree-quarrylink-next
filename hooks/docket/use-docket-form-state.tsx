@@ -518,6 +518,7 @@ export function useDocketFormState({
       truckUomLabel: formatUomLabel(truckUom),
       productSell: selectedJobLineItem?.productSellPrice ?? 0,
       productSellQty: selectedJobLineItem?.productSellQty ?? 0,
+      productCostPrice: selectedJobLineItem?.productCostPrice ?? 0,
       remainingQty:
         (selectedJobLineItem?.remainingQuantity ?? 0) + restoredAllocatedQty,
       type: selectedJobLineItem?.jobItemType ?? '',
@@ -665,6 +666,11 @@ export function useDocketFormState({
     const gst = roundToTwoDecimals(subtotal * (taxPercentage / 100));
     const total = roundToTwoDecimals(subtotal + gst + digitalPlatformFee);
 
+    const productCostUnit = roundToTwoDecimals(
+      centsToDollarsNum(details.productCostPrice),
+    );
+    const productCost = roundToTwoDecimals(productCostUnit * effectiveLoadSize);
+
     return {
       productSell,
       truckSell,
@@ -674,6 +680,9 @@ export function useDocketFormState({
       subtotal,
       gst,
       total,
+      productCostUnit,
+      productCost,
+      missingCostPrice: productCostUnit <= 0,
     };
   }, [
     selectedJobLineItemDetails,

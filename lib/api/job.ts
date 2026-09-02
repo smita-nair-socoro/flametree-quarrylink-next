@@ -153,6 +153,34 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
     staleTime: 5_000,
   });
 
+export const InternalTransferJobsListQueryOptions = (
+  params?: JobsListParams,
+) =>
+  queryOptions({
+    queryKey: JobKeys.internalTransfers(params),
+    queryFn: () =>
+      APIClient.jobs.getInternalTransfers({
+        ...params,
+        page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+      }),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const useCreateInternalTransferJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      fromSiteId: number;
+      toSiteId: number;
+      notes?: string;
+    }) => APIClient.jobs.createInternalTransfer(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+    },
+  });
+};
+
 /** Jobs API pagination is 1-based, matching JobsListQueryOptions. */
 export const JobsInfiniteListQueryOptions = (
   params: Omit<JobsListParams, 'page'> = {},

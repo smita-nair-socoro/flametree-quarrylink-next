@@ -57,6 +57,24 @@ export const useRemoveUserFromOperations = () =>
     mutationFn: (id: string) => APIClient.users.removeFromOperations(id),
   });
 
+export const VoidTransactionsListQueryOptions = () =>
+  queryOptions<AccountManager[]>({
+    queryKey: UserKeys.voidTransactions(),
+    queryFn: () => APIClient.users.getVoidTransactions(),
+    placeholderData: keepPreviousData,
+    staleTime: 5_000,
+  });
+
+export const useAddUserToVoidTransactions = () =>
+  useMutation({
+    mutationFn: (id: string) => APIClient.users.addToVoidTransactions(id),
+  });
+
+export const useRemoveUserFromVoidTransactions = () =>
+  useMutation({
+    mutationFn: (id: string) => APIClient.users.removeFromVoidTransactions(id),
+  });
+
 export const UserDetailQueryOptions = (userId: string) =>
   queryOptions({
     queryKey: UserKeys.detail(userId),

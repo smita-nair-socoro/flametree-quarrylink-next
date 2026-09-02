@@ -1,6 +1,8 @@
 'use client';
 import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
+import { JobMultiValueCell } from '@/components/job-multi-value-cell';
+import { jobTablePoNumbers } from '@/lib/utils/job-table-values';
 import { ColumnDef } from '@tanstack/react-table';
 import { JobDTO } from '@/lib/types/job';
 import { JOB_STATUS } from '@/lib/types/job-enums';
@@ -65,6 +67,25 @@ export const getJobColumns = (
       meta: 'Customer Name',
     },
     {
+      id: 'quarrySupplierName',
+      accessorFn: (row) => row.quarrySupplierNames?.[0] ?? '',
+      header: ({ column }) => {
+        return (
+          <TableClientSortableHeader
+            column={column}
+            title="Quarry / Supplier"
+          />
+        );
+      },
+      cell: ({ row }) => (
+        <JobMultiValueCell
+          values={row.original.quarrySupplierNames ?? []}
+          testId="job-quarry-cell"
+        />
+      ),
+      meta: 'Quarry / Supplier',
+    },
+    {
       id: 'projectName',
       accessorFn: (row) => row.projectName,
       header: ({ column }) => {
@@ -75,6 +96,24 @@ export const getJobColumns = (
         return <div className="py-2">{projectName}</div>;
       },
       meta: 'Project Name',
+    },
+    {
+      id: 'poNumber',
+      accessorFn: (row) =>
+        jobTablePoNumbers(row.poNumbers, row.poNumber)[0] ?? '',
+      header: ({ column }) => {
+        return <TableClientSortableHeader column={column} title="PO" />;
+      },
+      cell: ({ row }) => (
+        <JobMultiValueCell
+          values={jobTablePoNumbers(
+            row.original.poNumbers,
+            row.original.poNumber,
+          )}
+          testId="job-po-cell"
+        />
+      ),
+      meta: 'PO',
     },
     {
       id: 'status',

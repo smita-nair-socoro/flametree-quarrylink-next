@@ -155,6 +155,7 @@ export function useJobLineItemFormState({
       productSellPrice: isEditing
         ? centsToDollarsNum(jobLineItemData?.productSellPrice || 0, unitPriceDecimalPlaces)
         : 0,
+      poNumber: isEditing ? (jobLineItemData?.poNumber ?? '') : '',
       truckType: isEditing ? (jobLineItemData?.truckType ?? '') : '',
       truckCostUom: isEditing ? (jobLineItemData?.truckCostUom ?? '') : '',
       truckCostQty: isEditing ? (jobLineItemData?.truckCostQty ?? 0) : 0,
@@ -1216,6 +1217,7 @@ export function useJobLineItemFormState({
       allocatedQuantity: 0,
       remainingQuantity: values.productSellQty || 0,
       grossProfit: dollarsToCents(values.grossProfit || 0),
+      poNumber: values.poNumber?.trim() || undefined,
       version: jobLineItemData?.version || 1,
     };
 

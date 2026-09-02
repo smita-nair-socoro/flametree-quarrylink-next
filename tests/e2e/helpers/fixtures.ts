@@ -247,6 +247,32 @@ export class ApiClient {
     tenants: () => this.get('/quarrylink/tenant-fusion/api/tenants'),
   };
 
+  // -- Payments --
+  payments = {
+    invoices: (params?: string) =>
+      this.get(`/socoro/quarrylink/api/invoices${params ? `?${params}` : ''}`),
+    cashSales: (params?: string) =>
+      this.get(
+        `/socoro/quarrylink/api/payments/cash-sales${params ? `?${params}` : ''}`,
+      ),
+    cashSalesByJob: (jobId: number) =>
+      this.get(`/socoro/quarrylink/api/payments/jobs/${jobId}/cash-sales`),
+    internalTransfers: (params?: string) =>
+      this.get(
+        `/socoro/quarrylink/api/payments/internal-transfers${params ? `?${params}` : ''}`,
+      ),
+    failedCount: () =>
+      this.get('/socoro/quarrylink/api/payments/failed-count'),
+    retryCashSale: (id: number) =>
+      this.put(`/socoro/quarrylink/api/payments/cash-sales/${id}/retry`),
+    retryInvoice: (id: number) =>
+      this.put(`/socoro/quarrylink/api/invoices/${id}/retry`),
+    retryInternalTransferJournal: (journalId: number) =>
+      this.put(
+        `/socoro/quarrylink/api/payments/internal-transfers/journals/${journalId}/retry`,
+      ),
+  };
+
   // -- Checklists --
   checklists = {
     list: () => this.get('/socoro/quarrylink/api/checklist'),

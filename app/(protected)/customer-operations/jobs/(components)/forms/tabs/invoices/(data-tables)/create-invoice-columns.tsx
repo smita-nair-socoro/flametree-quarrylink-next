@@ -43,6 +43,20 @@ export const getCreateInvoiceColumns = (
     meta: 'Docket Number',
   },
   {
+    id: 'docketType',
+    accessorFn: (row) =>
+      row.jobItem?.jobItemType === 'COLLECTION' ? 'Collection' : 'Delivery',
+    header: () => <div>Type</div>,
+    cell: ({ row }) => (
+      <div className="py-2">
+        {row.original.jobItem?.jobItemType === 'COLLECTION'
+          ? 'Collection'
+          : 'Delivery'}
+      </div>
+    ),
+    meta: 'Type',
+  },
+  {
     id: 'product',
     accessorFn: (row) => row.jobItem.product.productName,
     header: ({ column }) => {

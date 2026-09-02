@@ -84,3 +84,12 @@ export const useIsAdmin = () =>
     const backend = resolveBackendRole(state.user?.role, state.userGroups);
     return backend === 'ADMIN' || backend === 'SUPER_ADMIN';
   });
+
+export const useHasVoidTransactions = () =>
+  useUserStore((state) => {
+    const backend = resolveBackendRole(state.user?.role, state.userGroups);
+    if (backend === 'SUPER_ADMIN') return true;
+    return state.userGroups.some((group) =>
+      group.toLowerCase().includes('void_transactions'),
+    );
+  });

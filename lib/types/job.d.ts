@@ -8,12 +8,20 @@ import { RECOVERY_MODE, EFFECTIVE_SOURCE } from './fee-recovery-enums';
 export interface JobDTO {
   id: number;
   jobNumber?: string;
-  customerId: number;
+  customerId?: number;
   customerDto?: Partial<CustomerDTO>;
   customerWithAddressResponse?: CustomerWithAddressResponseDTO;
   projectName: string;
   jobStatus: JOB_STATUS;
+  jobType?: 'CUSTOMER' | 'INTERNAL_TRANSFER';
+  fromSiteId?: number;
+  fromSiteName?: string;
+  toSiteId?: number;
+  toSiteName?: string;
+  docketCount?: number;
   poNumber?: string;
+  poNumbers?: string[];
+  quarrySupplierNames?: string[];
   contactPersonName?: string;
   contactPersonPhone?: string;
   docketEmail?: string;
@@ -92,6 +100,7 @@ export interface JobLineItem {
   truckSellPrice: number;
   totalTruckSellPrice: number;
   grossProfit: number;
+  poNumber?: string;
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
@@ -220,7 +229,9 @@ export interface Invoice {
   docketCount: number;
   amount: number;
   dueDate: string;
-  status: INVOICE_STATUS;
+  status: INVOICE_STATUS | string;
+  accountingSync?: 'SYNCED' | 'FAILED' | 'NOT_SYNCED';
+  failureReason?: string;
 }
 
 /** Paginated invoices from GET /invoices/jobs/{jobId}. */

@@ -25,11 +25,14 @@ import {
   Copy,
   RefreshCw,
   Printer,
+  FileText,
 } from 'lucide-react';
 import { useDocketActions } from '@/hooks/use-docket-actions';
 import { DocketDTO } from '@/lib/types/docket';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { notifyWarning } from '@/lib/toast';
+import { isInternalTransferDocket } from '@/lib/utils/docket-financial-eligibility';
+import { useHasVoidTransactions } from '@/app/stores/user-store';
 
 interface DocketActionButtonsProps {
   docket: DocketDTO | null | undefined;
@@ -55,6 +58,7 @@ type ActionType =
   | 'invoice'
   | 'cashReceipts'
   | 'viewInvoice'
+  | 'viewJournal'
   | 'assign'
   | 'backToPending'
   // | 'backToPreparing'
@@ -119,7 +123,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.COLLECTED]: [
-    // { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Invoice', icon: Receipt, action: 'invoice' },
     { label: 'Duplicate', icon: Copy, action: 'duplicate' },
 
@@ -134,7 +138,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     {
-      label: 'Cash Receipts',
+      label: 'View Receipt',
       icon: ReceiptText,
       action: 'cashReceipts',
       separator: true,
@@ -226,7 +230,8 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     { label: 'Duplicate', icon: Copy, action: 'duplicate', separator: true },
   ],
   [DOCKET_STATUS.DELIVERED]: [
-    { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
+    { label: 'Invoice', icon: Receipt, action: 'invoice' },
     { label: 'Cancel', icon: CircleX, action: 'cancel' },
     {
       label: 'Void',
@@ -244,6 +249,8 @@ export function DocketActionButtons({
   hasUnsavedChanges = false,
 }: Readonly<DocketActionButtonsProps>) {
   const { actions, confirmDialogs, viewDialog } = useDocketActions(docket);
+  const canVoidTransactions = useHasVoidTransactions();
+  const isInternalTransfer = isInternalTransferDocket(docket);
 
   const handleAction = (action: ActionType) => {
     if (hasUnsavedChanges) {
@@ -258,6 +265,30 @@ export function DocketActionButtons({
   }
 
   let currentActions = [...(ACTION_CONFIG[docket.docketStatus] || [])];
+
+  if (isInternalTransfer) {
+    const completed =
+      docket.docketStatus === DOCKET_STATUS.DELIVERED ||
+      docket.docketStatus === DOCKET_STATUS.COLLECTED;
+    currentActions = currentActions.filter(
+      (item) => item.action !== 'invoice' && item.action !== 'cashSale',
+    );
+    if (completed) {
+      currentActions = [
+        { label: 'View Journal', icon: FileText, action: 'viewJournal' },
+        ...(canVoidTransactions
+          ? [
+              {
+                label: 'Void',
+                icon: Trash2,
+                action: 'void' as ActionType,
+                className: 'text-red-600',
+              },
+            ]
+          : []),
+      ];
+    }
+  }
 
   if (
     docket.docketStatus === DOCKET_STATUS.INVOICED &&

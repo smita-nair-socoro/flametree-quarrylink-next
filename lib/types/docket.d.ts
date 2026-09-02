@@ -187,6 +187,9 @@ export interface DocketDTO {
     accountManagerName?: string;
     projectName: string;
     jobStatus: JOB_STATUS;
+    jobType?: 'CUSTOMER' | 'INTERNAL_TRANSFER';
+    fromSiteName?: string;
+    toSiteName?: string;
     poNumber: string;
     contactPersonName: string;
     contactPersonPhone: string;

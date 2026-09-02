@@ -484,7 +484,16 @@ export function useJobActions(jobData?: JobDetails | null) {
 
   const addDocketDialog = addDocketOpen ? (
     <FormDialog
-      dialogTitle="Add New Docket"
+      dialogTitle={
+        selectedJob?.jobType === 'INTERNAL_TRANSFER'
+          ? 'Internal Transfer Docket'
+          : 'Add New Docket'
+      }
+      headerSubtitle={
+        selectedJob?.jobType === 'INTERNAL_TRANSFER'
+          ? 'Track material moving between your sites. No customer sale or invoice is created.'
+          : undefined
+      }
       open={addDocketOpen}
       onOpenChangeAction={(open) => {
         setAddDocketOpen(open);

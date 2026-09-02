@@ -105,6 +105,8 @@ export const QuarrySupplierProductKeys = {
 export const JobKeys = {
   all: ['jobs'] as const,
   list: () => [...JobKeys.all, 'list'] as const,
+  internalTransfers: (params?: unknown) =>
+    [...JobKeys.all, 'internal-transfers', params] as const,
   detail: (id: number) => [...JobKeys.all, 'detail', id] as const,
   items: (jobId: number) => [...JobKeys.all, 'items', jobId] as const,
   item: (jobItemId: number) => [...JobKeys.all, 'item', jobItemId] as const,
@@ -118,6 +120,7 @@ export const UserKeys = {
   list: () => [...UserKeys.all, 'list'] as const,
   accountManagers: () => [...UserKeys.all, 'account-managers'] as const,
   operations: () => [...UserKeys.all, 'operations'] as const,
+  voidTransactions: () => [...UserKeys.all, 'void-transactions'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
@@ -163,9 +166,25 @@ export const ChecklistKeys = {
 export const InvoicesKeys = {
   all: ['invoices'] as const,
   list: (jobId: number) => [...InvoicesKeys.all, 'list', jobId] as const,
+  payments: (params?: unknown) =>
+    [...InvoicesKeys.all, 'payments', params] as const,
+  statistics: () => [...InvoicesKeys.all, 'statistics'] as const,
   detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
   url: (id: number) => [...InvoicesKeys.all, 'url', id] as const,
   pdf: (id: number) => [...InvoicesKeys.all, 'pdf', id] as const,
+};
+
+export const PaymentsKeys = {
+  all: ['payments'] as const,
+  cashSales: (params?: unknown) =>
+    [...PaymentsKeys.all, 'cash-sales', params] as const,
+  cashSalesByJob: (jobId: number) =>
+    [...PaymentsKeys.all, 'cash-sales-by-job', jobId] as const,
+  cashSaleDetail: (id: number) =>
+    [...PaymentsKeys.all, 'cash-sale', id] as const,
+  internalTransfers: (params?: unknown) =>
+    [...PaymentsKeys.all, 'internal-transfers', params] as const,
+  failedCount: () => [...PaymentsKeys.all, 'failed-count'] as const,
 };
 
 export const HaulierKeys = {

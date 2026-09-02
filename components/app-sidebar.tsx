@@ -33,6 +33,7 @@ export const navItems = [
       { title: 'Customers', url: '/customer-operations/customers' },
       { title: 'Quotations', url: '/customer-operations/quotation' },
       { title: 'Jobs', url: '/customer-operations/jobs' },
+      { title: 'Payments', url: '/customer-operations/payments' },
       { title: 'Dockets', url: '/customer-operations/dockets' },
       { title: 'Schedule', url: '/customer-operations/schedule' },
     ],
