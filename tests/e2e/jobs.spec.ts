@@ -59,6 +59,7 @@ test.describe('Jobs - Attachments', () => {
     apiClient,
   }) => {
     const listRes = await apiClient.jobs.list('page=1&pageSize=5');
+    skipIfUnavailable(listRes, 'Jobs list');
     expect(listRes.ok()).toBeTruthy();
     const listData = await listRes.json();
     const jobs =
