@@ -90,23 +90,11 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
           )}
         >
           <span className="text-lg font-semibold">Dockets</span>
-          {jobStatus !== JOB_STATUS.CANCELLED && (
+          {jobStatus !== JOB_STATUS.CANCELLED &&
+            selectedJob?.jobType !== 'INTERNAL_TRANSFER' && (
             <FormDialog
-              dialogTitle={
-                selectedJob?.jobType === 'INTERNAL_TRANSFER'
-                  ? 'Internal Transfer Docket'
-                  : 'Add New Docket'
-              }
-              headerSubtitle={
-                selectedJob?.jobType === 'INTERNAL_TRANSFER'
-                  ? 'Track material moving between your sites. No customer sale or invoice is created.'
-                  : undefined
-              }
-              buttonTitle={
-                selectedJob?.jobType === 'INTERNAL_TRANSFER'
-                  ? 'Add Internal Transfer'
-                  : 'Add New Docket'
-              }
+              dialogTitle="Add New Docket"
+              buttonTitle="Add New Docket"
             >
               <DocketForm isQuickDocket={false} jobId={jobId} />
             </FormDialog>

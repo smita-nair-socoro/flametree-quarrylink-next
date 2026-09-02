@@ -88,7 +88,18 @@ export function useJobFormState({
   // Put detailed jobs into store to make form-dialog can get QuoteNumber from store
   React.useEffect(() => {
     if (jobDetails) {
-      useJobStore.getState().setSelectedJob(jobDetails);
+      const previous = useJobStore.getState().selectedJob;
+      useJobStore.getState().setSelectedJob({
+        ...previous,
+        ...jobDetails,
+        // Preserve IT fields if a stale job-items payload omits them.
+        jobType: jobDetails.jobType ?? previous?.jobType,
+        fromSiteId: jobDetails.fromSiteId ?? previous?.fromSiteId,
+        fromSiteName: jobDetails.fromSiteName ?? previous?.fromSiteName,
+        toSiteId: jobDetails.toSiteId ?? previous?.toSiteId,
+        toSiteName: jobDetails.toSiteName ?? previous?.toSiteName,
+        docketCount: jobDetails.docketCount ?? previous?.docketCount,
+      });
     }
   }, [jobDetails]);
 
@@ -254,13 +265,17 @@ export function useJobFormState({
 
   const tabs = React.useMemo(
     () => [
-      {
-        name: 'Products',
-        content: <LineItemsTab jobId={jobId} jobTotals={jobDetails} />,
-      },
+      ...(!isInternalTransfer
+        ? [
+            {
+              name: 'Products',
+              content: <LineItemsTab jobId={jobId} jobTotals={jobDetails} />,
+            },
+          ]
+        : []),
       {
         name: 'Dockets',
-        content: <DocketsTab selectedJob={jobDetails ?? null} />,
+        content: <DocketsTab selectedJob={jobDetails ?? selectedJob ?? null} />,
       },
       ...(!isInternalTransfer
         ? [
@@ -275,7 +290,7 @@ export function useJobFormState({
           ]
         : []),
     ],
-    [jobDetails, jobId, isInternalTransfer],
+    [jobDetails, jobId, isInternalTransfer, selectedJob],
   );
 
   const onSubmit = React.useCallback(

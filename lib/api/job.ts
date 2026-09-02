@@ -181,6 +181,52 @@ export const useCreateInternalTransferJob = () => {
   });
 };
 
+export const useUpdateInternalTransferJob = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: {
+        version: number;
+        fromSiteId?: number;
+        toSiteId?: number;
+        notes?: string;
+      };
+    }) => APIClient.jobs.updateInternalTransfer(id, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: JobKeys.all });
+      queryClient.invalidateQueries({ queryKey: JobKeys.items(variables.id) });
+    },
+  });
+};
+
+export const useCreateInternalTransferJobItem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      productId,
+      quantity,
+    }: {
+      jobId: number;
+      productId: number;
+      quantity: number;
+    }) =>
+      APIClient.jobs.createInternalTransferJobItem(jobId, {
+        productId,
+        quantity,
+      }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: JobKeys.items(variables.jobId),
+      });
+    },
+  });
+};
+
 /** Jobs API pagination is 1-based, matching JobsListQueryOptions. */
 export const JobsInfiniteListQueryOptions = (
   params: Omit<JobsListParams, 'page'> = {},

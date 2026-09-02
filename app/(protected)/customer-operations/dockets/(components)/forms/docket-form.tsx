@@ -53,6 +53,7 @@ import {
   useUpdateDocket,
   useOperationalUpdateDocket,
 } from '@/lib/api/docket';
+import { useCreateInternalTransferJobItem } from '@/lib/api/job';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
@@ -147,6 +148,7 @@ export default function DocketForm({
     isGenericTruck?: boolean;
   } | null>(null);
   const createDocket = useCreateDocket();
+  const createInternalTransferJobItem = useCreateInternalTransferJobItem();
   const updateDocket = useUpdateDocket();
   const operationalUpdateDocket = useOperationalUpdateDocket();
   const [pendingRetry, setPendingRetry] = React.useState<
@@ -165,6 +167,7 @@ export default function DocketForm({
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,
+    isInternalTransfer: isInternalTransferFromState,
     pricingBreakdown,
     mapMarkers,
     today,
@@ -219,6 +222,7 @@ export default function DocketForm({
 
   const currentStatus = selectedDocket?.docketStatus;
   const isInternalTransfer =
+    isInternalTransferFromState ||
     selectedJobDetails?.jobType === 'INTERNAL_TRANSFER';
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
   const isReadOnly =
@@ -770,9 +774,19 @@ export default function DocketForm({
           density,
         });
 
+      let resolvedJobItemId = values.jobLineItemId;
+      if (!isEditing && isInternalTransfer) {
+        const transferItem = await createInternalTransferJobItem.mutateAsync({
+          jobId: values.jobId,
+          productId: values.jobLineItemId,
+          quantity: values.plannedLoadSize || effectiveLoadSize || 1,
+        });
+        resolvedJobItemId = transferItem.id;
+      }
+
       const payload = {
         jobId: values.jobId,
-        jobItemId: values.jobLineItemId,
+        jobItemId: resolvedJobItemId,
         pickUpAddress: {
           googlePlaceId: pickUpAddress.googlePlaceId,
           formattedAddress: pickUpAddress.formattedAddress,
@@ -1134,19 +1148,25 @@ export default function DocketForm({
                       autoSelectForOnlyOneOption={!isEditing}
                     />
 
-                    <FormItem>
-                      <FormLabel>Quarry / Supplier*</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full mb-7"
-                          disabled
-                          value={selectedJobLineItemDetails().quarryName ?? ''}
-                        />
-                      </FormControl>
-                    </FormItem>
+                    {!isInternalTransfer && (
+                      <FormItem>
+                        <FormLabel>Quarry / Supplier*</FormLabel>
+                        <FormControl>
+                          <Input
+                            className="w-full mb-7"
+                            disabled
+                            value={selectedJobLineItemDetails().quarryName ?? ''}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
 
                     <FormItem>
-                      <FormLabel>Product Density (TN/m³)*</FormLabel>
+                      <FormLabel>
+                        {isInternalTransfer
+                          ? 'Product Density (TN/m³)'
+                          : 'Product Density (TN/m³)*'}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           className="w-full"
