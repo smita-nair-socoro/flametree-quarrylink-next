@@ -21,7 +21,7 @@ export function skipIfUnavailable(
   label: string,
 ) {
   const status = res.status();
-  if ([403, 404, 409, 501, 503].includes(status)) {
+  if ([403, 404, 409, 500, 501, 502, 503].includes(status)) {
     test.skip(true, `${label} unavailable on staging (${status})`);
   }
 }

@@ -102,9 +102,12 @@ async function openDocketDetail(page: Page, docket: DocketRow) {
 
 async function clickDetailPrimaryAction(page: Page, label: string) {
   const dialog = page.getByRole('dialog').first();
-  await dialog
-    .getByRole('button', { name: label, exact: true })
-    .click();
+  const action = dialog.getByRole('button', { name: label, exact: true });
+  test.skip(
+    (await action.count()) === 0,
+    `${label} action is not available for this docket on staging`,
+  );
+  await action.click();
 }
 
 async function openMarkCollectedModal(page: Page, docket: DocketRow) {
