@@ -120,14 +120,14 @@ export function DateRangePresets({
               <Calendar
                 mode="single"
                 selected={value.from}
-                onSelect={(from) =>
+                onSelect={(from: Date | undefined) =>
                   onChange({ ...value, from, preset: 'custom' })
                 }
               />
               <Calendar
                 mode="single"
                 selected={value.to}
-                onSelect={(to) => onChange({ ...value, to, preset: 'custom' })}
+                onSelect={(to: Date | undefined) => onChange({ ...value, to, preset: 'custom' })}
               />
             </div>
           </PopoverContent>

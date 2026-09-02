@@ -24,6 +24,18 @@ export interface PaymentsInvoiceStatistics {
   duePayment: number;
 }
 
+export interface PaymentsPage<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
 export interface PaymentsCashSale {
   id: number;
   reference: string;

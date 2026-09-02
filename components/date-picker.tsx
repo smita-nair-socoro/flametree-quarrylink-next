@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Matcher } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 
 export interface DatePickerProps {
   /** currently selected date (or undefined) */
@@ -20,8 +20,8 @@ export interface DatePickerProps {
   onChangeAction: (date: Date | undefined) => void;
   /** Greys out the trigger and prevents opening the picker */
   disabled?: boolean;
-  /** Disables specific dates inside the calendar (react-day-picker Matcher) */
-  disabledDates?: Matcher | Matcher[];
+  /** Disables specific dates inside the calendar */
+  disabledDates?: React.ComponentProps<typeof DayPicker>['disabled'];
   /** placeholder text when no date is selected */
   placeholder?: string;
   /** whether selection is required (forces `required: true` on the picker) */
