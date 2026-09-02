@@ -1,4 +1,4 @@
-import { test, expect, skipIfUnavailable } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable, hasPageContent } from './helpers/fixtures';
 
 const E2E_PREFIX = 'E2E-PAY-';
 
@@ -26,7 +26,7 @@ test.describe('Payments - API', () => {
     skipIfUnavailable(res, 'Cash sales API');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
-    expect(data.content !== undefined || Array.isArray(data)).toBeTruthy();
+    expect(hasPageContent(data) || typeof data.totalElements === 'number').toBeTruthy();
   });
 
   test('GET /payments/cash-sales?failedOnly=true isolates failures', async ({
@@ -48,7 +48,7 @@ test.describe('Payments - API', () => {
     skipIfUnavailable(res, 'Internal transfers API');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
-    expect(data.content !== undefined || Array.isArray(data)).toBeTruthy();
+    expect(hasPageContent(data) || typeof data.totalElements === 'number').toBeTruthy();
   });
 
   test('GET /payments/failed-count returns a count', async ({ apiClient }) => {
@@ -96,7 +96,7 @@ test.describe('Payments - UI', () => {
       (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
       'Payments page is not on this environment yet',
     );
-    await expect(page.getByText('Failed only')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
     const toggle = page.locator('#failed-only');
     if ((await toggle.count()) > 0) {
       await toggle.click();
@@ -113,7 +113,7 @@ test.describe('Payments - UI', () => {
       (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
       'Payments page is not on this environment yet',
     );
-    await expect(page.getByText('Failed only')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
@@ -129,7 +129,7 @@ test.describe('Payments - UI', () => {
       (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
       'Payments page is not on this environment yet',
     );
-    await expect(page.getByText('Failed only')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 });

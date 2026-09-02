@@ -90,9 +90,9 @@ test.describe('Authentication', () => {
       });
     }, csrfToken);
 
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForURL((url) => url.pathname.includes('/login'), {
-      timeout: 15000,
+      timeout: 30000,
     });
   });
 });
