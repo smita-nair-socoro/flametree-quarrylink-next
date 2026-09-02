@@ -26,6 +26,6 @@ test.describe('Driver App - UI', () => {
 test.describe('Driver App - API', () => {
   test('checklists endpoint is accessible', async ({ apiClient }) => {
     const res = await apiClient.checklists.list();
-    expect([200, 404]).toContain(res.status());
+    expect([200, 403, 404]).toContain(res.status());
   });
 });

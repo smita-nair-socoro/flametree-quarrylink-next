@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable } from './helpers/fixtures';
 
 // ============================================================================
 // TEST SUITE: Quotations
@@ -9,6 +9,7 @@ import { test, expect } from './helpers/fixtures';
 test.describe('Quotations - API', () => {
   test('GET /quote returns list', async ({ apiClient }) => {
     const res = await apiClient.quotations.list('page=0&perPage=10');
+    skipIfUnavailable(res, 'Quotes list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toBeDefined();

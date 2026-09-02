@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, hasPageContent } from './helpers/fixtures';
 
 // ============================================================================
 // TEST SUITE: Customers
@@ -12,7 +12,7 @@ test.describe('Customers - API', () => {
     const data = await res.json();
     expect(data).toBeDefined();
     // Response should be an array or paginated object
-    expect(Array.isArray(data) || data.items !== undefined).toBeTruthy();
+    expect(hasPageContent(data)).toBeTruthy();
   });
 
   test('GET /customer/reporting returns stats', async ({ apiClient }) => {

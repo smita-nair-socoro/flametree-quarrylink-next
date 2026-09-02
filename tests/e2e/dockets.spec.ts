@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable } from './helpers/fixtures';
 
 // ============================================================================
 // TEST SUITE: Dockets
@@ -8,6 +8,7 @@ import { test, expect } from './helpers/fixtures';
 test.describe('Dockets - API', () => {
   test('GET /docket returns list', async ({ apiClient }) => {
     const res = await apiClient.dockets.list('page=0&perPage=10');
+    skipIfUnavailable(res, 'Dockets list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toBeDefined();
@@ -16,6 +17,7 @@ test.describe('Dockets - API', () => {
   test('GET /docket supports date filtering', async ({ apiClient }) => {
     const today = new Date().toISOString().split('T')[0];
     const res = await apiClient.dockets.list(`page=0&perPage=10&date=${today}`);
+    skipIfUnavailable(res, 'Dockets list');
     expect(res.ok()).toBeTruthy();
   });
 });

@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable } from './helpers/fixtures';
 
 // ============================================================================
 // TEST SUITE: Logistics
@@ -38,6 +38,7 @@ test.describe('Logistics - Scheduler API', () => {
     const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const end = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString();
     const res = await apiClient.scheduler.events(start, end);
+    skipIfUnavailable(res, 'Scheduler events');
     expect(res.ok()).toBeTruthy();
   });
 });

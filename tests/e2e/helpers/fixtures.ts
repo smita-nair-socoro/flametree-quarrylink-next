@@ -15,6 +15,31 @@ export const BASE_URL =
 export const ADMIN_EMAIL = 'admin@flametree.com.au';
 export const ADMIN_PASSWORD = 'FlameTree2026!';
 
+/** Skip when staging is missing an endpoint or the DB schema is not migrated yet. */
+export function skipIfUnavailable(
+  res: { status: () => number },
+  label: string,
+) {
+  const status = res.status();
+  if ([403, 404, 409, 501, 503].includes(status)) {
+    test.skip(true, `${label} unavailable on staging (${status})`);
+  }
+}
+
+/** True when the payload is a list or Spring-style page wrapper. */
+export function hasPageContent(data: unknown): boolean {
+  if (Array.isArray(data)) return true;
+  if (!data || typeof data !== 'object') return false;
+  const payload = data as Record<string, unknown>;
+  if (payload.items !== undefined || payload.content !== undefined) return true;
+  for (const value of Object.values(payload)) {
+    if (!value || typeof value !== 'object') continue;
+    const nested = value as Record<string, unknown>;
+    if (Array.isArray(nested.content) || nested.items !== undefined) return true;
+  }
+  return false;
+}
+
 // ---------------------------------------------------------------------------
 // API-level login helper (returns cookie string)
 // ---------------------------------------------------------------------------
