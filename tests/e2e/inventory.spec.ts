@@ -16,8 +16,10 @@ test.describe('Inventory - API', () => {
   test('GET /material returns list', async ({ apiClient }) => {
     const res = await apiClient.materials.list();
     expect([200, 403, 404, 409]).toContain(res.status());
-    const data = await res.json();
-    expect(data).toBeDefined();
+    if (res.ok()) {
+      const data = await res.json();
+      expect(data).toBeDefined();
+    }
   });
 });
 

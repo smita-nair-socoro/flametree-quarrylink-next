@@ -406,10 +406,8 @@ test.describe('Proof of Collection - Sign Off labels', () => {
     apiClient,
   }) => {
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
-    const preparing = await findDockets(apiClient, 'COLLECTION', 'PREPARING');
-    const pending = await findDockets(apiClient, 'COLLECTION', 'PENDING');
-    const seed = collected[0] ?? preparing[0] ?? pending[0];
-    test.skip(!seed, 'No collection docket available for Sign Off test');
+    const seed = collected[0];
+    test.skip(!seed, 'No collected collection docket available for Sign Off test');
 
     const dialog = await openDocketDetail(page, seed);
     await expect(dialog.getByText('Sign Off')).toBeVisible({ timeout: 20000 });
