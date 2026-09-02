@@ -21,15 +21,17 @@ import { FileText, Wallet, CircleAlert, Clock } from 'lucide-react';
 
 export function PaymentsInvoicesPanel({
   initialFailedOnly,
+  initialSearch = '',
 }: {
   initialFailedOnly: boolean;
+  initialSearch?: string;
 }) {
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
   const retryInvoice = useRetryInvoice();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(initialSearch);
   const [failedOnly, setFailedOnly] = React.useState(initialFailedOnly);
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({});
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -139,6 +141,7 @@ export function PaymentsInvoicesPanel({
           setPageSize(size);
         }}
         onSearchChange={(value) => {
+          if (!value && search === initialSearch && initialSearch) return;
           setSearch(value);
           setPageIndex(0);
         }}

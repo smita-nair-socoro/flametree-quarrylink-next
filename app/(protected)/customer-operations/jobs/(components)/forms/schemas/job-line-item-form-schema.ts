@@ -23,6 +23,7 @@ export const NewJobLineItemFormSchema = z
     productSellPrice: z.coerce
       .number()
       .positive({ message: 'Must be greater than 0' }),
+    poNumber: z.string().optional(),
     truckType: TruckString,
     truckCostUom: TruckString,
     truckCostQty: z.coerce.number().optional(),

@@ -326,7 +326,7 @@ export default function CustomersPage() {
         tabsClassName="h-10 w-full overflow-x-auto flex-nowrap rounded-md"
         tabsTriggerClassName="h-8 flex-1 justify-center"
         enableDropdownOnMobile
-        tabs={[[
+        tabs={[
           {
             name: 'Jobs',
             value: 'jobs',

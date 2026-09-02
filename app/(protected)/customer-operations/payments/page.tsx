@@ -24,6 +24,7 @@ export default function PaymentsPage() {
   const router = useRouter();
   const tab = parseTab(searchParams.get('tab'));
   const failedOnly = searchParams.get('failedOnly') === 'true';
+  const initialSearch = searchParams.get('search') ?? '';
 
   const handleTabChange = React.useCallback(
     (value: string) => {
@@ -52,18 +53,21 @@ export default function PaymentsPage() {
           {
             name: 'Invoices',
             value: 'invoices',
-            content: <PaymentsInvoicesPanel initialFailedOnly={failedOnly} />,
+            content: <PaymentsInvoicesPanel initialFailedOnly={failedOnly} initialSearch={initialSearch} />,
           },
           {
             name: 'Cash Payments',
             value: 'cash-payments',
-            content: <PaymentsCashSalesPanel initialFailedOnly={failedOnly} />,
+            content: <PaymentsCashSalesPanel initialFailedOnly={failedOnly} initialSearch={initialSearch} />,
           },
           {
             name: 'Internal Transfers',
             value: 'internal-transfers',
             content: (
-              <PaymentsInternalTransfersPanel initialFailedOnly={failedOnly} />
+              <PaymentsInternalTransfersPanel
+                initialFailedOnly={failedOnly}
+                initialSearch={initialSearch}
+              />
             ),
           },
         ]}

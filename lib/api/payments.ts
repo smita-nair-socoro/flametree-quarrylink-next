@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { InvoicesKeys, PaymentsKeys } from './keys';
+import { DocketKeys, InvoicesKeys, PaymentsKeys } from './keys';
 import { toast } from 'sonner';
 
 export type PaymentsListParams = {
@@ -98,6 +98,98 @@ export const useRetryInternalTransferJournal = () => {
     },
     onError: (error) => {
       toast.error('Failed to retry journal sync');
+      console.error(error);
+    },
+  });
+};
+
+export const JobCashSalesQueryOptions = (jobId: number) =>
+  queryOptions({
+    queryKey: PaymentsKeys.cashSalesByJob(jobId),
+    queryFn: () => APIClient.payments.cashSalesByJob(jobId),
+    enabled: jobId > 0,
+    staleTime: 5_000,
+  });
+
+export const CashSaleDetailQueryOptions = (id: number | null) =>
+  queryOptions({
+    queryKey: PaymentsKeys.cashSaleDetail(id ?? 0),
+    queryFn: () => APIClient.payments.cashSale(id!),
+    enabled: !!id,
+    staleTime: 5_000,
+  });
+
+function invalidateCashSales(queryClient: ReturnType<typeof useQueryClient>) {
+  queryClient.invalidateQueries({ queryKey: PaymentsKeys.all });
+  queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
+  queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+}
+
+export const useCreateCashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { docketIds: number[]; paymentType: string }) =>
+      APIClient.payments.createCashSale(data),
+    onSuccess: () => {
+      toast.success('Cash sale recorded');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to record cash sale');
+      console.error(error);
+    },
+  });
+};
+
+export const useAmendCashSalePaymentType = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, paymentType }: { id: number; paymentType: string }) =>
+      APIClient.payments.amendCashSalePaymentType(id, paymentType),
+    onSuccess: () => {
+      toast.success('Payment type updated');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to amend payment type');
+      console.error(error);
+    },
+  });
+};
+
+export const useVoidCashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      reason,
+      reasonDetail,
+    }: {
+      id: number;
+      reason: string;
+      reasonDetail?: string;
+    }) => APIClient.payments.voidCashSale(id, { reason, reasonDetail }),
+    onSuccess: () => {
+      toast.success('Cash sale voided');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to void cash sale');
+      console.error(error);
+    },
+  });
+};
+
+export const useRetryCashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => APIClient.payments.retryCashSale(id),
+    onSuccess: () => {
+      toast.success('Retry started');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to retry cash sale sync');
       console.error(error);
     },
   });

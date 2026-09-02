@@ -34,3 +34,9 @@ API sorting may support only a mapped subset of column IDs and, in current custo
 ## Create and Edit Forms May Differ
 
 Several schemas add requirements in edit mode that are not present in create mode. Use the existing schema factory and form-state hook; do not replace it with the base schema without checking [business-rules.md](business-rules.md).
+
+## Cash Sales and Internal Transfer Journals Stay Local Until Fusion Exposes Payment/Journal APIs
+
+Flame Tree invoice sync (sales order → invoice) is unchanged. Cash-sale payments and internal-transfer GL journals are recorded locally first, then the orch service posts to tenant-fusion `/accounts/internal/payments` and `/accounts/internal/journals`.
+
+Those fusion endpoints do not exist today. The push classifier maps a missing API to **Not synced** — not Failed — so operators are not asked to Retry a call that cannot succeed. Do not invent a fourth sync badge. Retry remains on Failed rows only, for when fusion later returns a real Acumatica rejection. Zero-value cash sales and journals are also left **Not synced** rather than pushed.

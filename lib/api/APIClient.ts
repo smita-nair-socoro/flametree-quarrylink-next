@@ -99,6 +99,7 @@ import {
   JobAttachmentDTO,
 } from '../types/job';
 import type {
+  CashSaleDetail,
   PaymentsCashSale,
   PaymentsInternalTransfer,
   PaymentsInvoice,
@@ -1443,6 +1444,18 @@ export const APIClient = {
       appClient.Delete(
         `/socoro/quarrylink/api/users/${id}/notification-groups/operations`,
       ),
+    getVoidTransactions: () =>
+      appClient.Get<AccountManager[]>(
+        `/socoro/quarrylink/api/users/void-transactions`,
+      ),
+    addToVoidTransactions: (id: string) =>
+      appClient.Post(
+        `/socoro/quarrylink/api/users/${id}/permission-groups/void-transactions`,
+      ),
+    removeFromVoidTransactions: (id: string) =>
+      appClient.Delete(
+        `/socoro/quarrylink/api/users/${id}/permission-groups/void-transactions`,
+      ),
     getById: (id: string) => {
       return appClient.Get<User>(`/socoro/quarrylink/api/users/${id}`);
     },
@@ -2003,6 +2016,40 @@ export const APIClient = {
     retryInternalTransferJournal: (journalId: number) =>
       appClient.Put<void>(
         `/socoro/quarrylink/api/payments/internal-transfers/journals/${journalId}/retry`,
+      ),
+    cashSalesByJob: (jobId: number) =>
+      appClient.Get<PaymentsCashSale[]>(
+        `/socoro/quarrylink/api/payments/jobs/${jobId}/cash-sales`,
+      ),
+    cashSale: (id: number) =>
+      appClient.Get<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/cash-sales/${id}`,
+      ),
+    createCashSale: (data: { docketIds: number[]; paymentType: string }) =>
+      appClient.Post<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/cash-sales`,
+        { body: data },
+      ),
+    amendCashSalePaymentType: (id: number, paymentType: string) =>
+      appClient.Put<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/cash-sales/${id}/payment-type`,
+        { body: { paymentType } },
+      ),
+    voidCashSale: (
+      id: number,
+      data: { reason: string; reasonDetail?: string },
+    ) =>
+      appClient.Post<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/cash-sales/${id}/void`,
+        { body: data },
+      ),
+    retryCashSale: (id: number) =>
+      appClient.Put<void>(
+        `/socoro/quarrylink/api/payments/cash-sales/${id}/retry`,
+      ),
+    cashSaleByDocket: (docketId: number) =>
+      appClient.Get<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/dockets/${docketId}/cash-sale`,
       ),
   },
 

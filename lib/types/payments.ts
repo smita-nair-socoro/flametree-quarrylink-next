@@ -57,8 +57,55 @@ export interface PaymentsInternalTransfer {
   journalId?: number;
 }
 
-export interface PaymentsPage<T> {
-  content: T[];
-  totalElements: number;
-  totalPages: number;
+export interface CashSaleDocketLine {
+  docketId: number;
+  docketNumber: string;
+  docketType: string;
+  amount: number;
+  productName?: string;
+  quantity?: number;
+  deliveryDate?: string;
 }
+
+export interface CashSaleAmendment {
+  previousPaymentType: string;
+  newPaymentType: string;
+  amendedBy: string;
+  amendedAt: string;
+}
+
+export interface CashSaleDetail extends PaymentsCashSale {
+  voidReason?: string;
+  voidReasonDetail?: string;
+  voidedBy?: string;
+  voidedAt?: string;
+  dockets: CashSaleDocketLine[];
+  amendments: CashSaleAmendment[];
+}
+
+export const CASH_SALE_PAYMENT_TYPES = [
+  'Cash',
+  'EFTPOS',
+  'EFT',
+  'Credit Card',
+  'M-PAISA',
+] as const;
+
+export type CashSalePaymentType = (typeof CASH_SALE_PAYMENT_TYPES)[number];
+
+export const CASH_SALE_VOID_REASONS = [
+  'Recorded in error',
+  'Wrong dockets selected',
+  'Customer to be invoiced instead',
+  'Acumatica rejection — unrecoverable',
+  'Other',
+] as const;
+
+export const INTERNAL_TRANSFER_VOID_REASONS = [
+  'Recorded in error',
+  'Wrong product',
+  'Wrong quantity',
+  'Wrong job',
+  'Acumatica rejection — unrecoverable',
+  'Other',
+] as const;

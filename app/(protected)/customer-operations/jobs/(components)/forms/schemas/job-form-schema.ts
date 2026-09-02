@@ -25,7 +25,6 @@ const validateDeliveryTimeWindow = (
 };
 
 export const JobFormSchema = z.object({
-  poNumber: z.string().optional(),
   customerId: z.coerce.number().min(1, { message: 'Required' }),
   accountManagerSub: z.string().nonempty({ message: 'Required' }),
   projectName: z.string().min(2, { message: 'At least 2 characters' }),

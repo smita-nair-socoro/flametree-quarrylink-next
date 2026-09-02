@@ -21,7 +21,13 @@ import {
 import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useCreateInvoice } from '@/lib/api/invoices';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { CashSaleConfirmDialog } from '@/components/cash-sale-confirm-dialog';
+import { isCashSaleEligible, isInvoiceEligible } from '@/lib/utils/docket-financial-eligibility';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface InvoicesBulkActionsProps {
   selectedDockets: DocketDTO[];
@@ -35,6 +41,7 @@ export function InvoiceActions({
   const [dialogType, setDialogType] = React.useState<
     'bulk' | 'individual' | null
   >(null);
+  const [cashSaleOpen, setCashSaleOpen] = React.useState(false);
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
   const { currencySymbol, exTaxLabel } = useTenantCurrencyTax();
   const [includeDeliveryPrices, setIncludeDeliveryPrices] =
@@ -58,6 +65,11 @@ export function InvoiceActions({
       setDialogType(type);
     }
   };
+
+  const invoiceEnabled =
+    selectedDockets.length > 0 && selectedDockets.every(isInvoiceEligible);
+  const cashSaleEnabled =
+    selectedDockets.length > 0 && selectedDockets.every(isCashSaleEligible);
 
   if (selectedDockets.length === 0) return null;
 
@@ -249,11 +261,19 @@ export function InvoiceActions({
           </Button>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            disabled={!cashSaleEnabled}
+            onClick={() => setCashSaleOpen(true)}
+            className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-semibold h-9 px-4 rounded-lg shadow-sm transition-colors"
+          >
+            Cash Sale ({selectedDockets.length} selected)
+          </Button>
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 size="sm"
-                disabled={selectedDockets.length === 0}
+                disabled={!invoiceEnabled}
                 className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-semibold h-9 px-4 rounded-lg shadow-sm transition-colors"
               >
                 Invoice ({selectedDockets.length} selected)
@@ -300,6 +320,12 @@ export function InvoiceActions({
           </DropdownMenu>
         </div>
       </div>
+      <CashSaleConfirmDialog
+        open={cashSaleOpen}
+        onOpenChange={setCashSaleOpen}
+        dockets={selectedDockets}
+        onRecorded={onClearSelection}
+      />
     </>
   );
 }

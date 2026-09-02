@@ -120,6 +120,7 @@ export const UserKeys = {
   list: () => [...UserKeys.all, 'list'] as const,
   accountManagers: () => [...UserKeys.all, 'account-managers'] as const,
   operations: () => [...UserKeys.all, 'operations'] as const,
+  voidTransactions: () => [...UserKeys.all, 'void-transactions'] as const,
   detail: (id: string) => [...UserKeys.all, 'detail', id] as const,
   dependencies: (id: string) => [...UserKeys.all, 'dependencies', id] as const,
 };
@@ -177,6 +178,10 @@ export const PaymentsKeys = {
   all: ['payments'] as const,
   cashSales: (params?: unknown) =>
     [...PaymentsKeys.all, 'cash-sales', params] as const,
+  cashSalesByJob: (jobId: number) =>
+    [...PaymentsKeys.all, 'cash-sales-by-job', jobId] as const,
+  cashSaleDetail: (id: number) =>
+    [...PaymentsKeys.all, 'cash-sale', id] as const,
   internalTransfers: (params?: unknown) =>
     [...PaymentsKeys.all, 'internal-transfers', params] as const,
   failedCount: () => [...PaymentsKeys.all, 'failed-count'] as const,

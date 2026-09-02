@@ -464,6 +464,30 @@ export default function JobLineItemForm({
 
               <FormField
                 control={jobLineItemForm.control}
+                name="poNumber"
+                render={({ field }) => (
+                  <FormItem
+                    className={
+                      isDesktop ? 'col-span-1 col-start-1' : 'col-span-2'
+                    }
+                  >
+                    <FormLabel>PO Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        {...field}
+                        value={field.value ?? ''}
+                        disabled={isReadOnly}
+                        placeholder="Optional purchase order"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={jobLineItemForm.control}
                 name="densityTonnagePerM3"
                 render={({ field }) => (
                   <FormItem

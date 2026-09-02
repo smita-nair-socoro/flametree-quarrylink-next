@@ -217,6 +217,8 @@ export default function DocketForm({
   };
 
   const currentStatus = selectedDocket?.docketStatus;
+  const isInternalTransfer =
+    selectedJobDetails?.jobType === 'INTERNAL_TRANSFER';
   const isDelivery = selectedJobLineItemDetails().type === 'DELIVERY';
   const isReadOnly =
     Boolean(id) && !canEdit && currentStatus !== DOCKET_STATUS.PENDING;
@@ -659,6 +661,13 @@ export default function DocketForm({
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
 
+      if (isInternalTransfer && pricingBreakdown.missingCostPrice) {
+        notifyError(
+          `Cost price is missing for ${lineItemDetails.productName || 'this product'} at ${selectedJobDetails?.fromSiteName || 'the source site'}. Set a cost price before creating the transfer.`,
+        );
+        return;
+      }
+
       setIsSubmitting(true);
 
       const density = lineItemDetails.densityTonnagePerM3 || 1;
@@ -860,10 +869,17 @@ export default function DocketForm({
               !canActualLoadSize &&
               !canEditDocketEmail &&
               !canEditCollectionDate) ||
-            isSubmitting
+            isSubmitting ||
+            (isInternalTransfer &&
+              !isEditing &&
+              pricingBreakdown.missingCostPrice)
           }
         >
-          {isEditing ? 'Save Changes' : 'Create Docket'}
+          {isEditing
+            ? 'Save Changes'
+            : isInternalTransfer
+              ? 'Create Internal Transfer'
+              : 'Create Docket'}
         </Button>
       </div>
     ) : null,
@@ -1032,6 +1048,11 @@ export default function DocketForm({
             {invoiceSyncFailedBanner}
             {arrivalDeliveryBanner}
             <div className={cn('p-1 flex flex-col gap-4 w-full', className)}>
+              {isInternalTransfer ? (
+                <div className="flex items-center gap-2 text-sm font-semibold tracking-wide text-[#5B21B6]">
+                  ⇄ INTERNAL TRANSFER
+                </div>
+              ) : null}
               <div className="border rounded-md p-4 flex flex-col gap-8">
                 <div className="items-center flex gap-2">
                   <FileText className="w-5 h-5" />
@@ -1122,6 +1143,22 @@ export default function DocketForm({
                       </FormControl>
                     </FormItem>
                   </div>
+                  {isInternalTransfer ? (
+                    <div className="grid grid-cols-2 gap-4 rounded-md border bg-slate-50 p-3 text-sm">
+                      <div>
+                        <div className="text-muted-foreground">From Site</div>
+                        <div className="font-medium">
+                          {selectedJobDetails?.fromSiteName || '—'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-muted-foreground">To Site</div>
+                        <div className="font-medium">
+                          {selectedJobDetails?.toSiteName || '—'}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
                   {(() => {
                     const jobLineItemId = docketForm.watch('jobLineItemId');
                     const details = selectedJobLineItemDetails();
@@ -2123,61 +2160,101 @@ export default function DocketForm({
                 )}
 
               <div className="bg-purple-50 rounded-lg border shadow-md px-4 py-3">
-                <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
-                <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
-                  <div>
-                    <span>Product Sell</span>
-                    <span>
-                      {currencySymbol}
-                      {formatNumberThousandSeparator(
-                        pricingBreakdown.productSell,
+                {isInternalTransfer ? (
+                  <>
+                    <h3 className="text-lg font-bold mb-3">Transfer Summary</h3>
+                    <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
+                      <div>
+                        <span>Quantity</span>
+                        <span>
+                          {formatNumberThousandSeparator(
+                            docketForm.watch('actualLoadSize') ||
+                              docketForm.watch('plannedLoadSize') ||
+                              0,
+                          )}{' '}
+                          {selectedJobLineItemDetails().productUomLabel}
+                        </span>
+                      </div>
+                      <div>
+                        <span>Cost price</span>
+                        <span>
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(
+                            pricingBreakdown.productCostUnit,
+                          )}{' '}
+                          / {selectedJobLineItemDetails().productUomLabel}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-dashed border-purple-300">
+                        <span className="font-bold text-lg">Product cost</span>
+                        <span className="font-bold text-lg">
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(
+                            pricingBreakdown.productCost,
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="text-lg font-bold mb-3">Sale Summary</h3>
+                    <div className="flex flex-col gap-3 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&>div]:font-normal">
+                      <div>
+                        <span>Product Sell</span>
+                        <span>
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(
+                            pricingBreakdown.productSell,
+                          )}
+                        </span>
+                      </div>
+                      {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                        <div>
+                          <span>Truck Sell</span>
+                          <span>
+                            {currencySymbol}
+                            {formatNumberThousandSeparator(
+                              pricingBreakdown.truckSell,
+                            )}
+                          </span>
+                        </div>
                       )}
-                    </span>
-                  </div>
-                  {selectedJobLineItemDetails().type !== 'COLLECTION' && (
-                    <div>
-                      <span>Truck Sell</span>
-                      <span>
-                        {currencySymbol}
-                        {formatNumberThousandSeparator(
-                          pricingBreakdown.truckSell,
-                        )}
-                      </span>
+                      {pricingBreakdown.showDigitalPlatformFee && (
+                        <div className="pt-2 border-t border-dashed border-purple-300">
+                          <span>{pricingBreakdown.digitalPlatformFeeLabel}</span>
+                          <span>
+                            {currencySymbol}
+                            {formatNumberThousandSeparator(
+                              pricingBreakdown.digitalPlatformFee,
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      <div className="pt-2 border-t border-dashed border-purple-300">
+                        <span>Subtotal {exTaxLabel}</span>
+                        <span>
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(pricingBreakdown.subtotal)}
+                        </span>
+                      </div>
+                      <div>
+                        <span>{taxRateLabel}</span>
+                        <span>
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(pricingBreakdown.gst)}
+                        </span>
+                      </div>
+                      <div className="pt-2 border-t border-dashed border-purple-300">
+                        <span className="font-bold text-lg">Total Invoice</span>
+                        <span className="font-bold text-lg">
+                          {currencySymbol}
+                          {formatNumberThousandSeparator(pricingBreakdown.total)}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  {pricingBreakdown.showDigitalPlatformFee && (
-                    <div className="pt-2 border-t border-dashed border-purple-300">
-                      <span>{pricingBreakdown.digitalPlatformFeeLabel}</span>
-                      <span>
-                        {currencySymbol}
-                        {formatNumberThousandSeparator(
-                          pricingBreakdown.digitalPlatformFee,
-                        )}
-                      </span>
-                    </div>
-                  )}
-                  <div className="pt-2 border-t border-dashed border-purple-300">
-                    <span>Subtotal {exTaxLabel}</span>
-                    <span>
-                      {currencySymbol}
-                      {formatNumberThousandSeparator(pricingBreakdown.subtotal)}
-                    </span>
-                  </div>
-                  <div>
-                    <span>{taxRateLabel}</span>
-                    <span>
-                      {currencySymbol}
-                      {formatNumberThousandSeparator(pricingBreakdown.gst)}
-                    </span>
-                  </div>
-                  <div className="pt-2 border-t border-dashed border-purple-300">
-                    <span className="font-bold text-lg">Total Invoice</span>
-                    <span className="font-bold text-lg">
-                      {currencySymbol}
-                      {formatNumberThousandSeparator(pricingBreakdown.total)}
-                    </span>
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
             </div>
 
@@ -2214,7 +2291,11 @@ export default function DocketForm({
                     isSubmitting
                   }
                 >
-                  {isEditing ? 'Save Changes' : 'Create Docket'}
+                  {isEditing
+                    ? 'Save Changes'
+                    : isInternalTransfer
+                      ? 'Create Internal Transfer'
+                      : 'Create Docket'}
                 </Button>
                 <Button variant="outline" type="button" onClick={onCancel}>
                   {isEditing ? 'Close' : 'Cancel'}

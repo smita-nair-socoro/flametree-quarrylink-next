@@ -2,13 +2,16 @@
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { FileText, Truck } from 'lucide-react';
+import { FileText, Truck, Ban } from 'lucide-react';
 
 import {
   UsersListQueryOptions,
   OperationsListQueryOptions,
+  VoidTransactionsListQueryOptions,
   useAddUserToOperations,
   useRemoveUserFromOperations,
+  useAddUserToVoidTransactions,
+  useRemoveUserFromVoidTransactions,
 } from '@/lib/api/user';
 import { UserKeys } from '@/lib/api/keys';
 import { getRoleLabel } from '@/lib/utils/user-helper';
@@ -142,6 +145,16 @@ const groupDefinitions: Omit<NotificationGroup, 'memberCount'>[] = [
     ],
   },
   {
+    name: 'Void Transactions',
+    icon: Ban,
+    description:
+      'Permission to void cash sales and completed internal transfer dockets. Independent of Admin. Not granted by default.',
+    emailTypes: [
+      'Void cash sale receipts',
+      'Void completed internal transfer dockets',
+    ],
+  },
+  {
     name: 'Account Manager',
     icon: FileText,
     manageable: false,
@@ -162,12 +175,19 @@ export default function RolesTab() {
   const queryClient = useQueryClient();
   const { data: users = [] } = useQuery(UsersListQueryOptions());
   const { data: operations = [] } = useQuery(OperationsListQueryOptions());
+  const { data: voidTransactions = [] } = useQuery(
+    VoidTransactionsListQueryOptions(),
+  );
 
   const addToOperations = useAddUserToOperations();
   const removeFromOperations = useRemoveUserFromOperations();
+  const addToVoidTransactions = useAddUserToVoidTransactions();
+  const removeFromVoidTransactions = useRemoveUserFromVoidTransactions();
 
   const refreshOperations = () =>
     queryClient.invalidateQueries({ queryKey: UserKeys.operations() });
+  const refreshVoidTransactions = () =>
+    queryClient.invalidateQueries({ queryKey: UserKeys.voidTransactions() });
 
   // Every non-driver user belongs to the Account Manager group.
   const accountManagerCount = users.filter(
@@ -182,9 +202,19 @@ export default function RolesTab() {
     role: getRoleLabel(user.groups),
   }));
 
+  const voidTransactionMembers: GroupMember[] = voidTransactions.map(
+    (user) => ({
+      id: user.sub,
+      name: user.name,
+      email: user.email,
+      role: getRoleLabel(user.groups),
+    }),
+  );
+
   const memberCountByGroup: Record<string, number> = {
     'Account Manager': accountManagerCount,
     Operations: operationMembers.length,
+    'Void Transactions': voidTransactionMembers.length,
   };
 
   const notificationGroups: NotificationGroup[] = groupDefinitions.map(
@@ -198,33 +228,52 @@ export default function RolesTab() {
     notificationGroups.find((group) => group.name === managedGroupName) ?? null;
 
   const managedMembers =
-    managedGroupName === 'Operations' ? operationMembers : [];
+    managedGroupName === 'Operations'
+      ? operationMembers
+      : managedGroupName === 'Void Transactions'
+        ? voidTransactionMembers
+        : [];
 
   const handleAddMembers = async (added: GroupMember[]) => {
-    if (managedGroupName !== 'Operations' || added.length === 0) return;
+    if (added.length === 0) return;
     try {
-      await Promise.all(
-        added.map((member) => addToOperations.mutateAsync(member.id)),
-      );
-      notifySuccess(
-        `Added ${added.length} member${added.length > 1 ? 's' : ''} to the Operations group.`,
-      );
+      if (managedGroupName === 'Operations') {
+        await Promise.all(
+          added.map((member) => addToOperations.mutateAsync(member.id)),
+        );
+        notifySuccess(
+          `Added ${added.length} member${added.length > 1 ? 's' : ''} to the Operations group.`,
+        );
+      } else if (managedGroupName === 'Void Transactions') {
+        await Promise.all(
+          added.map((member) => addToVoidTransactions.mutateAsync(member.id)),
+        );
+        notifySuccess(
+          `Added ${added.length} member${added.length > 1 ? 's' : ''} to Void Transactions.`,
+        );
+      }
     } catch {
-      notifyError('Failed to add some members to the Operations group.');
+      notifyError('Failed to add some members to the group.');
     } finally {
       refreshOperations();
+      refreshVoidTransactions();
     }
   };
 
   const handleRemoveMember = async (member: GroupMember) => {
-    if (managedGroupName !== 'Operations') return;
     try {
-      await removeFromOperations.mutateAsync(member.id);
-      notifySuccess(`Removed ${member.name} from the Operations group.`);
+      if (managedGroupName === 'Operations') {
+        await removeFromOperations.mutateAsync(member.id);
+        notifySuccess(`Removed ${member.name} from the Operations group.`);
+      } else if (managedGroupName === 'Void Transactions') {
+        await removeFromVoidTransactions.mutateAsync(member.id);
+        notifySuccess(`Removed ${member.name} from Void Transactions.`);
+      }
     } catch {
-      notifyError(`Failed to remove ${member.name} from the Operations group.`);
+      notifyError(`Failed to remove ${member.name} from the group.`);
     } finally {
       refreshOperations();
+      refreshVoidTransactions();
     }
   };
 

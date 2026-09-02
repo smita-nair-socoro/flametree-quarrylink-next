@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+  AccountingSyncDisplayStatus,
   toAccountingSyncDisplay,
 } from '@/lib/utils/accounting-sync';
 

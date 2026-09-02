@@ -182,25 +182,6 @@ export default function JobForm({
               className,
             )}
           >
-            <FormField
-              control={jobForm.control}
-              name="poNumber"
-              render={({ field }) => (
-                <FormItem className="col-span-2 col-start-1">
-                  <FormLabel>PO Number</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter PO Number"
-                      {...field}
-                      disabled={isEditing && !canEdit}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {isInternalTransfer ? (
               <>
                 <FormField

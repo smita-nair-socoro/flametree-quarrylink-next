@@ -26,6 +26,7 @@ export const getPaymentsInternalTransferColumns = (
   onViewJournal: (row: PaymentsInternalTransfer) => void,
   retryingId?: number,
   currencyCode: string = DEFAULT_CURRENCY_CODE,
+  onVoid?: (row: PaymentsInternalTransfer) => void,
 ): ColumnDef<PaymentsInternalTransfer>[] => [
   {
     id: 'docketNumber',
@@ -37,10 +38,13 @@ export const getPaymentsInternalTransferColumns = (
       <Link
         href={`/customer-operations/dockets?ids=${row.original.docketId}`}
         className={cn(
-          'py-2 text-primary underline-offset-4 hover:underline',
+          'py-2 text-primary underline-offset-4 hover:underline flex items-center gap-2',
           row.original.voided && 'text-muted-foreground',
         )}
       >
+        {row.original.voided ? (
+          <span className="text-xs font-semibold text-red-600">VOID</span>
+        ) : null}
         {row.original.docketNumber || 'N/A'}
       </Link>
     ),
@@ -166,6 +170,14 @@ export const getPaymentsInternalTransferColumns = (
             <FileText className="h-4 w-4 mr-2" />
             View Journal
           </DropdownMenuItem>
+          {onVoid && !row.original.voided ? (
+            <DropdownMenuItem
+              className="text-red-600"
+              onClick={() => onVoid(row.original)}
+            >
+              Void
+            </DropdownMenuItem>
+          ) : null}
         </DropdownMenuContent>
       </DropdownMenu>
     ),

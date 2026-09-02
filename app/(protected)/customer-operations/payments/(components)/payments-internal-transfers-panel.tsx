@@ -15,7 +15,7 @@ import {
 } from '@/lib/api/payments';
 import { getPaymentsInternalTransferColumns } from './payments-internal-transfer-columns';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
-import { PaymentsInternalTransfer } from '@/lib/types/payments';
+import { PaymentsInternalTransfer, INTERNAL_TRANSFER_VOID_REASONS } from '@/lib/types/payments';
 import {
   Dialog,
   DialogContent,
@@ -25,17 +25,32 @@ import {
 import { AccountingSyncBadge } from '@/components/accounting-sync-badge';
 import { formatCalendarDate } from '@/lib/utils/date';
 import { formatCurrency } from '@/lib/utils/tenant-config-helper';
+import { useHasVoidTransactions } from '@/app/stores/user-store';
+import { useUpdateDocketStatus } from '@/lib/api/docket';
+import { DOCKET_STATUS } from '@/lib/types/docket-enums';
+import { SelectOptions } from '@/components/ui/select-options';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { notifyError } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useQueryClient } from '@tanstack/react-query';
+import { PaymentsKeys } from '@/lib/api/keys';
 
 export function PaymentsInternalTransfersPanel({
   initialFailedOnly,
+  initialSearch = '',
 }: {
   initialFailedOnly: boolean;
+  initialSearch?: string;
 }) {
   const { currencyCode } = useTenantCurrencyTax();
   const retryJournal = useRetryInternalTransferJournal();
+  const canVoid = useHasVoidTransactions();
+  const voidDocket = useUpdateDocketStatus();
+  const queryClient = useQueryClient();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(initialSearch);
   const [failedOnly, setFailedOnly] = React.useState(initialFailedOnly);
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({});
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -43,10 +58,18 @@ export function PaymentsInternalTransfersPanel({
   ]);
   const [journalRow, setJournalRow] =
     React.useState<PaymentsInternalTransfer | null>(null);
+  const [voidRow, setVoidRow] =
+    React.useState<PaymentsInternalTransfer | null>(null);
+  const [voidReason, setVoidReason] = React.useState('');
+  const [voidDetail, setVoidDetail] = React.useState('');
 
   React.useEffect(() => {
     setFailedOnly(initialFailedOnly);
   }, [initialFailedOnly]);
+
+  React.useEffect(() => {
+    if (initialSearch) setSearch(initialSearch);
+  }, [initialSearch]);
 
   const sort = sorting[0];
   const listParams = React.useMemo(
@@ -74,8 +97,9 @@ export function PaymentsInternalTransfersPanel({
         setJournalRow,
         retryJournal.isPending ? retryJournal.variables : undefined,
         currencyCode,
+        canVoid ? setVoidRow : undefined,
       ),
-    [currencyCode, retryJournal],
+    [currencyCode, retryJournal, canVoid],
   );
 
   return (
@@ -108,6 +132,7 @@ export function PaymentsInternalTransfersPanel({
           setPageSize(size);
         }}
         onSearchChange={(value) => {
+          if (!value && search === initialSearch && initialSearch) return;
           setSearch(value);
           setPageIndex(0);
         }}
@@ -160,6 +185,64 @@ export function PaymentsInternalTransfersPanel({
               />
             </div>
           ) : null}
+        </DialogContent>
+      </Dialog>
+      <Dialog
+        open={voidRow != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setVoidRow(null);
+            setVoidReason('');
+            setVoidDetail('');
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Void internal transfer</DialogTitle>
+          </DialogHeader>
+          <SelectOptions
+            searchLabel="void reason"
+            options={INTERNAL_TRANSFER_VOID_REASONS.map((reason) => ({
+              value: reason,
+              label: reason,
+            }))}
+            value={voidReason}
+            onChange={(value) => setVoidReason(String(value))}
+            placeholder="Select a reason..."
+          />
+          {voidReason === 'Other' ? (
+            <Textarea
+              value={voidDetail}
+              onChange={(event) => setVoidDetail(event.target.value)}
+              placeholder="Detail required"
+            />
+          ) : null}
+          <Button
+            variant="destructive"
+            disabled={
+              voidDocket.isPending ||
+              !voidReason ||
+              (voidReason === 'Other' && !voidDetail.trim())
+            }
+            onClick={async () => {
+              if (!voidRow) return;
+              try {
+                await voidDocket.mutateAsync({
+                  docketId: voidRow.docketId,
+                  docketStatus: DOCKET_STATUS.VOIDED,
+                  reason: voidReason,
+                  notes: voidDetail || undefined,
+                });
+                queryClient.invalidateQueries({ queryKey: PaymentsKeys.all });
+                setVoidRow(null);
+              } catch (error) {
+                notifyError(extractErrorMessage(error));
+              }
+            }}
+          >
+            Void
+          </Button>
         </DialogContent>
       </Dialog>
     </div>

@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { getJobFormSchema } from '../job-form-schema';
 
 const baseValues = {
-  poNumber: '',
   customerId: 1,
   accountManagerSub: 'account-manager-1',
   projectName: 'Test Project',

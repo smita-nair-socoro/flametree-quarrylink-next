@@ -15,13 +15,15 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 
 export function PaymentsCashSalesPanel({
   initialFailedOnly,
+  initialSearch = '',
 }: {
   initialFailedOnly: boolean;
+  initialSearch?: string;
 }) {
   const { currencyCode } = useTenantCurrencyTax();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
-  const [search, setSearch] = React.useState('');
+  const [search, setSearch] = React.useState(initialSearch);
   const [failedOnly, setFailedOnly] = React.useState(initialFailedOnly);
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({});
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -83,6 +85,7 @@ export function PaymentsCashSalesPanel({
           setPageSize(size);
         }}
         onSearchChange={(value) => {
+          if (!value && search === initialSearch && initialSearch) return;
           setSearch(value);
           setPageIndex(0);
         }}

@@ -20,6 +20,8 @@ export interface JobDTO {
   toSiteName?: string;
   docketCount?: number;
   poNumber?: string;
+  poNumbers?: string[];
+  quarrySupplierNames?: string[];
   contactPersonName?: string;
   contactPersonPhone?: string;
   docketEmail?: string;
@@ -98,6 +100,7 @@ export interface JobLineItem {
   truckSellPrice: number;
   totalTruckSellPrice: number;
   grossProfit: number;
+  poNumber?: string;
   totalQuantityRequired: number;
   allocatedQuantity: number;
   remainingQuantity: number;
