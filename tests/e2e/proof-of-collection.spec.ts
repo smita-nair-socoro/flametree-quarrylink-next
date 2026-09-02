@@ -376,9 +376,13 @@ test.describe('Proof of Collection - Sign Off labels', () => {
         return;
       }
 
-      const response = await route.fetch();
-      if (!response.ok()) {
-        await route.fulfill({ response });
+      const response = await route.fetch().catch(() => null);
+      if (!response || !response.ok()) {
+        if (response) {
+          await route.fulfill({ response });
+        } else {
+          await route.abort().catch(() => undefined);
+        }
         return;
       }
 
@@ -399,6 +403,10 @@ test.describe('Proof of Collection - Sign Off labels', () => {
         },
       });
     });
+  });
+
+  test.afterEach(async ({ authedPage: page }) => {
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
 
   test('collected collection docket shows collection Sign Off copy', async ({
