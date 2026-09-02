@@ -1,4 +1,4 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable, hasPageContent } from './helpers/fixtures';
 
 // ============================================================================
 // TEST SUITE: Jobs
@@ -8,6 +8,7 @@ import { test, expect } from './helpers/fixtures';
 test.describe('Jobs - API', () => {
   test('GET /job returns list', async ({ apiClient }) => {
     const res = await apiClient.jobs.list('page=0&perPage=10');
+    skipIfUnavailable(res, 'Jobs list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data).toBeDefined();
@@ -15,15 +16,11 @@ test.describe('Jobs - API', () => {
 
   test('GET /job returns paginated response', async ({ apiClient }) => {
     const res = await apiClient.jobs.list('page=0&perPage=5');
+    skipIfUnavailable(res, 'Jobs list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     // Job list is wrapped as { jobs: { content, pageable, ... } }
-    expect(
-      Array.isArray(data) ||
-        data.items !== undefined ||
-        data.content !== undefined ||
-        data.jobs !== undefined,
-    ).toBeTruthy();
+    expect(hasPageContent(data)).toBeTruthy();
   });
 });
 

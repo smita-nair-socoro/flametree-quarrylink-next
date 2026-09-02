@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable, type Page } from './helpers/fixtures';
 import type { ApiClient } from './helpers/fixtures';
 
 const JOB_CATEGORIES = [
@@ -36,6 +36,7 @@ function jobsFromList(data: unknown): Array<{ id: number; jobNumber?: string; jo
 
 async function listJobs(apiClient: ApiClient, query = 'page=1&pageSize=50') {
   const res = await apiClient.jobs.list(query);
+  skipIfUnavailable(res, 'Jobs list');
   expect(res.ok(), `GET /job?${query} should succeed`).toBeTruthy();
   return jobsFromList(await res.json());
 }

@@ -1,12 +1,6 @@
-import { test, expect } from './helpers/fixtures';
+import { test, expect, skipIfUnavailable } from './helpers/fixtures';
 
 const E2E_PREFIX = 'E2E-PAY-';
-
-function skipIfMissing(res: { status: () => number }, label: string) {
-  if (res.status() === 404 || res.status() === 501) {
-    test.skip(true, `${label} is not deployed on this environment yet`);
-  }
-}
 
 test.describe('Payments - API', () => {
   test('GET /invoices supports failedOnly for the Payments invoices table', async ({
@@ -15,7 +9,7 @@ test.describe('Payments - API', () => {
     const res = await apiClient.payments.invoices(
       'page=1&pageSize=10&failedOnly=true',
     );
-    skipIfMissing(res, 'Payments invoices');
+    skipIfUnavailable(res, 'Payments invoices');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(
@@ -29,7 +23,7 @@ test.describe('Payments - API', () => {
     const res = await apiClient.payments.cashSales(
       `page=1&pageSize=10&search=${encodeURIComponent(E2E_PREFIX)}`,
     );
-    skipIfMissing(res, 'Cash sales API');
+    skipIfUnavailable(res, 'Cash sales API');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data.content !== undefined || Array.isArray(data)).toBeTruthy();
@@ -41,7 +35,7 @@ test.describe('Payments - API', () => {
     const res = await apiClient.payments.cashSales(
       'page=1&pageSize=10&failedOnly=true',
     );
-    skipIfMissing(res, 'Cash sales failedOnly');
+    skipIfUnavailable(res, 'Cash sales failedOnly');
     expect(res.ok()).toBeTruthy();
   });
 
@@ -51,7 +45,7 @@ test.describe('Payments - API', () => {
     const res = await apiClient.payments.internalTransfers(
       `page=1&pageSize=10&search=${encodeURIComponent(E2E_PREFIX)}`,
     );
-    skipIfMissing(res, 'Internal transfers API');
+    skipIfUnavailable(res, 'Internal transfers API');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(data.content !== undefined || Array.isArray(data)).toBeTruthy();
@@ -59,7 +53,7 @@ test.describe('Payments - API', () => {
 
   test('GET /payments/failed-count returns a count', async ({ apiClient }) => {
     const res = await apiClient.payments.failedCount();
-    skipIfMissing(res, 'Failed count API');
+    skipIfUnavailable(res, 'Failed count API');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
     expect(typeof data.failedCount).toBe('number');
