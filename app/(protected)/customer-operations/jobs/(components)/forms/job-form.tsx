@@ -123,21 +123,23 @@ export default function JobForm({
         >
           Cancel
         </Button>
-        <Button
-          form="add-new-job-form"
-          className="cursor-pointer"
-          type="submit"
-          disabled={isPending}
-        >
-          {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isPending
-            ? isEditing
-              ? 'Saving Changes...'
-              : 'Adding Job...'
-            : isEditing
-              ? 'Save Changes'
-              : 'Add Job'}
-        </Button>
+        {!isInternalTransfer && (
+          <Button
+            form="add-new-job-form"
+            className="cursor-pointer"
+            type="submit"
+            disabled={isPending}
+          >
+            {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isPending
+              ? isEditing
+                ? 'Saving Changes...'
+                : 'Adding Job...'
+              : isEditing
+                ? 'Save Changes'
+                : 'Add Job'}
+          </Button>
+        )}
       </div>
     ) : null,
   );
@@ -184,29 +186,27 @@ export default function JobForm({
           >
             {isInternalTransfer ? (
               <>
-                <FormField
-                  control={jobForm.control}
-                  name="projectName"
-                  render={() => (
-                    <FormItem
-                      className={
-                        isEditing && isDesktop
-                          ? 'col-span-1 col-start-1'
-                          : 'col-span-2'
+                <FormItem
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1'
+                      : 'col-span-2'
+                  }
+                >
+                  <FormLabel>From Site</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      value={
+                        jobDetails?.fromSiteName ||
+                        selectedJob?.fromSiteName ||
+                        ''
                       }
-                    >
-                      <FormLabel>From Site</FormLabel>
-                      <FormControl>
-                        <Input
-                          className="w-full"
-                          value={jobDetails?.fromSiteName ?? ''}
-                          disabled
-                          readOnly
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
+                      disabled
+                      readOnly
+                    />
+                  </FormControl>
+                </FormItem>
                 <FormItem
                   className={
                     isEditing && isDesktop
@@ -218,7 +218,20 @@ export default function JobForm({
                   <FormControl>
                     <Input
                       className="w-full"
-                      value={jobDetails?.toSiteName ?? ''}
+                      value={
+                        jobDetails?.toSiteName || selectedJob?.toSiteName || ''
+                      }
+                      disabled
+                      readOnly
+                    />
+                  </FormControl>
+                </FormItem>
+                <FormItem className="col-span-2 col-start-1">
+                  <FormLabel>Account Manager</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="w-full"
+                      value="—"
                       disabled
                       readOnly
                     />
@@ -284,26 +297,28 @@ export default function JobForm({
               </>
             )}
 
-            <FormField
-              control={jobForm.control}
-              name="projectName"
-              render={({ field }) => (
-                <FormItem className="col-span-2 col-start-1">
-                  <FormLabel>Project Name*</FormLabel>
-                  <FormControl>
-                    <Input
-                      className="w-full"
-                      placeholder="Enter Project Name"
-                      {...field}
-                      disabled={isInternalTransfer || (isEditing && !canEdit)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isInternalTransfer && (
+              <FormField
+                control={jobForm.control}
+                name="projectName"
+                render={({ field }) => (
+                  <FormItem className="col-span-2 col-start-1">
+                    <FormLabel>Project Name*</FormLabel>
+                    <FormControl>
+                      <Input
+                        className="w-full"
+                        placeholder="Enter Project Name"
+                        {...field}
+                        disabled={isEditing && !canEdit}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
-            {isEditing && (
+            {!isInternalTransfer && isEditing && (
               <FormField
                 control={jobForm.control}
                 name="contactPersonName"
@@ -329,7 +344,7 @@ export default function JobForm({
               />
             )}
 
-            {isEditing && (
+            {!isInternalTransfer && isEditing && (
               <FormField
                 control={jobForm.control}
                 name="phone"
@@ -355,106 +370,113 @@ export default function JobForm({
               />
             )}
 
-            <div
-              className={cn(
-                'col-span-2',
-                isEditing && isDesktop
-                  ? 'grid grid-cols-4 gap-4'
-                  : 'grid grid-cols-2 gap-2',
-              )}
-            >
-              <h3 className="font-bold col-span-full mb-2">
-                Delivery Time Window
-              </h3>
+            {!isInternalTransfer && (
+              <div
+                className={cn(
+                  'col-span-2',
+                  isEditing && isDesktop
+                    ? 'grid grid-cols-4 gap-4'
+                    : 'grid grid-cols-2 gap-2',
+                )}
+              >
+                <h3 className="font-bold col-span-full mb-2">
+                  Delivery Time Window
+                </h3>
 
+                <FormField
+                  control={jobForm.control}
+                  name="deliveryStartDate"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Delivery Date</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          value={field.value}
+                          onChangeAction={field.onChange}
+                          placeholder="Pick a date"
+                          disabled={isEditing && !canEdit}
+                          disabledDates={{ before: today }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={jobForm.control}
+                  name="deliveryWindowStart"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel>Start Time Window</FormLabel>
+                      <FormControl>
+                        <TimeWindowPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          relation="start"
+                          siblingValue={deliveryWindowEnd}
+                          aria-invalid={!!fieldState.error}
+                          disabled={isEditing && !canEdit}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={jobForm.control}
+                  name="deliveryWindowEnd"
+                  render={({ field, fieldState }) => (
+                    <FormItem>
+                      <FormLabel>End Time Window</FormLabel>
+                      <FormControl>
+                        <TimeWindowPicker
+                          value={field.value}
+                          onChange={field.onChange}
+                          relation="end"
+                          siblingValue={deliveryWindowStart}
+                          aria-invalid={!!fieldState.error}
+                          disabled={isEditing && !canEdit}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {!isInternalTransfer && (
               <FormField
                 control={jobForm.control}
-                name="deliveryStartDate"
-                render={({ field }) => (
-                  <FormItem className="col-span-2">
-                    <FormLabel>Delivery Date</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        value={field.value}
-                        onChangeAction={field.onChange}
-                        placeholder="Pick a date"
-                        disabled={isEditing && !canEdit}
-                        disabledDates={{ before: today }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                name="receiptEmail"
+                render={({ field }) => {
+                  return (
+                    <FormItem className="col-span-2 col-start-1">
+                      <FormLabel>Receipt Email*</FormLabel>
+                      <FormControl>
+                        <MultipleInput
+                          className="w-full"
+                          placeholder={
+                            jobForm.watch('customerId') === 0
+                              ? 'Select Customer First'
+                              : 'Enter Receipt Emails'
+                          }
+                          label="Press Enter or comma to add email addresses for delivery receipts"
+                          disabled={
+                            jobForm.watch('customerId') === 0 ||
+                            (isEditing && !canEdit)
+                          }
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
-
-              <FormField
-                control={jobForm.control}
-                name="deliveryWindowStart"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel>Start Time Window</FormLabel>
-                    <FormControl>
-                      <TimeWindowPicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        relation="start"
-                        siblingValue={deliveryWindowEnd}
-                        aria-invalid={!!fieldState.error}
-                        disabled={isEditing && !canEdit}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={jobForm.control}
-                name="deliveryWindowEnd"
-                render={({ field, fieldState }) => (
-                  <FormItem>
-                    <FormLabel>End Time Window</FormLabel>
-                    <FormControl>
-                      <TimeWindowPicker
-                        value={field.value}
-                        onChange={field.onChange}
-                        relation="end"
-                        siblingValue={deliveryWindowStart}
-                        aria-invalid={!!fieldState.error}
-                        disabled={isEditing && !canEdit}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <FormField
-              control={jobForm.control}
-              name="receiptEmail"
-              render={({ field }) => {
-                return (
-                  <FormItem className="col-span-2 col-start-1">
-                    <FormLabel>Receipt Email*</FormLabel>
-                    <FormControl>
-                      <MultipleInput
-                        className="w-full"
-                        placeholder={
-                          jobForm.watch('customerId') === 0
-                            ? 'Select Customer First'
-                            : 'Enter Receipt Emails'
-                        }
-                        label="Press Enter or comma to add email addresses for delivery receipts"
-                        disabled={jobForm.watch('customerId') === 0 || (isEditing && !canEdit)}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                );
-              }}
-            />
+            )}
           </div>
 
           {isEditing && <Separator className="my-4" />}
@@ -484,21 +506,23 @@ export default function JobForm({
 
           {!isDesktop && (
             <div className="flex flex-col col-span-2 gap-3 mb-6">
-              <Button
-                form="add-new-job-form"
-                className="cursor-pointer"
-                type="submit"
-                disabled={isPending}
-              >
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {isPending
-                  ? isEditing
-                    ? 'Saving Changes...'
-                    : 'Adding Job...'
-                  : isEditing
-                    ? 'Save Changes'
-                    : 'Add Job'}
-              </Button>
+              {!isInternalTransfer && (
+                <Button
+                  form="add-new-job-form"
+                  className="cursor-pointer"
+                  type="submit"
+                  disabled={isPending}
+                >
+                  {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isPending
+                    ? isEditing
+                      ? 'Saving Changes...'
+                      : 'Adding Job...'
+                    : isEditing
+                      ? 'Save Changes'
+                      : 'Add Job'}
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"

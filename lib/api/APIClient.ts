@@ -1632,6 +1632,27 @@ export const APIClient = {
       appClient.Post<JobDTO>(`/socoro/quarrylink/api/job/internal-transfers`, {
         body: data,
       }),
+    updateInternalTransfer: (
+      id: number,
+      data: {
+        version: number;
+        fromSiteId?: number;
+        toSiteId?: number;
+        notes?: string;
+      },
+    ) =>
+      appClient.Put<JobDTO>(
+        `/socoro/quarrylink/api/job/internal-transfers/${id}`,
+        { body: data },
+      ),
+    createInternalTransferJobItem: (
+      jobId: number,
+      data: { productId: number; quantity: number },
+    ) =>
+      appClient.Post<JobItem>(
+        `/socoro/quarrylink/api/job/internal-transfers/${jobId}/items`,
+        { body: data },
+      ),
     getAttachments: (jobId: number) =>
       appClient.Get<JobAttachmentDTO[]>(
         `/socoro/quarrylink/api/job/${jobId}/attachments`,

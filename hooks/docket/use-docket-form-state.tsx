@@ -9,7 +9,7 @@ import { AddressType } from '@/lib/types/address';
 import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
 import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
 import { useJobsForForm } from '@/hooks/job/use-jobs-for-form';
 import { useJobLineItemsForForm } from '@/hooks/job/use-job-line-items-for-form';
@@ -28,6 +28,15 @@ import {
   normalizeDeliveryTimeWindowStart,
 } from '@/lib/utils/time';
 import { RECOVERY_MODE } from '@/lib/types/fee-recovery-enums';
+import {
+  LinkedProductsInfiniteListQueryOptions,
+  QuarryDetailQueryOptions,
+} from '@/lib/api/quarries';
+import {
+  getProductItemsFromInfinitePages,
+} from '@/lib/api/product';
+import { QuarrySupplierProductDetailQueryOptions } from '@/lib/api/quarry-supplier-product';
+import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 
 const DEFAULT_DIGITAL_PLATFORM_FEE_LABEL = 'Digital Platform Fee';
 
@@ -262,6 +271,48 @@ export function useDocketFormState({
     enabled: !isEditing,
   });
 
+  const isInternalTransfer =
+    selectedJobDetails?.jobType === 'INTERNAL_TRANSFER';
+  const fromSiteId = selectedJobDetails?.fromSiteId ?? 0;
+  const toSiteId = selectedJobDetails?.toSiteId ?? 0;
+  const watchedProductOrLineItemId = docketForm.watch('jobLineItemId');
+
+  const {
+    data: linkedProductsData,
+    fetchNextPage: fetchNextLinkedProductsPage,
+    hasNextPage: hasMoreLinkedProducts,
+    isFetchingNextPage: isFetchingMoreLinkedProducts,
+  } = useInfiniteQuery({
+    ...LinkedProductsInfiniteListQueryOptions(fromSiteId, { pageSize: 25 }),
+    enabled: !isEditing && isInternalTransfer && fromSiteId > 0,
+  });
+
+  const linkedProducts = React.useMemo(
+    () => getProductItemsFromInfinitePages(linkedProductsData?.pages),
+    [linkedProductsData?.pages],
+  );
+
+  const { data: fromSiteDetails } = useQuery({
+    ...QuarryDetailQueryOptions(fromSiteId),
+    enabled: isInternalTransfer && fromSiteId > 0,
+  });
+  const { data: toSiteDetails } = useQuery({
+    ...QuarryDetailQueryOptions(toSiteId),
+    enabled: isInternalTransfer && toSiteId > 0,
+  });
+
+  const { data: selectedTransferProductPricing } = useQuery({
+    ...QuarrySupplierProductDetailQueryOptions(
+      fromSiteId,
+      watchedProductOrLineItemId || 0,
+    ),
+    enabled:
+      !isEditing &&
+      isInternalTransfer &&
+      fromSiteId > 0 &&
+      watchedProductOrLineItemId > 0,
+  });
+
   /**
    * Job select: infinite load + server-side search (same pattern as the
    * customer select in the quotation form). Not fetched in edit mode where
@@ -292,6 +343,18 @@ export function useDocketFormState({
         : [];
     }
 
+    if (isInternalTransfer) {
+      return sortByLabel(
+        linkedProducts
+          .filter((product) => product.id !== undefined)
+          .map((product) => ({
+            label: product.productName ?? 'Unknown Product',
+            value: product.id as number,
+          })),
+        (option) => option.label,
+      );
+    }
+
     return sortByLabel(
       jobLineItems
         .filter((lineItem) => lineItem.id !== undefined)
@@ -301,7 +364,32 @@ export function useDocketFormState({
         })),
       (option) => option.label,
     );
-  }, [isEditing, selectedDocket?.jobItem, jobLineItems]);
+  }, [
+    isEditing,
+    isInternalTransfer,
+    selectedDocket?.jobItem,
+    jobLineItems,
+    linkedProducts,
+  ]);
+
+  const jobLineItemSelectProps = React.useMemo(() => {
+    if (!isInternalTransfer) return lineItemSelectProps;
+    return {
+      onDropdownOpenChange: lineItemSelectProps.onDropdownOpenChange,
+      onOptionsListScrollEnd: () => {
+        if (!hasMoreLinkedProducts || isFetchingMoreLinkedProducts) return;
+        void fetchNextLinkedProductsPage();
+      },
+      hasMoreOptions: hasMoreLinkedProducts,
+      isLoadingMoreOptions: isFetchingMoreLinkedProducts,
+    };
+  }, [
+    isInternalTransfer,
+    lineItemSelectProps,
+    hasMoreLinkedProducts,
+    isFetchingMoreLinkedProducts,
+    fetchNextLinkedProductsPage,
+  ]);
 
   const selectedJob = React.useMemo<SelectedJobPrefill>(() => {
     const jobFromList = jobsList.find((job) => job.id === effectiveJobId);
@@ -478,6 +566,66 @@ export function useDocketFormState({
 
   const selectedJobLineItemDetails = React.useCallback(() => {
     const selectedJobLineItemId = docketForm.watch('jobLineItemId');
+
+    if (isInternalTransfer && !isEditing) {
+      const product = linkedProducts.find(
+        (item) => item.id === selectedJobLineItemId,
+      );
+      const costPrice =
+        selectedTransferProductPricing?.perTnCostPrice ??
+        selectedTransferProductPricing?.perM3CostPrice ??
+        selectedTransferProductPricing?.per20kgCostPrice ??
+        selectedTransferProductPricing?.perBulkaCostPrice ??
+        0;
+      const productUom =
+        selectedTransferProductPricing?.perTnCostPrice &&
+        selectedTransferProductPricing.perTnCostPrice > 0
+          ? 'TN'
+          : selectedTransferProductPricing?.perM3CostPrice &&
+              selectedTransferProductPricing.perM3CostPrice > 0
+            ? 'M3'
+            : product?.densityTonnagePerM3
+              ? 'TN'
+              : 'TN';
+
+      return {
+        pickUpAddress: fromSiteDetails
+          ? {
+              id: fromSiteDetails.id,
+              name: fromSiteDetails.name,
+              address: fromSiteDetails.address,
+            }
+          : null,
+        customerDeliveryAddress: toSiteDetails
+          ? {
+              id: toSiteDetails.id,
+              address: toSiteDetails.address,
+            }
+          : null,
+        productName: product?.productName ?? '',
+        quarryName: fromSiteDetails?.name ?? selectedJobDetails?.fromSiteName ?? '',
+        densityTonnagePerM3:
+          selectedTransferProductPricing?.densityTonnagePerM3 ??
+          product?.densityTonnagePerM3 ??
+          0,
+        productUom,
+        productUomLabel: formatUomLabel(productUom),
+        truckType: '',
+        truckTypeLabel: '',
+        truckSell: 0,
+        truckSellQty: 0,
+        truckUom: '',
+        truckUomLabel: '',
+        productSell: costPrice,
+        productSellQty: 0,
+        productCostPrice: costPrice,
+        remainingQty: Number.MAX_SAFE_INTEGER,
+        type: JOB_LINE_ITEM_TYPE.DELIVERY,
+        productId: product?.id ?? selectedJobLineItemId ?? 0,
+        needTruckQty: false,
+      };
+    }
+
     // In edit mode the product is locked, so read the line item embedded in
     // the docket instead of the (not fetched) job line items.
     const selectedJobLineItem = isEditing
@@ -528,7 +676,78 @@ export function useDocketFormState({
         selectedJobLineItem?.truckSellUom === 'LOAD' ||
         selectedJobLineItem?.truckSellUom === 'KM',
     };
-  }, [jobLineItems, docketForm, isEditing, selectedDocket]);
+  }, [
+    jobLineItems,
+    docketForm,
+    isEditing,
+    selectedDocket,
+    isInternalTransfer,
+    linkedProducts,
+    selectedTransferProductPricing,
+    fromSiteDetails,
+    toSiteDetails,
+    selectedJobDetails?.fromSiteName,
+  ]);
+
+  /**
+   * Prefill IT site addresses and contact defaults from From/To sites.
+   */
+  React.useEffect(() => {
+    if (isEditing || !isInternalTransfer) return;
+
+    if (fromSiteDetails?.address) {
+      const mappedPickup = toAddressType(fromSiteDetails.address);
+      setPickUpAddress(mappedPickup);
+      setPickUpSearchInput(mappedPickup.formattedAddress || '');
+      docketForm.setValue(
+        'pickUpAddressId',
+        String(
+          fromSiteDetails.address?.googlePlaceId ||
+            fromSiteDetails.id ||
+            'from-site',
+        ),
+        { shouldDirty: false },
+      );
+      if (!docketForm.getValues('customerContactName')) {
+        docketForm.setValue(
+          'customerContactName',
+          fromSiteDetails.contactPersonName || fromSiteDetails.name || 'Internal Transfer',
+          { shouldDirty: false },
+        );
+      }
+      if (!docketForm.getValues('customerContactPhone')) {
+        docketForm.setValue(
+          'customerContactPhone',
+          fromSiteDetails.contactPersonPhone || fromSiteDetails.phone || '+61400000000',
+          { shouldDirty: false },
+        );
+      }
+    }
+
+    if (toSiteDetails?.address) {
+      const mappedDelivery = toAddressType(toSiteDetails.address);
+      setDeliveryAddress(mappedDelivery);
+      setDeliverySearchInput(mappedDelivery.formattedAddress || '');
+      docketForm.setValue(
+        'deliveryAddressId',
+        String(
+          toSiteDetails.address?.googlePlaceId ||
+            toSiteDetails.id ||
+            'to-site',
+        ),
+        { shouldDirty: false },
+      );
+      docketForm.setValue('jobLineItemType', JOB_LINE_ITEM_TYPE.DELIVERY, {
+        shouldDirty: false,
+      });
+    }
+  }, [
+    isEditing,
+    isInternalTransfer,
+    fromSiteDetails,
+    toSiteDetails,
+    docketForm,
+  ]);
 
   /**
    * Update addresses when job line item changes.
@@ -713,12 +932,13 @@ export function useDocketFormState({
     isJobLocked,
     jobSelectProps,
     jobLineItemOptions,
-    jobLineItemSelectProps: lineItemSelectProps,
+    jobLineItemSelectProps,
     selectedJobId: effectiveJobId,
     selectedJobEmail: selectedJob.customerEmail,
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,
+    isInternalTransfer,
     pricingBreakdown,
     mapMarkers,
     today,
