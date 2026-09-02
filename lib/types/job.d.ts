@@ -345,6 +345,7 @@ export interface JobsListResponse {
   statuses?: string[];
   customers?: JobsFacetOption[];
   accountManagers?: JobsFacetOption[];
+  quarrySuppliers?: JobsFacetOption[];
 }
 
 export interface PullFromAccSoftwareResponse {

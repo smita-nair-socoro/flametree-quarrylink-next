@@ -178,6 +178,10 @@ export class ApiClient {
   // -- Jobs --
   jobs = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/job${params ? `?${params}` : ''}`),
+    purchaseOrders: (params?: string) =>
+      this.get(
+        `/socoro/quarrylink/api/job/purchase-orders${params ? `?${params}` : ''}`,
+      ),
     attachments: (jobId: number) =>
       this.get(`/socoro/quarrylink/api/job/${jobId}/attachments`),
     uploadAttachment: (

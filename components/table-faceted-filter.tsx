@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import {
   CommandList,
   CommandSeparator,
 } from './ui/command';
+import { useDebounce } from '@/hooks/use-debounce';
 
 export interface FacetedOption {
   value: string;
@@ -28,9 +29,10 @@ export interface DataTableFacetedFilterProps {
   filterValues: string[];
   onFilterChange: (values: string[]) => void;
   className?: string;
+  hideSearch?: boolean;
+  asyncSearch?: (query: string) => Promise<FacetedOption[]>;
 }
 
-// Helper function to format labels by removing underscores and keeping uppercase
 const formatLabel = (label: string): string => {
   return label.replace(/_/g, ' ');
 };
@@ -42,19 +44,60 @@ export function DataTableFacetedFilter({
   filterValues,
   onFilterChange,
   className,
+  hideSearch = false,
+  asyncSearch,
 }: DataTableFacetedFilterProps) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [asyncOptions, setAsyncOptions] = useState<FacetedOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const debouncedSearch = useDebounce(search, 300);
 
-  // Sort options alphabetically by label
+  useEffect(() => {
+    if (!asyncSearch || !open) return;
+
+    let cancelled = false;
+    setIsLoading(true);
+    asyncSearch(debouncedSearch)
+      .then((next) => {
+        if (!cancelled) setAsyncOptions(next);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [asyncSearch, open, debouncedSearch]);
+
+  useEffect(() => {
+    if (!open) {
+      setSearch('');
+    }
+  }, [open]);
+
+  const resolvedOptions = asyncSearch ? asyncOptions : options;
+
   const sortedOptions = useMemo(() => {
-    return [...options].sort((a, b) => {
-      const labelA = a.label.toLowerCase();
-      const labelB = b.label.toLowerCase();
-      return labelA.localeCompare(labelB);
-    });
-  }, [options]);
+    const selected = new Map(
+      filterValues.map((value) => {
+        const match = resolvedOptions.find((option) => option.value === value);
+        return [
+          value,
+          match ?? { value, label: value },
+        ] as const;
+      }),
+    );
+    const merged = [
+      ...selected.values(),
+      ...resolvedOptions.filter((option) => !selected.has(option.value)),
+    ];
+    return [...merged].sort((a, b) =>
+      a.label.toLowerCase().localeCompare(b.label.toLowerCase()),
+    );
+  }, [filterValues, resolvedOptions]);
 
-  // toggle a single value in the filterValues array
   const handleSelect = (val: string) => {
     const next = filterValues.includes(val)
       ? filterValues.filter((v) => v !== val)
@@ -97,7 +140,6 @@ export function DataTableFacetedFilter({
                 ) : (
                   filterValues.map((val) => {
                     const opt = sortedOptions.find((o) => o.value === val);
-                    // Use formatted label if original label contains underscores, otherwise use original
                     const label = opt?.label.includes('_')
                       ? formatLabel(opt.label)
                       : opt?.label ?? val;
@@ -123,10 +165,18 @@ export function DataTableFacetedFilter({
       </PopoverTrigger>
 
       <PopoverContent align="start" side="bottom" className="w-[210px] p-0">
-        <Command>
-          <CommandInput placeholder={`Filter ${title}…`} />
+        <Command shouldFilter={!asyncSearch}>
+          {!hideSearch && (
+            <CommandInput
+              placeholder={`Filter ${title}ΓÇª`}
+              value={asyncSearch ? search : undefined}
+              onValueChange={asyncSearch ? setSearch : undefined}
+            />
+          )}
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>
+              {isLoading ? 'LoadingΓÇª' : 'No results found.'}
+            </CommandEmpty>
             <CommandGroup>
               {sortedOptions.map((opt) => {
                 const Icon = opt.icon;
@@ -149,7 +199,7 @@ export function DataTableFacetedFilter({
                         'mr-2 flex h-4 w-4 items-center justify-center border border-primary',
                         checked
                           ? 'bg-primary text-primary-foreground'
-                          : 'opacity-50 [&_svg]:invisible'
+                          : 'opacity-50 [&_svg]:invisible',
                       )}
                     >
                       <Check className="h-4 w-4 text-primary-foreground" />

@@ -27,6 +27,8 @@ export type JobsListParams = {
   statuses?: string[];
   customerIds?: number[];
   accountManagerSubs?: string[];
+  quarrySupplierIds?: number[];
+  poNumbers?: string[];
   /** Restrict results to specific job ids (e.g. linking from a converted quotation/docket). */
   ids?: number[];
 };
@@ -37,6 +39,8 @@ const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   projectName: 'projectName',
   uninvoicedDockets: 'uninvoicedDocketsAmount',
   status: 'jobStatus',
+  quarrySupplierName: 'quarrySupplierName',
+  poNumber: 'poNumber',
 };
 
 export function toJobApiSortParams(
@@ -61,15 +65,30 @@ function getFacetFilterValues(
 
 export function toJobApiFilterParams(
   filters: { id: string; value: unknown }[],
-): Pick<JobsListParams, 'statuses' | 'customerIds' | 'accountManagerSubs'> {
+): Pick<
+  JobsListParams,
+  | 'statuses'
+  | 'customerIds'
+  | 'accountManagerSubs'
+  | 'quarrySupplierIds'
+  | 'poNumbers'
+> {
   const statusValues = getFacetFilterValues(filters, 'status');
   const customerValues = getFacetFilterValues(filters, 'customerName');
   const accountManagerValues = getFacetFilterValues(
     filters,
     'accountManagerName',
   );
+  const quarrySupplierValues = getFacetFilterValues(
+    filters,
+    'quarrySupplierName',
+  );
+  const poNumberValues = getFacetFilterValues(filters, 'poNumber');
 
   const customerIds = customerValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+  const quarrySupplierIds = quarrySupplierValues
     .map(Number)
     .filter((n) => Number.isFinite(n));
 
@@ -79,6 +98,10 @@ export function toJobApiFilterParams(
     accountManagerSubs: accountManagerValues.length
       ? accountManagerValues
       : undefined,
+    quarrySupplierIds: quarrySupplierIds.length
+      ? quarrySupplierIds
+      : undefined,
+    poNumbers: poNumberValues.length ? poNumberValues : undefined,
   };
 }
 
@@ -119,6 +142,10 @@ export function buildJobFacetOptions(response?: JobsListResponse | null) {
     accountManagers: (response?.accountManagers ?? []).map((manager) => ({
       value: manager.id,
       label: manager.name,
+    })),
+    quarrySuppliers: (response?.quarrySuppliers ?? []).map((quarry) => ({
+      value: quarry.id,
+      label: quarry.name,
     })),
   };
 }
