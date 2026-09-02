@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo } from 'react';
 import { Table } from '@tanstack/react-table';
@@ -29,9 +29,22 @@ export function useFacets<TData>(
   title: string;
   options: Array<{ value: string; label: string; icon?: LucideIcon }>;
   counts: Record<string, number>;
+  hideSearch?: boolean;
+  asyncSearch?: FacetDefinition['asyncSearch'];
 }> {
   return useMemo(() => {
     return defs.map((def) => {
+      if (def.asyncSearch) {
+        return {
+          column: def.column,
+          title: def.title ?? def.column,
+          options: def.options ?? [],
+          counts: {} as Record<string, number>,
+          hideSearch: def.hideSearch,
+          asyncSearch: def.asyncSearch,
+        };
+      }
+
       if (def.options?.length) {
         return {
           column: def.column,
@@ -41,6 +54,8 @@ export function useFacets<TData>(
             icon: option.icon ?? def.icon,
           })),
           counts: {} as Record<string, number>,
+          hideSearch: def.hideSearch,
+          asyncSearch: def.asyncSearch,
         };
       }
 
@@ -89,6 +104,8 @@ export function useFacets<TData>(
         title: def.title ?? def.column,
         options,
         counts,
+        hideSearch: def.hideSearch,
+        asyncSearch: def.asyncSearch,
       };
     });
   }, [table.getPreFilteredRowModel().rows, defs]);

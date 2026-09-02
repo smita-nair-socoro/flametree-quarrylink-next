@@ -25,6 +25,7 @@ import {
   toJobApiFilterParams,
   buildJobFacetOptions,
 } from '@/lib/api/job';
+import { APIClient } from '@/lib/api/APIClient';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -125,6 +126,14 @@ export default function CustomersPage() {
     () => buildJobFacetOptions(jobsList ?? null),
     [jobsList],
   );
+
+  const searchPurchaseOrders = React.useCallback(async (query: string) => {
+    const purchaseOrders = await APIClient.jobs.searchPurchaseOrders(query);
+    return (purchaseOrders ?? []).map((po) => ({
+      value: po,
+      label: po,
+    }));
+  }, []);
 
   const items: JobDTO[] = React.useMemo(
     () => (jobsPage?.content ?? []) as JobDTO[],
@@ -241,12 +250,23 @@ export default function CustomersPage() {
         options: facetOptions.customers,
       },
       {
+        column: 'quarrySupplierName',
+        title: 'Quarry / Supplier',
+        options: facetOptions.quarrySuppliers,
+        hideSearch: true,
+      },
+      {
+        column: 'poNumber',
+        title: 'PO',
+        asyncSearch: searchPurchaseOrders,
+      },
+      {
         column: 'accountManagerName',
         title: 'Account Manager',
         options: facetOptions.accountManagers,
       },
     ],
-    [facetOptions],
+    [facetOptions, searchPurchaseOrders],
   );
 
   const handleRowClick = (row: JobDTO) => {

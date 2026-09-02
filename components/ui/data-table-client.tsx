@@ -139,6 +139,10 @@ export type FacetDefinition = {
   icon?: LucideIcon;
   /** When set, options come from the server instead of the current table rows. */
   options?: Array<{ value: string; label: string; icon?: LucideIcon }>;
+  hideSearch?: boolean;
+  asyncSearch?: (
+    query: string,
+  ) => Promise<Array<{ value: string; label: string }>>;
 };
 
 const SEARCH_MIN_WIDTH = 56; // just enough for the search icon + padding, no text
@@ -1096,6 +1100,8 @@ export function DataTableClient<TData, TValue>({
                   title={filter.title}
                   options={filter.options}
                   counts={filter.counts}
+                  hideSearch={filter.hideSearch}
+                  asyncSearch={filter.asyncSearch}
                   filterValues={
                     (columnFilters.find((f) => f.id === filter.column)
                       ?.value as string[]) || []
@@ -1158,6 +1164,42 @@ export function DataTableClient<TData, TValue>({
                         const currentFilterValues =
                           (tempColumnFilters.find((f) => f.id === filter.column)
                             ?.value as string[]) || [];
+
+                        if (filter.asyncSearch) {
+                          return (
+                            <AccordionItem
+                              key={filter.column}
+                              value={filter.column}
+                            >
+                              <AccordionTrigger className="text-left">
+                                <div className="flex items-center justify-between w-full pr-4">
+                                  <span className="text-lg">{filter.title}</span>
+                                  {currentFilterValues.length > 0 && (
+                                    <div className="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+                                      {currentFilterValues.length}
+                                    </div>
+                                  )}
+                                </div>
+                              </AccordionTrigger>
+                              <AccordionContent>
+                                <div className="pt-2">
+                                  <DataTableFacetedFilter
+                                    title={filter.title}
+                                    options={filter.options}
+                                    counts={filter.counts}
+                                    hideSearch={filter.hideSearch}
+                                    asyncSearch={filter.asyncSearch}
+                                    filterValues={currentFilterValues}
+                                    onFilterChange={(vals) =>
+                                      handleTempFilterChange(filter.column, vals)
+                                    }
+                                    className="w-full"
+                                  />
+                                </div>
+                              </AccordionContent>
+                            </AccordionItem>
+                          );
+                        }
 
                         return (
                           <AccordionItem
@@ -1277,6 +1319,8 @@ export function DataTableClient<TData, TValue>({
                     title={filter.title}
                     options={filter.options}
                     counts={filter.counts}
+                    hideSearch={filter.hideSearch}
+                    asyncSearch={filter.asyncSearch}
                     filterValues={
                       (columnFilters.find((f) => f.id === filter.column)
                         ?.value as string[]) || []
@@ -1346,6 +1390,8 @@ export function DataTableClient<TData, TValue>({
                   title={filter.title}
                   options={filter.options}
                   counts={filter.counts}
+                  hideSearch={filter.hideSearch}
+                  asyncSearch={filter.asyncSearch}
                   filterValues={
                     (columnFilters.find((f) => f.id === filter.column)
                       ?.value as string[]) || []

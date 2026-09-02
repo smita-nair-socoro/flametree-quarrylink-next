@@ -1505,6 +1505,8 @@ export const APIClient = {
       statuses?: string[];
       customerIds?: number[];
       accountManagerSubs?: string[];
+      quarrySupplierIds?: number[];
+      poNumbers?: string[];
       ids?: number[];
     }) => {
       const response = await appClient.Get<JobsListResponse>(
@@ -1519,7 +1521,21 @@ export const APIClient = {
             statuses: params?.statuses,
             customerIds: params?.customerIds?.map(String),
             accountManagerSubs: params?.accountManagerSubs,
+            quarrySupplierIds: params?.quarrySupplierIds?.map(String),
+            poNumbers: params?.poNumbers,
             ids: params?.ids?.map(String),
+          },
+        },
+      );
+      return response;
+    },
+    searchPurchaseOrders: async (search?: string, limit = 50) => {
+      const response = await appClient.Get<string[]>(
+        `/socoro/quarrylink/api/job/purchase-orders`,
+        {
+          queryString: {
+            search: search?.trim() || undefined,
+            limit: String(limit),
           },
         },
       );
