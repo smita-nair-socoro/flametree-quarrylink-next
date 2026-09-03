@@ -17,7 +17,6 @@ import { cn, scrollToFirstError, splitReasonNote } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
 import { useJobFormState } from '@/hooks/job/use-job-form-state';
-import { useIsMutating } from '@tanstack/react-query';
 import { PhoneInput } from '@/components/ui/phone-input';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { MultipleInput } from '@/components/ui/multiple-input';
@@ -29,6 +28,7 @@ import { AuditInformation } from '@/components/audit-information';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { FormSelect } from '@/components/ui/form-select';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
+import { InvoiceRetryProgressBar } from '@/components/invoice-retry-progress-bar';
 import { JobAttachmentsSection } from './job-attachments-section';
 import { startOfDay } from 'date-fns';
 
@@ -80,7 +80,6 @@ export default function JobForm({
     loadMoreEnabled: customerSelectOpen,
   });
 
-  const isSyncing = useIsMutating({ mutationKey: ['retrySync'] }) > 0;
   const deliveryWindowStart = jobForm.watch('deliveryWindowStart');
   const deliveryWindowEnd = jobForm.watch('deliveryWindowEnd');
 
@@ -147,7 +146,8 @@ export default function JobForm({
   return (
     <div className="w-full relative">
       <InvoiceDetailsDialog />
-      {(isPending || isSyncing) && (
+      <InvoiceRetryProgressBar />
+      {isPending && (
         <div
           className={cn(
             'fixed inset-0 bg-background/20 backdrop-blur-[1px] z-[9999] flex items-center justify-center',
@@ -157,11 +157,7 @@ export default function JobForm({
           <div className="flex flex-col items-center space-y-4 p-8">
             <Spinner size="medium" />
             <p className="text-lg text-muted-foreground font-bold">
-              {isSyncing
-                ? 'Syncing...'
-                : isEditing
-                  ? 'Updating Job...'
-                  : 'Adding Job...'}
+              {isEditing ? 'Updating Job...' : 'Adding Job...'}
             </p>
           </div>
         </div>

@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
 import { DocketKeys, InvoicesKeys, PaymentsKeys } from './keys';
+import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
 import { toast } from 'sonner';
 
 export type PaymentsListParams = {
@@ -74,13 +75,17 @@ export const PaymentsFailedCountQueryOptions = () =>
 export const useRetryInvoice = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (invoiceId: number) => APIClient.invoices.retryOne(invoiceId),
-    onSuccess: () => {
-      toast.success('Retry started');
+    mutationFn: (invoiceId: number) => {
+      useInvoiceRetryProgressStore.getState().startRetry();
+      return APIClient.invoices.retryOne(invoiceId);
+    },
+    onSuccess: (response) => {
+      useInvoiceRetryProgressStore.getState().completeRetry(response);
       queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
       queryClient.invalidateQueries({ queryKey: PaymentsKeys.all });
     },
     onError: (error) => {
+      useInvoiceRetryProgressStore.getState().failRetry(error.message);
       toast.error('Failed to retry invoice sync');
       console.error(error);
     },

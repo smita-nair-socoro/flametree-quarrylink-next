@@ -278,8 +278,9 @@ export interface RetrySyncResponse {
   totalAttempted: number;
   successCount: number;
   failureCount: number;
-  results: {
-    invoices: RetrySyncResult[];
+  /** Matches backend RetryAllInvoicesResponseDto.result */
+  result?: {
+    invoices?: RetrySyncResult[];
   };
 }
 
