@@ -634,6 +634,9 @@ export function DataTableClient<TData, TValue>({
   const handleColumnVisibilityChange = (updater: Updater<VisibilityState>) => {
     setColumnVisibility((old) => {
       const newValue = typeof updater === 'function' ? updater(old) : updater;
+      if (!isMobile) {
+        saveToStorage('columnVisibility', newValue);
+      }
       return newValue;
     });
   };
