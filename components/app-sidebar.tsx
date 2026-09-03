@@ -21,6 +21,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { TenantLogoQueryOptions } from '@/lib/api/tenant';
 import { UserDetailQueryOptions } from '@/lib/api/user';
+import { PaymentsFailedCountQueryOptions } from '@/lib/api/payments';
 import { useTenantStore } from '@/app/stores/tenant-store';
 import { HelpCentreButton } from '@/components/help-centre-modal';
 
@@ -84,9 +85,29 @@ export const navItems = [
   },
 ];
 
+function withPaymentsFailedBadge(
+  items: typeof navItems,
+  failedCount: number,
+): typeof navItems {
+  if (failedCount < 1) return items;
+  return items.map((group) => {
+    if (group.url !== '/customer-operations') return group;
+    return {
+      ...group,
+      items: group.items.map((item) =>
+        item.url === '/customer-operations/payments'
+          ? { ...item, badge: failedCount }
+          : item,
+      ),
+    };
+  });
+}
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user: amplifyUser, attributes } = useAuth();
   const { data: tenantLogo } = useQuery(TenantLogoQueryOptions());
+  const { data: failedSync } = useQuery(PaymentsFailedCountQueryOptions());
+  const failedCount = failedSync?.failedCount ?? 0;
 
   const { data: currentUser } = useQuery(
     UserDetailQueryOptions(amplifyUser?.userId || ''),
@@ -143,7 +164,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={navItems} />
+        <NavMain items={withPaymentsFailedBadge(navItems, failedCount)} />
       </SidebarContent>
       <SidebarFooter>
         <SidebarSeparator className="mx-0 w-full" />

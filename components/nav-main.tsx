@@ -47,6 +47,7 @@ export function NavMain({
       title: string;
       url: string;
       isDisabled?: boolean;
+      badge?: number;
     }[];
   }[];
 }) {
@@ -231,6 +232,11 @@ export function NavMain({
                                 <p>{sub.title}</p>
                               </TooltipContent>
                             </Tooltip>
+                            {sub.badge != null && sub.badge > 0 ? (
+                              <span className="ml-auto shrink-0 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white">
+                                {sub.badge}
+                              </span>
+                            ) : null}
                           </Link>
                         );
                       })}
@@ -305,6 +311,11 @@ export function NavMain({
                                   <p>{sub.title}</p>
                                 </TooltipContent>
                               </Tooltip>
+                              {sub.badge != null && sub.badge > 0 ? (
+                                <span className="ml-auto shrink-0 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-white">
+                                  {sub.badge}
+                                </span>
+                              ) : null}
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>

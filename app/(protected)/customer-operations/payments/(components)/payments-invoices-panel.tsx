@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { SortingState } from '@tanstack/react-table';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PaymentsListToolbar } from '@/components/payments-list-toolbar';
 import {
@@ -26,6 +27,8 @@ export function PaymentsInvoicesPanel({
   initialFailedOnly: boolean;
   initialSearch?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
   const retryInvoice = useRetryInvoice();
@@ -41,6 +44,24 @@ export function PaymentsInvoicesPanel({
   React.useEffect(() => {
     setFailedOnly(initialFailedOnly);
   }, [initialFailedOnly]);
+
+  const syncFailedOnlyParam = React.useCallback(
+    (checked: boolean) => {
+      setFailedOnly(checked);
+      setPageIndex(0);
+      const params = new URLSearchParams(searchParams.toString());
+      if (checked) {
+        params.set('failedOnly', 'true');
+      } else {
+        params.delete('failedOnly');
+      }
+      if (!params.get('tab')) {
+        params.set('tab', 'invoices');
+      }
+      router.replace(`/customer-operations/payments?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   const sort = sorting[0];
   const listParams = React.useMemo(
@@ -71,38 +92,39 @@ export function PaymentsInvoicesPanel({
     [currencyCode, taxLabel, retryInvoice],
   );
 
+  // KPI cards always use full-dataset statistics (no date-range params).
   const statsCards: StatsCardData[] = [
     {
-      title: 'Total invoices',
+      title: 'Total Invoices',
       value: statistics?.totalInvoices ?? 0,
-      description: 'All invoices',
+      description: 'All customer invoices',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Overdue unpaid',
+      title: 'Overdue Invoices',
       value: statistics?.overdueInvoices ?? 0,
-      description: 'Past due date',
+      description: 'Past due date and unpaid',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#E7000B]',
     },
     {
-      title: 'Uninvoiced dockets',
+      title: 'Value of Uninvoiced Dockets',
       value: formatCentsToCurrency(statistics?.uninvoicedDocketsValue ?? 0),
-      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
+      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery │ ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Due payment',
+      title: 'Due Payment',
       value: statistics?.duePayment ?? 0,
-      description: 'Not yet overdue',
+      description: 'Outstanding invoices awaiting payment',
       icon: Clock,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
@@ -120,10 +142,7 @@ export function PaymentsInvoicesPanel({
           setPageIndex(0);
         }}
         failedOnly={failedOnly}
-        onFailedOnlyChange={(checked) => {
-          setFailedOnly(checked);
-          setPageIndex(0);
-        }}
+        onFailedOnlyChange={syncFailedOnlyParam}
       />
       <DataTableClient
         tableId="payments_invoices"

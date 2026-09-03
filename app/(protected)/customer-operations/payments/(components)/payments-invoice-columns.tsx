@@ -20,6 +20,7 @@ import {
   formatCurrency,
   getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
+import { toAccountingSyncDisplay } from '@/lib/utils/accounting-sync';
 import Link from 'next/link';
 
 export const getPaymentsInvoiceColumns = (
@@ -42,8 +43,9 @@ export const getPaymentsInvoiceColumns = (
   {
     id: 'jobNumber',
     accessorFn: (row) => row.jobNumber,
-    header: () => <div>Job</div>,
-    enableSorting: false,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Job" />
+    ),
     cell: ({ row }) => {
       const jobId = row.original.jobId;
       const jobNumber = row.original.jobNumber || 'N/A';
@@ -70,9 +72,9 @@ export const getPaymentsInvoiceColumns = (
   {
     id: 'amount',
     accessorFn: (row) => row.amount,
-    header: () => (
+    header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Amount
+        <TableClientSortableHeader column={column} title="Amount" />
         <Tooltip>
           <TooltipTrigger asChild>
             <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
@@ -119,14 +121,18 @@ export const getPaymentsInvoiceColumns = (
     accessorFn: (row) => row.accountingSync,
     enableSorting: false,
     header: () => <div>Accounting Sync</div>,
-    cell: ({ row }) => (
-      <AccountingSyncBadge
-        status={row.original.accountingSync}
-        failureReason={row.original.failureReason}
-        onRetry={() => onRetry(row.original.id)}
-        retrying={retryingId === row.original.id}
-      />
-    ),
+    cell: ({ row }) => {
+      const isFailed =
+        toAccountingSyncDisplay(row.original.accountingSync) === 'FAILED';
+      return (
+        <AccountingSyncBadge
+          status={row.original.accountingSync}
+          failureReason={row.original.failureReason}
+          onRetry={isFailed ? () => onRetry(row.original.id) : undefined}
+          retrying={retryingId === row.original.id}
+        />
+      );
+    },
     meta: 'Accounting Sync',
   },
   {

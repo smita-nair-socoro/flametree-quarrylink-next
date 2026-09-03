@@ -18,7 +18,7 @@ export function FailedSyncBanner() {
       <AlertDescription>
         {count} document{count === 1 ? '' : 's'} failed to sync.{' '}
         <Link
-          href="/customer-operations/payments?failedOnly=true"
+          href="/customer-operations/payments?tab=invoices&failedOnly=true"
           className="underline font-medium"
         >
           View failed only
