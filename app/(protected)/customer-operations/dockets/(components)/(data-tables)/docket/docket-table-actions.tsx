@@ -102,6 +102,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.COLLECTED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',
@@ -113,7 +114,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.CASH_SALE]: [
     {
-      label: 'Cash Receipts',
+      label: 'View Receipt',
       icon: ReceiptText,
       action: 'cashReceipts',
       separator: true,
@@ -205,6 +206,7 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
   ],
   [DOCKET_STATUS.DELIVERED]: [
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
+    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',

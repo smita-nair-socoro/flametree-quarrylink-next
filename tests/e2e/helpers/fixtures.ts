@@ -286,6 +286,18 @@ export class ApiClient {
       ),
     cashSalesByJob: (jobId: number) =>
       this.get(`/socoro/quarrylink/api/payments/jobs/${jobId}/cash-sales`),
+    cashSale: (id: number) =>
+      this.get(`/socoro/quarrylink/api/payments/cash-sales/${id}`),
+    createCashSale: (body: { docketIds: number[]; paymentType: string }) =>
+      this.post('/socoro/quarrylink/api/payments/cash-sales', body),
+    amendCashSalePaymentType: (id: number, paymentType: string) =>
+      this.put(`/socoro/quarrylink/api/payments/cash-sales/${id}/payment-type`, {
+        paymentType,
+      }),
+    voidCashSale: (
+      id: number,
+      body: { reason: string; reasonDetail?: string },
+    ) => this.post(`/socoro/quarrylink/api/payments/cash-sales/${id}/void`, body),
     internalTransfers: (params?: string) =>
       this.get(
         `/socoro/quarrylink/api/payments/internal-transfers${params ? `?${params}` : ''}`,

@@ -14,15 +14,21 @@ import { useMediaQuery } from '@/hooks/use-media-query';
 import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { PaymentsCashSale } from '@/lib/types/payments';
+import { centsToDollars } from '@/lib/utils/currency';
 
 function matchesCashSaleSearch(receipt: PaymentsCashSale, search: string) {
   const needle = search.trim().toLowerCase();
   if (!needle) return true;
+  const amountDollars = centsToDollars(receipt.amount ?? 0);
+  const amountRaw = String(receipt.amount ?? '');
+  const amountCompact = amountDollars.replace(/,/g, '');
   return [
     receipt.reference,
     receipt.paymentType,
     receipt.paymentReceivedBy,
-    String(receipt.amount ?? ''),
+    amountRaw,
+    amountDollars,
+    amountCompact,
   ]
     .filter(Boolean)
     .some((value) => String(value).toLowerCase().includes(needle));
@@ -51,6 +57,7 @@ export default function CashSalesTab({ jobId }: { jobId: number }) {
         includeCustomer: false,
         referenceTitle: 'Cash Sale',
         dateTitle: 'Recorded Date',
+        receivedByTitle: 'Payment Received By',
       }),
     [currencyCode],
   );
