@@ -257,6 +257,7 @@ export class ApiClient {
     /** Payments invoices list (supports failedOnly). */
     paymentsList: (params?: string) =>
       this.get(`/socoro/quarrylink/api/invoices${params ? `?${params}` : ''}`),
+    statistics: () => this.get('/socoro/quarrylink/api/invoices/statistics'),
     /** Retry all unsynced invoices (batched fusion calls on service). */
     retryAll: () => this.put('/socoro/quarrylink/api/invoices/retry'),
     /** Retry unsynced invoices for a job. */
