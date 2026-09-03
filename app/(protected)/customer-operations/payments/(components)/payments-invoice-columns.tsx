@@ -20,6 +20,7 @@ import {
   formatCurrency,
   getExTaxLabel,
 } from '@/lib/utils/tenant-config-helper';
+import { toAccountingSyncDisplay } from '@/lib/utils/accounting-sync';
 import Link from 'next/link';
 
 export const getPaymentsInvoiceColumns = (
@@ -120,14 +121,18 @@ export const getPaymentsInvoiceColumns = (
     accessorFn: (row) => row.accountingSync,
     enableSorting: false,
     header: () => <div>Accounting Sync</div>,
-    cell: ({ row }) => (
-      <AccountingSyncBadge
-        status={row.original.accountingSync}
-        failureReason={row.original.failureReason}
-        onRetry={() => onRetry(row.original.id)}
-        retrying={retryingId === row.original.id}
-      />
-    ),
+    cell: ({ row }) => {
+      const isFailed =
+        toAccountingSyncDisplay(row.original.accountingSync) === 'FAILED';
+      return (
+        <AccountingSyncBadge
+          status={row.original.accountingSync}
+          failureReason={row.original.failureReason}
+          onRetry={isFailed ? () => onRetry(row.original.id) : undefined}
+          retrying={retryingId === row.original.id}
+        />
+      );
+    },
     meta: 'Accounting Sync',
   },
   {

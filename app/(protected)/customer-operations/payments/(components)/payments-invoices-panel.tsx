@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { SortingState } from '@tanstack/react-table';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PaymentsListToolbar } from '@/components/payments-list-toolbar';
 import {
@@ -26,6 +27,8 @@ export function PaymentsInvoicesPanel({
   initialFailedOnly: boolean;
   initialSearch?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
   const retryInvoice = useRetryInvoice();
@@ -41,6 +44,24 @@ export function PaymentsInvoicesPanel({
   React.useEffect(() => {
     setFailedOnly(initialFailedOnly);
   }, [initialFailedOnly]);
+
+  const syncFailedOnlyParam = React.useCallback(
+    (checked: boolean) => {
+      setFailedOnly(checked);
+      setPageIndex(0);
+      const params = new URLSearchParams(searchParams.toString());
+      if (checked) {
+        params.set('failedOnly', 'true');
+      } else {
+        params.delete('failedOnly');
+      }
+      if (!params.get('tab')) {
+        params.set('tab', 'invoices');
+      }
+      router.replace(`/customer-operations/payments?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   const sort = sorting[0];
   const listParams = React.useMemo(
@@ -121,10 +142,7 @@ export function PaymentsInvoicesPanel({
           setPageIndex(0);
         }}
         failedOnly={failedOnly}
-        onFailedOnlyChange={(checked) => {
-          setFailedOnly(checked);
-          setPageIndex(0);
-        }}
+        onFailedOnlyChange={syncFailedOnlyParam}
       />
       <DataTableClient
         tableId="payments_invoices"

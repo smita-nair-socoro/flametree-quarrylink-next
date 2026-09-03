@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   AccountingSyncDisplayStatus,
+  accountingSyncLabel,
   toAccountingSyncDisplay,
 } from '@/lib/utils/accounting-sync';
 
@@ -27,24 +28,26 @@ export function AccountingSyncBadge({
   retrying,
 }: AccountingSyncBadgeProps) {
   const display = toAccountingSyncDisplay(status);
-  const badgeName =
-    display === 'NOT_SYNCED' ? 'NOT SYNCED' : display;
+  const isFailed = display === 'FAILED';
 
   return (
     <div className="flex flex-col items-start gap-1 py-1">
       <Tooltip>
         <TooltipTrigger asChild>
           <div>
-            <TableBadges names={[badgeName]} visibleCount={1} />
+            <TableBadges
+              names={[accountingSyncLabel(status)]}
+              visibleCount={1}
+            />
           </div>
         </TooltipTrigger>
-        {display === 'FAILED' && failureReason ? (
+        {isFailed && failureReason ? (
           <TooltipContent className="max-w-xs">
             <p>{failureReason}</p>
           </TooltipContent>
         ) : null}
       </Tooltip>
-      {display === 'FAILED' && onRetry ? (
+      {isFailed && onRetry ? (
         <Button
           type="button"
           variant="link"
