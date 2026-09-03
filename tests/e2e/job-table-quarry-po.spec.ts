@@ -513,11 +513,14 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     await page.waitForTimeout(1200);
     expect(poListUrls).toEqual([]);
 
+    // Measurement clone is first in DOM (aria-hidden); the interactive chip is last.
     const poChip = page
-      .locator('button.border-dashed')
-      .filter({ hasText: /^PO/ });
+      .locator('button[data-slot="popover-trigger"].border-dashed')
+      .filter({ hasText: /^PO$/ })
+      .last();
     test.skip((await poChip.count()) === 0, 'PO chip missing');
-    await poChip.first().click();
+    await expect(poChip).toBeVisible({ timeout: 10000 });
+    await poChip.click();
     await expect
       .poll(() => poListUrls.length, { timeout: 10000 })
       .toBeGreaterThan(0);
