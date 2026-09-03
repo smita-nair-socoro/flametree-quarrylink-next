@@ -2,6 +2,11 @@ import { test, expect, skipIfUnavailable, hasPageContent } from './helpers/fixtu
 
 const E2E_PREFIX = 'E2E-PAY-';
 
+/**
+ * QLINK-3510 — Payments invoices + cash payments tables
+ * Plus QLINK-3508 retry progress UI smoke where a Failed row is available.
+ */
+
 test.describe('Payments - API', () => {
   test('GET /invoices supports failedOnly for the Payments invoices table', async ({
     apiClient,
@@ -39,18 +44,6 @@ test.describe('Payments - API', () => {
     expect(res.ok()).toBeTruthy();
   });
 
-  test('GET /payments/internal-transfers returns a page', async ({
-    apiClient,
-  }) => {
-    const res = await apiClient.payments.internalTransfers(
-      `page=1&pageSize=10&search=${encodeURIComponent(E2E_PREFIX)}`,
-    );
-    skipIfUnavailable(res, 'Internal transfers API');
-    expect(res.ok()).toBeTruthy();
-    const data = await res.json();
-    expect(hasPageContent(data) || typeof data.totalElements === 'number').toBeTruthy();
-  });
-
   test('GET /payments/failed-count returns a count', async ({ apiClient }) => {
     const res = await apiClient.payments.failedCount();
     skipIfUnavailable(res, 'Failed count API');
@@ -58,10 +51,19 @@ test.describe('Payments - API', () => {
     const data = await res.json();
     expect(typeof data.failedCount).toBe('number');
   });
+
+  test('GET /invoices/statistics returns KPI fields', async ({ apiClient }) => {
+    const res = await apiClient.invoices.statistics();
+    skipIfUnavailable(res, 'Invoice statistics');
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(data).toHaveProperty('totalInvoices');
+    expect(data).toHaveProperty('overdueInvoices');
+  });
 });
 
-test.describe('Payments - UI', () => {
-  test('payments page loads invoices table without a client exception', async ({
+test.describe('QLINK-3510 Payments - UI', () => {
+  test('payments page shows Invoices and Cash Payments tabs (IT deferred)', async ({
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/payments', {
@@ -80,12 +82,13 @@ test.describe('Payments - UI', () => {
     await expect(
       page.getByRole('tab', { name: 'Cash Payments' }),
     ).toBeVisible();
+    // Slice 6 deferred — must not require Internal Transfers on Payments page
     await expect(
       page.getByRole('tab', { name: 'Internal Transfers' }),
-    ).toBeVisible();
+    ).toHaveCount(0);
   });
 
-  test('Failed only toggle is present on the invoices table', async ({
+  test('Invoices tab shows KPI cards independent of date filter', async ({
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/payments?tab=invoices', {
@@ -96,15 +99,36 @@ test.describe('Payments - UI', () => {
       (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
       'Payments page is not on this environment yet',
     );
-    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
-    const toggle = page.locator('#failed-only');
-    if ((await toggle.count()) > 0) {
-      await toggle.click();
-    }
+    await expect(page.getByText('Total Invoices')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText('Overdue Invoices')).toBeVisible();
+    await expect(page.getByText('Value of Uninvoiced Dockets')).toBeVisible();
+    await expect(page.getByText('Due Payment')).toBeVisible();
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
-  test('Cash Payments tab loads', async ({ authedPage: page }) => {
+  test('Failed only URL and toggle work on invoices', async ({
+    authedPage: page,
+  }) => {
+    await page.goto(
+      '/customer-operations/payments?tab=invoices&failedOnly=true',
+      { waitUntil: 'networkidle' },
+    );
+    await page.waitForTimeout(3000);
+    test.skip(
+      (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
+      'Payments page is not on this environment yet',
+    );
+    const toggle = page.locator('#failed-only');
+    await expect(toggle).toBeVisible({ timeout: 15000 });
+    await expect(toggle).toBeChecked();
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+
+  test('Cash Payments tab loads with Failed only toggle', async ({
+    authedPage: page,
+  }) => {
     await page.goto('/customer-operations/payments?tab=cash-payments', {
       waitUntil: 'networkidle',
     });
@@ -117,19 +141,29 @@ test.describe('Payments - UI', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
-  test('Internal Transfers tab loads and accepts a search query', async ({
+  test('row Retry on Failed invoice shows retry progress banner', async ({
     authedPage: page,
   }) => {
     await page.goto(
-      `/customer-operations/payments?tab=internal-transfers&search=${encodeURIComponent(E2E_PREFIX)}`,
+      '/customer-operations/payments?tab=invoices&failedOnly=true',
       { waitUntil: 'networkidle' },
     );
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(4000);
     test.skip(
       (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
       'Payments page is not on this environment yet',
     );
-    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
+
+    const retryButton = page.getByRole('button', { name: 'Retry' }).first();
+    test.skip(
+      (await retryButton.count()) === 0,
+      'No Failed invoice with Retry on staging',
+    );
+
+    await retryButton.click();
+
+    const progress = page.getByText(/Retrying invoice sync|Invoice sync retry/i);
+    await expect(progress.first()).toBeVisible({ timeout: 60000 });
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 });
