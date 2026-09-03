@@ -39,12 +39,14 @@ export const getPaymentsCashSaleColumns = (
     includeCustomer?: boolean;
     referenceTitle?: string;
     dateTitle?: string;
+    receivedByTitle?: string;
   },
 ): ColumnDef<PaymentsCashSale>[] => {
   const includeJob = options?.includeJob !== false;
   const includeCustomer = options?.includeCustomer !== false;
   const referenceTitle = options?.referenceTitle ?? 'Reference';
   const dateTitle = options?.dateTitle ?? 'Date';
+  const receivedByTitle = options?.receivedByTitle ?? 'Payment Received By';
   const columns: ColumnDef<PaymentsCashSale>[] = [
     {
       id: 'reference',
@@ -109,8 +111,9 @@ export const getPaymentsCashSaleColumns = (
     {
       id: 'docketCount',
       accessorFn: (row) => row.docketCount,
-      enableSorting: false,
-      header: () => <div>Dockets</div>,
+      header: ({ column }) => (
+        <TableClientSortableHeader column={column} title="Dockets" />
+      ),
       cell: ({ row }) => (
         <div className="py-2">
           <TableBadges
@@ -150,8 +153,9 @@ export const getPaymentsCashSaleColumns = (
     {
       id: 'paymentType',
       accessorFn: (row) => row.paymentType,
-      enableSorting: false,
-      header: () => <div>Payment Type</div>,
+      header: ({ column }) => (
+        <TableClientSortableHeader column={column} title="Payment Type" />
+      ),
       cell: ({ row }) => (
         <div className="py-2">
           <TableBadges
@@ -165,18 +169,20 @@ export const getPaymentsCashSaleColumns = (
     {
       id: 'paymentReceivedBy',
       accessorFn: (row) => row.paymentReceivedBy,
-      enableSorting: false,
-      header: () => <div>Received by</div>,
+      header: ({ column }) => (
+        <TableClientSortableHeader column={column} title={receivedByTitle} />
+      ),
       cell: ({ row }) => (
         <div className="py-2">{row.original.paymentReceivedBy || 'N/A'}</div>
       ),
-      meta: 'Received by',
+      meta: receivedByTitle,
     },
     {
       id: 'accountingSync',
       accessorFn: (row) => row.accountingSync,
-      enableSorting: false,
-      header: () => <div>Accounting Sync</div>,
+      header: ({ column }) => (
+        <TableClientSortableHeader column={column} title="Accounting Sync" />
+      ),
       cell: ({ row }) => <CashSaleSyncCell receipt={row.original} />,
       meta: 'Accounting Sync',
     },

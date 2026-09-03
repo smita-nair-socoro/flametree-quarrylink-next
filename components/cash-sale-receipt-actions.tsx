@@ -35,6 +35,7 @@ import { centsToDollars } from '@/lib/utils/currency';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { downloadCashSaleReceiptPdf } from '@/lib/utils/cash-sale-receipt-pdf';
 import { useIsAdmin, useHasVoidTransactions } from '@/app/stores/user-store';
+import { useTenantStore } from '@/app/stores/tenant-store';
 import { notifyError } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { TableBadges } from '@/components/table-badges';
@@ -53,6 +54,7 @@ export function CashSaleReceiptActions({
   onDetailsOpenChange?: (open: boolean) => void;
 }) {
   const { currencySymbol } = useTenantCurrencyTax();
+  const businessName = useTenantStore((state) => state.businessName);
   const isAdmin = useIsAdmin();
   const canVoid = useHasVoidTransactions();
   const retry = useRetryCashSale();
@@ -78,7 +80,11 @@ export function CashSaleReceiptActions({
   const openPdf = async () => {
     try {
       const data = detail ?? (await APIClient.payments.cashSale(receipt.id));
-      await downloadCashSaleReceiptPdf(data, currencySymbol);
+      await downloadCashSaleReceiptPdf(
+        data,
+        currencySymbol,
+        businessName ?? undefined,
+      );
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
