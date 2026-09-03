@@ -7,13 +7,41 @@ import { SyncStatusResponse } from '@/lib/types/sync';
 
 interface SyncProgressBarProps {
   syncStatus?: SyncStatusResponse;
-  entityType: 'Product' | 'Customer';
+  entityType: 'Product' | 'Customer' | 'Invoice';
   /**
    * Whether the sync was observed as IN_PROGRESS during this session.
    * When false (e.g. page loaded and sync was already COMPLETED), the
    * COMPLETED/FAILED bars are not shown — only IN_PROGRESS is.
    */
   wasInProgress?: boolean;
+}
+
+function inProgressLabel(entityType: SyncProgressBarProps['entityType']): string {
+  if (entityType === 'Invoice') {
+    return 'Retrying invoice sync...';
+  }
+  return `Syncing ${entityType.toLowerCase()}s from accounting software...`;
+}
+
+function completedLabel(
+  entityType: SyncProgressBarProps['entityType'],
+  syncStatus: SyncStatusResponse,
+): string {
+  const noun = entityType === 'Invoice' ? 'Invoice sync retry' : `${entityType} sync`;
+  if (syncStatus.totalAttempted === 0) {
+    return entityType === 'Invoice' ? 'Nothing to retry' : `${noun} complete: nothing to sync`;
+  }
+  return `${noun} complete: ${syncStatus.successCount} succeeded${
+    syncStatus.failureCount > 0 ? `, ${syncStatus.failureCount} failed` : ''
+  }${syncStatus.totalAttempted > 0 ? ` (of ${syncStatus.totalAttempted} total)` : ''}`;
+}
+
+function failedLabel(
+  entityType: SyncProgressBarProps['entityType'],
+  syncStatus: SyncStatusResponse,
+): string {
+  const noun = entityType === 'Invoice' ? 'Invoice sync retry' : `${entityType} sync`;
+  return `${noun} failed${syncStatus.errorMessage ? `: ${syncStatus.errorMessage}` : ''}`;
 }
 
 export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }: SyncProgressBarProps) {
@@ -38,7 +66,7 @@ export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-blue-700">
-              Syncing {entityType.toLowerCase()}s from accounting software...
+              {inProgressLabel(entityType)}
             </span>
           </div>
           <Progress value={undefined} className="mt-1.5 h-1.5 bg-blue-200 [&>[data-slot=progress-indicator]]:bg-blue-600 [&>[data-slot=progress-indicator]]:animate-pulse" />
@@ -57,9 +85,7 @@ export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }
           <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
         )}
         <span className={`text-sm font-medium ${hasFailures ? 'text-amber-700' : 'text-green-700'}`}>
-          {entityType} sync complete: {syncStatus.successCount} succeeded
-          {syncStatus.failureCount > 0 && `, ${syncStatus.failureCount} failed`}
-          {syncStatus.totalAttempted > 0 && ` (of ${syncStatus.totalAttempted} total)`}
+          {completedLabel(entityType, syncStatus)}
         </span>
       </div>
     );
@@ -70,7 +96,7 @@ export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }
       <div className="flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5">
         <XCircle className="h-4 w-4 text-red-600 flex-shrink-0" />
         <span className="text-sm font-medium text-red-700">
-          {entityType} sync failed{syncStatus.errorMessage ? `: ${syncStatus.errorMessage}` : ''}
+          {failedLabel(entityType, syncStatus)}
         </span>
       </div>
     );

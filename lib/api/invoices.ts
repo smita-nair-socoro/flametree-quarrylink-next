@@ -9,6 +9,7 @@ import { DocketKeys, InvoicesKeys, JobKeys } from './keys';
 import { useJobStore } from '@/app/stores/job-store';
 import { toast } from 'sonner';
 import { CreateInvoiceResponseDTO } from '@/lib/types/job';
+import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
 
 export type InvoicesListParams = {
   /** 0-based page index from UI tables (converted to 1-based for the API). */
@@ -118,13 +119,17 @@ export const useRetrySync = (options?: {
 
   return useMutation({
     mutationKey: ['retrySync'],
-    mutationFn: (jobId: number) => APIClient.invoices.retrySync(jobId),
-    onSuccess: () => {
-      toast.success('Retry sync successful');
+    mutationFn: (jobId: number) => {
+      useInvoiceRetryProgressStore.getState().startRetry();
+      return APIClient.invoices.retrySync(jobId);
+    },
+    onSuccess: (response) => {
+      useInvoiceRetryProgressStore.getState().completeRetry(response);
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       options?.onSuccess?.();
     },
     onError: (error) => {
+      useInvoiceRetryProgressStore.getState().failRetry(error.message);
       toast.error('Failed to retry sync');
       console.error('Failed to retry sync:', error);
       options?.onError?.(error);

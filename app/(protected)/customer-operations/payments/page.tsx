@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Tab } from '@/components/ui/tabs';
 import { FailedSyncBanner } from '@/components/failed-sync-banner';
+import { InvoiceRetryProgressBar } from '@/components/invoice-retry-progress-bar';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { PaymentsInvoicesPanel } from './(components)/payments-invoices-panel';
 import { PaymentsCashSalesPanel } from './(components)/payments-cash-sales-panel';
@@ -42,6 +43,7 @@ export default function PaymentsPage() {
         <h1 className="text-2xl">Payments</h1>
       </div>
       <FailedSyncBanner />
+      <InvoiceRetryProgressBar />
       <Tab
         value={tab}
         onValueChange={handleTabChange}

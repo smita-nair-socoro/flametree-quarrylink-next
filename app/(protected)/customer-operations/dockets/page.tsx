@@ -61,6 +61,7 @@ import {
   useDocketTableActionHost,
 } from './(components)/(data-tables)/docket/docket-table-action-host';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
+import { InvoiceRetryProgressBar } from '@/components/invoice-retry-progress-bar';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
@@ -729,6 +730,7 @@ export default function DocketsPage() {
         {confirmDialogs}
         {viewDialog}
         <InvoiceDetailsDialog />
+        <InvoiceRetryProgressBar />
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
           <div>
             <h1 className="text-2xl">Dockets</h1>

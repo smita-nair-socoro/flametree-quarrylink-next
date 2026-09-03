@@ -1,6 +1,6 @@
 export interface SyncStatusResponse {
   state: 'IDLE' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
-  entityType: 'PRODUCT' | 'CUSTOMER';
+  entityType: 'PRODUCT' | 'CUSTOMER' | 'INVOICE';
   totalAttempted: number;
   successCount: number;
   failureCount: number;
