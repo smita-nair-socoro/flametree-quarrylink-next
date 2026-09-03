@@ -171,6 +171,9 @@ export function CashSaleReceiptActions({
                 names={[receipt.paymentType || 'N/A']}
                 visibleCount={1}
               />
+              {(detail?.amendments?.length ?? 0) > 0 ? (
+                <span className="text-muted-foreground">(amended)</span>
+              ) : null}
             </div>
             <div>Payment Received By: {receipt.paymentReceivedBy || '—'}</div>
             <AccountingSyncBadge
