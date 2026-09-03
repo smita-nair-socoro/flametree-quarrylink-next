@@ -70,6 +70,18 @@ export function InvoiceActions({
     selectedDockets.length > 0 && selectedDockets.every(isInvoiceEligible);
   const cashSaleEnabled =
     selectedDockets.length > 0 && selectedDockets.every(isCashSaleEligible);
+  const cashSaleDisabledReason =
+    selectedDockets.length === 0
+      ? 'Select at least one docket'
+      : cashSaleEnabled
+        ? undefined
+        : 'Cash Sale requires Collected collection dockets or Delivered delivery dockets that are not invoiced or cash sold';
+  const invoiceDisabledReason =
+    selectedDockets.length === 0
+      ? 'Select at least one docket'
+      : invoiceEnabled
+        ? undefined
+        : 'Invoice requires Collected collection dockets or Delivered delivery dockets that are not invoiced or cash sold';
 
   if (selectedDockets.length === 0) return null;
 
@@ -264,6 +276,7 @@ export function InvoiceActions({
           <Button
             size="sm"
             disabled={!cashSaleEnabled}
+            title={cashSaleDisabledReason}
             onClick={() => setCashSaleOpen(true)}
             className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-semibold h-9 px-4 rounded-lg shadow-sm transition-colors"
           >
@@ -274,6 +287,7 @@ export function InvoiceActions({
               <Button
                 size="sm"
                 disabled={!invoiceEnabled}
+                title={invoiceDisabledReason}
                 className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white text-sm font-semibold h-9 px-4 rounded-lg shadow-sm transition-colors"
               >
                 Invoice ({selectedDockets.length} selected)

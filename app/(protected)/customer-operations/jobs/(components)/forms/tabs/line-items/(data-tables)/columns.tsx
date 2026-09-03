@@ -99,6 +99,29 @@ export const getJobLineItemsColumns = (
 		meta: 'Quarry Supplier Name',
 	},
 	{
+		id: 'poNumber',
+		accessorFn: (row) => row.poNumber,
+		header: ({ column }) => (
+			<TableClientSortableHeader column={column} title="PO" />
+		),
+		cell: ({ row }) => {
+			const value = row.original.poNumber?.trim() || '—';
+			return (
+				<Tooltip delayDuration={300}>
+					<TooltipTrigger asChild>
+						<div className="truncate block w-[50px] sm:w-[70px] md:w-[90px] lg:w-[110px] xl:w-[130px]">
+							{value}
+						</div>
+					</TooltipTrigger>
+					<TooltipContent variant="white">
+						<p>{value}</p>
+					</TooltipContent>
+				</Tooltip>
+			);
+		},
+		meta: 'PO',
+	},
+	{
 		id: 'totalCostPrice',
 		accessorFn: (row) => row.totalProductCostPrice + row.totalTruckCostPrice,
 		header: () => {
