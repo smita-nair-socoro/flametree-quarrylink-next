@@ -77,17 +77,26 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     );
     test.skip(!multi, 'No multi-quarry job available');
 
-    await page.goto(
-      `/customer-operations/jobs?ids=${multi!.id}`,
-      { waitUntil: 'networkidle' },
-    );
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.getByPlaceholder('Search jobs...').fill(multi!.jobNumber);
+    await expect(
+      page.locator('table tbody tr').filter({ hasText: multi!.jobNumber }),
+    ).toBeVisible({ timeout: 15000 });
+
+    // Close any auto-opened job dialog from deep-links/prior runs.
+    if (await page.getByRole('dialog').count()) {
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    }
+
     const cell = page.getByTestId('job-quarry-cell').first();
     await expect(cell).toContainText(multi!.quarrySupplierNames![0]);
     await expect(cell.getByTestId('multi-value-badge')).toHaveText(
       `+${multi!.quarrySupplierNames!.length - 1}`,
     );
-    await cell.hover();
-    const tooltip = page.locator('[data-slot="tooltip-content"], [role="tooltip"]').first();
+    await cell.focus();
+    await cell.hover({ force: true });
+    const tooltip = page.locator('[data-slot="tooltip-content"], [role="tooltip"]').last();
     await expect(tooltip).toBeVisible({ timeout: 10000 });
     for (const name of multi!.quarrySupplierNames!) {
       await expect(tooltip).toContainText(name);
@@ -103,16 +112,24 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     const multi = jobs.find((job) => (job.poNumbers?.length ?? 0) > 1);
     test.skip(!multi, 'No multi-PO job available');
 
-    await page.goto(`/customer-operations/jobs?ids=${multi!.id}`, {
-      waitUntil: 'networkidle',
-    });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.getByPlaceholder('Search jobs...').fill(multi!.jobNumber);
+    await expect(
+      page.locator('table tbody tr').filter({ hasText: multi!.jobNumber }),
+    ).toBeVisible({ timeout: 15000 });
+    if (await page.getByRole('dialog').count()) {
+      await page.keyboard.press('Escape');
+      await expect(page.getByRole('dialog')).toHaveCount(0);
+    }
+
     const cell = page.getByTestId('job-po-cell').first();
     await expect(cell).toContainText(multi!.poNumbers![0]);
     await expect(cell.getByTestId('multi-value-badge')).toHaveText(
       `+${multi!.poNumbers!.length - 1}`,
     );
-    await cell.hover();
-    const tooltip = page.locator('[data-slot="tooltip-content"], [role="tooltip"]').first();
+    await cell.focus();
+    await cell.hover({ force: true });
+    const tooltip = page.locator('[data-slot="tooltip-content"], [role="tooltip"]').last();
     await expect(tooltip).toBeVisible({ timeout: 10000 });
     for (const po of multi!.poNumbers!) {
       await expect(tooltip).toContainText(po);
@@ -186,16 +203,25 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     apiClient,
   }) => {
     const data = await listJobs(apiClient);
-    const quarry = data.quarrySuppliers?.[0];
-    test.skip(!quarry, 'No quarry filter options');
+    const jobs: JobRow[] = data.jobs?.content ?? [];
+    const withQuarry = jobs.find(
+      (job) => (job.quarrySupplierNames?.length ?? 0) > 0,
+    );
+    const quarry =
+      data.quarrySuppliers?.find(
+        (option: { name?: string }) =>
+          option.name?.toLowerCase() ===
+          withQuarry?.quarrySupplierNames?.[0]?.toLowerCase(),
+      ) ?? data.quarrySuppliers?.[0];
+    test.skip(!withQuarry || !quarry, 'No quarry filter options');
     const filtered = await listJobs(
       apiClient,
       `page=1&pageSize=25&quarrySupplierIds=${quarry.id}`,
     );
-    const jobs: JobRow[] = filtered.jobs?.content ?? [];
-    expect(jobs.length).toBeGreaterThan(0);
+    const matched: JobRow[] = filtered.jobs?.content ?? [];
+    expect(matched.length).toBeGreaterThan(0);
     expect(
-      jobs.every((job) =>
+      matched.every((job) =>
         (job.quarrySupplierNames ?? []).some(
           (name) => name.toLowerCase() === String(quarry.name).toLowerCase(),
         ),
@@ -205,10 +231,6 @@ test.describe('Jobs table - Quarry and PO columns', () => {
 
   test('10 filter by PO any-line-item match', async ({ apiClient }) => {
     const data = await listJobs(apiClient);
-    test.skip(
-      !Array.isArray(data.quarrySuppliers),
-      'Service quarry/PO filters not deployed yet',
-    );
     const jobs: JobRow[] = data.jobs?.content ?? [];
     const withPo = jobs.find((job) => (job.poNumbers?.length ?? 0) > 0);
     test.skip(!withPo, 'No job with PO');
@@ -231,10 +253,6 @@ test.describe('Jobs table - Quarry and PO columns', () => {
 
   test('11 multi-select POs OR within filter', async ({ apiClient }) => {
     const data = await listJobs(apiClient);
-    test.skip(
-      !Array.isArray(data.quarrySuppliers),
-      'Service quarry/PO filters not deployed yet',
-    );
     const jobs: JobRow[] = data.jobs?.content ?? [];
     const pos = [
       ...new Set(
@@ -341,11 +359,6 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   });
 
   test('16 sort Quarry/Supplier blanks last', async ({ apiClient }) => {
-    const data = await listJobs(apiClient);
-    test.skip(
-      !Array.isArray(data.quarrySuppliers),
-      'Service quarry/PO sort not deployed yet',
-    );
     const asc = await listJobs(
       apiClient,
       'page=1&pageSize=25&sortBy=quarrySupplierName&sortOrder=asc',
@@ -424,10 +437,14 @@ test.describe('Jobs table - Quarry and PO columns', () => {
 
     await showHide.click();
     await page.getByRole('menuitemcheckbox', { name: 'PO' }).click();
-    const stored = await page.evaluate(() =>
-      sessionStorage.getItem('job_main_data_table_columnVisibility'),
-    );
-    expect(stored).toBeTruthy();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const keys = Object.keys(sessionStorage);
+          return keys.find((key) => key.includes('columnVisibility')) ?? null;
+        }),
+      )
+      .not.toBeNull();
 
     await page.reload({ waitUntil: 'networkidle' });
     await expect(
@@ -440,11 +457,6 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   });
 
   test('20 pagination/search spans full result set', async ({ apiClient }) => {
-    const probe = await listJobs(apiClient);
-    test.skip(
-      !Array.isArray(probe.quarrySuppliers),
-      'Service quarry/PO search not deployed yet',
-    );
     const page1 = await listJobs(apiClient, 'page=1&pageSize=5');
     const total = page1.jobs?.totalElements ?? 0;
     test.skip(total <= 5, 'Not enough jobs to verify cross-page search');
@@ -523,10 +535,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     expect(Array.isArray(data.statuses)).toBeTruthy();
     expect(Array.isArray(data.customers)).toBeTruthy();
     expect(Array.isArray(data.accountManagers)).toBeTruthy();
-    test.skip(
-      !Array.isArray(data.quarrySuppliers),
-      'Service quarrySuppliers facet not deployed yet',
-    );
+    expect(Array.isArray(data.quarrySuppliers)).toBeTruthy();
     expect(data.purchaseOrders).toBeUndefined();
 
     if (data.statuses?.length) {
