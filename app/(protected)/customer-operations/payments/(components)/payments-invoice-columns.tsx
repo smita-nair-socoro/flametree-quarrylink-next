@@ -42,8 +42,9 @@ export const getPaymentsInvoiceColumns = (
   {
     id: 'jobNumber',
     accessorFn: (row) => row.jobNumber,
-    header: () => <div>Job</div>,
-    enableSorting: false,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Job" />
+    ),
     cell: ({ row }) => {
       const jobId = row.original.jobId;
       const jobNumber = row.original.jobNumber || 'N/A';
@@ -70,9 +71,9 @@ export const getPaymentsInvoiceColumns = (
   {
     id: 'amount',
     accessorFn: (row) => row.amount,
-    header: () => (
+    header: ({ column }) => (
       <div className="flex items-center gap-2">
-        Amount
+        <TableClientSortableHeader column={column} title="Amount" />
         <Tooltip>
           <TooltipTrigger asChild>
             <HelpCircle className="h-4 w-4 text-muted-foreground cursor-help" />
