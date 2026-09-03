@@ -13,7 +13,10 @@ import { cn } from '@/lib/utils';
 
 import { InvoiceActions } from '../../../invoice-actions';
 import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
-import { isInvoiceEligible } from '@/lib/utils/docket-financial-eligibility';
+import {
+  isCashSaleEligible,
+  isInvoiceEligible,
+} from '@/lib/utils/docket-financial-eligibility';
 
 interface FormProps {
   jobId: number;
@@ -33,13 +36,17 @@ export default function InvoiceForm({
     [docketPage],
   );
 
-  const invoiceEligibleDockets = React.useMemo(
-    () => docketList.filter(isInvoiceEligible),
+  // Show dockets eligible for invoice and/or cash sale so each action can enable independently.
+  const selectableDockets = React.useMemo(
+    () =>
+      docketList.filter(
+        (docket) => isInvoiceEligible(docket) || isCashSaleEligible(docket),
+      ),
     [docketList],
   );
 
   const items: DocketDTO[] = React.useMemo(() => {
-    return invoiceEligibleDockets
+    return selectableDockets
       .filter((docket) => {
         if (activeTab === 'all') return true;
         if (activeTab === 'delivery') return docket.jobItem?.jobItemType === 'DELIVERY';
@@ -49,24 +56,24 @@ export default function InvoiceForm({
       .map((docket) => ({
         ...docket,
       })) as DocketDTO[];
-  }, [invoiceEligibleDockets, activeTab]);
+  }, [selectableDockets, activeTab]);
 
-  const allCount = invoiceEligibleDockets.length;
+  const allCount = selectableDockets.length;
 
   const deliveryCount = React.useMemo(
     () =>
-      invoiceEligibleDockets.filter(
+      selectableDockets.filter(
         (d) => d.jobItem?.jobItemType === 'DELIVERY',
       ).length,
-    [invoiceEligibleDockets],
+    [selectableDockets],
   );
 
   const collectionCount = React.useMemo(
     () =>
-      invoiceEligibleDockets.filter(
+      selectableDockets.filter(
         (d) => d.jobItem?.jobItemType === 'COLLECTION',
       ).length,
-    [invoiceEligibleDockets],
+    [selectableDockets],
   );
 
 

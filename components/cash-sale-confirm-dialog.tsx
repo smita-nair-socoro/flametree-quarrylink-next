@@ -15,7 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { ChevronDown } from 'lucide-react';
+import { CheckCircle2, ChevronDown } from 'lucide-react';
 import { DocketDTO } from '@/lib/types/docket';
 import { CASH_SALE_PAYMENT_TYPES } from '@/lib/types/payments';
 import { centsToDollars } from '@/lib/utils/currency';
@@ -23,6 +23,7 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { useCreateCashSale } from '@/lib/api/payments';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError } from '@/lib/toast';
+import { docketTypeLabel } from '@/lib/utils/docket-financial-eligibility';
 
 export function CashSaleConfirmDialog({
   open,
@@ -55,8 +56,11 @@ export function CashSaleConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl p-0 sm:max-w-lg">
-        <div className="px-6 pt-5 pb-1">
-          <DialogHeader className="space-y-2">
+        <div className="px-6 pt-5 pb-1 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center">
+            <CheckCircle2 className="h-10 w-10 text-emerald-500" aria-hidden />
+          </div>
+          <DialogHeader className="items-center space-y-2 text-center">
             <DialogTitle className="text-xl font-bold text-gray-900">
               Record Cash Sale
             </DialogTitle>
@@ -74,10 +78,7 @@ export function CashSaleConfirmDialog({
                 className="flex items-center justify-between text-sm"
               >
                 <span>
-                  {docket.docketNumber} ·{' '}
-                  {docket.jobItem?.jobItemType === 'COLLECTION'
-                    ? 'Collection'
-                    : 'Delivery'}
+                  {docket.docketNumber} · {docketTypeLabel(docket)}
                 </span>
                 <span className="font-medium">
                   {currencySymbol}
