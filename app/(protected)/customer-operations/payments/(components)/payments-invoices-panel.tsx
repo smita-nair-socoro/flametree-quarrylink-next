@@ -71,38 +71,39 @@ export function PaymentsInvoicesPanel({
     [currencyCode, taxLabel, retryInvoice],
   );
 
+  // KPI cards always use full-dataset statistics (no date-range params).
   const statsCards: StatsCardData[] = [
     {
-      title: 'Total invoices',
+      title: 'Total Invoices',
       value: statistics?.totalInvoices ?? 0,
-      description: 'All invoices',
+      description: 'All customer invoices',
       icon: FileText,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Overdue unpaid',
+      title: 'Overdue Invoices',
       value: statistics?.overdueInvoices ?? 0,
-      description: 'Past due date',
+      description: 'Past due date and unpaid',
       icon: CircleAlert,
       iconBgColor: 'bg-[#FEF9C2]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#E7000B]',
     },
     {
-      title: 'Uninvoiced dockets',
+      title: 'Value of Uninvoiced Dockets',
       value: formatCentsToCurrency(statistics?.uninvoicedDocketsValue ?? 0),
-      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery | ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
+      description: `${statistics?.uninvoicedDeliveryDockets ?? 0} Delivery │ ${statistics?.uninvoicedCollectionDockets ?? 0} Collection`,
       icon: Wallet,
       iconBgColor: 'bg-[#CBFBF1]',
       iconColor: 'text-[#0A0A0AB2]',
       descriptionColor: 'text-[#737373]',
     },
     {
-      title: 'Due payment',
+      title: 'Due Payment',
       value: statistics?.duePayment ?? 0,
-      description: 'Not yet overdue',
+      description: 'Outstanding invoices awaiting payment',
       icon: Clock,
       iconBgColor: 'bg-[#EDE9FE]',
       iconColor: 'text-[#0A0A0AB2]',
