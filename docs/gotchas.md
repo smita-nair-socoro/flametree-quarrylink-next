@@ -35,8 +35,6 @@ API sorting may support only a mapped subset of column IDs and, in current custo
 
 Several schemas add requirements in edit mode that are not present in create mode. Use the existing schema factory and form-state hook; do not replace it with the base schema without checking [business-rules.md](business-rules.md).
 
-## Cash Sales and Internal Transfer Journals Stay Local Until Fusion Exposes Payment/Journal APIs
+## Cash Sales Push to Acumatica SalesInvoice (CSL)
 
-Flame Tree invoice sync (sales order → invoice) is unchanged. Cash-sale payments and internal-transfer GL journals are recorded locally first, then the orch service posts to tenant-fusion `/accounts/internal/payments` and `/accounts/internal/journals`.
-
-Those fusion endpoints do not exist today. The push classifier maps a missing API to **Not synced** — not Failed — so operators are not asked to Retry a call that cannot succeed. Do not invent a fourth sync badge. Retry remains on Failed rows only, for when fusion later returns a real Acumatica rejection. Zero-value cash sales and journals are also left **Not synced** rather than pushed.
+Flame Tree invoice sync (sales order → invoice) is unchanged. Cash sales are recorded locally first, then orch posts to tenant-fusion `/accounts/internal/payments`, which creates and releases an Acumatica `SalesInvoice` with `Type=CSL` (screen AR304000). ExternalRef is the `CS-` receipt reference for idempotency. Payment methods and cash accounts are discovered from Acumatica (`PaymentMethod?$expand=AllowedCashAccounts`); nursery customer `0000` and NUR cash accounts are never used. Zero-value cash sales stay **Not synced** and are never marked Failed.
