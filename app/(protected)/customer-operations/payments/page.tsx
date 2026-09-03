@@ -6,12 +6,13 @@ import { Tab } from '@/components/ui/tabs';
 import { FailedSyncBanner } from '@/components/failed-sync-banner';
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { PaymentsInvoicesPanel } from './(components)/payments-invoices-panel';
+import { PaymentsCashSalesPanel } from './(components)/payments-cash-sales-panel';
 
-/** Slice 1: Invoices only. Cash Payments enabled in Slice 4. IT deferred. */
-const TAB_VALUES = ['invoices'] as const;
+/** Cash Payments enabled; Internal Transfers deferred (Slice 6). */
+const TAB_VALUES = ['invoices', 'cash-payments'] as const;
 
 function parseTab(value: string | null): (typeof TAB_VALUES)[number] {
-  void value;
+  if (value === 'cash-payments' || value === 'cash') return 'cash-payments';
   return 'invoices';
 }
 
@@ -51,6 +52,16 @@ export default function PaymentsPage() {
             value: 'invoices',
             content: (
               <PaymentsInvoicesPanel
+                initialFailedOnly={failedOnly}
+                initialSearch={initialSearch}
+              />
+            ),
+          },
+          {
+            name: 'Cash Payments',
+            value: 'cash-payments',
+            content: (
+              <PaymentsCashSalesPanel
                 initialFailedOnly={failedOnly}
                 initialSearch={initialSearch}
               />

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { SortingState } from '@tanstack/react-table';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { DataTableClient } from '@/components/ui/data-table-client';
 import { PaymentsListToolbar } from '@/components/payments-list-toolbar';
 import {
@@ -20,6 +21,8 @@ export function PaymentsCashSalesPanel({
   initialFailedOnly: boolean;
   initialSearch?: string;
 }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { currencyCode } = useTenantCurrencyTax();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -33,6 +36,22 @@ export function PaymentsCashSalesPanel({
   React.useEffect(() => {
     setFailedOnly(initialFailedOnly);
   }, [initialFailedOnly]);
+
+  const syncFailedOnlyParam = React.useCallback(
+    (checked: boolean) => {
+      setFailedOnly(checked);
+      setPageIndex(0);
+      const params = new URLSearchParams(searchParams.toString());
+      if (checked) {
+        params.set('failedOnly', 'true');
+      } else {
+        params.delete('failedOnly');
+      }
+      params.set('tab', 'cash-payments');
+      router.replace(`/customer-operations/payments?${params.toString()}`);
+    },
+    [router, searchParams],
+  );
 
   const sort = sorting[0];
   const listParams = React.useMemo(
@@ -51,7 +70,11 @@ export function PaymentsCashSalesPanel({
 
   const { data, isFetching } = useQuery(PaymentsCashSalesQueryOptions(listParams));
   const columns = React.useMemo(
-    () => getPaymentsCashSaleColumns(currencyCode),
+    () =>
+      getPaymentsCashSaleColumns(currencyCode, {
+        referenceTitle: 'Cash Sale',
+        dateTitle: 'Recorded Date',
+      }),
     [currencyCode],
   );
 
@@ -64,10 +87,7 @@ export function PaymentsCashSalesPanel({
           setPageIndex(0);
         }}
         failedOnly={failedOnly}
-        onFailedOnlyChange={(checked) => {
-          setFailedOnly(checked);
-          setPageIndex(0);
-        }}
+        onFailedOnlyChange={syncFailedOnlyParam}
       />
       <DataTableClient
         tableId="payments_cash_sales"
