@@ -252,7 +252,19 @@ export class ApiClient {
 
   // -- Invoices --
   invoices = {
-    list: (params?: string) => this.get(`/socoro/quarrylink/api/invoice${params ? `?${params}` : ''}`),
+    list: (params?: string) =>
+      this.get(`/socoro/quarrylink/api/invoice${params ? `?${params}` : ''}`),
+    /** Payments invoices list (supports failedOnly). */
+    paymentsList: (params?: string) =>
+      this.get(`/socoro/quarrylink/api/invoices${params ? `?${params}` : ''}`),
+    /** Retry all unsynced invoices (batched fusion calls on service). */
+    retryAll: () => this.put('/socoro/quarrylink/api/invoices/retry'),
+    /** Retry unsynced invoices for a job. */
+    retryByJob: (jobId: number) =>
+      this.put(`/socoro/quarrylink/api/invoices/retry/jobs/${jobId}`),
+    /** Retry a single unsynced invoice. */
+    retryOne: (id: number) =>
+      this.put(`/socoro/quarrylink/api/invoices/${id}/retry`),
   };
 
   // -- Scheduler --
