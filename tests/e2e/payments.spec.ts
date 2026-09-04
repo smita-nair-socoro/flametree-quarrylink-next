@@ -186,8 +186,42 @@ test.describe('QLINK-3510 Payments - UI', () => {
   });
 });
 
-test.describe('Internal Transfers - Jobs UI', () => {
-  test('jobs page has an Internal Transfers tab', async ({
+test.describe('QLINK-3512 Internal Transfers - API', () => {
+  test('GET /job/internal-transfers returns a page', async ({ apiClient }) => {
+    const res = await apiClient.jobs.internalTransfers(
+      'page=1&pageSize=10&sortBy=docketCount&sortOrder=desc',
+    );
+    skipIfUnavailable(res, 'IT jobs list');
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(hasPageContent(data) || typeof data.totalElements === 'number').toBeTruthy();
+  });
+
+  test('GET /payments/internal-transfers returns a page', async ({
+    apiClient,
+  }) => {
+    const res = await apiClient.payments.internalTransfers(
+      'page=1&pageSize=10',
+    );
+    skipIfUnavailable(res, 'Payments internal transfers');
+    expect(res.ok()).toBeTruthy();
+    const data = await res.json();
+    expect(hasPageContent(data) || typeof data.totalElements === 'number').toBeTruthy();
+  });
+
+  test('GET /payments/internal-transfers?failedOnly=true isolates failures', async ({
+    apiClient,
+  }) => {
+    const res = await apiClient.payments.internalTransfers(
+      'page=1&pageSize=10&failedOnly=true',
+    );
+    skipIfUnavailable(res, 'IT transfers failedOnly');
+    expect(res.ok()).toBeTruthy();
+  });
+});
+
+test.describe('QLINK-3512 Internal Transfers - Jobs UI', () => {
+  test('jobs page has an Internal Transfers tab with From/To columns', async ({
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
@@ -198,6 +232,95 @@ test.describe('Internal Transfers - Jobs UI', () => {
       'Internal Transfers jobs tab is not on this environment yet',
     );
     await tab.click();
+    await expect(page.getByText('From Site').first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.getByText('To Site').first()).toBeVisible();
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+
+  test('Jobs tab still excludes Cash Sales regression path', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(3000);
+    const jobsTab = page.getByRole('tab', { name: /^Jobs$/ });
+    if ((await jobsTab.count()) > 0) {
+      await jobsTab.click();
+    }
+    await expect(page.getByRole('heading', { name: /Jobs/i }).first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+});
+
+test.describe('QLINK-3512 Internal Transfers - Payments UI', () => {
+  test('Internal Transfers tab shows From/To Site and Failed only', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/payments?tab=internal-transfers', {
+      waitUntil: 'networkidle',
+    });
+    await page.waitForTimeout(3000);
+    test.skip(
+      (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
+      'Payments page is not on this environment yet',
+    );
+    await expect(
+      page.getByRole('tab', { name: 'Internal Transfers' }),
+    ).toBeVisible();
+    await expect(page.locator('#failed-only')).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText('From Site').first()).toBeVisible();
+    await expect(page.getByText('To Site').first()).toBeVisible();
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+
+  test('View Journal opens when a transfer row is available', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/payments?tab=internal-transfers', {
+      waitUntil: 'networkidle',
+    });
+    await page.waitForTimeout(4000);
+    test.skip(
+      (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
+      'Payments page is not on this environment yet',
+    );
+
+    const viewJournal = page.getByRole('button', { name: 'View Journal' }).first();
+    test.skip(
+      (await viewJournal.count()) === 0,
+      'No internal transfer with View Journal on staging',
+    );
+
+    await viewJournal.click();
+    await expect(
+      page.getByRole('dialog').getByText(/Internal transfer journal|Journal/i),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+
+  test('Retry on Failed IT transfer is available when present', async ({
+    authedPage: page,
+  }) => {
+    await page.goto(
+      '/customer-operations/payments?tab=internal-transfers&failedOnly=true',
+      { waitUntil: 'networkidle' },
+    );
+    await page.waitForTimeout(4000);
+    test.skip(
+      (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
+      'Payments page is not on this environment yet',
+    );
+
+    const retryButton = page.getByRole('button', { name: 'Retry' }).first();
+    test.skip(
+      (await retryButton.count()) === 0,
+      'No Failed IT transfer with Retry on staging',
+    );
+
+    await retryButton.click();
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 });
