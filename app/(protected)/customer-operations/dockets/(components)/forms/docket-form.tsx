@@ -14,7 +14,7 @@ import {
 import z from 'zod';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useFormDialogFooter } from '@/components/form-dialog';
-import { DocketFormSchema } from './schemas/docket-form-schema';
+import { getDocketFormSchema } from './schemas/docket-form-schema';
 import { useDocketFormState } from '@/hooks/docket/use-docket-form-state';
 import { Spinner } from '@/components/ui/spinner';
 import { cn, splitReasonNote, scrollToFirstError } from '@/lib/utils';
@@ -488,7 +488,7 @@ export default function DocketForm({
   }, [isEditing, selectedDocket]);
 
   async function handleReadOnlyUpdate(
-    values: z.infer<typeof DocketFormSchema>,
+    values: z.infer<ReturnType<typeof getDocketFormSchema>>,
   ) {
     if (
       !isEditing ||
@@ -567,7 +567,7 @@ export default function DocketForm({
   }
 
   async function handleAssignedUpdate(
-    values: z.infer<typeof DocketFormSchema>,
+    values: z.infer<ReturnType<typeof getDocketFormSchema>>,
   ) {
     let startDateTime = values.deliveryCollectionStartTime;
     let endDateTime = values.deliveryCollectionEndTime;
@@ -1646,15 +1646,19 @@ export default function DocketForm({
                   <div className="items-center flex gap-2">
                     <Calendar className="w-5 h-5" />
                     <span className="text-[17px] font-medium">
-                      {selectedJobLineItemDetails().type === 'COLLECTION'
-                        ? 'Collection Information'
-                        : 'Delivery Information'}
+                      {isInternalTransfer
+                        ? 'Transfer Information'
+                        : selectedJobLineItemDetails().type === 'COLLECTION'
+                          ? 'Collection Information'
+                          : 'Delivery Information'}
                     </span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {selectedJobLineItemDetails().type === 'COLLECTION'
-                      ? 'Collection date, address, and purchase order'
-                      : 'Delivery date, address, and purchase order'}
+                    {isInternalTransfer
+                      ? 'Transfer date, addresses from the job sites, and optional contact details'
+                      : selectedJobLineItemDetails().type === 'COLLECTION'
+                        ? 'Collection date, address, and purchase order'
+                        : 'Delivery date, address, and purchase order'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
@@ -1665,9 +1669,12 @@ export default function DocketForm({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>
-                            {selectedJobLineItemDetails().type !== 'COLLECTION'
-                              ? 'Delivery Date*'
-                              : 'Collection Date*'}
+                            {isInternalTransfer
+                              ? 'Transfer Date*'
+                              : selectedJobLineItemDetails().type !==
+                                  'COLLECTION'
+                                ? 'Delivery Date*'
+                                : 'Collection Date*'}
                           </FormLabel>
                           <FormControl>
                             <DatePicker
@@ -1682,22 +1689,24 @@ export default function DocketForm({
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      name="purchaseOrder"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>PO Number</FormLabel>
-                          <FormControl>
-                            <Input
-                              className="w-full"
-                              {...field}
-                              disabled={isReadOnly || isAssigned}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {!isInternalTransfer && (
+                      <FormField
+                        name="purchaseOrder"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>PO Number</FormLabel>
+                            <FormControl>
+                              <Input
+                                className="w-full"
+                                {...field}
+                                disabled={isReadOnly || isAssigned}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                     <FormField
                       name="pickUpAddressId"
                       render={({ field }) => (
@@ -1716,7 +1725,9 @@ export default function DocketForm({
                               placeholder="Enter site address..."
                               onChange={field.onChange}
                               onBlur={field.onBlur}
-                              readOnly={isReadOnly || isAssigned}
+                              readOnly={
+                                isReadOnly || isAssigned || isInternalTransfer
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -1724,7 +1735,8 @@ export default function DocketForm({
                       )}
                     />
 
-                    {selectedJobLineItemDetails().type !== 'COLLECTION' && (
+                    {(isInternalTransfer ||
+                      selectedJobLineItemDetails().type !== 'COLLECTION') && (
                       <FormField
                         name="deliveryAddressId"
                         render={({ field }) => (
@@ -1743,7 +1755,11 @@ export default function DocketForm({
                                 placeholder="Enter site address..."
                                 onChange={field.onChange}
                                 onBlur={field.onBlur}
-                                readOnly={isReadOnly || isAssigned}
+                                readOnly={
+                                  isReadOnly ||
+                                  isAssigned ||
+                                  isInternalTransfer
+                                }
                               />
                             </FormControl>
                             <FormMessage />
@@ -1765,9 +1781,11 @@ export default function DocketForm({
                     </span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {selectedJobLineItemDetails().type === 'COLLECTION'
-                      ? 'Collection timing and contact information'
-                      : 'Delivery timing and contact information'}
+                    {isInternalTransfer
+                      ? 'Transfer timing and optional contact information'
+                      : selectedJobLineItemDetails().type === 'COLLECTION'
+                        ? 'Collection timing and contact information'
+                        : 'Delivery timing and contact information'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-1">
@@ -1819,7 +1837,9 @@ export default function DocketForm({
                       name="customerContactName"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Name*</FormLabel>
+                          <FormLabel>
+                            Contact Name{isInternalTransfer ? '' : '*'}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               className="w-full"
@@ -1837,7 +1857,9 @@ export default function DocketForm({
                       name="customerContactPhone"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contact Phone*</FormLabel>
+                          <FormLabel>
+                            Contact Phone{isInternalTransfer ? '' : '*'}
+                          </FormLabel>
                           <FormControl>
                             <PhoneInput
                               className="w-full"
@@ -1860,7 +1882,9 @@ export default function DocketForm({
                         : [];
                       return (
                         <FormItem className={'col-span-2 col-start-1'}>
-                          <FormLabel>Docket Email*</FormLabel>
+                          <FormLabel>
+                            Docket Email{isInternalTransfer ? '' : '*'}
+                          </FormLabel>
                           <FormControl>
                             <MultipleInput
                               className="w-full"
