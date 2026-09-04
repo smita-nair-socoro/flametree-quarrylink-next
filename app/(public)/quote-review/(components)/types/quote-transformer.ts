@@ -159,7 +159,6 @@ export function transformQuoteData(
     deliveryWindowEnd,
     expiryDate,
     totalSellPrice,
-    accountManagerName,
     quoteStatus,
     quoteItems,
     createdAt,
@@ -253,7 +252,6 @@ export function transformQuoteData(
       quoteNumber: quoteNumber || 'N/A',
       dateIssued: formatDateWithOrdinal(createdAt),
       validUntil: formatDateWithOrdinal(expiryDate),
-      accountManager: accountManagerName || 'N/A',
       status: (quoteStatus as QuoteStatus) || QuoteStatus.PENDING,
       tenantDetails: stripeTenantDetailsSnapshot,
       logoUrl,
@@ -311,7 +309,6 @@ export function transformQuoteData(
     },
     proceedActions: {
       validUntil: formatDateWithOrdinal(expiryDate),
-      accountManager: accountManagerName || 'N/A',
     },
     notes,
     terms,

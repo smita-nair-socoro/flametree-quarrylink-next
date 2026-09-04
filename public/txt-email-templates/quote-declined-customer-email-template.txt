@@ -6,10 +6,7 @@ Quote Number: {quoteNumber}
 Project: {projectName}
 Total Value: ${totalValue} ex GST
 
-If you'd like to discuss alternative options, revisions to this quote, or have any questions, please contact your Account Manager:
-
-{accountManagerName}
-{accountManagerEmail}
+If you'd like to discuss alternative options or revisions to this quote, please get in touch.
 
 We're here to help find a solution that works for your project.
 

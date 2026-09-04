@@ -24,7 +24,6 @@ export interface QuotationData {
     quoteNumber: string;
     dateIssued: string;
     validUntil: string;
-    accountManager: string;
     status: QUOTE_STATUS;
     logoUrl?: string;
     logoError?: boolean;
@@ -126,7 +125,6 @@ export const QuotePdfDocument: React.FC<QuotePdfDocumentProps> = ({
             {...data.summary}
             currencyTax={data.currencyTax}
             validUntil={data.navbar.validUntil}
-            accountManager={data.navbar.accountManager}
             quoteId={quoteId}
             baseUrl={baseUrl}
             includeDeliveryPrices={data.inclDeliveryCost}

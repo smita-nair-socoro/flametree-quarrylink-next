@@ -578,10 +578,7 @@ export default function QuoteReviewDocument({
           />
 
           {/* Status Banner */}
-          <QuoteStatusBanner
-            status={quoteStatus}
-            accountManagerName={quotationData.navbar.accountManager}
-          />
+          <QuoteStatusBanner status={quoteStatus} />
 
           {/* Customer Information */}
           <CustomerInformation {...quotationData.customer} />

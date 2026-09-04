@@ -13,10 +13,6 @@ Note: {declineNote}
 
 {nextStepMessage}
 
-Account Manager:
-{accountManagerName}
-{accountManagerEmail}
-
 View Quote Details:
 {quoteUrl}
 

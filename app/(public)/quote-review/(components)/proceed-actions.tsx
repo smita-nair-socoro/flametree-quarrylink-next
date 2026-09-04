@@ -7,7 +7,6 @@ import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 export interface ProceedActionsProps {
   validUntil: string;
-  accountManager: string;
   status?: QuoteStatus;
   onApprove: () => void;
   onDecline: () => void;
@@ -15,7 +14,6 @@ export interface ProceedActionsProps {
 
 export function ProceedActions({
   validUntil,
-  accountManager,
   status = QuoteStatus.PENDING,
   onApprove,
   onDecline,
@@ -39,16 +37,8 @@ export function ProceedActions({
 
           {/* Info Box */}
           <p className="text-base text-center text-[#737373] mb-4 max-w-[620px] mx-auto">
-            This quote has been approved and is now being processed. Your
-            account manager will contact you with the next steps.
-          </p>
-
-          {/* Contact Text */}
-          <p className="text-sm text-[#737373]">
-            Need to discuss this quote? Contact your account manager{' '}
-            <span className="font-semibold text-[#8E51FF]">
-              {accountManager}
-            </span>
+            This quote has been approved and is now being processed. We will
+            contact you with the next steps.
           </p>
         </div>
       </div>
@@ -74,16 +64,8 @@ export function ProceedActions({
 
           {/* Description */}
           <p className="text-base text-[#737373] mb-4 max-w-[620px] mx-auto">
-            This quote has been declined. Your account manager will be in touch
-            to discuss alternative options.
-          </p>
-
-          {/* Contact Text */}
-          <p className="text-sm text-[#737373]">
-            Need to discuss this quote? Contact your account manager{' '}
-            <span className="font-semibold text-[#8E51FF]">
-              {accountManager}
-            </span>
+            This quote has been declined. We will be in touch to discuss
+            alternative options.
           </p>
         </div>
       </div>
@@ -123,19 +105,12 @@ export function ProceedActions({
         </Button>
       </div>
 
-      {/* Contact Card */}
+      {/* Validity Card */}
       <Card className="max-w-lg mx-auto bg-white border border-[#E5E5E5] shadow-sm mb-10">
         <div className="p-4 text-center">
           <p className="mb-4 text-sm  text-[#737373]">
             This quotation is valid until{' '}
             <span className="font-bold text-[#8E51FF]">{validUntil}</span>
-          </p>
-
-          <p className="text-sm text-[#737373]">
-            Need assistance? Contact your account manager{' '}
-            <span className="font-semibold text-[#8E51FF]">
-              {accountManager}
-            </span>
           </p>
         </div>
       </Card>
