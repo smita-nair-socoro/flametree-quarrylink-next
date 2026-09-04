@@ -286,7 +286,6 @@ export interface QuotationDisplayData {
     quoteNumber: string;
     dateIssued: string;
     validUntil: string;
-    accountManager: string;
     status: QuoteStatus;
     tenantDetails?: StripeTenantDetailsSnapshot;
     logoUrl?: string;
@@ -339,7 +338,6 @@ export interface QuotationDisplayData {
   };
   proceedActions: {
     validUntil: string;
-    accountManager: string;
   };
   notes: string[];
   terms: QuoteTermItem[];
