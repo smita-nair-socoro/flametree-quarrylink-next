@@ -14,7 +14,6 @@ export interface QuoteNavbarProps {
   quoteNumber: string;
   dateIssued: string;
   validUntil: string;
-  accountManager: string;
   status: QuoteStatus;
   onDownloadPDF?: () => void;
   isPdfDownloading?: boolean;
@@ -53,7 +52,6 @@ export function QuoteNavbar({
   quoteNumber,
   dateIssued,
   validUntil,
-  accountManager,
   status,
   onDownloadPDF,
   isPdfDownloading = false,
@@ -175,10 +173,6 @@ export function QuoteNavbar({
           <div className={`${labelColor} text-sm`}>Date Issued</div>
           <div className="text-[15px] font-medium">{dateIssued}</div>
         </div>
-        <div>
-          <div className={`${labelColor} text-sm`}>Account Manager</div>
-          <div className="text-[15px] font-medium">{accountManager}</div>
-        </div>
       </div>
 
       {/* Right Column */}
@@ -236,10 +230,6 @@ export function QuoteNavbar({
               <div>
                 <div className={`${labelColor} text-sm`}>Date Issued</div>
                 <div className="text-[16px] font-medium">{dateIssued}</div>
-              </div>
-              <div>
-                <div className={`${labelColor} text-sm`}>Account Manager</div>
-                <div className="text-[16px] font-medium">{accountManager}</div>
               </div>
             </div>
 

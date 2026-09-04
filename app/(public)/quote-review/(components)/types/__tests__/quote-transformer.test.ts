@@ -449,10 +449,14 @@ describe('transformQuoteData', () => {
     expect(result.inclDeliveryCost).toBe(true);
     expect(result.navbar).toMatchObject({
       quoteNumber: 'Q-1001',
-      accountManager: 'Jane Manager',
       status: QuoteStatus.PENDING,
       logoUrl: 'https://cdn.test/logo.png',
     });
+    expect(result.navbar).not.toHaveProperty('accountManager');
+    expect(result.proceedActions).toEqual({
+      validUntil: expect.any(String),
+    });
+    expect(result.proceedActions).not.toHaveProperty('accountManager');
     expect(result.customer).toEqual({
       customerName: 'Acme Pty Ltd',
       email: 'billing@acme.test',
@@ -578,7 +582,6 @@ describe('transformQuoteData', () => {
     );
 
     expect(result.navbar.quoteNumber).toBe('N/A');
-    expect(result.navbar.accountManager).toBe('N/A');
     expect(result.navbar.status).toBe(QuoteStatus.PENDING);
     expect(result.navbar.dateIssued).toBe('N/A');
     expect(result.navbar.validUntil).toBe('N/A');

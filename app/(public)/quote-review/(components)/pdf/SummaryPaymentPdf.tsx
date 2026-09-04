@@ -12,7 +12,6 @@ export interface SummaryPaymentPdfProps {
   total: number;
   currencyTax: QuoteCurrencyTax;
   validUntil: string;
-  accountManager: string;
   quoteId: string;
   baseUrl?: string;
   includeDeliveryPrices?: boolean;

@@ -5,20 +5,14 @@ import { QUOTE_STATUS as QuoteStatus } from '@/lib/types/quotation-enums';
 
 interface QuoteStatusBannerProps {
   status: QuoteStatus;
-  accountManagerName: string;
 }
 
-export function QuoteStatusBanner({
-  status,
-  accountManagerName,
-}: QuoteStatusBannerProps) {
-
+export function QuoteStatusBanner({ status }: QuoteStatusBannerProps) {
   if (![QuoteStatus.APPROVED, QuoteStatus.DECLINED].includes(status)) return null;
 
   const isApproved = status === QuoteStatus.APPROVED;
 
   return (
-    
     <div className="px-8 py-4 mt-4">
       <div
         className={`rounded-lg border-2 p-4 ${
@@ -49,18 +43,14 @@ export function QuoteStatusBanner({
             </h3>
             {isApproved ? (
               <p className="text-sm text-[#016630]">
-                Thank you for approving this quote! Your account manager{' '}
-                <span className="font-semibold">{accountManagerName}</span>{' '}
-                has been notified and will be in touch with you shortly to
-                proceed with the next steps.
+                Thank you for approving this quote! We have been notified and
+                will be in touch with you shortly to proceed with the next
+                steps.
               </p>
             ) : (
               <p className="text-sm text-[#9F0712]">
-                This quote has been declined. Your account manager{' '}
-                <span className="font-semibold">{accountManagerName}</span>{' '}
-                has been notified. They will reach out to you shortly to
-                discuss your requirements or you can contact them directly for
-                further assistance.
+                This quote has been declined. We have been notified and will
+                reach out to you shortly to discuss your requirements.
               </p>
             )}
           </div>

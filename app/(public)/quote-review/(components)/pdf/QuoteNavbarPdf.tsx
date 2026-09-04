@@ -12,7 +12,6 @@ export interface QuoteNavbarPdfProps {
   quoteNumber: string;
   dateIssued: string;
   validUntil: string;
-  accountManager: string;
   status: QUOTE_STATUS;
   tenantDetails?: StripeTenantDetailsSnapshot;
   logoUrl?: string;
@@ -116,7 +115,6 @@ function renderLogoElement({
 
 interface HeaderInfoGridProps {
   dateIssued: string;
-  accountManager: string;
   validUntil: string;
   status: string;
   statusStyle: { backgroundColor: string; borderColor: string; color: string };
@@ -128,7 +126,6 @@ interface HeaderInfoGridProps {
 
 function HeaderInfoGrid({
   dateIssued,
-  accountManager,
   validUntil,
   status,
   statusStyle,
@@ -143,13 +140,9 @@ function HeaderInfoGrid({
     <View style={styles.headerInfo}>
       {/* Left Column */}
       <View style={styles.headerColumn}>
-        <View style={{ marginBottom: 16 }}>
+        <View>
           <Text style={[styles.headerLabel, { color: textColor }]}>Date Issued</Text>
           <Text style={[styles.headerValue, { color: textColor }]}>{dateIssued}</Text>
-        </View>
-        <View>
-          <Text style={[styles.headerLabel, { color: textColor }]}>Account Manager</Text>
-          <Text style={[styles.headerValue, { color: textColor }]}>{accountManager}</Text>
         </View>
       </View>
 
@@ -253,7 +246,6 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   quoteNumber,
   dateIssued,
   validUntil,
-  accountManager,
   status,
   tenantDetails,
   logoUrl,
@@ -287,7 +279,6 @@ export const QuoteNavbarPdf: React.FC<QuoteNavbarPdfProps> = ({
   const infoGrid = (
     <HeaderInfoGrid
       dateIssued={dateIssued}
-      accountManager={accountManager}
       validUntil={validUntil}
       status={status}
       statusStyle={statusStyle}
