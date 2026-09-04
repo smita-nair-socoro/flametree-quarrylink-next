@@ -12,7 +12,9 @@
 
 ## 1. Summary
 
-Allow users to record a **full cash / electronic payment** against one or more eligible dockets **without creating an invoice**.
+Allow users to record a **full cash / electronic payment** against one or more **collection dockets**, without creating an invoice.
+
+**Collection dockets only.** Delivery dockets can only be invoiced — there is no cash sale path for one.
 
 Confirming a cash sale:
 
@@ -27,11 +29,10 @@ Receipts are not editable. Two audited, permission-gated correction paths exist 
 
 ## 2. Corrections to the source material
 
-The material this spec was built from contains three contradictions. **These are the resolved positions — follow this document, not the source.**
+The material this spec was built from contains two contradictions. **These are the resolved positions — follow this document, not the source.**
 
 | Item | Source said | Resolved |
 |---|---|---|
-| **Delivery dockets** | The flow diagram states *"DD can ONLY be invoiced. No cash sale allowed."* | **Wrong — superseded.** Delivery dockets **can** be cash sold, on the same terms as collection dockets. **The flow diagram is out of date and should be updated.** |
 | **Receipt prefix** | Body text says `CC-0000` | **`CS-` prefix**, matching every screenshot |
 | **Payment types** | Variously "Cash / EFTPOS", then EFT / Cash / EFTPOS, then five types | **Five types** — see §8 |
 
@@ -41,12 +42,14 @@ The material this spec was built from contains three contradictions. **These are
 
 A docket is eligible for cash sale when **all** of the following hold:
 
-- It is a **collection docket in Collected status**, or a **delivery docket in Delivered status**
+- It is a **collection docket** in **Collected** status
 - It is **not already invoiced**
 - It is **not already marked Cash Sale**
 - It is **not cancelled and not voided**
 
 The **Cash Sale** action is hidden or disabled for any docket failing these checks.
+
+**Delivery dockets are never eligible.** A delivery docket can only be invoiced — there is no cash sale path for one, in any status, from any surface. This matches the existing flow diagram.
 
 ### 3.1 Mid-flow eligibility loss
 
@@ -77,7 +80,7 @@ User clicks **Cash Sale** from within a specific eligible docket → **skips sel
 
 The existing docket selection modal (used for Create Invoice) already carries a **Cash Sale (X selected)** action alongside **Invoice (X selected)**. This is the same selection component described in §5, and both actions live on it.
 
-**Eligibility governs the buttons independently.** A selection containing a docket that can be invoiced but not cash sold leaves Invoice enabled and Cash Sale disabled, with the reason surfaced.
+**Eligibility governs the buttons independently.** A selection containing a delivery docket leaves Invoice enabled and Cash Sale disabled, with the reason surfaced — delivery dockets are invoiceable but never cash-saleable (§3).
 
 ---
 
@@ -85,7 +88,7 @@ The existing docket selection modal (used for Create Invoice) already carries a 
 
 Reuse the existing Create Invoice selection modal.
 
-- **Tabs**: `All Dockets` · `Delivery Dockets` · `Collection Dockets`, each with a count
+- **Tabs**: the existing `All Dockets` · `Delivery Dockets` · `Collection Dockets` tabs remain, since the selection screen is shared with Create Invoice
 - **Search**: `Search dockets by keyword…`
 - **Table columns**: Docket Number · Product · Delivery Date · QTY · Total Invoice Price — each sortable
 - **Multi-select** via row checkboxes and a select-all in the header
@@ -93,13 +96,9 @@ Reuse the existing Create Invoice selection modal.
 - **Footer**: `X dockets selected` and the **summed total** of selected dockets
 - Actions repeat in the modal footer alongside **Cancel**
 
-Only **eligible** dockets for the job appear. Selecting dockets and clicking **Cash Sale (X selected)** opens the confirmation modal.
+Selecting dockets and clicking **Cash Sale (X selected)** opens the confirmation modal.
 
-### 5.1 Mixed docket types
-
-A single cash sale **may include both delivery and collection dockets**, provided they are on the same job.
-
-Because the two types are mixable, the **docket type must be visible per row** in the selection list, in the confirmation modal's docket list, on the receipt PDF and in View Details. A receipt that doesn't distinguish a DD from a CD is ambiguous the moment anyone queries it.
+**Only collection dockets can be cash sold.** Because the screen is shared with invoicing, delivery dockets still appear — they are invoiceable. But selecting any delivery docket **disables the Cash Sale action**, with the reason surfaced (§4.3). The Delivery Dockets tab is effectively invoice-only.
 
 ---
 
@@ -116,11 +115,11 @@ Per the existing design:
 
 ### 6.1 Show the dockets, not just the count
 
-**The modal must list the docket numbers being included**, with their type and amount — not only a count and a total.
+**The modal must list the docket numbers being included**, with their amount — not only a count and a total.
 
 A docket count of "3" gives the user no way to notice they selected the wrong three. Wrong-docket selection is the most likely error in this flow, and this is the last screen before an action with significant consequences. The list is what makes the confirmation meaningful.
 
-Keep it compact — docket number, type, amount, one per line. For a single-docket cash sale entered from the docket itself (§4.2), the one docket is still listed.
+Keep it compact — docket number and amount, one per line. For a single-docket cash sale entered from the docket itself (§4.2), the one docket is still listed.
 
 ### 6.2 Payment type selection
 
@@ -341,7 +340,6 @@ A section headed **Included Dockets (N)**, one row per docket:
 | Docket # |
 | Product |
 | Quantity |
-| Docket type *(delivery / collection — see §5.1)* |
 | Delivery / Collection Date |
 
 A **Download PDF** action sits in the modal.
@@ -386,7 +384,7 @@ For a receipt recorded against the wrong dockets, recorded in error, or one Acum
 - **Requires a reason.** A short selectable list plus free text: *Recorded in error* · *Wrong dockets selected* · *Customer to be invoiced instead* · *Acumatica rejection — unrecoverable* · *Other*.
 - Creates a **reversal record**. The original receipt is never deleted or altered.
 - The original remains listed and viewable, badged **`VOID`**, showing who voided it, when and why.
-- **Returns every included docket to its prior status** — Collected or Delivered — making them eligible for invoicing or a corrected cash sale again.
+- **Returns every included docket to Collected**, making them eligible for invoicing or a corrected cash sale again.
 - The reference number is **retired, never reused**.
 - **A void cannot be undone.** Re-record the cash sale correctly instead.
 
@@ -437,7 +435,7 @@ Generates a printable PDF receipt containing:
 - Cash Sale Reference
 - Customer details
 - Payment details — amount, payment type, recorded date, recorded by
-- List of included dockets, with docket type shown
+- List of included dockets
 - Financial summary
 
 Follow the existing docket PDF conventions for layout and branding. Amounts follow the precision rules in §9.2.
@@ -451,13 +449,13 @@ Once a docket carries a financial outcome, its available actions narrow:
 | Docket state | Actions available |
 |---|---|
 | Collection docket, Collected | Invoice · Cash Sale |
-| Delivery docket, Delivered | Invoice · Cash Sale |
+| Delivery docket, Delivered | **Invoice only** — never Cash Sale |
 | Any docket, Cash Sale | View Receipt only |
 | Any docket, Invoiced | View Invoice only |
 
 Action menus must reflect this exactly. An invoiced docket offering a Cash Sale button is the bug this table exists to prevent.
 
-**After a void**, included dockets return to Collected or Delivered and regain the full action set — Invoice and Cash Sale both become available again.
+**After a void**, included dockets return to Collected and regain the full action set — Invoice and Cash Sale both become available again.
 
 ---
 
@@ -515,8 +513,6 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | **Nothing pushes a sync failure to anyone** | Visibility is in-app only, by deliberate choice — the client already receives too many emails. The badge and banner make failures visible **to whoever opens the Payments area**, and nobody is told otherwise. Name a person at Flame Tree with Acumatica admin rights, and make a daily glance at Payments part of their routine, before go-live. |
 | **Nothing surfaces a void proactively** | No email, no report. A void is visible in the tables to anyone who looks. That is a deliberate choice to avoid building extra, and it puts the whole weight of the control on `Void Transactions` being granted narrowly. If that permission ends up widely held, there is effectively no oversight of voids at all. |
 | **`Void Transactions` must be assigned deliberately** | The permission defaults to nobody. If it is never granted, the only correction path is unavailable and unrecoverable receipts return as a problem. Assign it to at least one person — ideally not the person taking payment — as part of go-live. |
-| **Delivery dockets now in scope** | This widens the feature well beyond the original story and invalidates the flow diagram. Anyone working from that diagram will build the wrong eligibility rules. |
-| **Mixed docket types on one receipt** | Reporting that assumes a cash sale is collection-only will be wrong. Worth checking any existing reporting before release. |
 
 ---
 
@@ -524,12 +520,12 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 
 | # | Question | Decision |
 |---|---|---|
-| 1 | Delivery dockets | **Eligible** — flow diagram superseded |
+| 1 | Delivery dockets | **Never eligible.** Collection dockets only, matching the existing flow diagram |
 | 2 | Payment types | Cash, EFTPOS, EFT, Credit Card and M-PAISA — fixed in code, no configuration screen |
 | 3 | Corrections | Admin-only **Amend Payment Type** and **Void**, both audited. No editing, no deletion, no un-void |
 | 4 | Acumatica | In scope, pushed on confirm |
 | 5 | Push failure | Record locally; classify transient vs permanent; retry transient only; surface the rest as `Failed` with a manual retry |
-| 6 | Mixed docket types | Allowed on one receipt, same job only |
+| 6 | Docket types on one receipt | Collection dockets only, same job only |
 | 7 | Receipt reference | `CS-` prefix, one continuous sequence |
 | 8 | Permissions | Recording a cash sale: same as invoicing. Amend Payment Type: Admin / Super Admin. Void: the `Void Transactions` permission, which covers every void |
 | 9 | Partial payment | Not supported |
@@ -537,7 +533,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 | 11 | Sync visibility | **In-app only — an alert badge and a notification banner. No emails.** Failed records surface in the Payments → Cash Payments table — see `spec-payments-tab.md` |
 | 12 | Void oversight | The `Void Transactions` permission plus VOID rows in the existing tables. **No void report, no emails** — nothing additional is built |
 | 13 | Bulk/individual dropdown | Not needed — one selection produces one receipt |
-| 14 | Mixed tender | Different dockets by different methods: supported via separate receipts. One docket split across methods: not supported |
+| 14 | Mixed tender | Different collection dockets by different methods: supported via separate receipts. One docket split across methods: not supported |
 | 15 | Finding failures | The `Failed only` toggle on the Payments → Cash Payments table — a hard dependency on `spec-payments-tab.md` §5.5 |
 | 16 | Amend on a `Failed` receipt | Resets to `Not synced` and re-queues automatically — no separate Retry click |
 | 17 | Zero-value pushes | Confirm Acumatica's behaviour first. If it rejects zero-value payments, skip the push and leave the receipt `Not synced` |
@@ -549,7 +545,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 **Eligibility**
 
 - [ ] Cash Sale is available on collection dockets in Collected status
-- [ ] Cash Sale is available on delivery dockets in Delivered status
+- [ ] Cash Sale is **never** available on a delivery docket, in any status
 - [ ] Cash Sale is unavailable on invoiced, already cash-sold, cancelled or voided dockets
 - [ ] Eligibility is re-checked server-side at confirmation, not only at selection
 - [ ] A docket invoiced by another user mid-flow blocks confirmation with a message naming that docket
@@ -568,14 +564,14 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] Keyword search filters the list
 - [ ] Multi-select with a working Clear Selection
 - [ ] Selected count and summed total both display and update live
-- [ ] Docket type is visible per row
 - [ ] Cash Sale is disabled with nothing selected
+- [ ] Selecting any delivery docket disables Cash Sale while leaving Invoice enabled, with the reason surfaced
 
 **Confirmation**
 
 - [ ] Modal states that a cash/EFTPOS payment will be recorded and no invoice created
 - [ ] Docket count and Total Amount Received both display correctly
-- [ ] The modal lists the included docket numbers with type and amount, not just a count
+- [ ] The modal lists the included docket numbers with their amounts, not just a count
 - [ ] The docket list appears for single-docket cash sales too
 - [ ] The amount cannot be edited or reduced
 - [ ] Confirm Sale requires an explicit payment type selection
@@ -632,7 +628,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - [ ] Void requires a reason to be given
 - [ ] Void creates a reversal record and never deletes or alters the original
 - [ ] A voided receipt stays listed, badged `VOID`, showing who, when and why
-- [ ] Voiding returns every included docket to Collected or Delivered
+- [ ] Voiding returns every included docket to Collected
 - [ ] Released dockets can immediately be invoiced or cash sold again
 - [ ] Voiding a `Synced` receipt pushes a reversal to Acumatica
 - [ ] Voiding a `Not synced` or `Failed` receipt cancels the pending push and sends nothing
@@ -692,6 +688,7 @@ Record it as **two cash sales** from the selection screen — select the cash-pa
 - **A void report or any other new reporting surface** — voids are reviewed in the existing tables
 - Any in-app notification system — visibility is the alert badge and banner only
 - POS or bank integration, payment processing or verification
+- Cash sale of delivery dockets — invoice only
 - Cash sales spanning multiple jobs
 - Refunds or credit notes against a cash sale
 - Emailing the receipt to the customer
