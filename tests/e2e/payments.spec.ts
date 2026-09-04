@@ -82,10 +82,28 @@ test.describe('QLINK-3510 Payments - UI', () => {
     await expect(
       page.getByRole('tab', { name: 'Cash Payments' }),
     ).toBeVisible();
-    // Slice 6 deferred — must not require Internal Transfers on Payments page
+    // Slice 4 — Internal Transfers tab is live on Payments
     await expect(
       page.getByRole('tab', { name: 'Internal Transfers' }),
-    ).toHaveCount(0);
+    ).toBeVisible();
+  });
+
+  test('Internal Transfers failed-only URL opens the transfers table', async ({
+    authedPage: page,
+  }) => {
+    await page.goto(
+      '/customer-operations/payments?tab=internal-transfers&failedOnly=true',
+      { waitUntil: 'networkidle' },
+    );
+    await page.waitForTimeout(3000);
+    test.skip(
+      (await page.getByRole('heading', { name: 'Payments' }).count()) === 0,
+      'Payments page is not on this environment yet',
+    );
+    await expect(
+      page.getByRole('tab', { name: 'Internal Transfers' }),
+    ).toBeVisible();
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
   test('Invoices tab shows KPI cards independent of date filter', async ({

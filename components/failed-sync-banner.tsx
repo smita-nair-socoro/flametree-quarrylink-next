@@ -16,12 +16,20 @@ export function FailedSyncBanner() {
       <CircleAlert />
       <AlertTitle>Accounting sync failed</AlertTitle>
       <AlertDescription>
-        {count} document{count === 1 ? '' : 's'} failed to sync.{' '}
+        {count} document{count === 1 ? '' : 's'} failed to sync (invoices, cash
+        payments, or internal transfers).{' '}
+        <Link
+          href="/customer-operations/payments?tab=internal-transfers&failedOnly=true"
+          className="underline font-medium"
+        >
+          View failed transfers
+        </Link>
+        {' · '}
         <Link
           href="/customer-operations/payments?tab=invoices&failedOnly=true"
           className="underline font-medium"
         >
-          View failed only
+          View failed invoices
         </Link>
       </AlertDescription>
     </Alert>
