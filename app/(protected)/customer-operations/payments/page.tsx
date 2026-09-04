@@ -8,12 +8,13 @@ import { InvoiceRetryProgressBar } from '@/components/invoice-retry-progress-bar
 import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { PaymentsInvoicesPanel } from './(components)/payments-invoices-panel';
 import { PaymentsCashSalesPanel } from './(components)/payments-cash-sales-panel';
+import { PaymentsInternalTransfersPanel } from './(components)/payments-internal-transfers-panel';
 
-/** Cash Payments enabled; Internal Transfers deferred (Slice 6). */
-const TAB_VALUES = ['invoices', 'cash-payments'] as const;
+const TAB_VALUES = ['invoices', 'cash-payments', 'internal-transfers'] as const;
 
 function parseTab(value: string | null): (typeof TAB_VALUES)[number] {
   if (value === 'cash-payments' || value === 'cash') return 'cash-payments';
+  if (value === 'internal-transfers') return 'internal-transfers';
   return 'invoices';
 }
 
@@ -64,6 +65,16 @@ export default function PaymentsPage() {
             value: 'cash-payments',
             content: (
               <PaymentsCashSalesPanel
+                initialFailedOnly={failedOnly}
+                initialSearch={initialSearch}
+              />
+            ),
+          },
+          {
+            name: 'Internal Transfers',
+            value: 'internal-transfers',
+            content: (
+              <PaymentsInternalTransfersPanel
                 initialFailedOnly={failedOnly}
                 initialSearch={initialSearch}
               />
