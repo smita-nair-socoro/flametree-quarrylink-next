@@ -671,7 +671,9 @@ export default function DocketForm({
     }
   }
 
-  async function onSubmit(values: z.infer<typeof DocketFormSchema>) {
+  async function onSubmit(
+    values: z.infer<ReturnType<typeof getDocketFormSchema>>,
+  ) {
     if (isReadOnly) {
       await handleReadOnlyUpdate(values);
       return;
@@ -683,7 +685,9 @@ export default function DocketForm({
     await doSave(values);
   }
 
-  async function doSave(values: z.infer<typeof DocketFormSchema>) {
+  async function doSave(
+    values: z.infer<ReturnType<typeof getDocketFormSchema>>,
+  ) {
     try {
       const lineItemDetails = selectedJobLineItemDetails();
       const isCollection = lineItemDetails.type === 'COLLECTION';
