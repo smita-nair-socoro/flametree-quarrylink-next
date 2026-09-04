@@ -41,6 +41,9 @@ const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   status: 'jobStatus',
   quarrySupplierName: 'quarrySupplierName',
   poNumber: 'poNumber',
+  fromSiteName: 'fromSiteName',
+  toSiteName: 'toSiteName',
+  docketCount: 'docketCount',
 };
 
 export function toJobApiSortParams(
