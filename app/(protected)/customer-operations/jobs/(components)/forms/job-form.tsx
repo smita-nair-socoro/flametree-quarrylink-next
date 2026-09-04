@@ -31,6 +31,13 @@ import { InvoiceDetailsDialog } from '@/hooks/use-invoice-actions';
 import { InvoiceRetryProgressBar } from '@/components/invoice-retry-progress-bar';
 import { JobAttachmentsSection } from './job-attachments-section';
 import { startOfDay } from 'date-fns';
+import { useQuery } from '@tanstack/react-query';
+import { QuarryListQueryOptions } from '@/lib/api/quarries';
+import { useUpdateInternalTransferJob } from '@/lib/api/job';
+import { QuarryType } from '@/lib/types/quarry-enums';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import { extractErrorMessage } from '@/lib/utils/error-message-helper';
+import { useJobStore } from '@/app/stores/job-store';
 
 interface FormProps {
   id?: number;
@@ -54,10 +61,15 @@ export default function JobForm({
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
   const today = startOfDay(new Date());
+  const { data: sites = [] } = useQuery(QuarryListQueryOptions());
+  const updateInternalTransferJob = useUpdateInternalTransferJob();
+  const [itFromSiteId, setItFromSiteId] = React.useState(0);
+  const [itToSiteId, setItToSiteId] = React.useState(0);
 
   const {
     jobForm,
     isEditing,
+    jobId,
     jobDetails,
     selectedJob,
     customers,
@@ -82,6 +94,64 @@ export default function JobForm({
 
   const deliveryWindowStart = jobForm.watch('deliveryWindowStart');
   const deliveryWindowEnd = jobForm.watch('deliveryWindowEnd');
+
+  const liveItJob = selectedJob ?? jobDetails;
+  const itDocketCount = liveItJob?.docketCount ?? 0;
+  const sitesLocked = isInternalTransfer && itDocketCount > 0;
+  const ownSiteOptions = React.useMemo(
+    () =>
+      sites
+        .filter(
+          (site) =>
+            !site.isDeleted &&
+            site.quarrySupplierType === QuarryType.QUARRY,
+        )
+        .map((site) => ({ value: site.id, label: site.name })),
+    [sites],
+  );
+
+  React.useEffect(() => {
+    if (!isInternalTransfer) return;
+    setItFromSiteId(liveItJob?.fromSiteId ?? 0);
+    setItToSiteId(liveItJob?.toSiteId ?? 0);
+  }, [
+    isInternalTransfer,
+    liveItJob?.fromSiteId,
+    liveItJob?.toSiteId,
+    liveItJob?.id,
+  ]);
+
+  const saveInternalTransferSites = async () => {
+    if (!jobId || liveItJob?.version == null) return;
+    if (!itFromSiteId || !itToSiteId) {
+      notifyError('From Site and To Site are required');
+      return;
+    }
+    if (itFromSiteId === itToSiteId) {
+      notifyError('From Site and To Site must differ');
+      return;
+    }
+    try {
+      const updated = await updateInternalTransferJob.mutateAsync({
+        id: jobId,
+        data: {
+          version: liveItJob.version,
+          fromSiteId: itFromSiteId,
+          toSiteId: itToSiteId,
+        },
+      });
+      if (updated) {
+        useJobStore.getState().setSelectedJob(updated);
+      }
+      notifySuccess('Internal transfer job updated');
+      onSaved?.();
+    } catch (error) {
+      notifyError(
+        extractErrorMessage(error) ||
+          'Failed to update internal transfer sites.',
+      );
+    }
+  };
 
   const statusBanner = React.useMemo(() => {
     if (!isEditing || !jobDetails) return null;
@@ -139,6 +209,19 @@ export default function JobForm({
                 : 'Add Job'}
           </Button>
         )}
+        {isInternalTransfer && isEditing && !sitesLocked && (
+          <Button
+            type="button"
+            className="cursor-pointer"
+            onClick={saveInternalTransferSites}
+            disabled={updateInternalTransferJob.isPending}
+          >
+            {updateInternalTransferJob.isPending && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            Save Sites
+          </Button>
+        )}
       </div>
     ) : null,
   );
@@ -189,18 +272,34 @@ export default function JobForm({
                       : 'col-span-2'
                   }
                 >
-                  <FormLabel>From Site</FormLabel>
+                  <FormLabel>From Site{!sitesLocked ? '*' : ''}</FormLabel>
                   <FormControl>
-                    <Input
-                      className="w-full"
-                      value={
-                        jobDetails?.fromSiteName ||
-                        selectedJob?.fromSiteName ||
-                        ''
-                      }
-                      disabled
-                      readOnly
-                    />
+                    {sitesLocked ? (
+                      <Input
+                        className="w-full"
+                        value={
+                          liveItJob?.fromSiteName ||
+                          ''
+                        }
+                        disabled
+                        readOnly
+                      />
+                    ) : (
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={itFromSiteId || ''}
+                        onChange={(event) =>
+                          setItFromSiteId(Number(event.target.value) || 0)
+                        }
+                      >
+                        <option value="">Select From Site</option>
+                        {ownSiteOptions.map((site) => (
+                          <option key={site.value} value={site.value}>
+                            {site.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </FormControl>
                 </FormItem>
                 <FormItem
@@ -210,24 +309,45 @@ export default function JobForm({
                       : 'col-span-2'
                   }
                 >
-                  <FormLabel>To Site</FormLabel>
+                  <FormLabel>To Site{!sitesLocked ? '*' : ''}</FormLabel>
                   <FormControl>
-                    <Input
-                      className="w-full"
-                      value={
-                        jobDetails?.toSiteName || selectedJob?.toSiteName || ''
-                      }
-                      disabled
-                      readOnly
-                    />
+                    {sitesLocked ? (
+                      <Input
+                        className="w-full"
+                        value={liveItJob?.toSiteName || ''}
+                        disabled
+                        readOnly
+                      />
+                    ) : (
+                      <select
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                        value={itToSiteId || ''}
+                        onChange={(event) =>
+                          setItToSiteId(Number(event.target.value) || 0)
+                        }
+                      >
+                        <option value="">Select To Site</option>
+                        {ownSiteOptions.map((site) => (
+                          <option key={site.value} value={site.value}>
+                            {site.label}
+                          </option>
+                        ))}
+                      </select>
+                    )}
                   </FormControl>
+                  {sitesLocked && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      From Site and To Site are locked because dockets exist on
+                      this job.
+                    </p>
+                  )}
                 </FormItem>
                 <FormItem className="col-span-2 col-start-1">
                   <FormLabel>Account Manager</FormLabel>
                   <FormControl>
                     <Input
                       className="w-full"
-                      value="—"
+                      value={liveItJob?.createdBy || '—'}
                       disabled
                       readOnly
                     />

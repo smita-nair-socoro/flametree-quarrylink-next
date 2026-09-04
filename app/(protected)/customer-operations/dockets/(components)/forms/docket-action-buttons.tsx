@@ -270,10 +270,16 @@ export function DocketActionButtons({
     const completed =
       docket.docketStatus === DOCKET_STATUS.DELIVERED ||
       docket.docketStatus === DOCKET_STATUS.COLLECTED;
+    const voided = docket.docketStatus === DOCKET_STATUS.VOIDED;
     currentActions = currentActions.filter(
       (item) => item.action !== 'invoice' && item.action !== 'cashSale',
     );
-    if (completed) {
+    if (voided) {
+      // Spec: voided transfer ⋯ is View Journal only (immutable audit record).
+      currentActions = [
+        { label: 'View Journal', icon: FileText, action: 'viewJournal' },
+      ];
+    } else if (completed) {
       currentActions = [
         { label: 'View Journal', icon: FileText, action: 'viewJournal' },
         ...(canVoidTransactions

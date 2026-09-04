@@ -33,8 +33,9 @@ const columns: ColumnDef<JobDTO>[] = [
   {
     id: 'fromSiteName',
     accessorFn: (row) => row.fromSiteName,
-    enableSorting: false,
-    header: () => <div>From Site</div>,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="From Site" />
+    ),
     cell: ({ row }) => (
       <div className="py-2">{row.original.fromSiteName || 'N/A'}</div>
     ),
@@ -43,8 +44,9 @@ const columns: ColumnDef<JobDTO>[] = [
   {
     id: 'toSiteName',
     accessorFn: (row) => row.toSiteName,
-    enableSorting: false,
-    header: () => <div>To Site</div>,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="To Site" />
+    ),
     cell: ({ row }) => (
       <div className="py-2">{row.original.toSiteName || 'N/A'}</div>
     ),
@@ -53,15 +55,18 @@ const columns: ColumnDef<JobDTO>[] = [
   {
     id: 'docketCount',
     accessorFn: (row) => row.docketCount,
-    enableSorting: false,
-    header: () => <div>Dockets</div>,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Dockets" />
+    ),
     cell: ({ row }) => <div className="py-2">{row.original.docketCount ?? 0}</div>,
     meta: 'Dockets',
   },
   {
     id: 'status',
     accessorFn: (row) => row.jobStatus,
-    header: () => <div>Status</div>,
+    header: ({ column }) => (
+      <TableClientSortableHeader column={column} title="Status" />
+    ),
     cell: ({ row }) => (
       <div className="py-2">
         <TableBadges names={[row.original.jobStatus]} visibleCount={1} />
@@ -71,10 +76,12 @@ const columns: ColumnDef<JobDTO>[] = [
   },
   {
     id: 'accountManagerName',
-    accessorFn: (row) => row.customerDto?.accountManagerName,
+    accessorFn: (row) => row.createdBy,
     enableSorting: false,
     header: () => <div>Account Manager</div>,
-    cell: () => <div className="py-2">—</div>,
+    cell: ({ row }) => (
+      <div className="py-2">{row.original.createdBy || '—'}</div>
+    ),
     meta: 'Account Manager',
   },
   {

@@ -7,7 +7,7 @@ import z from 'zod';
 import { sortByLabel } from '@/lib/utils/sort-options';
 import { AddressType } from '@/lib/types/address';
 import { GetTodaysDate, parseCalendarDate } from '@/lib/utils/date';
-import { DocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
+import { getDocketFormSchema } from '@/app/(protected)/customer-operations/dockets/(components)/forms/schemas/docket-form-schema';
 import type { MapMarker } from '@/components/ui/map';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import { APIClient } from '@/lib/api/APIClient';
@@ -73,7 +73,7 @@ export const EMPTY_ADDRESS: AddressType = {
   googlePlaceId: '',
 };
 
-type FormValues = z.infer<typeof DocketFormSchema>;
+type FormValues = z.infer<ReturnType<typeof getDocketFormSchema>>;
 
 export type SelectOption = { label: string; value: number };
 
@@ -230,9 +230,15 @@ export function useDocketFormState({
 
   const hydratedKeyRef = React.useRef<string | null>(null);
   const previousSelectedJobIdRef = React.useRef<number | null>(null);
+  const isInternalTransferRef = React.useRef(false);
 
   const docketForm = useForm<FormValues>({
-    resolver: zodResolver(DocketFormSchema),
+    resolver: (values, context, options) =>
+      zodResolver(getDocketFormSchema(isInternalTransferRef.current))(
+        values,
+        context,
+        options,
+      ),
     mode: 'onChange',
     defaultValues: initialDocket
       ? mapDocketToFormValues(initialDocket)
@@ -272,7 +278,9 @@ export function useDocketFormState({
   });
 
   const isInternalTransfer =
-    selectedJobDetails?.jobType === 'INTERNAL_TRANSFER';
+    selectedJobDetails?.jobType === 'INTERNAL_TRANSFER' ||
+    selectedDocket?.job?.jobType === 'INTERNAL_TRANSFER';
+  isInternalTransferRef.current = isInternalTransfer;
   const fromSiteId = selectedJobDetails?.fromSiteId ?? 0;
   const toSiteId = selectedJobDetails?.toSiteId ?? 0;
   const watchedProductOrLineItemId = docketForm.watch('jobLineItemId');

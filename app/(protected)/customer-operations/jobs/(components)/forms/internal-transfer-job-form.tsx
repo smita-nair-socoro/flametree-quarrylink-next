@@ -12,6 +12,7 @@ import { useFormDialogFooter } from '@/components/form-dialog';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { QuarryListQueryOptions } from '@/lib/api/quarries';
 import { useCreateInternalTransferJob } from '@/lib/api/job';
+import { QuarryType } from '@/lib/types/quarry-enums';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { Loader2 } from 'lucide-react';
@@ -48,7 +49,11 @@ export default function InternalTransferJobForm({
   const options = React.useMemo(
     () =>
       sites
-        .filter((site) => !site.isDeleted)
+        .filter(
+          (site) =>
+            !site.isDeleted &&
+            site.quarrySupplierType === QuarryType.QUARRY,
+        )
         .map((site) => ({
           value: site.id,
           label: site.name,
