@@ -21,7 +21,6 @@ interface MultipleInputProps {
   className?: string;
   disabled?: boolean;
   type?: string;
-  fixedValues?: string[];
   validate?: (value: string) => boolean;
   label?: string;
 }
@@ -33,7 +32,6 @@ export function MultipleInput({
   className,
   disabled,
   type = 'text',
-  fixedValues = [],
   validate = (s) =>
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/.test(
       s,
@@ -80,9 +78,8 @@ export function MultipleInput({
 
     let hasInvalid = false;
 
-    // Filter out duplicates if needed (check both value and fixedValues)
     const valid = toAdd.filter((s) => {
-      const isUnique = !valuesArray.includes(s) && !fixedValues.includes(s);
+      const isUnique = !valuesArray.includes(s);
       const isValid = validate ? validate(s) : true;
       if (!isValid) hasInvalid = true;
       return isUnique && isValid;
@@ -99,12 +96,14 @@ export function MultipleInput({
         if (isFromBlur) {
           setInputValue('');
         } else {
-          setInputValue(toAdd.filter(s => !(validate ? validate(s) : true)).join(', '));
+          setInputValue(
+            toAdd.filter((s) => !(validate ? validate(s) : true)).join(', '),
+          );
         }
       }
     } else if (
       toAdd.length > 0 &&
-      toAdd.every((s) => valuesArray.includes(s) || fixedValues.includes(s))
+      toAdd.every((s) => valuesArray.includes(s))
     ) {
       setInputValue('');
     } else if (hasInvalid) {
@@ -132,46 +131,31 @@ export function MultipleInput({
           className,
         )}
       >
-        {fixedValues.map((item, idx) => (
+        {valuesArray.map((item, idx) => (
           <span
-            key={`fixed-${item}-${idx}`}
-            className="inline-flex items-center gap-1 rounded-xl px-3 py-1 my-1 text-[14px] border-0 text-[#1F2937] font-semibold bg-gray-200"
+            key={`${item}-${idx}`}
+            className="inline-flex items-center gap-1 rounded-xl pl-4 my-1 pr-1 text-[14px] border-0 text-[#1F2937] font-semibold"
+            style={{
+              backgroundColor: CHIP_COLORS[idx % CHIP_COLORS.length].bgColour,
+              color: CHIP_COLORS[idx % CHIP_COLORS.length].textColour,
+            }}
           >
             {item}
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => removeValue(idx)}
+              className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 -my-1 hover:bg-transparent focus:outline-none focus-visible:ring-0"
+              aria-label={`Remove ${item}`}
+              disabled={disabled}
+            >
+              <X className="h-2 w-2" />
+            </Button>
           </span>
         ))}
-        {valuesArray.map((item, idx) => {
-          if (fixedValues.includes(item)) return null;
-          return (
-            <span
-              key={`${item}-${idx}`}
-              className="inline-flex items-center gap-1 rounded-xl pl-4 my-1 pr-1 text-[14px] border-0 text-[#1F2937] font-semibold"
-              style={{
-                backgroundColor: CHIP_COLORS[idx % CHIP_COLORS.length].bgColour,
-                color: CHIP_COLORS[idx % CHIP_COLORS.length].textColour,
-              }}
-            >
-              {item}
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => removeValue(idx)}
-                className="-ml-2 h-auto min-h-0 bg-transparent p-0.5 -my-1 hover:bg-transparent focus:outline-none focus-visible:ring-0"
-                aria-label={`Remove ${item}`}
-                disabled={disabled}
-              >
-                <X className="h-2 w-2" />
-              </Button>
-            </span>
-          );
-        })}
         <Input
           type={type}
-          placeholder={
-            valuesArray.length === 0 && fixedValues.length === 0
-              ? placeholder
-              : ''
-          }
+          placeholder={valuesArray.length === 0 ? placeholder : ''}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onBlur={handleBlur}

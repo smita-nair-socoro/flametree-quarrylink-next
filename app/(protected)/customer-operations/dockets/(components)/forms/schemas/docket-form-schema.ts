@@ -38,6 +38,15 @@ const baseDocketFormSchema = z.object({
   truckType: z.string().optional(),
 });
 
+const requiredDocketEmailSchema = z.string().refine(
+  (val) =>
+    (val ?? '')
+      .split(',')
+      .map((e) => e.trim())
+      .some(Boolean),
+  { message: 'At least one docket email is required' },
+);
+
 export const getDocketFormSchema = (isInternalTransfer = false) => {
   const schema = isInternalTransfer
     ? baseDocketFormSchema.extend({
@@ -57,6 +66,7 @@ export const getDocketFormSchema = (isInternalTransfer = false) => {
           .refine((v) => !v || isValidPhoneNumber(v), {
             message: 'Invalid phone number',
           }),
+        docketEmail: requiredDocketEmailSchema,
       });
 
   return schema.superRefine((data, ctx) => {

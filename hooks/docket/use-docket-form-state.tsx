@@ -94,7 +94,22 @@ type SelectedJobPrefill = {
   contactName: string;
   contactPhone: string;
   customerEmail: string;
-  additionalDocketEmails: string;
+  /** Prefill list for Docket Email (customer default + job recipients). All removable. */
+  prefillDocketEmails: string;
+};
+
+const joinUniqueEmails = (...parts: Array<string | string[] | undefined>) => {
+  const emails = parts.flatMap((part) => {
+    if (!part) return [];
+    if (Array.isArray(part)) {
+      return part.map((email) => email.trim()).filter(Boolean);
+    }
+    return part
+      .split(',')
+      .map((email) => email.trim())
+      .filter(Boolean);
+  });
+  return Array.from(new Set(emails)).join(', ');
 };
 
 const TRUCK_TYPE_MAP: Record<string, string> = {
@@ -138,10 +153,7 @@ const mapDocketAddressToAddressType = (
   };
 };
 
-const mapDocketToFormValues = (
-  docket: DocketDTO,
-  currentCustomerEmail = '',
-): FormValues => ({
+const mapDocketToFormValues = (docket: DocketDTO): FormValues => ({
   jobId: docket.jobId ?? 0,
   jobLineItemId: docket.jobItemId ?? 0,
   plannedLoadSize: docket.plannedLoadSize ?? 0,
@@ -164,10 +176,7 @@ const mapDocketToFormValues = (
   ),
   customerContactName: docket.customerContactName ?? '',
   customerContactPhone: docket.customerContactPhone ?? '',
-  docketEmail:
-    docket.docketEmailRecipients
-      ?.filter((email) => email !== currentCustomerEmail)
-      .join(', ') ?? '',
+  docketEmail: joinUniqueEmails(docket.docketEmailRecipients),
   notes: docket.notes ?? '',
   truckType: docket.truckType ?? '',
   jobLineItemType: docket.jobItem?.jobItemType ?? '',
@@ -188,7 +197,7 @@ const mapSelectedJobToFormValues = (
     selectedJob.contactName || currentValues.customerContactName,
   customerContactPhone:
     selectedJob.contactPhone || currentValues.customerContactPhone,
-  docketEmail: selectedJob.additionalDocketEmails || currentValues.docketEmail,
+  docketEmail: selectedJob.prefillDocketEmails || currentValues.docketEmail,
 
   deliveryCollectionStartTime:
     normalizeDeliveryTimeWindowStart(selectedJob.startTimeWindow) ||
@@ -431,11 +440,10 @@ export function useDocketFormState({
 
       customerEmail,
 
-      additionalDocketEmails: (() => {
-        const recipients =
-          jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [];
-        return recipients.filter((e) => e !== customerEmail).join(', ');
-      })(),
+      prefillDocketEmails: joinUniqueEmails(
+        customerEmail,
+        jobDetails?.emailRecipients ?? jobFromList?.emailRecipients ?? [],
+      ),
     };
   }, [effectiveJobId, jobsList, selectedJobDetails, selectedDocket]);
 
@@ -474,7 +482,7 @@ export function useDocketFormState({
     if (hydratedKeyRef.current === hydrationKey) return;
 
     docketForm.reset(
-      mapDocketToFormValues(selectedDocket, selectedJob.customerEmail),
+      mapDocketToFormValues(selectedDocket),
     );
 
     const mappedPickUp = mapDocketAddressToAddressType(
@@ -491,7 +499,7 @@ export function useDocketFormState({
 
     hydratedKeyRef.current = hydrationKey;
     setIsDirtyTrackingReady(true);
-  }, [docketForm, isEditing, selectedDocket, selectedJob.customerEmail]);
+  }, [docketForm, isEditing, selectedDocket]);
 
   /**
    * 2. Create mode + quick docket
@@ -942,7 +950,6 @@ export function useDocketFormState({
     jobLineItemOptions,
     jobLineItemSelectProps,
     selectedJobId: effectiveJobId,
-    selectedJobEmail: selectedJob.customerEmail,
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,

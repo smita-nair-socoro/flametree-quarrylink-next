@@ -163,7 +163,6 @@ export default function DocketForm({
     jobLineItemOptions,
     jobLineItemSelectProps,
     selectedJobId,
-    selectedJobEmail,
     selectedJobDetails,
     jobLineItems,
     selectedJobLineItemDetails,
@@ -594,12 +593,13 @@ export default function DocketForm({
       }
     }
 
-    const additionalEmails = values.docketEmail
-      ? values.docketEmail.split(',').map((e) => e.trim())
+    const docketEmails = values.docketEmail
+      ? values.docketEmail
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean)
       : [];
-    const docketEmailRecipients = Array.from(
-      new Set([selectedJobEmail, ...additionalEmails].filter(Boolean)),
-    );
+    const docketEmailRecipients = Array.from(new Set(docketEmails));
 
     const lineItemDetails = selectedJobLineItemDetails();
     const isCollection = lineItemDetails.type === 'COLLECTION';
@@ -712,15 +712,13 @@ export default function DocketForm({
           : values.plannedLoadSize || 0;
 
       let estimatedVolumeM3 = 0;
-      const additionalDocketEmails = values.docketEmail
+      const docketEmails = values.docketEmail
         ? values.docketEmail
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean)
+            .split(',')
+            .map((e) => e.trim())
+            .filter(Boolean)
         : [];
-      const docketEmailRecipients = Array.from(
-        new Set([selectedJobEmail, ...additionalDocketEmails].filter(Boolean)),
-      );
+      const docketEmailRecipients = Array.from(new Set(docketEmails));
 
       if (
         lineItemDetails.productUom === 'M3' ||
@@ -1881,9 +1879,6 @@ export default function DocketForm({
                     control={docketForm.control}
                     name="docketEmail"
                     render={({ field }) => {
-                      const fixedValues = selectedJobEmail
-                        ? [selectedJobEmail]
-                        : [];
                       return (
                         <FormItem className={'col-span-2 col-start-1'}>
                           <FormLabel>
@@ -1897,7 +1892,6 @@ export default function DocketForm({
                                   ? 'Select Job First'
                                   : 'Enter Docket Emails'
                               }
-                              fixedValues={fixedValues}
                               label="Press Enter or comma to add email addresses for docket notifications"
                               {...field}
                               disabled={
