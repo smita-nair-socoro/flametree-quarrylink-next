@@ -70,12 +70,17 @@ export function InvoiceActions({
     selectedDockets.length > 0 && selectedDockets.every(isInvoiceEligible);
   const cashSaleEnabled =
     selectedDockets.length > 0 && selectedDockets.every(isCashSaleEligible);
+  const hasDeliverySelected = selectedDockets.some(
+    (d) => d.jobItem?.jobItemType !== 'COLLECTION',
+  );
   const cashSaleDisabledReason =
     selectedDockets.length === 0
       ? 'Select at least one docket'
       : cashSaleEnabled
         ? undefined
-        : 'Cash Sale requires Collected collection dockets or Delivered delivery dockets that are not invoiced or cash sold';
+        : hasDeliverySelected
+          ? 'Cash Sale is collection-only — delivery dockets can only be invoiced'
+          : 'Cash Sale requires Collected collection dockets that are not invoiced or cash sold';
   const invoiceDisabledReason =
     selectedDockets.length === 0
       ? 'Select at least one docket'
