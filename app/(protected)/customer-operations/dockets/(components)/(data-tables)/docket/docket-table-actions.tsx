@@ -205,8 +205,8 @@ const ACTION_CONFIG: Partial<Record<DOCKET_STATUS, ActionItem[]>> = {
     },
   ],
   [DOCKET_STATUS.DELIVERED]: [
+    // Delivery dockets: invoice only — never Cash Sale (spec §3 / §14).
     { label: 'Invoice', icon: Receipt, action: 'invoice', separator: true },
-    { label: 'Cash Sale', icon: ReceiptText, action: 'cashSale', separator: true },
     { label: 'Cancel', icon: CircleX, action: 'cancel', separator: true },
     {
       label: 'Void',

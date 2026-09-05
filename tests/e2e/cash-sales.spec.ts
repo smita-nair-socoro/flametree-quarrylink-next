@@ -7,8 +7,8 @@ import {
 } from './helpers/fixtures';
 
 /**
- * QLINK-3509 cross-slice e2e: record cash sale, Job Cash Sales tab + PDF,
- * sync badges/retry when failed rows exist, amend payment type, void.
+ * Cash sale e2e: collection-only eligibility, record/amend/void, Job Cash Sales tab,
+ * Payments sync UI, and the hard rules from record-cash-sale-against-dockets.md.
  */
 
 interface DocketRow {
@@ -20,6 +20,7 @@ interface DocketRow {
   jobItemType?: string;
   jobId?: number;
   jobNumber?: string;
+  totalInvoiceAmount?: number;
 }
 
 interface CashSaleDetail {
@@ -85,13 +86,20 @@ async function findDockets(
   return rowsFromPayload(await listRes.json()).filter(matches);
 }
 
+/** Spec: cash sale eligible = COLLECTED collection only. */
 async function findEligibleCashSaleDocket(
   apiClient: ApiClient,
 ): Promise<DocketRow | null> {
   const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
-  if (collected[0]) return collected[0];
-  const delivered = await findDockets(apiClient, 'DELIVERY', 'DELIVERED');
-  return delivered[0] ?? null;
+  return collected[0] ?? null;
+}
+
+async function findEligibleCashSaleDockets(
+  apiClient: ApiClient,
+  minCount: number,
+): Promise<DocketRow[]> {
+  const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+  return collected.slice(0, minCount);
 }
 
 async function dismissOpenDialogs(page: Page) {
@@ -103,15 +111,48 @@ async function dismissOpenDialogs(page: Page) {
   }
 }
 
+async function openJobCashSalesTab(
+  page: Page,
+  jobHint?: string,
+): Promise<{ dialog: ReturnType<Page['getByRole']>; skipped: string | null }> {
+  await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+  await dismissOpenDialogs(page);
+
+  if (jobHint) {
+    const searchBox = page.getByPlaceholder('Search jobs...');
+    if ((await searchBox.count()) > 0) {
+      await searchBox.fill(jobHint);
+      await page.waitForTimeout(1500);
+    }
+  }
+
+  const row = jobHint
+    ? page.locator('table tbody tr').filter({ hasText: jobHint }).first()
+    : page.locator('table tbody tr').first();
+  if ((await row.count()) === 0) {
+    return { dialog: page.getByRole('dialog'), skipped: 'No jobs available' };
+  }
+  await row.locator('td').first().click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toBeVisible({ timeout: 15000 });
+
+  const cashSalesTab = dialog.getByRole('tab', { name: 'Cash Sales' });
+  if ((await cashSalesTab.count()) === 0) {
+    return {
+      dialog,
+      skipped: 'Opened an internal transfer job or Cash Sales is not deployed',
+    };
+  }
+  await cashSalesTab.click();
+  return { dialog, skipped: null };
+}
+
 test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
   test('API: record cash sale, amend payment type, then void', async ({
     apiClient,
   }) => {
     const docket = await findEligibleCashSaleDocket(apiClient);
-    test.skip(
-      !docket,
-      'No COLLECTED collection or DELIVERED delivery docket available',
-    );
+    test.skip(!docket, 'No COLLECTED collection docket available');
 
     const createRes = await apiClient.payments.createCashSale({
       docketIds: [docket!.id],
@@ -185,34 +226,10 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
     test.skip(receipts.length === 0, 'No cash sales with job linkage on staging');
 
     const receipt = receipts[0];
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
-    await dismissOpenDialogs(page);
-
     const search = receipt.jobNumber ?? String(receipt.jobId);
-    const searchBox = page.getByPlaceholder('Search jobs...');
-    if ((await searchBox.count()) > 0 && receipt.jobNumber) {
-      await searchBox.fill(receipt.jobNumber);
-      await page.waitForTimeout(1500);
-    }
+    const { dialog, skipped } = await openJobCashSalesTab(page, search);
+    test.skip(!!skipped, skipped ?? undefined);
 
-    const row = page
-      .locator('table tbody tr')
-      .filter({ hasText: search })
-      .first();
-    test.skip(
-      (await row.count()) === 0,
-      `Job ${search} not visible in jobs table`,
-    );
-    await row.locator('td').first().click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible({ timeout: 15000 });
-
-    const cashSalesTab = dialog.getByRole('tab', { name: 'Cash Sales' });
-    test.skip(
-      (await cashSalesTab.count()) === 0,
-      'Cash Sales tab not deployed or internal-transfer job',
-    );
-    await cashSalesTab.click();
     await expect(
       dialog.getByRole('button', { name: 'Create Cash Sale' }),
     ).toBeVisible({ timeout: 15000 });
@@ -254,7 +271,7 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
 
     const syncBadge = page
-      .locator('text=/^(Synced|Failed|Pending|Syncing)$/i')
+      .locator('text=/^(Synced|Failed|Pending|Syncing|Not synced)$/i')
       .first();
     if ((await syncBadge.count()) > 0) {
       await expect(syncBadge).toBeVisible();
@@ -273,22 +290,8 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
   test('UI: Create Cash Sale entry from job tab opens selection/confirm flow', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
-    await dismissOpenDialogs(page);
-    await page.waitForTimeout(3000);
-
-    const row = page.locator('table tbody tr').first();
-    test.skip((await row.count()) === 0, 'No jobs available');
-    await row.locator('td').first().click();
-    const dialog = page.getByRole('dialog');
-    await expect(dialog).toBeVisible({ timeout: 15000 });
-
-    const cashSalesTab = dialog.getByRole('tab', { name: 'Cash Sales' });
-    test.skip(
-      (await cashSalesTab.count()) === 0,
-      'Opened an internal transfer job or Cash Sales is not deployed',
-    );
-    await cashSalesTab.click();
+    const { dialog, skipped } = await openJobCashSalesTab(page);
+    test.skip(!!skipped, skipped ?? undefined);
 
     const createBtn = dialog.getByRole('button', { name: 'Create Cash Sale' });
     await expect(createBtn).toBeVisible({ timeout: 15000 });
@@ -300,5 +303,296 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
       .last();
     await expect(createDialog).toBeVisible({ timeout: 15000 });
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+});
+
+test.describe('Cash sale eligibility & hard rules (spec)', () => {
+  test('API: delivery DELIVERED docket is never cash-saleable', async ({
+    apiClient,
+  }) => {
+    const delivered = await findDockets(apiClient, 'DELIVERY', 'DELIVERED');
+    test.skip(delivered.length === 0, 'No DELIVERED delivery docket on staging');
+
+    const res = await apiClient.payments.createCashSale({
+      docketIds: [delivered[0].id],
+      paymentType: 'Cash',
+    });
+    // Expect 4xx rejection naming the docket — never 2xx.
+    expect(res.ok(), await res.text()).toBeFalsy();
+    expect([400, 409, 422].includes(res.status())).toBeTruthy();
+    const body = await res.text();
+    expect(body).toMatch(new RegExp(delivered[0].docketNumber || String(delivered[0].id)));
+  });
+
+  test('API: READY collection docket is not cash-saleable (Collected only)', async ({
+    apiClient,
+  }) => {
+    const ready = await findDockets(apiClient, 'COLLECTION', 'READY');
+    test.skip(ready.length === 0, 'No READY collection docket on staging');
+
+    const res = await apiClient.payments.createCashSale({
+      docketIds: [ready[0].id],
+      paymentType: 'Cash',
+    });
+    expect(res.ok(), await res.text()).toBeFalsy();
+    expect([400, 409, 422].includes(res.status())).toBeTruthy();
+  });
+
+  test('API: already cash-sold / invoiced dockets are blocked', async ({
+    apiClient,
+  }) => {
+    const cashSold = await findDockets(apiClient, 'COLLECTION', 'CASH_SALE');
+    const invoiced = await findDockets(apiClient, 'COLLECTION', 'INVOICED');
+    const blocked = cashSold[0] ?? invoiced[0];
+    test.skip(!blocked, 'No CASH_SALE or INVOICED collection docket on staging');
+
+    const res = await apiClient.payments.createCashSale({
+      docketIds: [blocked!.id],
+      paymentType: 'Cash',
+    });
+    expect(res.ok(), await res.text()).toBeFalsy();
+    expect([400, 409, 422].includes(res.status())).toBeTruthy();
+  });
+
+  test('API: one selection creates one receipt; duplicate blocked after success', async ({
+    apiClient,
+  }) => {
+    const dockets = await findEligibleCashSaleDockets(apiClient, 1);
+    test.skip(dockets.length === 0, 'No COLLECTED collection docket available');
+
+    const createRes = await apiClient.payments.createCashSale({
+      docketIds: [dockets[0].id],
+      paymentType: 'EFT',
+    });
+    skipIfUnavailable(createRes, 'Create cash sale');
+    expect(createRes.ok(), await createRes.text()).toBeTruthy();
+    const created = (await createRes.json()) as CashSaleDetail;
+    expect(created.reference).toMatch(/^CS-\d+/);
+    expect(created.dockets?.length ?? 1).toBe(1);
+
+    const dupRes = await apiClient.payments.createCashSale({
+      docketIds: [dockets[0].id],
+      paymentType: 'Cash',
+    });
+    expect(dupRes.ok(), await dupRes.text()).toBeFalsy();
+    expect([400, 409, 422].includes(dupRes.status())).toBeTruthy();
+
+    // Cleanup so staging stays usable
+    const voidRes = await apiClient.payments.voidCashSale(created.id, {
+      reason: 'Recorded in error',
+      reasonDetail: 'e2e duplicate-block cleanup',
+    });
+    skipIfUnavailable(voidRes, 'Void cash sale cleanup');
+  });
+
+  test('API: bulk selection of two collected dockets (same job) = one receipt', async ({
+    apiClient,
+  }) => {
+    const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+    const byJob = new Map<number, DocketRow[]>();
+    for (const row of collected) {
+      if (!row.jobId) continue;
+      const list = byJob.get(row.jobId) ?? [];
+      list.push(row);
+      byJob.set(row.jobId, list);
+    }
+    const pair = [...byJob.values()].find((rows) => rows.length >= 2);
+    test.skip(!pair, 'Need two COLLECTED collection dockets on the same job');
+
+    const ids = pair!.slice(0, 2).map((d) => d.id);
+    const createRes = await apiClient.payments.createCashSale({
+      docketIds: ids,
+      paymentType: 'Credit Card',
+    });
+    skipIfUnavailable(createRes, 'Bulk create cash sale');
+    expect(createRes.ok(), await createRes.text()).toBeTruthy();
+    const created = (await createRes.json()) as CashSaleDetail;
+    expect(created.reference).toMatch(/^CS-\d+/);
+    expect(created.dockets?.length ?? ids.length).toBe(ids.length);
+
+    const voidRes = await apiClient.payments.voidCashSale(created.id, {
+      reason: 'Recorded in error',
+      reasonDetail: 'e2e bulk cleanup',
+    });
+    skipIfUnavailable(voidRes, 'Void bulk cash sale cleanup');
+  });
+
+  test('API: mixed tender via two separate receipts when two dockets available', async ({
+    apiClient,
+  }) => {
+    const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+    const byJob = new Map<number, DocketRow[]>();
+    for (const row of collected) {
+      if (!row.jobId) continue;
+      const list = byJob.get(row.jobId) ?? [];
+      list.push(row);
+      byJob.set(row.jobId, list);
+    }
+    const pair = [...byJob.values()].find((rows) => rows.length >= 2);
+    test.skip(!pair, 'Need two COLLECTED collection dockets on the same job for mixed tender');
+
+    const [a, b] = pair!;
+    const cashRes = await apiClient.payments.createCashSale({
+      docketIds: [a.id],
+      paymentType: 'Cash',
+    });
+    skipIfUnavailable(cashRes, 'Mixed tender cash receipt');
+    expect(cashRes.ok(), await cashRes.text()).toBeTruthy();
+    const cashSale = (await cashRes.json()) as CashSaleDetail;
+
+    const eftposRes = await apiClient.payments.createCashSale({
+      docketIds: [b.id],
+      paymentType: 'EFTPOS',
+    });
+    skipIfUnavailable(eftposRes, 'Mixed tender EFTPOS receipt');
+    expect(eftposRes.ok(), await eftposRes.text()).toBeTruthy();
+    const eftposSale = (await eftposRes.json()) as CashSaleDetail;
+
+    expect(cashSale.reference).not.toBe(eftposSale.reference);
+    expect(cashSale.paymentType).toBe('Cash');
+    expect(eftposSale.paymentType).toBe('EFTPOS');
+
+    for (const receipt of [cashSale, eftposSale]) {
+      const voidRes = await apiClient.payments.voidCashSale(receipt.id, {
+        reason: 'Recorded in error',
+        reasonDetail: 'e2e mixed tender cleanup',
+      });
+      skipIfUnavailable(voidRes, 'Void mixed tender cleanup');
+    }
+  });
+
+  test('API: optional zero-value cash sale when a $0 collected docket exists', async ({
+    apiClient,
+  }) => {
+    const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+    const zero = collected.find((d) => Number(d.totalInvoiceAmount ?? NaN) === 0);
+    test.skip(!zero, 'No zero-value COLLECTED collection docket on staging');
+
+    const createRes = await apiClient.payments.createCashSale({
+      docketIds: [zero!.id],
+      paymentType: 'Cash',
+    });
+    skipIfUnavailable(createRes, 'Zero-value cash sale');
+    expect(createRes.ok(), await createRes.text()).toBeTruthy();
+    const created = (await createRes.json()) as CashSaleDetail;
+
+    const voidRes = await apiClient.payments.voidCashSale(created.id, {
+      reason: 'Recorded in error',
+      reasonDetail: 'e2e zero-value cleanup',
+    });
+    skipIfUnavailable(voidRes, 'Void zero-value cleanup');
+  });
+
+  test('API: IT dockets cannot be cash sold', async ({ apiClient }) => {
+    const itRows = await findDockets(apiClient, 'INTERNAL', 'DELIVERED');
+    const itAlt = await findDockets(apiClient, 'INTERNAL_TRANSFER', 'DELIVERED');
+    const it = itRows[0] ?? itAlt[0];
+    // Fallback: look for IT- docket numbers in delivered/collected lists
+    let candidate = it;
+    if (!candidate) {
+      const delivered = await findDockets(apiClient, 'DELIVERY', 'DELIVERED');
+      candidate =
+        delivered.find((d) => d.docketNumber?.startsWith('IT-')) ?? undefined!;
+    }
+    test.skip(!candidate, 'No internal-transfer docket available to assert IT boundary');
+
+    const res = await apiClient.payments.createCashSale({
+      docketIds: [candidate!.id],
+      paymentType: 'Cash',
+    });
+    expect(res.ok(), await res.text()).toBeFalsy();
+  });
+
+  test('UI: delivery selection leaves Invoice enabled and Cash Sale disabled', async ({
+    authedPage: page,
+  }) => {
+    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await dismissOpenDialogs(page);
+    await page.waitForTimeout(2000);
+
+    const row = page.locator('table tbody tr').first();
+    test.skip((await row.count()) === 0, 'No jobs available');
+    await row.locator('td').first().click();
+    const jobDialog = page.getByRole('dialog');
+    await expect(jobDialog).toBeVisible({ timeout: 15000 });
+
+    const invoicesTab = jobDialog.getByRole('tab', { name: /Invoices/i });
+    test.skip((await invoicesTab.count()) === 0, 'Invoices tab missing');
+    await invoicesTab.click();
+
+    const createInvoice = jobDialog.getByRole('button', {
+      name: /Create Invoice|Invoice/i,
+    });
+    // Prefer the shared selection entry if present
+    const openSelection =
+      (await createInvoice.count()) > 0
+        ? createInvoice.first()
+        : jobDialog.getByRole('button', { name: /Create Cash Sale/i }).first();
+
+    // Navigate via Cash Sales → Create which opens the shared selection modal
+    const cashSalesTab = jobDialog.getByRole('tab', { name: 'Cash Sales' });
+    if ((await cashSalesTab.count()) > 0) {
+      await cashSalesTab.click();
+      const createCash = jobDialog.getByRole('button', { name: 'Create Cash Sale' });
+      await expect(createCash).toBeVisible({ timeout: 10000 });
+      await createCash.click();
+    } else if ((await openSelection.count()) > 0) {
+      await openSelection.click();
+    } else {
+      test.skip(true, 'No invoice/cash-sale selection entry point');
+    }
+
+    const selection = page
+      .getByRole('dialog')
+      .filter({ hasText: /Select dockets|Create Cash Sale|dockets selected/i })
+      .last();
+    await expect(selection).toBeVisible({ timeout: 15000 });
+
+    const deliveryTab = selection.getByRole('tab', { name: /Delivery/i });
+    if ((await deliveryTab.count()) > 0) {
+      await deliveryTab.click();
+      await page.waitForTimeout(500);
+    }
+
+    const checkbox = selection.locator('table tbody tr').first().locator('button[role="checkbox"], input[type="checkbox"]').first();
+    test.skip((await checkbox.count()) === 0, 'No delivery dockets in selection for this job');
+    await checkbox.click();
+    await page.waitForTimeout(400);
+
+    const cashSaleBtn = selection.getByRole('button', { name: /Cash Sale/i });
+    const invoiceBtn = selection.getByRole('button', { name: /Invoice/i });
+    test.skip((await cashSaleBtn.count()) === 0, 'Cash Sale action not in selection footer');
+
+    await expect(cashSaleBtn.first()).toBeDisabled();
+    if ((await invoiceBtn.count()) > 0) {
+      // Invoice may still be enabled for delivered delivery dockets
+      await expect(invoiceBtn.first()).toBeEnabled();
+    }
+  });
+
+  test('UI: empty selection keeps Cash Sale disabled on Create flow', async ({
+    authedPage: page,
+  }) => {
+    const { dialog, skipped } = await openJobCashSalesTab(page);
+    test.skip(!!skipped, skipped ?? undefined);
+
+    await dialog.getByRole('button', { name: 'Create Cash Sale' }).click();
+    const selection = page
+      .getByRole('dialog')
+      .filter({ hasText: /Create Cash Sale|Select dockets|Cash Sale/i })
+      .last();
+    await expect(selection).toBeVisible({ timeout: 15000 });
+
+    const cashSaleBtn = selection.getByRole('button', {
+      name: /Cash Sale \(0 selected\)|Cash Sale/i,
+    });
+    // With nothing selected, Cash Sale should be disabled or absent from the enabled path
+    if ((await cashSaleBtn.count()) > 0) {
+      const enabledCount = await cashSaleBtn.evaluateAll((nodes) =>
+        nodes.filter((n) => !(n as HTMLButtonElement).disabled).length,
+      );
+      // Prefer: all Cash Sale buttons disabled when selection is empty
+      expect(enabledCount).toBe(0);
+    }
   });
 });

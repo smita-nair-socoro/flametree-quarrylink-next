@@ -26,14 +26,18 @@ export function docketTypeLabel(docket: DocketDTO): string {
     : 'Delivery';
 }
 
+/** Cash sale: collection dockets in Collected only. Delivery is never eligible. */
 export function isCashSaleEligible(docket: DocketDTO): boolean {
+  if (isInternalTransferDocket(docket)) return false;
+  if (docket.jobItem?.jobItemType !== 'COLLECTION') return false;
+  return docket.docketStatus === DOCKET_STATUS.COLLECTED;
+}
+
+/** Invoice: Collected collection dockets or Delivered delivery dockets. */
+export function isInvoiceEligible(docket: DocketDTO): boolean {
   if (isInternalTransferDocket(docket)) return false;
   const status = docket.docketStatus;
   const type = docket.jobItem?.jobItemType;
   if (type === 'COLLECTION') return status === DOCKET_STATUS.COLLECTED;
   return status === DOCKET_STATUS.DELIVERED;
-}
-
-export function isInvoiceEligible(docket: DocketDTO): boolean {
-  return isCashSaleEligible(docket);
 }

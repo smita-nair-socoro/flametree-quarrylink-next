@@ -26,7 +26,7 @@ function docket(
 }
 
 describe('isCashSaleEligible', () => {
-  it('allows collected collection dockets and delivered delivery dockets', () => {
+  it('allows only collected collection dockets', () => {
     expect(
       isCashSaleEligible(
         docket({
@@ -35,6 +35,9 @@ describe('isCashSaleEligible', () => {
         }),
       ),
     ).toBe(true);
+  });
+
+  it('never allows delivery dockets, including Delivered', () => {
     expect(
       isCashSaleEligible(
         docket({
@@ -42,10 +45,26 @@ describe('isCashSaleEligible', () => {
           jobItemType: 'DELIVERY',
         }),
       ),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isCashSaleEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.COLLECTED,
+          jobItemType: 'DELIVERY',
+        }),
+      ),
+    ).toBe(false);
   });
 
-  it('blocks invoiced, cash-sold, cancelled and voided dockets', () => {
+  it('blocks Ready collection dockets and terminal financial statuses', () => {
+    expect(
+      isCashSaleEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.READY,
+          jobItemType: 'COLLECTION',
+        }),
+      ),
+    ).toBe(false);
     for (const status of [
       DOCKET_STATUS.INVOICED,
       DOCKET_STATUS.CASH_SALE,
@@ -53,7 +72,9 @@ describe('isCashSaleEligible', () => {
       DOCKET_STATUS.VOIDED,
     ]) {
       expect(
-        isCashSaleEligible(docket({ docketStatus: status, jobItemType: 'DELIVERY' })),
+        isCashSaleEligible(
+          docket({ docketStatus: status, jobItemType: 'COLLECTION' }),
+        ),
       ).toBe(false);
     }
   });
@@ -70,19 +91,54 @@ describe('isCashSaleEligible', () => {
     expect(
       isCashSaleEligible(
         docket({
+          docketStatus: DOCKET_STATUS.COLLECTED,
+          jobType: 'INTERNAL_TRANSFER',
+          docketNumber: 'IT-1',
+          jobItemType: 'COLLECTION',
+        }),
+      ),
+    ).toBe(false);
+  });
+});
+
+describe('isInvoiceEligible', () => {
+  it('allows collected collection and delivered delivery dockets', () => {
+    expect(
+      isInvoiceEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.COLLECTED,
+          jobItemType: 'COLLECTION',
+        }),
+      ),
+    ).toBe(true);
+    expect(
+      isInvoiceEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.DELIVERED,
+          jobItemType: 'DELIVERY',
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('keeps invoice available when cash sale is not (delivery)', () => {
+    const delivered = docket({
+      docketStatus: DOCKET_STATUS.DELIVERED,
+      jobItemType: 'DELIVERY',
+    });
+    expect(isInvoiceEligible(delivered)).toBe(true);
+    expect(isCashSaleEligible(delivered)).toBe(false);
+  });
+
+  it('blocks internal transfers', () => {
+    expect(
+      isInvoiceEligible(
+        docket({
           docketStatus: DOCKET_STATUS.DELIVERED,
           jobType: 'INTERNAL_TRANSFER',
           docketNumber: 'IT-1',
         }),
       ),
     ).toBe(false);
-  });
-
-  it('keeps invoice eligibility aligned for slice 1', () => {
-    const collected = docket({
-      docketStatus: DOCKET_STATUS.COLLECTED,
-      jobItemType: 'COLLECTION',
-    });
-    expect(isInvoiceEligible(collected)).toBe(isCashSaleEligible(collected));
   });
 });
