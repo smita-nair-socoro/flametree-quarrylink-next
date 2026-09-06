@@ -415,15 +415,8 @@ test.describe('Payments tab — Invoices table', () => {
     await expect(page.getByRole('button', { name: /^Filters$/i })).toHaveCount(
       0,
     );
-    // Spec forbids Show/Hide Columns. Soft-skip until staging picks up the panel fix.
-    const chooser = page.getByRole('button', { name: /Show\/Hide Columns/i });
-    if ((await chooser.count()) > 0) {
-      test.skip(
-        true,
-        'Show/Hide Columns still present on staging — needs next deploy with isShowHideColumns=false',
-      );
-    }
-    await expect(chooser).toHaveCount(0);
+    // Spec forbids Show/Hide Columns on Payments Invoices table.
+    await expect(page.getByRole('button', { name: /Show\/Hide Columns/i })).toHaveCount(0);
   });
 
   test('14. Empty state when filtered to no results', async ({
