@@ -149,6 +149,7 @@ export function PaymentsInvoicesPanel({
         data={data?.content ?? []}
         columns={columns}
         searchPlaceHolder="Search invoices..."
+        isShowHideColumns={false}
         defaultSorting={[{ id: 'invoiceNumber', desc: true }]}
         totalElements={data?.totalElements ?? 0}
         totalPages={data?.totalPages ?? 1}

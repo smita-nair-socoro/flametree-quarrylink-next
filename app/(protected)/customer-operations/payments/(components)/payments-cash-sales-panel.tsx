@@ -94,6 +94,7 @@ export function PaymentsCashSalesPanel({
         data={data?.content ?? []}
         columns={columns}
         searchPlaceHolder="Search cash payments..."
+        isShowHideColumns={false}
         defaultSorting={[{ id: 'recordedAt', desc: true }]}
         totalElements={data?.totalElements ?? 0}
         totalPages={data?.totalPages ?? 1}
