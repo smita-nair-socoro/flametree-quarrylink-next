@@ -86,11 +86,42 @@ async function findDockets(
   return rowsFromPayload(await listRes.json()).filter(matches);
 }
 
+/**
+ * Prefer existing COLLECTED dockets. If staging has none (common after prior
+ * cash-sale runs), void a non-voided ORIGINAL receipt to release dockets back
+ * to Collected so create-path tests can run without flaking.
+ */
+async function ensureCollectedDockets(
+  apiClient: ApiClient,
+  minCount: number,
+): Promise<DocketRow[]> {
+  let collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+  if (collected.length >= minCount) return collected.slice(0, minCount);
+
+  const listRes = await apiClient.payments.cashSales('page=1&pageSize=25');
+  if (listRes.ok()) {
+    const receipts = cashSaleRows(await listRes.json()).filter((r) => !r.voided);
+    for (const receipt of receipts) {
+      const voidRes = await apiClient.payments.voidCashSale(receipt.id, {
+        reason: 'Recorded in error',
+        reasonDetail: 'e2e seed: release dockets to Collected',
+      });
+      if (!voidRes.ok()) continue;
+      collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+      if (collected.length >= minCount) return collected.slice(0, minCount);
+    }
+  }
+
+  // Fall back to whatever Collected rows exist after seeding attempts.
+  collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+  return collected.slice(0, minCount);
+}
+
 /** Spec: cash sale eligible = COLLECTED collection only. */
 async function findEligibleCashSaleDocket(
   apiClient: ApiClient,
 ): Promise<DocketRow | null> {
-  const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+  const collected = await ensureCollectedDockets(apiClient, 1);
   return collected[0] ?? null;
 }
 
@@ -98,8 +129,7 @@ async function findEligibleCashSaleDockets(
   apiClient: ApiClient,
   minCount: number,
 ): Promise<DocketRow[]> {
-  const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
-  return collected.slice(0, minCount);
+  return ensureCollectedDockets(apiClient, minCount);
 }
 
 async function dismissOpenDialogs(page: Page) {
@@ -324,14 +354,26 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
     expect(body).toMatch(new RegExp(delivered[0].docketNumber || String(delivered[0].id)));
   });
 
-  test('API: READY collection docket is not cash-saleable (Collected only)', async ({
+  test('API: READY_FOR_COLLECTION docket is not cash-saleable (Collected only)', async ({
     apiClient,
   }) => {
-    const ready = await findDockets(apiClient, 'COLLECTION', 'READY');
-    test.skip(ready.length === 0, 'No READY collection docket on staging');
+    const ready = await findDockets(
+      apiClient,
+      'COLLECTION',
+      'READY_FOR_COLLECTION',
+    );
+    const preparing =
+      ready.length === 0
+        ? await findDockets(apiClient, 'COLLECTION', 'PREPARING')
+        : [];
+    const gate = ready[0] ?? preparing[0];
+    test.skip(
+      !gate,
+      'No READY_FOR_COLLECTION/PREPARING collection docket on staging',
+    );
 
     const res = await apiClient.payments.createCashSale({
-      docketIds: [ready[0].id],
+      docketIds: [gate!.id],
       paymentType: 'Cash',
     });
     expect(res.ok(), await res.text()).toBeFalsy();
@@ -341,10 +383,25 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
   test('API: already cash-sold / invoiced dockets are blocked', async ({
     apiClient,
   }) => {
-    const cashSold = await findDockets(apiClient, 'COLLECTION', 'CASH_SALE');
-    const invoiced = await findDockets(apiClient, 'COLLECTION', 'INVOICED');
-    const blocked = cashSold[0] ?? invoiced[0];
-    test.skip(!blocked, 'No CASH_SALE or INVOICED collection docket on staging');
+    // Prefer an existing blocked docket; otherwise create one briefly then assert.
+    let blocked = (await findDockets(apiClient, 'COLLECTION', 'CASH_SALE'))[0];
+    if (!blocked) {
+      blocked = (await findDockets(apiClient, 'COLLECTION', 'INVOICED'))[0];
+    }
+    let createdId: number | null = null;
+    if (!blocked) {
+      const eligible = await ensureCollectedDockets(apiClient, 1);
+      test.skip(eligible.length === 0, 'No docket available to seed cash-sold state');
+      const createRes = await apiClient.payments.createCashSale({
+        docketIds: [eligible[0].id],
+        paymentType: 'Cash',
+      });
+      skipIfUnavailable(createRes, 'Seed cash sale for blocked-status check');
+      expect(createRes.ok(), await createRes.text()).toBeTruthy();
+      const created = (await createRes.json()) as CashSaleDetail;
+      createdId = created.id;
+      blocked = eligible[0];
+    }
 
     const res = await apiClient.payments.createCashSale({
       docketIds: [blocked!.id],
@@ -352,6 +409,14 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
     });
     expect(res.ok(), await res.text()).toBeFalsy();
     expect([400, 409, 422].includes(res.status())).toBeTruthy();
+
+    if (createdId != null) {
+      const voidRes = await apiClient.payments.voidCashSale(createdId, {
+        reason: 'Recorded in error',
+        reasonDetail: 'e2e already-blocked cleanup',
+      });
+      skipIfUnavailable(voidRes, 'Void seeded cash sale cleanup');
+    }
   });
 
   test('API: one selection creates one receipt; duplicate blocked after success', async ({
@@ -388,6 +453,8 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
   test('API: bulk selection of two collected dockets (same job) = one receipt', async ({
     apiClient,
   }) => {
+    // Seed as many Collected as possible, then group by job.
+    await ensureCollectedDockets(apiClient, 2);
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
     const byJob = new Map<number, DocketRow[]>();
     for (const row of collected) {
@@ -420,6 +487,7 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
   test('API: mixed tender via two separate receipts when two dockets available', async ({
     apiClient,
   }) => {
+    await ensureCollectedDockets(apiClient, 2);
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
     const byJob = new Map<number, DocketRow[]>();
     for (const row of collected) {
@@ -464,6 +532,7 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
   test('API: optional zero-value cash sale when a $0 collected docket exists', async ({
     apiClient,
   }) => {
+    await ensureCollectedDockets(apiClient, 1);
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
     const zero = collected.find((d) => Number(d.totalInvoiceAmount ?? NaN) === 0);
     test.skip(!zero, 'No zero-value COLLECTED collection docket on staging');
@@ -484,15 +553,28 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
   });
 
   test('API: IT dockets cannot be cash sold', async ({ apiClient }) => {
-    const itRows = await findDockets(apiClient, 'INTERNAL', 'DELIVERED');
-    const itAlt = await findDockets(apiClient, 'INTERNAL_TRANSFER', 'DELIVERED');
-    const it = itRows[0] ?? itAlt[0];
-    // Fallback: look for IT- docket numbers in delivered/collected lists
-    let candidate = it;
+    const itList = await apiClient.jobs.internalTransfers('page=1&pageSize=5');
+    let candidate: DocketRow | null = null;
+    if (itList.ok()) {
+      const jobs = rowsFromPayload(await itList.json());
+      // Fall through to docket number scan when IT job list has no dockets embedded
+      void jobs;
+    }
+    const delivered = await findDockets(apiClient, 'DELIVERY', 'DELIVERED');
+    const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+    candidate =
+      [...delivered, ...collected].find((d) =>
+        d.docketNumber?.startsWith('IT-'),
+      ) ?? null;
     if (!candidate) {
-      const delivered = await findDockets(apiClient, 'DELIVERY', 'DELIVERED');
-      candidate =
-        delivered.find((d) => d.docketNumber?.startsWith('IT-')) ?? undefined!;
+      // Try listing dockets without type filter via broad search
+      const anyRes = await apiClient.dockets.list('page=1&pageSize=50&search=IT-');
+      if (anyRes.ok()) {
+        candidate =
+          rowsFromPayload(await anyRes.json()).find((d) =>
+            d.docketNumber?.startsWith('IT-'),
+          ) ?? null;
+      }
     }
     test.skip(!candidate, 'No internal-transfer docket available to assert IT boundary');
 
