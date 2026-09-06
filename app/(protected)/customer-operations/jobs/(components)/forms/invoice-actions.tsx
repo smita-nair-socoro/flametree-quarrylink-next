@@ -340,6 +340,7 @@ export function InvoiceActions({
         </div>
       </div>
       <CashSaleConfirmDialog
+        key={`cash-sale-${selectedDockets.map((d) => d.id).join('-')}`}
         open={cashSaleOpen}
         onOpenChange={setCashSaleOpen}
         dockets={selectedDockets}

@@ -192,18 +192,27 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
 
   // Id-only callers (table row actions): load full DocketDTO once a dialog
   // or view is open so content like AssignDocket can use docketNumber, product, etc.
+  // Include cashSaleOpen — Cash Sale does not use activeDialog.
   const shouldFetchDetail =
     explicitId != null &&
     actionDocketId != null &&
-    (activeDialog != null || viewOpen);
+    (activeDialog != null || viewOpen || cashSaleOpen);
 
   const { data: fetchedDocket, isFetching: isFetchingDocket } = useQuery({
     ...DocketByIdQueryOptions(actionDocketId ?? 0),
     enabled: shouldFetchDetail,
   });
 
+  // DocketByIdQueryOptions uses keepPreviousData; reject placeholder rows from
+  // the previously selected docket so Cash Sale / dialogs never show A while
+  // acting on B (or $0 when no prior fetch matched).
+  const matchedFetchedDocket =
+    fetchedDocket != null && fetchedDocket.id === actionDocketId
+      ? fetchedDocket
+      : null;
+
   const docketData =
-    (explicitId != null ? fetchedDocket : null) ?? passedDocket ?? null;
+    (explicitId != null ? matchedFetchedDocket : null) ?? passedDocket ?? null;
   const effectiveDocket = docketData ?? selectedDocket;
   const waitingForDocketDetail =
     explicitId != null && !effectiveDocket && isFetchingDocket;
@@ -283,6 +292,8 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
   const resetActionState = React.useCallback(() => {
     setActiveDialog(null);
     setViewOpen(false);
+    setCashSaleOpen(false);
+    setViewingReceipt(null);
     setIsFormDirty(false);
 
     setDeliveredProductsConfirmed(false);
@@ -1056,7 +1067,9 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
       void handleUnassignDocket();
     },
     startPreparing: createDialogAction('startPreparing'),
-    cashSale: () => {
+    cashSale: async () => {
+      const docket = await ensureDocketDetail();
+      if (!docket) return;
       setCashSaleOpen(true);
     },
     invoice: createDialogAction('invoice'),
@@ -1251,10 +1264,17 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
         docket={effectiveDocket}
       />,
       <CashSaleConfirmDialog
-        key="cashSaleConfirm"
+        key={`cashSaleConfirm-${actionDocketId ?? 'none'}`}
         open={cashSaleOpen}
-        onOpenChange={setCashSaleOpen}
-        dockets={effectiveDocket ? [effectiveDocket] : []}
+        onOpenChange={(open) => {
+          setCashSaleOpen(open);
+        }}
+        dockets={
+          effectiveDocket && effectiveDocket.id === actionDocketId
+            ? [effectiveDocket]
+            : []
+        }
+        loading={cashSaleOpen && waitingForDocketDetail}
       />,
       viewingReceipt ? (
         <CashSaleReceiptActions

@@ -24,23 +24,32 @@ import { useCreateCashSale } from '@/lib/api/payments';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { notifyError } from '@/lib/toast';
 import { docketTypeLabel } from '@/lib/utils/docket-financial-eligibility';
+import { Spinner } from '@/components/ui/spinner';
 
 export function CashSaleConfirmDialog({
   open,
   onOpenChange,
   dockets,
   onRecorded,
+  loading = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dockets: DocketDTO[];
   onRecorded?: () => void;
+  loading?: boolean;
 }) {
   const { currencySymbol } = useTenantCurrencyTax();
   const createCashSale = useCreateCashSale();
-  const total = dockets.reduce((sum, docket) => sum + (docket.totalInvoiceAmount ?? 0), 0);
+  const total = dockets.reduce(
+    (sum, docket) => sum + (docket.totalInvoiceAmount ?? 0),
+    0,
+  );
+  const showLoading = open && loading;
+  const hasDockets = dockets.length > 0;
 
   const confirm = async (paymentType: string) => {
+    if (!hasDockets) return;
     try {
       await createCashSale.mutateAsync({
         docketIds: dockets.map((docket) => docket.id),
@@ -65,35 +74,50 @@ export function CashSaleConfirmDialog({
               Record Cash Sale
             </DialogTitle>
             <DialogDescription className="text-[15px] text-slate-600">
-              Record cash/EFTPOS payment for {dockets.length} docket
-              {dockets.length === 1 ? '' : 's'}? No invoice will be created.
+              {showLoading
+                ? 'Loading docket details…'
+                : hasDockets
+                  ? `Record cash/EFTPOS payment for ${dockets.length} docket${
+                      dockets.length === 1 ? '' : 's'
+                    }? No invoice will be created.`
+                  : 'Docket details are unavailable. Close and try again.'}
             </DialogDescription>
           </DialogHeader>
         </div>
         <div className="px-6 pb-4">
-          <div className="rounded-xl bg-slate-100 p-4 flex flex-col gap-2">
-            {dockets.map((docket) => (
-              <div
-                key={docket.id}
-                className="flex items-center justify-between text-sm"
-              >
+          {showLoading ? (
+            <div className="flex items-center justify-center rounded-xl bg-slate-100 py-10">
+              <Spinner />
+            </div>
+          ) : hasDockets ? (
+            <div className="rounded-xl bg-slate-100 p-4 flex flex-col gap-2">
+              {dockets.map((docket) => (
+                <div
+                  key={docket.id}
+                  className="flex items-center justify-between text-sm"
+                >
+                  <span>
+                    {docket.docketNumber} · {docketTypeLabel(docket)}
+                  </span>
+                  <span className="font-medium">
+                    {currencySymbol}
+                    {centsToDollars(docket.totalInvoiceAmount ?? 0)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex items-center justify-between pt-2 border-t text-sm font-semibold">
+                <span>Total Amount Received</span>
                 <span>
-                  {docket.docketNumber} · {docketTypeLabel(docket)}
-                </span>
-                <span className="font-medium">
                   {currencySymbol}
-                  {centsToDollars(docket.totalInvoiceAmount ?? 0)}
+                  {centsToDollars(total)}
                 </span>
               </div>
-            ))}
-            <div className="flex items-center justify-between pt-2 border-t text-sm font-semibold">
-              <span>Total Amount Received</span>
-              <span>
-                {currencySymbol}
-                {centsToDollars(total)}
-              </span>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-xl bg-slate-100 p-4 text-center text-sm text-slate-600">
+              No docket selected.
+            </div>
+          )}
         </div>
         <div className="flex w-full flex-row gap-3 px-6 pb-6">
           <Button
@@ -109,7 +133,9 @@ export function CashSaleConfirmDialog({
               <Button
                 type="button"
                 className="h-11 flex-1 bg-[#8B5CF6] hover:bg-[#7C3AED]"
-                disabled={createCashSale.isPending || dockets.length === 0}
+                disabled={
+                  createCashSale.isPending || showLoading || !hasDockets
+                }
               >
                 Confirm Sale
                 <ChevronDown className="ml-1.5 h-4 w-4" />
