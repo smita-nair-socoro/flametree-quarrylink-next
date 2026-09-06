@@ -215,6 +215,17 @@ export class ApiClient {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/docket${params ? `?${params}` : ''}`),
     table: (params?: string) =>
       this.get(`/socoro/quarrylink/api/dockets/table${params ? `?${params}` : ''}`),
+    get: (id: number) => this.get(`/socoro/quarrylink/api/dockets/${id}`),
+    byJob: (jobId: number) =>
+      this.get(`/socoro/quarrylink/api/dockets/job/${jobId}`),
+    updateStatus: (
+      id: number,
+      fields: Record<string, string | number | boolean>,
+    ) =>
+      this.request.put(`${BASE_URL}/socoro/quarrylink/api/dockets/${id}/status`, {
+        headers: { Cookie: this.cookie },
+        multipart: fields,
+      }),
   };
 
   // -- Quotations --
