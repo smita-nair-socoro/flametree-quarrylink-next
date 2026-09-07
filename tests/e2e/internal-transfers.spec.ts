@@ -752,11 +752,17 @@ test.describe('Internal Transfers — completion, journal, sync', () => {
       row.getByText(/Synced|Failed|Not synced/i).first(),
     ).toBeVisible();
 
-    const retry = page.getByRole('button', { name: /^Retry$/ }).first();
-    if ((await retry.count()) > 0) {
-      await retry.click();
-      await page.waitForTimeout(1000);
-      await expect(page.locator('text=client-side exception')).toHaveCount(0);
+    const retryTrigger = row.getByRole('button', { name: 'Transfer actions' });
+    if ((await retryTrigger.count()) > 0) {
+      await retryTrigger.click();
+      const retry = page.getByRole('menuitem', { name: /Retry Sync/i });
+      if ((await retry.count()) > 0) {
+        await retry.click();
+        await page.waitForTimeout(1000);
+        await expect(page.locator('text=client-side exception')).toHaveCount(0);
+      } else {
+        await page.keyboard.press('Escape');
+      }
     }
   });
 

@@ -12,7 +12,7 @@ import {
 } from '@/lib/utils/tenant-config-helper';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, Eye, FileText } from 'lucide-react';
+import { MoreHorizontal, Eye, FileText, RefreshCw } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { toAccountingSyncDisplay } from '@/lib/utils/accounting-sync';
 
 export const getPaymentsInternalTransferColumns = (
   onRetry: (journalId: number) => void,
@@ -139,12 +140,6 @@ export const getPaymentsInternalTransferColumns = (
       <AccountingSyncBadge
         status={row.original.accountingSync}
         failureReason={row.original.failureReason}
-        onRetry={
-          row.original.journalId
-            ? () => onRetry(row.original.journalId as number)
-            : undefined
-        }
-        retrying={retryingId === row.original.journalId}
       />
     ),
     meta: 'Accounting Sync',
@@ -152,34 +147,54 @@ export const getPaymentsInternalTransferColumns = (
   {
     id: 'actions',
     header: () => <div />,
-    cell: ({ row }) => (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem asChild>
-            <Link href={`/customer-operations/dockets?ids=${row.original.docketId}`}>
-              <Eye className="h-4 w-4 mr-2" />
-              View Docket
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onViewJournal(row.original)}>
-            <FileText className="h-4 w-4 mr-2" />
-            View Journal
-          </DropdownMenuItem>
-          {onVoid && !row.original.voided ? (
-            <DropdownMenuItem
-              className="text-red-600"
-              onClick={() => onVoid(row.original)}
-            >
-              Void
+    cell: ({ row }) => {
+      const isFailed =
+        toAccountingSyncDisplay(row.original.accountingSync) === 'FAILED';
+      const canRetry =
+        isFailed &&
+        !row.original.voided &&
+        row.original.journalId != null;
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+              <span className="sr-only">Transfer actions</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link
+                href={`/customer-operations/dockets?ids=${row.original.docketId}`}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                View Docket
+              </Link>
             </DropdownMenuItem>
-          ) : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    ),
+            <DropdownMenuItem onClick={() => onViewJournal(row.original)}>
+              <FileText className="h-4 w-4 mr-2" />
+              View Journal
+            </DropdownMenuItem>
+            {canRetry ? (
+              <DropdownMenuItem
+                disabled={retryingId === row.original.journalId}
+                onClick={() => onRetry(row.original.journalId as number)}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Retry Sync
+              </DropdownMenuItem>
+            ) : null}
+            {onVoid && !row.original.voided ? (
+              <DropdownMenuItem
+                className="text-red-600"
+                onClick={() => onVoid(row.original)}
+              >
+                Void
+              </DropdownMenuItem>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
   },
 ];

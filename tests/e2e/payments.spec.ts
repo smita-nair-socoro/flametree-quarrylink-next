@@ -159,7 +159,7 @@ test.describe('QLINK-3510 Payments - UI', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
-  test('row Retry on Failed invoice shows retry progress banner', async ({
+  test('row Retry Sync on Failed invoice shows retry progress banner', async ({
     authedPage: page,
   }) => {
     await page.goto(
@@ -172,13 +172,23 @@ test.describe('QLINK-3510 Payments - UI', () => {
       'Payments page is not on this environment yet',
     );
 
-    const retryButton = page.getByRole('button', { name: 'Retry' }).first();
+    const failedRows = page.locator('table tbody tr').filter({
+      hasText: /Failed/i,
+    });
     test.skip(
-      (await retryButton.count()) === 0,
+      (await failedRows.count()) === 0,
       'No Failed invoice with Retry on staging',
     );
 
-    await retryButton.click();
+    const row = failedRows.first();
+    await row.getByRole('button', { name: 'Invoice actions' }).click();
+    const retryMenuItem = page.getByRole('menuitem', { name: /Retry Sync/i });
+    test.skip(
+      (await retryMenuItem.count()) === 0,
+      'No Failed invoice with Retry Sync menu item on staging',
+    );
+
+    await retryMenuItem.click();
 
     const progress = page.getByText(/Retrying invoice sync|Invoice sync retry/i);
     await expect(progress.first()).toBeVisible({ timeout: 60000 });
@@ -301,7 +311,7 @@ test.describe('QLINK-3512 Internal Transfers - Payments UI', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
-  test('Retry on Failed IT transfer is available when present', async ({
+  test('Retry Sync on Failed IT transfer is available when present', async ({
     authedPage: page,
   }) => {
     await page.goto(
@@ -314,13 +324,23 @@ test.describe('QLINK-3512 Internal Transfers - Payments UI', () => {
       'Payments page is not on this environment yet',
     );
 
-    const retryButton = page.getByRole('button', { name: 'Retry' }).first();
+    const failedRows = page.locator('table tbody tr').filter({
+      hasText: /Failed/i,
+    });
     test.skip(
-      (await retryButton.count()) === 0,
+      (await failedRows.count()) === 0,
       'No Failed IT transfer with Retry on staging',
     );
 
-    await retryButton.click();
+    const row = failedRows.first();
+    await row.getByRole('button', { name: 'Transfer actions' }).click();
+    const retryMenuItem = page.getByRole('menuitem', { name: /Retry Sync/i });
+    test.skip(
+      (await retryMenuItem.count()) === 0,
+      'No Failed IT transfer with Retry Sync menu item on staging',
+    );
+
+    await retryMenuItem.click();
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 });
