@@ -37,6 +37,7 @@ import {
 } from '@/lib/api/product';
 import { QuarrySupplierProductDetailQueryOptions } from '@/lib/api/quarry-supplier-product';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
+import { useJobStore } from '@/app/stores/job-store';
 
 const DEFAULT_DIGITAL_PLATFORM_FEE_LABEL = 'Digital Platform Fee';
 
@@ -286,12 +287,22 @@ export function useDocketFormState({
     enabled: !isEditing,
   });
 
+  const selectedJobFromStore = useJobStore((state) => state.selectedJob);
+
   const isInternalTransfer =
     selectedJobDetails?.jobType === 'INTERNAL_TRANSFER' ||
-    selectedDocket?.job?.jobType === 'INTERNAL_TRANSFER';
+    selectedDocket?.job?.jobType === 'INTERNAL_TRANSFER' ||
+    (selectedJobFromStore?.id === effectiveJobId &&
+      selectedJobFromStore?.jobType === 'INTERNAL_TRANSFER');
   isInternalTransferRef.current = isInternalTransfer;
-  const fromSiteId = selectedJobDetails?.fromSiteId ?? 0;
-  const toSiteId = selectedJobDetails?.toSiteId ?? 0;
+  const fromSiteId =
+    selectedJobDetails?.fromSiteId ??
+    (isInternalTransfer ? selectedJobFromStore?.fromSiteId : undefined) ??
+    0;
+  const toSiteId =
+    selectedJobDetails?.toSiteId ??
+    (isInternalTransfer ? selectedJobFromStore?.toSiteId : undefined) ??
+    0;
   const watchedProductOrLineItemId = docketForm.watch('jobLineItemId');
 
   const {
