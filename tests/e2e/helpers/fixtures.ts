@@ -270,6 +270,10 @@ export class ApiClient {
   // -- Quarries / Suppliers --
   quarries = {
     list: () => this.get('/socoro/quarrylink/api/quarries'),
+    linkedProducts: (quarryId: number, params?: string) =>
+      this.get(
+        `/socoro/quarrylink/api/quarries/${quarryId}/linked-products${params ? `?${params}` : '?page=1&pageSize=50'}`,
+      ),
   };
 
   // -- Materials --
