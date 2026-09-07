@@ -232,6 +232,37 @@ test.describe('Payments tab — Invoices table', () => {
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });
 
+  test('pagination next arrow advances to page 2', async ({
+    authedPage: page,
+    apiClient,
+  }) => {
+    const res = await apiClient.payments.invoices('page=1&pageSize=10');
+    skipIfUnavailable(res, 'Payments invoices');
+    const body = (await res.json()) as { totalPages?: number; totalElements?: number };
+    test.skip(
+      (body.totalPages ?? 0) < 2 && (body.totalElements ?? 0) <= 10,
+      'Need >10 invoices to exercise pagination',
+    );
+
+    await ensurePaymentsPage(page, 'tab=invoices');
+    await expect(page.getByText(/Page 1 of/i)).toBeVisible({ timeout: 15000 });
+
+    const firstRowText = (
+      await page.locator('table tbody tr').first().innerText()
+    ).trim();
+
+    const next = page.getByRole('button', { name: 'Next page' });
+    await expect(next).toBeEnabled();
+    await next.click();
+
+    await expect(page.getByText(/Page 2 of/i)).toBeVisible({ timeout: 10000 });
+    await expect
+      .poll(async () =>
+        (await page.locator('table tbody tr').first().innerText()).trim(),
+      )
+      .not.toBe(firstRowText);
+  });
+
   test('6. ⋯ menu offers View Invoice', async ({
     authedPage: page,
     apiClient,

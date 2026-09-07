@@ -485,17 +485,20 @@ export function DataTableClient<TData, TValue>({
     }
   }, [drawerOpen, columnFilters]);
 
-  useEffect(() => {
-    if (onSearchChange) {
-      onSearchChange(debouncedGlobalFilter);
-    }
-  }, [debouncedGlobalFilter, onSearchChange]);
+  // Keep latest callbacks in refs so identity changes (inline handlers) do not
+  // re-fire and reset parent page state on every pagination re-render.
+  const onSearchChangeRef = useRef(onSearchChange);
+  onSearchChangeRef.current = onSearchChange;
+  const onFacetFiltersChangeRef = useRef(onFacetFiltersChange);
+  onFacetFiltersChangeRef.current = onFacetFiltersChange;
 
   useEffect(() => {
-    if (onFacetFiltersChange) {
-      onFacetFiltersChange(debouncedColumnFilters);
-    }
-  }, [debouncedColumnFilters, onFacetFiltersChange]);
+    onSearchChangeRef.current?.(debouncedGlobalFilter);
+  }, [debouncedGlobalFilter]);
+
+  useEffect(() => {
+    onFacetFiltersChangeRef.current?.(debouncedColumnFilters);
+  }, [debouncedColumnFilters]);
 
   // Update columnFilters when debounced filters change
   useEffect(() => {

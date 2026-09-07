@@ -68,6 +68,32 @@ export function PaymentsCashSalesPanel({
     [pageIndex, pageSize, search, failedOnly, dateRange, sort],
   );
 
+  const searchRef = React.useRef(search);
+  searchRef.current = search;
+
+  const handlePaginationChange = React.useCallback(
+    (page: number, size: number) => {
+      setPageIndex(page);
+      setPageSize(size);
+    },
+    [],
+  );
+
+  const handleSearchChange = React.useCallback(
+    (value: string) => {
+      if (!value && searchRef.current === initialSearch && initialSearch) return;
+      if (searchRef.current === value) return;
+      setSearch(value);
+      setPageIndex(0);
+    },
+    [initialSearch],
+  );
+
+  const handleSortingChange = React.useCallback((next: SortingState) => {
+    setSorting(next.length > 0 ? next : [{ id: 'recordedAt', desc: true }]);
+    setPageIndex(0);
+  }, []);
+
   const { data, isFetching } = useQuery(PaymentsCashSalesQueryOptions(listParams));
   const columns = React.useMemo(
     () =>
@@ -101,21 +127,9 @@ export function PaymentsCashSalesPanel({
         externalPageIndex={pageIndex}
         externalPageSize={pageSize}
         externalSorting={sorting}
-        onPaginationChange={(page, size) => {
-          setPageIndex(page);
-          setPageSize(size);
-        }}
-        onSearchChange={(value) => {
-          if (!value && search === initialSearch && initialSearch) return;
-          setSearch(value);
-          setPageIndex(0);
-        }}
-        onSortingChange={(next) => {
-          setSorting(
-            next.length > 0 ? next : [{ id: 'recordedAt', desc: true }],
-          );
-          setPageIndex(0);
-        }}
+        onPaginationChange={handlePaginationChange}
+        onSearchChange={handleSearchChange}
+        onSortingChange={handleSortingChange}
         isLoading={isFetching}
       />
     </div>

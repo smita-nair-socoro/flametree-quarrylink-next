@@ -20,11 +20,11 @@ export type PaymentsListParams = {
   pageSize?: number;
 };
 
-function toApiPage(page: number): number {
+export function toApiPage(page: number): number {
   return page + 1;
 }
 
-function withApiPage(params?: PaymentsListParams): PaymentsListParams {
+export function withApiPage(params?: PaymentsListParams): PaymentsListParams {
   if (!params) return {};
   return {
     ...params,
