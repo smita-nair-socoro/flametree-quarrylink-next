@@ -178,10 +178,25 @@ export class ApiClient {
   // -- Jobs --
   jobs = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/job${params ? `?${params}` : ''}`),
+    get: (id: number) => this.get(`/socoro/quarrylink/api/job/${id}`),
     internalTransfers: (params?: string) =>
       this.get(
         `/socoro/quarrylink/api/job/internal-transfers${params ? `?${params}` : ''}`,
       ),
+    createInternalTransfer: (body: {
+      fromSiteId: number;
+      toSiteId: number;
+      notes?: string;
+    }) => this.post('/socoro/quarrylink/api/job/internal-transfers', body),
+    updateInternalTransfer: (
+      id: number,
+      body: {
+        version: number;
+        fromSiteId?: number;
+        toSiteId?: number;
+        notes?: string;
+      },
+    ) => this.put(`/socoro/quarrylink/api/job/internal-transfers/${id}`, body),
     purchaseOrders: (params?: string) =>
       this.get(
         `/socoro/quarrylink/api/job/purchase-orders${params ? `?${params}` : ''}`,
@@ -207,6 +222,23 @@ export class ApiClient {
     downloadAttachment: (jobId: number, attachmentId: number) =>
       this.get(
         `/socoro/quarrylink/api/job/${jobId}/attachments/${attachmentId}`,
+      ),
+  };
+
+  // -- Quarry / supplier product pricing (cost seeding for IT) --
+  quarryProducts = {
+    get: (quarrySupplierId: number, productId: number) =>
+      this.get(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
+      ),
+    update: (
+      quarrySupplierId: number,
+      productId: number,
+      body: Record<string, unknown>,
+    ) =>
+      this.put(
+        `/socoro/quarrylink/api/quarry-products/${quarrySupplierId}/${productId}`,
+        body,
       ),
   };
 
