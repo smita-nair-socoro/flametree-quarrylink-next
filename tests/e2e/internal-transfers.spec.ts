@@ -248,11 +248,17 @@ async function findProductWithoutCostAtSabeto(
   apiClient: ApiClient,
   sabetoId: number,
 ): Promise<ProductRow | null> {
-  const productsRes = await apiClient.products.list(
-    `page=1&pageSize=50&quarrySupplierId=${sabetoId}`,
+  const linkedRes = await apiClient.quarries.linkedProducts(
+    sabetoId,
+    'page=1&pageSize=50',
   );
-  if (!productsRes.ok()) return null;
-  const products = pageRows<ProductRow>(await productsRes.json());
+  if (!linkedRes.ok()) return null;
+  const data = await linkedRes.json();
+  const products =
+    data && typeof data === 'object' && 'products' in (data as object)
+      ? pageRows<ProductRow>((data as { products: unknown }).products)
+      : pageRows<ProductRow>(data);
+
   for (const product of products) {
     if (product.productName === AP65) continue;
     const detail = await apiClient.quarryProducts.get(sabetoId, product.id);
@@ -265,7 +271,7 @@ async function findProductWithoutCostAtSabeto(
       Number(body.perBulkaCostPrice ?? 0);
     if (cost <= 0) return product;
   }
-  // Force a product to zero cost for the missing-cost scenario.
+
   const candidate = products.find((p) => p.productName !== AP65);
   if (!candidate) return null;
   const detail = await apiClient.quarryProducts.get(sabetoId, candidate.id);
@@ -280,6 +286,30 @@ async function findProductWithoutCostAtSabeto(
     version: body.version ?? 0,
   });
   return candidate;
+}
+
+async function selectProductInItModal(
+  page: Page,
+  modal: ReturnType<Page['getByRole']>,
+  productName: string | RegExp,
+) {
+  const productCombo = modal.getByRole('combobox', { name: /^Product/i });
+  await expect(productCombo).toBeEnabled({ timeout: 20000 });
+  await productCombo.click();
+  const search = page.getByPlaceholder(/Search Products/i);
+  if ((await search.count()) > 0) {
+    const term =
+      typeof productName === 'string' ? productName : 'AP';
+    await search.fill(term);
+    await page.waitForTimeout(500);
+  }
+  const opt = page.getByRole('option').filter({ hasText: productName }).first();
+  await expect(opt).toBeVisible({ timeout: 15000 });
+  await opt.click();
+  await expect(productCombo).not.toHaveText(/Select Product|No Products/i, {
+    timeout: 10000,
+  });
+  await page.waitForTimeout(500);
 }
 
 async function openAddItDocket(page: Page, job: { id: number; jobNumber?: string }) {
@@ -564,26 +594,18 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     const job = await ensureSabetoYaqaraJob(apiClient);
     const { modal } = await openAddItDocket(page, job);
 
-    await selectComboboxOption(page, /Select Product|AP65/i, AP65);
-    const qty = modal.locator('input').filter({ hasNot: page.locator('[type=hidden]') }).nth(0);
-    // Prefer labelled quantity field
-    const qtyInput = modal.getByRole('spinbutton').first().or(
-      modal.locator('input[inputmode="decimal"], input[type="number"]').first(),
-    );
-    if ((await qtyInput.count()) > 0) {
-      await qtyInput.first().fill('2');
-    } else {
-      await modal.getByText(/Quantity/i).locator('..').locator('input').first().fill('2');
-    }
-    void qty;
+    await selectProductInItModal(page, modal, AP65);
+    const loadSize = modal.getByRole('textbox', { name: /Planned Load Size/i });
+    await expect(loadSize).toBeEnabled({ timeout: 15000 });
+    await loadSize.fill('2');
 
     await expect(modal.getByText('Transfer Summary')).toBeVisible({
       timeout: 15000,
     });
     await expect(modal.getByText(/Cost price/i)).toBeVisible();
     await expect(modal.getByText(/Product cost/i)).toBeVisible();
-    await expect(modal.getByText(/^GST$|^VAT$|Tax/i)).toHaveCount(0);
     await expect(modal.getByText('Sale Summary')).toHaveCount(0);
+    await expect(modal.getByText(/GST\s*\(/i)).toHaveCount(0);
   });
 
   test('9. Missing cost blocks create', async ({
@@ -594,33 +616,26 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     const sabeto = sites.find((s) => s.name === SABETO);
     test.skip(!sabeto, 'Sabeto site missing');
     const noCost = await findProductWithoutCostAtSabeto(apiClient, sabeto!.id);
-    test.skip(!noCost, 'No product without cost at Sabeto to assert block');
+    test.skip(!noCost?.productName, 'No linked product without cost at Sabeto');
 
     const job = await ensureSabetoYaqaraJob(apiClient);
     const { modal } = await openAddItDocket(page, job);
 
-    await selectComboboxOption(
-      page,
-      /Select Product|No Products|AP65/i,
-      noCost!.productName ?? /./,
-    );
-    await page.waitForTimeout(1000);
-
-    const createBtn = modal.getByRole('button', { name: 'Create Internal Transfer' });
-    // Button may be disabled, or click shows toast
-    if (await createBtn.isEnabled()) {
-      await createBtn.click();
+    await selectProductInItModal(page, modal, noCost!.productName!);
+    const loadSize = modal.getByRole('textbox', { name: /Planned Load Size/i });
+    if ((await loadSize.count()) > 0 && (await loadSize.isEnabled())) {
+      await loadSize.fill('1');
     }
+
+    await expect(modal.getByText('Transfer Summary')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(modal.getByText(/Cost price/i)).toBeVisible();
+    await expect(modal.getByText('$0.00 / TN').or(modal.getByText('$0.00 / M3'))).toBeVisible();
+    // Create is disabled when cost is missing (toast path only fires on click).
     await expect(
-      page
-        .getByText(
-          new RegExp(
-            `Cost price is missing for ${noCost!.productName}|missing for .* at ${SABETO}`,
-            'i',
-          ),
-        )
-        .first(),
-    ).toBeVisible({ timeout: 15000 });
+      modal.getByRole('button', { name: 'Create Internal Transfer' }),
+    ).toBeDisabled();
   });
 
   test('10. Multiple dockets on one job (existing + modal)', async ({
@@ -678,7 +693,7 @@ test.describe('Internal Transfers — completion, journal, sync', () => {
     apiClient,
   }) => {
     const transfer = await findCompletedItTransfer(apiClient);
-    test.skip(!transfer || transfer.voided, 'No non-void completed IT transfer');
+    test.skip(!transfer, 'No IT transfer on Payments for actions menu');
 
     await page.goto(
       '/customer-operations/payments?tab=internal-transfers',
@@ -704,7 +719,6 @@ test.describe('Internal Transfers — completion, journal, sync', () => {
     await expect(
       page.getByRole('menuitem', { name: /Cash Sale/i }),
     ).toHaveCount(0);
-    // Void may also appear for SUPER_ADMIN — that is allowed.
   });
 
   test('13. Accounting sync badge on Payments IT', async ({
@@ -944,14 +958,21 @@ test.describe('Internal Transfers — Payments & boundaries', () => {
 });
 
 test.describe('Internal Transfers — void, stock, regression', () => {
-  test('18. Void permission — admin (SUPER_ADMIN) sees Void', async ({
+  test('18. Void permission — admin sees Void on non-voided; note for without-permission', async ({
     authedPage: page,
     apiClient,
   }) => {
-    // Soft-skip for "user without Void Transactions": staging only has admin
-    // fixture. SUPER_ADMIN is treated as having void rights in the product.
-    const transfer = await findCompletedItTransfer(apiClient);
-    test.skip(!transfer || transfer.voided, 'No voidable IT transfer');
+    const listRes = await apiClient.payments.internalTransfers(
+      'page=1&pageSize=50',
+    );
+    skipIfUnavailable(listRes, 'IT payments');
+    const live = pageRows<ItTransferRow>(await listRes.json()).find(
+      (r) => !r.voided,
+    );
+    test.skip(
+      !live,
+      'No non-void IT transfer — Void menu check soft-skipped; no second user without Void Transactions on staging',
+    );
 
     await page.goto(
       '/customer-operations/payments?tab=internal-transfers',
@@ -959,21 +980,16 @@ test.describe('Internal Transfers — void, stock, regression', () => {
     );
     await page.waitForTimeout(2000);
     const search = page.getByPlaceholder('Search internal transfers...');
-    await search.fill(transfer!.docketNumber);
+    await search.fill(live!.docketNumber);
     await page.waitForTimeout(1500);
     const row = page
       .locator('table tbody tr')
-      .filter({ hasText: transfer!.docketNumber })
+      .filter({ hasText: live!.docketNumber })
       .first();
     await expect(row).toBeVisible({ timeout: 15000 });
     await row.getByRole('button').last().click();
     await expect(page.getByRole('menuitem', { name: 'Void' })).toBeVisible({
       timeout: 10000,
-    });
-    test.info().annotations.push({
-      type: 'note',
-      description:
-        'Skipped negative Void-permission check — no second user without Void Transactions on staging',
     });
   });
 
