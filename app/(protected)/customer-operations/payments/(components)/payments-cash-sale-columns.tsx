@@ -14,23 +14,6 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { TableBadges } from '@/components/table-badges';
 import { CashSaleReceiptActions } from '@/components/cash-sale-receipt-actions';
-import { useRetryCashSale } from '@/lib/api/payments';
-
-function CashSaleSyncCell({ receipt }: { receipt: PaymentsCashSale }) {
-  const retry = useRetryCashSale();
-  return (
-    <AccountingSyncBadge
-      status={receipt.accountingSync}
-      failureReason={receipt.failureReason}
-      onRetry={
-        receipt.accountingSync === 'FAILED' && !receipt.voided
-          ? () => retry.mutate(receipt.id)
-          : undefined
-      }
-      retrying={retry.isPending}
-    />
-  );
-}
 
 export const getPaymentsCashSaleColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
@@ -183,7 +166,12 @@ export const getPaymentsCashSaleColumns = (
       header: ({ column }) => (
         <TableClientSortableHeader column={column} title="Accounting Sync" />
       ),
-      cell: ({ row }) => <CashSaleSyncCell receipt={row.original} />,
+      cell: ({ row }) => (
+        <AccountingSyncBadge
+          status={row.original.accountingSync}
+          failureReason={row.original.failureReason}
+        />
+      ),
       meta: 'Accounting Sync',
     },
     {

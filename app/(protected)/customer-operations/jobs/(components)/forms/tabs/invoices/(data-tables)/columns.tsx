@@ -128,7 +128,12 @@ export const getInvoicesColumns = (
     },
     cell: ({ row }) => {
       const invoice = row.original;
-      return <InvoiceTableActions invoiceId={invoice.id} />;
+      return (
+        <InvoiceTableActions
+          invoiceId={invoice.id}
+          accountingSync={invoice.accountingSync ?? invoice.status}
+        />
+      );
     },
   },
 ];

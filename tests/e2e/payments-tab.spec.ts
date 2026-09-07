@@ -636,40 +636,56 @@ test.describe('Payments tab — sync vocabulary & retry', () => {
     }
   });
 
-  test('24. Retry control only on Failed rows (badge)', async ({
+  test('24. Retry Sync only on Failed rows (⋯ menu)', async ({
     authedPage: page,
   }) => {
     await ensurePaymentsPage(page, 'tab=cash-payments&failedOnly=true');
     await page.waitForTimeout(2000);
-    const retryButtons = page.getByRole('button', { name: /^Retry$/ });
     const failedRows = page.locator('table tbody tr').filter({
       hasText: /Failed/i,
     });
+    // No under-badge Retry link in the Accounting Sync column.
+    await expect(page.getByRole('button', { name: /^Retry$/ })).toHaveCount(0);
     if ((await failedRows.count()) === 0) {
-      await expect(retryButtons).toHaveCount(0);
       return;
     }
-    // Each Failed (non-empty) row area should expose Retry under the badge.
-    await expect(retryButtons.first()).toBeVisible();
+    const row = failedRows.first();
+    await row.getByRole('button', { name: 'Receipt actions' }).click();
+    await expect(
+      page.getByRole('menuitem', { name: /Retry Sync/i }),
+    ).toBeVisible();
   });
 
-  test('25. Retry click is idempotent / no crash', async ({
+  test('25. Retry Sync from ⋯ is idempotent / no crash', async ({
     authedPage: page,
   }) => {
     await ensurePaymentsPage(page, 'tab=cash-payments&failedOnly=true');
     await page.waitForTimeout(2500);
-    const retry = page.getByRole('button', { name: /^Retry$/ }).first();
+    const failedRows = page.locator('table tbody tr').filter({
+      hasText: /Failed/i,
+    });
+    test.skip(
+      (await failedRows.count()) === 0,
+      'No Failed cash payment with Retry on staging',
+    );
+    const row = failedRows.first();
+    await row.getByRole('button', { name: 'Receipt actions' }).click();
+    const retry = page.getByRole('menuitem', { name: /Retry Sync/i });
     test.skip(
       (await retry.count()) === 0,
-      'No Failed cash payment with Retry on staging',
+      'No Failed cash payment with Retry Sync menu item on staging',
     );
     await retry.click();
     await page.waitForTimeout(1500);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
-    // Second click must not crash (idempotent / in-flight safe).
-    if ((await retry.count()) > 0 && (await retry.isEnabled())) {
-      await retry.click();
-      await page.waitForTimeout(1000);
+    // Second open + click must not crash (idempotent / in-flight safe).
+    if ((await row.getByRole('button', { name: 'Receipt actions' }).count()) > 0) {
+      await row.getByRole('button', { name: 'Receipt actions' }).click();
+      const retryAgain = page.getByRole('menuitem', { name: /Retry Sync/i });
+      if ((await retryAgain.count()) > 0) {
+        await retryAgain.click();
+        await page.waitForTimeout(1000);
+      }
     }
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
   });

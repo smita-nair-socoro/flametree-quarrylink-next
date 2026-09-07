@@ -13,7 +13,6 @@ import {
 import {
   PaymentsInvoicesQueryOptions,
   PaymentsInvoiceStatisticsQueryOptions,
-  useRetryInvoice,
 } from '@/lib/api/payments';
 import { getPaymentsInvoiceColumns } from './payments-invoice-columns';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -31,7 +30,6 @@ export function PaymentsInvoicesPanel({
   const searchParams = useSearchParams();
   const { currencyCode, taxLabel, formatCentsToCurrency } =
     useTenantCurrencyTax();
-  const retryInvoice = useRetryInvoice();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState(initialSearch);
@@ -111,14 +109,8 @@ export function PaymentsInvoicesPanel({
   const { data: statistics } = useQuery(PaymentsInvoiceStatisticsQueryOptions());
 
   const columns = React.useMemo(
-    () =>
-      getPaymentsInvoiceColumns(
-        (id) => retryInvoice.mutate(id),
-        retryInvoice.isPending ? retryInvoice.variables : undefined,
-        currencyCode,
-        taxLabel,
-      ),
-    [currencyCode, taxLabel, retryInvoice],
+    () => getPaymentsInvoiceColumns(currencyCode, taxLabel),
+    [currencyCode, taxLabel],
   );
 
   // KPI cards always use full-dataset statistics (no date-range params).

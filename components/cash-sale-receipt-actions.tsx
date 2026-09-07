@@ -122,7 +122,7 @@ export function CashSaleReceiptActions({
           ) : null}
           {isAdmin &&
           !receipt.voided &&
-          receipt.accountingSync !== 'SYNCED' ? (
+          receipt.accountingSync === 'FAILED' ? (
             <DropdownMenuItem onClick={() => retry.mutate(receipt.id)}>
               Retry Sync
             </DropdownMenuItem>
