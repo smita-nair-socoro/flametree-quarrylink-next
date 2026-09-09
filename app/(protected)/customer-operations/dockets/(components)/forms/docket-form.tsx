@@ -79,7 +79,10 @@ import { STOP_REASON_LABELS } from '@/hooks/docket/stop-transit-content';
 import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { TRUCK_TYPE } from '@/lib/types/truck-enums';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
-import { getDocketSignOffCopy } from '@/lib/utils/docket-sign-off';
+import {
+  formatDocketSignOffAt,
+  getDocketSignOffCopy,
+} from '@/lib/utils/docket-sign-off';
 import { DocketOperationalUpdateRequest, DocketDTO } from '@/lib/types/docket';
 
 const truckTypeOptions: FormSelectOption[] = sortByLabel(
@@ -2059,10 +2062,9 @@ export default function DocketForm({
                       </div>
                       {selectedDocket?.deliveredAt && (
                         <span className="text-sm text-muted-foreground">
-                          {signOffCopy.atPrefix}{' '}
-                          {format(
-                            new Date(selectedDocket.deliveredAt),
-                            'hh:mm a',
+                          {formatDocketSignOffAt(
+                            selectedDocket.deliveredAt,
+                            !isDelivery,
                           )}
                         </span>
                       )}

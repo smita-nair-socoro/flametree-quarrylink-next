@@ -166,6 +166,7 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
   const [receiverName, setReceiverName] = React.useState('');
   const [receiverSignature, setReceiverSignature] = React.useState('');
   const [emptyProofConfirming, setEmptyProofConfirming] = React.useState(false);
+  const emptyProofAcceptedRef = React.useRef(false);
   const [collectorNameError, setCollectorNameError] = React.useState('');
   const [stopReason, setStopReason] = React.useState('');
   const [stopNotes, setStopNotes] = React.useState('');
@@ -443,7 +444,7 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
     }
     setCollectorNameError('');
 
-    if (!hasAnyCollectionProof(proof) && !emptyProofConfirming) {
+    if (!hasAnyCollectionProof(proof) && !emptyProofAcceptedRef.current) {
       setEmptyProofConfirming(true);
       return;
     }
@@ -477,9 +478,16 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
       setReceiverSignature('');
       setEmptyProofConfirming(false);
       setCollectorNameError('');
+      emptyProofAcceptedRef.current = false;
     } catch (error) {
       notifyError(extractErrorMessage(error));
     }
+  };
+
+  const handleConfirmEmptyProof = () => {
+    emptyProofAcceptedRef.current = true;
+    setEmptyProofConfirming(false);
+    void handleMarkCollected();
   };
 
   const handleMarkReady = async () => {
@@ -860,7 +868,11 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
             }}
             collectorNameError={collectorNameError}
             emptyProofConfirming={emptyProofConfirming}
-            onDismissEmptyProofConfirm={() => setEmptyProofConfirming(false)}
+            onDismissEmptyProofConfirm={() => {
+              emptyProofAcceptedRef.current = false;
+              setEmptyProofConfirming(false);
+            }}
+            onConfirmEmptyProof={handleConfirmEmptyProof}
           />
         ),
         confirmText: 'Mark as Collected',
@@ -1125,6 +1137,7 @@ export function useDocketActions(docketSource?: DocketDTO | number | null) {
               setReceiverSignature('');
               setEmptyProofConfirming(false);
               setCollectorNameError('');
+              emptyProofAcceptedRef.current = false;
             }
             setActiveDialog(null);
           }

@@ -9,13 +9,28 @@ import {
   Upload,
   X,
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { ImagePreviewDialog } from '@/components/ui/image-preview-dialog';
 import { Input } from '@/components/ui/input';
 import { Signature } from '@/components/ui/signature';
 import { DocketDTO } from '@/lib/types/docket';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
+import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { acceptImageFile } from '@/lib/utils/image-file-size';
-import { EMPTY_COLLECTION_PROOF_CONFIRMATION } from '@/lib/utils/collection-proof';
+import {
+  EMPTY_COLLECTION_PROOF_CONFIRMATION,
+  EMPTY_COLLECTION_PROOF_CONTINUE,
+  EMPTY_COLLECTION_PROOF_CONTINUE_EDITING,
+} from '@/lib/utils/collection-proof';
 
 export function MarkCollectedDescription({
   docket,
@@ -23,8 +38,8 @@ export function MarkCollectedDescription({
   docket?: DocketDTO | null;
 }) {
   const productLabel =
-    docket?.jobItem?.product?.productCode ||
     docket?.jobItem?.product?.productName ||
+    docket?.jobItem?.product?.productCode ||
     '—';
 
   return (
@@ -40,7 +55,9 @@ export function MarkCollectedDescription({
           <span>{productLabel}</span>
           <span className="font-bold">•</span>
           <span>
-            {docket?.actualLoadSize || docket?.plannedLoadSize}{' '}
+            {formatNumberThousandSeparator(
+              docket?.actualLoadSize || docket?.plannedLoadSize,
+            )}{' '}
             {formatUomLabel(docket?.jobItem?.productSellUom ?? '')}
           </span>
         </div>
@@ -161,6 +178,7 @@ interface MarkCollectedContentProps {
   collectorNameError?: string;
   emptyProofConfirming?: boolean;
   onDismissEmptyProofConfirm?: () => void;
+  onConfirmEmptyProof?: () => void;
 }
 
 export function MarkCollectedContent({
@@ -176,6 +194,7 @@ export function MarkCollectedContent({
   collectorNameError,
   emptyProofConfirming,
   onDismissEmptyProofConfirm,
+  onConfirmEmptyProof,
 }: MarkCollectedContentProps) {
   const [previewImage, setPreviewImage] = React.useState<{
     src: string;
@@ -193,27 +212,38 @@ export function MarkCollectedContent({
         alt={previewImage?.title ?? 'Photo preview'}
         title={previewImage?.title ?? 'Photo Preview'}
       />
-      <div className="flex flex-col gap-6">
-        {emptyProofConfirming ? (
-          <div className="rounded-md border border-[#FEF08A] bg-[#FFFBEB] px-4 py-4">
-            <div className="flex items-start gap-3">
-              <CircleAlert className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#CA8A04]" />
-              <div className="flex flex-1 flex-col gap-2">
-                <span className="text-sm text-[#A16207]">
-                  {EMPTY_COLLECTION_PROOF_CONFIRMATION}
-                </span>
-                <button
-                  type="button"
-                  onClick={onDismissEmptyProofConfirm}
-                  className="w-fit text-xs text-[#A16207] underline underline-offset-2 hover:text-[#854D0E]"
-                >
-                  Go back
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : null}
+      <AlertDialog
+        open={!!emptyProofConfirming}
+        onOpenChange={(open) => {
+          if (!open) onDismissEmptyProofConfirm?.();
+        }}
+      >
+        <AlertDialogContent className="z-[70] sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>No proof of collection captured</AlertDialogTitle>
+            <AlertDialogDescription>
+              {EMPTY_COLLECTION_PROOF_CONFIRMATION}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel type="button">
+              {EMPTY_COLLECTION_PROOF_CONTINUE_EDITING}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              type="button"
+              className="bg-[#008236] text-white hover:bg-[#008236]/90"
+              onClick={(event) => {
+                event.preventDefault();
+                onConfirmEmptyProof?.();
+              }}
+            >
+              {EMPTY_COLLECTION_PROOF_CONTINUE}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
+      <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-4">
           <h3 className="text-lg font-semibold text-[#111827]">
             Proof of Collection
