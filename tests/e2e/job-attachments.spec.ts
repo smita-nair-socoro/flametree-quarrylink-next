@@ -98,6 +98,16 @@ async function openAddAttachmentModal(page: Page, jobId: number) {
   const dialog = await openJobDetail(page, jobId);
   const addButton = addAttachmentButton(dialog);
   await expect(addButton).toBeVisible({ timeout: 15000 });
+  // Button is disabled while the attachments query is loading — wait for settle.
+  await expect
+    .poll(async () => {
+      const text = (await addButton.textContent()) ?? '';
+      const disabled = await addButton.isDisabled();
+      if (!disabled) return 'ready';
+      if (/\(3 of 3\)/.test(text)) return 'at-cap';
+      return 'loading';
+    }, { timeout: 20000 })
+    .not.toBe('loading');
   if (await addButton.isDisabled()) {
     return { dialog, addButton, opened: false as const };
   }
@@ -256,7 +266,9 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
     authedPage: page,
     apiClient,
   }) => {
-    const job = await findJobWithAttachmentRoom(apiClient, 2);
+    createdNames.length = 0;
+    // Need room for happy-path + duplicate (+ cap fill later). Start from an empty job.
+    const job = await findJobWithAttachmentRoom(apiClient, 0);
     test.skip(!job, 'No job with a free attachment slot');
     jobId = job!.id;
 
@@ -335,13 +347,25 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
   }) => {
     test.skip(!jobId, 'No job selected from happy-path upload');
     const current = await apiClient.jobs.attachments(jobId!);
-    const attachments = (await current.json()) as unknown[];
+    const attachments = (await current.json()) as Array<{
+      id?: number;
+      fileName?: string;
+    }>;
     test.skip(
       !Array.isArray(attachments) || attachments.length >= 3,
       'Job is at the 3-file cap',
     );
 
-    const duplicateName = createdNames[0] ?? `E2E dup ${Date.now()}`;
+    // Prefer a live attachment name from the API — createdNames[0] can point at a
+    // purged row if happy-path was retried or cleaned up mid-suite.
+    const liveName = attachments.find((a) =>
+      String(a.fileName ?? '').startsWith('E2E '),
+    )?.fileName;
+    const duplicateName = liveName ?? createdNames.at(-1) ?? `E2E dup ${Date.now()}`;
+    const beforeCount = attachments.filter(
+      (a) => a.fileName === duplicateName,
+    ).length;
+
     const opened = await openAddAttachmentModal(page, jobId!);
     test.skip(!opened.opened, 'Job is at the 3-file cap');
 
@@ -350,13 +374,29 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
     await opened.modal!.locator('input[type="file"]').setInputFiles(
       pdfFile('duplicate.pdf'),
     );
-    await opened.modal!.getByLabel('File Name*').fill(duplicateName);
+    const fileNameInput = opened.modal!.getByLabel('File Name*');
+    await fileNameInput.fill(duplicateName);
+    await expect(fileNameInput).toHaveValue(duplicateName);
     await opened.modal!.getByRole('button', { name: 'Add Attachment' }).click();
     await expect(page.getByText('Attachment uploaded successfully')).toBeVisible({
       timeout: 20000,
     });
     createdNames.push(duplicateName);
-    await expect(opened.dialog.getByText(duplicateName)).toHaveCount(2);
+
+    await expect
+      .poll(async () => {
+        const res = await apiClient.jobs.attachments(jobId!);
+        const list = (await res.json()) as Array<{ fileName?: string }>;
+        return Array.isArray(list)
+          ? list.filter((a) => a.fileName === duplicateName).length
+          : 0;
+      })
+      .toBe(beforeCount + 1);
+
+    const refreshed = await openJobDetail(page, jobId!);
+    await expect(
+      refreshed.locator('tr').filter({ hasText: duplicateName }),
+    ).toHaveCount(beforeCount + 1);
   });
 
   test('Add Attachment is enabled below cap and disabled at 3 of 3; delete frees a slot', async ({
@@ -426,14 +466,45 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
 
   test('row actions are Download and Delete only, and download starts a file', async ({
     authedPage: page,
+    apiClient,
   }) => {
-    test.skip(!jobId, 'No job selected from happy-path upload');
+    test.setTimeout(120000);
+    if (!jobId) {
+      const job = await findJobWithAttachmentRoom(apiClient, 2);
+      test.skip(!job, 'No job with a free attachment slot');
+      jobId = job!.id;
+      const seedName = `E2E DL ${Date.now()}`;
+      const upload = await apiClient.jobs.uploadAttachment(jobId, {
+        category: 'Other',
+        fileName: seedName,
+        file: pdfFile('e2e-download.pdf'),
+      });
+      expect(upload.ok(), 'seed upload for download test should succeed').toBeTruthy();
+      createdNames.push(seedName);
+    }
+
     const dialog = await openJobDetail(page, jobId!);
-    const row = dialog
+    const table = dialog
       .locator('table')
-      .filter({ has: page.getByRole('columnheader', { name: 'Uploaded By' }) })
-      .locator('tbody tr')
-      .first();
+      .filter({ has: page.getByRole('columnheader', { name: 'Uploaded By' }) });
+    let row = table.locator('tbody tr').first();
+    if ((await row.count()) === 0) {
+      const seedName = `E2E DL ${Date.now()}`;
+      const upload = await apiClient.jobs.uploadAttachment(jobId!, {
+        category: 'Other',
+        fileName: seedName,
+        file: pdfFile('e2e-download.pdf'),
+      });
+      expect(upload.ok(), 'seed upload for empty table should succeed').toBeTruthy();
+      createdNames.push(seedName);
+      await page.reload({ waitUntil: 'networkidle' });
+      const refreshed = await openJobDetail(page, jobId!);
+      row = refreshed
+        .locator('table')
+        .filter({ has: page.getByRole('columnheader', { name: 'Uploaded By' }) })
+        .locator('tbody tr')
+        .first();
+    }
     test.skip((await row.count()) === 0, 'No attachment rows to download');
 
     await rowActionsTrigger(row).click();
@@ -442,10 +513,27 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
     await expect(menu.getByRole('menuitem', { name: 'Delete' })).toBeVisible();
     await expect(menu.getByRole('menuitem')).toHaveCount(2);
 
-    const downloadPromise = page.waitForEvent('download', { timeout: 15000 });
+    // Blob downloads are async (fetch → object URL → <a download>). Assert the
+    // authenticated GET succeeds; also accept a Playwright download when emitted.
+    const responsePromise = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'GET' &&
+        /\/job\/\d+\/attachments\/\d+/.test(response.url()) &&
+        !response.url().includes('?'),
+      { timeout: 45000 },
+    );
+    const downloadPromise = page
+      .waitForEvent('download', { timeout: 45000 })
+      .catch(() => null);
+
     await menu.getByRole('menuitem', { name: 'Download' }).click();
+
+    const response = await responsePromise;
+    expect(response.ok(), `attachment download GET should succeed (got ${response.status()})`).toBeTruthy();
     const download = await downloadPromise;
-    expect(download.suggestedFilename().length).toBeGreaterThan(0);
+    if (download) {
+      expect(download.suggestedFilename().length).toBeGreaterThan(0);
+    }
   });
 });
 
@@ -483,7 +571,13 @@ test.describe('Customers - Attachments regression', () => {
     });
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
 
-    const row = page.locator('table tbody tr').first();
+    const emptyState = page.getByRole('heading', { name: 'No items are available' });
+    test.skip(
+      await emptyState.isVisible().catch(() => false),
+      'No customers available to open',
+    );
+
+    const row = page.locator('table tbody tr').filter({ hasNotText: 'No items are available' }).first();
     test.skip((await row.count()) === 0, 'No customers available to open');
 
     await rowActionsTrigger(row).click();

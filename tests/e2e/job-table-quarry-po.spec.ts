@@ -169,11 +169,12 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     test.skip(!empty, 'No empty quarry/PO job available');
 
     await gotoJobRow(page, empty!.jobNumber);
+    const row = page.locator('table tbody tr').filter({ hasText: empty!.jobNumber });
     if ((empty!.quarrySupplierNames?.length ?? 0) === 0) {
-      await expect(page.getByTestId('job-quarry-cell').first()).toHaveText('—');
+      await expect(row.getByTestId('job-quarry-cell')).toHaveText('—');
     }
     if ((empty!.poNumbers?.length ?? 0) === 0) {
-      await expect(page.getByTestId('job-po-cell').first()).toHaveText('—');
+      await expect(row.getByTestId('job-po-cell')).toHaveText('—');
     }
   });
 

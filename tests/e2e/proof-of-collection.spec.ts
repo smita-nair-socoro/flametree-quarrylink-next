@@ -49,6 +49,10 @@ function statusOf(row: DocketRow): string {
   return `${row.status ?? row.docketStatus ?? ''}`.toUpperCase();
 }
 
+function statusEquals(row: DocketRow, wanted: string): boolean {
+  return statusOf(row) === wanted.toUpperCase();
+}
+
 function requestedStatusFromPut(request: Request): string {
   const body =
     request.postData() ??
@@ -70,7 +74,7 @@ async function findDockets(
   const wantedStatus = statuses.toUpperCase();
   const matches = (row: DocketRow) =>
     matchesType(row, types) &&
-    (wantedStatus ? statusOf(row).includes(wantedStatus) : true);
+    (wantedStatus ? statusEquals(row, wantedStatus) : true);
 
   const tableRes = await apiClient.dockets.table(query);
   if (tableRes.ok()) {
@@ -190,30 +194,38 @@ test.describe('Proof of Collection - UI', () => {
       }
 
       if (request.method() === 'GET' && pathname.match(/\/dockets\/\d+$/)) {
-        const response = await route.fetch();
-        if (!response.ok()) {
+        try {
+          const response = await route.fetch();
+          if (!response.ok()) {
+            await route.fulfill({ response });
+            return;
+          }
+          const docket = await response.json();
+          const itemType = `${docket.jobItem?.jobItemType ?? ''}`.toUpperCase();
+          const currentStatus = `${docket.docketStatus ?? ''}`.toUpperCase();
+          if (
+            itemType.includes('COLLECTION') &&
+            (currentStatus === 'PREPARING' || currentStatus === 'PENDING')
+          ) {
+            await route.fulfill({
+              response,
+              json: { ...docket, docketStatus: 'READY_FOR_COLLECTION' },
+            });
+            return;
+          }
           await route.fulfill({ response });
-          return;
+        } catch {
+          await route.fallback().catch(() => undefined);
         }
-        const docket = await response.json();
-        const itemType = `${docket.jobItem?.jobItemType ?? ''}`.toUpperCase();
-        const currentStatus = `${docket.docketStatus ?? ''}`.toUpperCase();
-        if (
-          itemType.includes('COLLECTION') &&
-          (currentStatus === 'PREPARING' || currentStatus === 'PENDING')
-        ) {
-          await route.fulfill({
-            response,
-            json: { ...docket, docketStatus: 'READY_FOR_COLLECTION' },
-          });
-          return;
-        }
-        await route.fulfill({ response });
         return;
       }
 
       await route.continue();
     });
+  });
+
+  test.afterEach(async ({ authedPage: page }) => {
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
   });
 
   test('Mark as Collected opens the proof modal', async ({
@@ -363,62 +375,19 @@ test.describe('Proof of Collection - UI', () => {
 });
 
 test.describe('Proof of Collection - Sign Off labels', () => {
-  test.beforeEach(async ({ authedPage: page }) => {
-    await page.route('**/socoro/quarrylink/api/dockets/*', async (route) => {
-      const request = route.request();
-      if (request.method() !== 'GET') {
-        await route.continue();
-        return;
-      }
-      const pathname = new URL(request.url()).pathname;
-      if (!pathname.match(/\/dockets\/\d+$/)) {
-        await route.continue();
-        return;
-      }
-
-      const response = await route.fetch().catch(() => null);
-      if (!response || !response.ok()) {
-        if (response) {
-          await route.fulfill({ response });
-        } else {
-          await route.abort().catch(() => undefined);
-        }
-        return;
-      }
-
-      const docket = await response.json();
-      const itemType = `${docket.jobItem?.jobItemType ?? ''}`.toUpperCase();
-      if (!itemType.includes('COLLECTION')) {
-        await route.fulfill({ response });
-        return;
-      }
-
-      await route.fulfill({
-        response,
-        json: {
-          ...docket,
-          docketStatus: 'COLLECTED',
-          deliveredAt: docket.deliveredAt ?? new Date().toISOString(),
-          receiverName: docket.receiverName ?? 'Jane Collector',
-        },
-      });
-    });
-  });
-
-  test.afterEach(async ({ authedPage: page }) => {
-    await page.unrouteAll({ behavior: 'ignoreErrors' });
-  });
-
   test('collected collection docket shows collection Sign Off copy', async ({
     authedPage: page,
     apiClient,
   }) => {
+    test.setTimeout(90000);
     const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
-    const seed = collected[0];
+    const seed = collected.find((row) => statusEquals(row, 'COLLECTED'));
     test.skip(!seed, 'No collected collection docket available for Sign Off test');
 
-    const dialog = await openDocketDetail(page, seed);
-    await expect(dialog.getByText('Sign Off')).toBeVisible({ timeout: 20000 });
+    // No route stubs — relies on prod seed with delivered_at + receiver_name.
+    const dialog = await openDocketDetail(page, seed!);
+    await expect(page).toHaveURL(new RegExp(`[?&]ids=${seed!.id}(?:&|$)`));
+    await expect(dialog.getByText('Sign Off')).toBeVisible({ timeout: 30000 });
     await expect(dialog.getByText('Collector Name')).toBeVisible();
     await expect(dialog.getByText('Photo 1')).toBeVisible();
     await expect(dialog.getByText('Photo 2')).toBeVisible();
