@@ -39,20 +39,34 @@ function pageContent<T>(data: unknown): T[] {
 }
 
 function isSynced(invoice: PaymentsInvoice): boolean {
-  const sync = (invoice.accountingSync || invoice.status || '').toUpperCase();
-  return sync === 'SYNCED' || sync === 'SUCCESS' || sync === 'COMPLETED';
+  const sync = `${invoice.accountingSync ?? ''}`.toUpperCase();
+  const status = `${invoice.status ?? ''}`.toUpperCase();
+  return (
+    sync === 'SYNCED' ||
+    status === 'SYNCED' ||
+    status === 'SALES_ORDER_SYNCED'
+  );
 }
 
 function isFailed(invoice: PaymentsInvoice): boolean {
-  const sync = (invoice.accountingSync || invoice.status || '').toUpperCase();
+  const sync = `${invoice.accountingSync ?? invoice.status ?? ''}`.toUpperCase();
   return sync === 'FAILED' || sync === 'FAILURE' || sync === 'ERROR';
+}
+
+/** Docket-photo attachment errors 500 on retry; they are not Acumatica inventory/warehouse failures. */
+function isPhotoFailure(invoice: PaymentsInvoice): boolean {
+  return /Image type UNKNOWN/i.test(invoice.failureReason ?? '');
+}
+
+function isAcumaticaRetryable(invoice: PaymentsInvoice): boolean {
+  return isFailed(invoice) && !isPhotoFailure(invoice);
 }
 
 test.describe('QLINK-3508 Invoice sync retry - API', () => {
   test('GET /invoices returns payments invoices with accounting sync fields', async ({
     apiClient,
   }) => {
-    const res = await apiClient.invoices.paymentsList('page=1&pageSize=20');
+    const res = await apiClient.invoices.paymentsList('page=1&pageSize=50');
     skipIfUnavailable(res, 'Payments invoices list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
@@ -64,28 +78,35 @@ test.describe('QLINK-3508 Invoice sync retry - API', () => {
         rows[0].accountingSync !== undefined || rows[0].status !== undefined,
       ).toBeTruthy();
     }
+    const salesOrderSynced = rows.filter(
+      (row) => `${row.status ?? ''}`.toUpperCase() === 'SALES_ORDER_SYNCED',
+    );
+    expect(
+      salesOrderSynced.length,
+      'At least one invoice must be SALES_ORDER_SYNCED (Acumatica sales order landed)',
+    ).toBeGreaterThan(0);
   });
 
   test('PUT /invoices/{id}/retry returns aggregate counts (batched retry shape)', async ({
     apiClient,
   }) => {
     const failedRes = await apiClient.invoices.paymentsList(
-      'page=1&pageSize=20&failedOnly=true',
+      'page=1&pageSize=50&failedOnly=true',
     );
     skipIfUnavailable(failedRes, 'Failed invoices list');
     expect(failedRes.ok()).toBeTruthy();
     const failed = pageContent<PaymentsInvoice>(await failedRes.json()).filter(
-      isFailed,
+      isAcumaticaRetryable,
     );
-    test.skip(failed.length === 0, 'No failed invoices available to retry on staging');
+    test.skip(
+      failed.length === 0,
+      'No Acumatica-retryable failed invoice on staging (photo-type failures are skipped)',
+    );
 
     const target = failed[0];
     const retryRes = await apiClient.invoices.retryOne(target.id);
-    // 4xx business validation is acceptable; 5xx would indicate fail-all / unhandled timeout
-    expect(retryRes.status()).toBeLessThan(500);
-    if (!retryRes.ok()) {
-      return;
-    }
+    expect(retryRes.status(), await retryRes.text()).toBeLessThan(500);
+    expect(retryRes.ok()).toBeTruthy();
 
     const body = (await retryRes.json()) as RetryAllInvoicesResponse;
     expect(typeof body.totalAttempted).toBe('number');
@@ -96,6 +117,10 @@ test.describe('QLINK-3508 Invoice sync retry - API', () => {
     );
     expect(body.result).toBeDefined();
     expect(Array.isArray(body.result?.invoices)).toBeTruthy();
+    expect(
+      body.successCount,
+      `Acumatica retry of invoice ${target.id} must succeed after inventory/warehouse remap`,
+    ).toBeGreaterThanOrEqual(1);
   });
 
   test('retrying one failed invoice does not flip other already-synced invoices to FAILED', async ({
@@ -106,19 +131,19 @@ test.describe('QLINK-3508 Invoice sync retry - API', () => {
     expect(listRes.ok()).toBeTruthy();
     const before = pageContent<PaymentsInvoice>(await listRes.json());
     const syncedIds = before.filter(isSynced).map((i) => i.id);
-    const failed = before.filter(isFailed);
+    const failed = before.filter(isAcumaticaRetryable);
 
     test.skip(
       failed.length === 0,
-      'No failed invoice to retry — cannot exercise fail-all regression',
+      'No Acumatica-retryable failed invoice — cannot exercise fail-all regression',
     );
     test.skip(
       syncedIds.length === 0,
-      'No synced invoices present to assert non-cascade',
+      'No synced / sales-order-synced invoices present to assert non-cascade',
     );
 
     const retryRes = await apiClient.invoices.retryOne(failed[0].id);
-    expect(retryRes.status()).toBeLessThan(500);
+    expect(retryRes.status(), await retryRes.text()).toBeLessThan(500);
 
     const afterRes = await apiClient.invoices.paymentsList('page=1&pageSize=50');
     expect(afterRes.ok()).toBeTruthy();

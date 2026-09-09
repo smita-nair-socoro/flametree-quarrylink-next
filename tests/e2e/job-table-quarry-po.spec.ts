@@ -394,28 +394,45 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     }
   });
 
-  test('17 sort PO blanks last', async ({ apiClient }) => {
+  test('17 sort PO on leading value with blanks last', async ({ apiClient }) => {
     const asc = await listJobs(
       apiClient,
-      'page=1&pageSize=25&sortBy=poNumber&sortOrder=asc',
+      'page=1&pageSize=50&sortBy=poNumber&sortOrder=asc',
     );
     const desc = await listJobs(
       apiClient,
-      'page=1&pageSize=25&sortBy=poNumber&sortOrder=desc',
+      'page=1&pageSize=50&sortBy=poNumber&sortOrder=desc',
     );
-    for (const data of [asc, desc]) {
-      const jobs: JobRow[] = data.jobs?.content ?? [];
-      const firstEmpty = jobs.findIndex(
-        (job) => (job.poNumbers?.length ?? 0) === 0,
-      );
+
+    const leadingPo = (job: JobRow) => {
+      const fromLineItems = (job.poNumbers ?? []).find((value) => value?.trim());
+      return (fromLineItems ?? job.poNumber ?? '').trim();
+    };
+
+    const assertOrder = (jobs: JobRow[], direction: 'asc' | 'desc') => {
+      const displayed = jobs.map(leadingPo);
+      const firstEmpty = displayed.findIndex((value) => value.length === 0);
       if (firstEmpty >= 0) {
         expect(
-          jobs
-            .slice(firstEmpty)
-            .every((job) => (job.poNumbers?.length ?? 0) === 0),
+          displayed.slice(firstEmpty).every((value) => value.length === 0),
+          `${direction} PO sort must keep empty cells last`,
         ).toBeTruthy();
       }
-    }
+      const populated = displayed.filter((value) => value.length > 0);
+      const sorted = [...populated].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: 'accent' }),
+      );
+      if (direction === 'desc') {
+        sorted.reverse();
+      }
+      expect(
+        populated.map((value) => value.toLowerCase()),
+        `${direction} PO sort must order by the displayed leading PO`,
+      ).toEqual(sorted.map((value) => value.toLowerCase()));
+    };
+
+    assertOrder(asc.jobs?.content ?? [], 'asc');
+    assertOrder(desc.jobs?.content ?? [], 'desc');
   });
 
   test('18 Show/Hide Columns toggles Quarry and PO', async ({

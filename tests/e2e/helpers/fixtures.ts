@@ -179,6 +179,8 @@ export class ApiClient {
   jobs = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/job${params ? `?${params}` : ''}`),
     get: (id: number) => this.get(`/socoro/quarrylink/api/job/${id}`),
+    jobItems: (jobId: number) =>
+      this.get(`/socoro/quarrylink/api/job/${jobId}/job-items`),
     internalTransfers: (params?: string) =>
       this.get(
         `/socoro/quarrylink/api/job/internal-transfers${params ? `?${params}` : ''}`,
@@ -250,13 +252,27 @@ export class ApiClient {
     get: (id: number) => this.get(`/socoro/quarrylink/api/dockets/${id}`),
     byJob: (jobId: number) =>
       this.get(`/socoro/quarrylink/api/dockets/job/${jobId}`),
+    create: (body: Record<string, unknown>) =>
+      this.post('/socoro/quarrylink/api/dockets', body),
+    assign: (body: {
+      docketId: number;
+      driverId: number;
+      truckId: number;
+      deliveryStartWindow: string;
+      deliveryEndWindow: string;
+      plannedLoadSize?: number;
+    }) => this.put('/socoro/quarrylink/api/dockets/assign', body),
     updateStatus: (
       id: number,
       fields: Record<string, string | number | boolean>,
+      files?: Record<
+        string,
+        { name: string; mimeType: string; buffer: Buffer }
+      >,
     ) =>
       this.request.put(`${BASE_URL}/socoro/quarrylink/api/dockets/${id}/status`, {
         headers: { Cookie: this.cookie },
-        multipart: fields,
+        multipart: { ...fields, ...(files ?? {}) },
       }),
   };
 

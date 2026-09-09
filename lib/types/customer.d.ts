@@ -51,6 +51,7 @@ export interface CustomerDTO {
 
   accSoftwareContactId?: string | null;
   customerLocationId?: string;
+  taxZone?: string | null;
   customerClassification?: string;
   accSoftwareNotes?: string;
   lastAccSoftwareSyncDirection?: string | null;

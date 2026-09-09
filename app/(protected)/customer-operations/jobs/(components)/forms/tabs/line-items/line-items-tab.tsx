@@ -14,7 +14,11 @@ import {
   calculateJobPricingFromTotals,
   JobPricingTotals,
 } from '@/lib/utils/job-helpers';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useTenantCurrencyTax,
+  taxPercentageForCustomer,
+  getTaxRateLabel,
+} from '@/lib/utils/tenant-config-helper';
 import { TrendingDown, TrendingUp } from 'lucide-react';
 import JobLineItemForm from '@/app/(protected)/customer-operations/jobs/(components)/forms/job-line-item-form';
 import { FormDialog } from '@/components/form-dialog';
@@ -43,14 +47,19 @@ export default function LineItemsTab({
   jobTotals,
 }: Readonly<LineItemsTabProps>) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
+  const selectedJob = useSelectedJob();
   const {
     currencyCode,
     currencySymbol,
     taxLabel,
-    taxPercentage,
+    taxPercentage: tenantTaxPercentage,
     exTaxLabel,
-    taxRateLabel,
   } = useTenantCurrencyTax();
+  const taxPercentage = taxPercentageForCustomer(
+    selectedJob?.customerDto?.taxZone,
+    tenantTaxPercentage,
+  );
+  const taxRateLabel = getTaxRateLabel(taxLabel, taxPercentage);
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -110,7 +119,6 @@ export default function LineItemsTab({
     return jobLineItems.every((item) => item.jobItemType === 'COLLECTION');
   }, [jobLineItems]);
 
-  const selectedJob = useSelectedJob();
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
 
   return (
