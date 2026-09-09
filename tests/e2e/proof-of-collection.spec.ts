@@ -166,9 +166,11 @@ async function drawSignature(dialog: ReturnType<Page['getByRole']>) {
 
 test.describe('Proof of Collection - UI', () => {
   let collectRequests: Request[];
+  let collectStatus: number;
 
   test.beforeEach(async ({ authedPage: page }) => {
     collectRequests = [];
+    collectStatus = 200;
     await page.route('**/socoro/quarrylink/api/dockets/**', async (route) => {
       const request = route.request();
       const pathname = new URL(request.url()).pathname;
@@ -180,15 +182,19 @@ test.describe('Proof of Collection - UI', () => {
         collectRequests.push(request);
         const requestedStatus = requestedStatusFromPut(request);
         await route.fulfill({
-          status: 200,
+          status: collectStatus,
           contentType: 'application/json',
-          body: JSON.stringify({
-            docketStatus: requestedStatus,
-            deliveredAt:
-              requestedStatus === 'COLLECTED'
-                ? new Date().toISOString()
-                : undefined,
-          }),
+          body: JSON.stringify(
+            collectStatus === 200
+              ? {
+                  docketStatus: requestedStatus,
+                  deliveredAt:
+                    requestedStatus === 'COLLECTED'
+                      ? new Date().toISOString()
+                      : undefined,
+                }
+              : { message: 'Collection save failed' },
+          ),
         });
         return;
       }
@@ -236,6 +242,23 @@ test.describe('Proof of Collection - UI', () => {
     test.skip(ready.length === 0, 'No ready collection docket available');
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
+    const detailRes = await apiClient.dockets.get(ready[0].id);
+    if (detailRes.ok()) {
+      const docket = await detailRes.json();
+      const productName = docket.jobItem?.product?.productName as
+        | string
+        | undefined;
+      const productCode = docket.jobItem?.product?.productCode as
+        | string
+        | undefined;
+      if (productName) {
+        await expect(dialog.getByText(productName, { exact: true })).toBeVisible();
+      }
+      if (productCode && productName && productCode !== productName) {
+        await expect(dialog.getByText(productCode, { exact: true })).toHaveCount(0);
+      }
+    }
+    await expect(dialog.getByText(/\d+\.\d{2}/)).toBeVisible();
     await expect(dialog.getByText('Proof of Collection')).toBeVisible();
     await expect(dialog.getByText('Photo 1')).toBeVisible();
     await expect(dialog.getByText('Photo 2')).toBeVisible();
@@ -281,21 +304,27 @@ test.describe('Proof of Collection - UI', () => {
 
     const dialog = await openMarkCollectedModal(page, ready[0]);
     await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
+    const confirm = page.getByRole('alertdialog');
     await expect(
-      dialog.getByText('No proof of collection captured. Continue?'),
+      confirm.getByText('No proof of collection captured. Continue?'),
+    ).toBeVisible();
+    await expect(confirm.getByRole('button', { name: 'Continue' })).toBeVisible();
+    await expect(
+      confirm.getByRole('button', { name: 'Continue Editing' }),
     ).toBeVisible();
     await expect(collectRequests).toHaveLength(0);
 
-    await dialog.getByRole('button', { name: 'Go back' }).click();
-    await expect(
-      dialog.getByText('No proof of collection captured. Continue?'),
-    ).toHaveCount(0);
+    await confirm.getByRole('button', { name: 'Continue Editing' }).click();
+    await expect(confirm).toHaveCount(0);
+    await expect(dialog.getByPlaceholder('Enter collector name')).toBeVisible();
 
     await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
     await expect(
-      dialog.getByText('No proof of collection captured. Continue?'),
+      page.getByRole('alertdialog').getByText(
+        'No proof of collection captured. Continue?',
+      ),
     ).toBeVisible();
-    await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Continue' }).click();
     await expect.poll(() => collectRequests.length).toBe(1);
     expect(collectRequests[0].url()).toMatch(/\/dockets\/\d+\/status/);
     expect(requestedStatusFromPut(collectRequests[0])).toBe('COLLECTED');
@@ -372,6 +401,31 @@ test.describe('Proof of Collection - UI', () => {
       expect(proofBody).toMatch(/Jane Collector/);
     }
   });
+
+  test('failed save leaves the modal open with captured proof', async ({
+    authedPage: page,
+    apiClient,
+  }) => {
+    const ready = await findReadyCollectionDockets(apiClient);
+    test.skip(ready.length === 0, 'No ready collection docket available');
+
+    collectStatus = 500;
+    const dialog = await openMarkCollectedModal(page, ready[0]);
+    await dialog.locator('input[type="file"]').nth(0).setInputFiles(PHOTO_FILE);
+    await dialog.getByPlaceholder('Enter collector name').fill('Jane Collector');
+    await dialog.getByRole('button', { name: 'Mark as Collected' }).click();
+    await expect.poll(() => collectRequests.length).toBe(1);
+    await expect(dialog.getByPlaceholder('Enter collector name')).toHaveValue(
+      'Jane Collector',
+    );
+    await expect(dialog.getByText('Photo Uploaded').first()).toBeVisible();
+    await expect(
+      dialog.getByRole('button', { name: 'Mark as Collected' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Mark Collected', exact: true }),
+    ).toHaveCount(0);
+  });
 });
 
 test.describe('Proof of Collection - Sign Off labels', () => {
@@ -392,9 +446,33 @@ test.describe('Proof of Collection - Sign Off labels', () => {
     await expect(dialog.getByText('Photo 1')).toBeVisible();
     await expect(dialog.getByText('Photo 2')).toBeVisible();
     await expect(dialog.getByText('Collector Signature')).toBeVisible();
-    await expect(dialog.getByText(/Collected at/)).toBeVisible();
+    await expect(dialog.getByText(/Collected at \d{2} \w{3} \d{4}/)).toBeVisible();
     await expect(dialog.getByText('Receiver On Site')).toHaveCount(0);
     await expect(dialog.getByText('Unloaded Photo')).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Replace' })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Remove' })).toHaveCount(0);
+    await expect(dialog.getByText('Tap to upload photo')).toHaveCount(0);
+    await expect(
+      dialog.getByRole('button', { name: 'Mark Collected', exact: true }),
+    ).toHaveCount(0);
+    await expect(dialog.getByText('Last Modified By:')).toBeVisible();
+
+    const detailRes = await apiClient.dockets.get(seed!.id);
+    if (detailRes.ok()) {
+      const docket = await detailRes.json();
+      if (!docket.signatureImage) {
+        await expect(dialog.getByText('No signature provided')).toBeVisible();
+      }
+      if (!docket.unloadedPhotos?.length) {
+        await expect(dialog.getByText('No photo provided').first()).toBeVisible();
+      }
+    }
+
+    const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
+    await dialog.locator('div.inline-flex.items-center').first().locator('button').last().click();
+    await page.getByRole('menuitem', { name: 'Print Docket' }).click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toMatch(/\.pdf$/i);
   });
 });
 

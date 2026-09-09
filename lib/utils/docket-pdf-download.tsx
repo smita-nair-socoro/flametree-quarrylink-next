@@ -6,9 +6,9 @@ import {
   DocketPdfDocument,
   DocketPdfData,
 } from '@/app/(protected)/customer-operations/dockets/(components)/pdf/DocketPdfDocument';
-import { formatCalendarDate, formatLocalDate } from '@/lib/utils/date';
+import { formatCalendarDate } from '@/lib/utils/date';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
-import { getDocketSignOffCopy } from '@/lib/utils/docket-sign-off';
+import { formatDocketSignOffAt } from '@/lib/utils/docket-sign-off';
 
 // Pre-fetch remote images as base64 so react-pdf can render them without CORS issues
 async function fetchImageAsBase64(
@@ -72,7 +72,6 @@ async function buildDocketPdfData(
     : Boolean(
         docket.deliveredAt || docket.receiverName || docket.signatureImage,
       );
-  const signOffCopy = getDocketSignOffCopy(isCollection);
 
   return {
     docketType: isCollection ? 'collection' : 'delivery',
@@ -109,9 +108,10 @@ async function buildDocketPdfData(
         : undefined,
     signOff: hasSignOff
       ? {
-        deliveredAtLabel: docket.deliveredAt
-          ? `${signOffCopy.atPrefix} ${formatLocalDate(docket.deliveredAt, 'hh:mm a')}`
-          : undefined,
+        deliveredAtLabel: formatDocketSignOffAt(
+          docket.deliveredAt,
+          isCollection,
+        ) ?? undefined,
         receiverName: docket.receiverName,
         receiverOnSite: isCollection ? undefined : docket.receiverOnSite,
         unloadedPhoto,
