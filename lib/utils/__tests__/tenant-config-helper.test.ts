@@ -11,6 +11,7 @@ import {
   getSubscriptionCurrencySymbol,
   getCurrencyName,
   DEFAULT_ACCOUNTING_SOFTWARE_LABEL,
+  taxPercentageForCustomer,
 } from '../tenant-config-helper';
 
 describe('getAccountingSoftwareProvider', () => {
@@ -114,5 +115,17 @@ describe('getCurrencyName', () => {
 
   test('falls back to the code itself on invalid input', () => {
     expect(getCurrencyName('NOTACODE')).toBe('NOTACODE');
+  });
+});
+
+describe('taxPercentageForCustomer', () => {
+  test('returns 0% for Overseas tax zone', () => {
+    expect(taxPercentageForCustomer('OVERSEAS', 10)).toBe(0);
+    expect(taxPercentageForCustomer('overseas', 15)).toBe(0);
+  });
+
+  test('keeps the tenant rate for other tax zones', () => {
+    expect(taxPercentageForCustomer('DOMESTIC', 10)).toBe(10);
+    expect(taxPercentageForCustomer(undefined, 10)).toBe(10);
   });
 });

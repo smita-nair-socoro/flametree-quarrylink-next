@@ -35,11 +35,12 @@ import AddressAutoComplete from '@/components/ui/address-autocomplete';
 import { AddressType } from '@/lib/types/address';
 import { isSameAddress, toAddressType } from '@/lib/utils/address-helper';
 import { formatDollars } from '@/lib/utils/currency';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useTenantCurrencyTax, taxPercentageForCustomer, getTaxRateLabel } from '@/lib/utils/tenant-config-helper';
 import { EnhancedConfirmDialog } from '@/components/enhanced-confirm-dialog';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { useAccountingSoftwareProvider } from '@/lib/utils/tenant-config-helper';
+import { useSelectedJob } from '@/app/stores/job-store';
 
 interface FormProps {
   id?: number;
@@ -65,8 +66,20 @@ export default function JobLineItemForm({
   const accountingSoftware = useAccountingSoftwareProvider();
 
   const [productSelectOpen, setProductSelectOpen] = React.useState(false);
-  const { currencySymbol, taxPercentage, exTaxLabel, taxRateLabel, formatCurrency, unitPriceDecimalPlaces } =
-    useTenantCurrencyTax();
+  const {
+    currencySymbol,
+    taxPercentage: tenantTaxPercentage,
+    taxLabel,
+    exTaxLabel,
+    formatCurrency,
+    unitPriceDecimalPlaces,
+  } = useTenantCurrencyTax();
+  const selectedJobForTax = useSelectedJob();
+  const taxPercentage = taxPercentageForCustomer(
+    selectedJobForTax?.customerDto?.taxZone,
+    tenantTaxPercentage,
+  );
+  const taxRateLabel = getTaxRateLabel(taxLabel, taxPercentage);
   const {
     isEditing,
     isReadOnly,

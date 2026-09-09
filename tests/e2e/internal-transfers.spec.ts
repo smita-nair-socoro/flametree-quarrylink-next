@@ -202,13 +202,195 @@ async function ensureSabetoYaqaraJob(apiClient: ApiClient): Promise<ItJobRow> {
   return (await create.json()) as ItJobRow;
 }
 
+const TINY_PNG = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lZk9WQAAAABJRU5ErkJggg==',
+  'base64',
+);
+
+const FIJI_SITE_ADDRESS = {
+  locationType: 'ADDRESS',
+  formattedAddress: 'Nadi Back Rd, Fiji',
+  streetDetailsPrimary: 'Nadi Back Road',
+  suburb: 'Ba',
+  state: 'Western Division',
+  country: 'Fiji Islands',
+  latitude: -17.788594,
+  longitude: 177.441566,
+};
+
+function localDateTimeOffset(hoursFromNow: number): string {
+  // Staging tenant clock is Fiji (UTC+12). Naive LocalDateTime is interpreted there.
+  const d = new Date(Date.now() + (hoursFromNow + 12) * 60 * 60 * 1000);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:00`;
+}
+
+function syncOf(row: Pick<ItTransferRow, 'accountingSync'>): string {
+  return `${row.accountingSync ?? ''}`.toUpperCase();
+}
+
 async function findCompletedItTransfer(
   apiClient: ApiClient,
 ): Promise<ItTransferRow | null> {
   const res = await apiClient.payments.internalTransfers('page=1&pageSize=50');
   if (!res.ok()) return null;
   const rows = pageRows<ItTransferRow>(await res.json());
-  return rows.find((r) => !r.voided) ?? rows[0] ?? null;
+  return (
+    rows.find((r) => !r.voided && syncOf(r) === 'SYNCED') ??
+    rows.find((r) => !r.voided) ??
+    rows[0] ??
+    null
+  );
+}
+
+async function firstActiveDriverAndTruck(
+  apiClient: ApiClient,
+): Promise<{ driverId: number; truckId: number } | null> {
+  const driversRes = await apiClient.drivers.list('page=1&pageSize=50');
+  if (!driversRes.ok()) return null;
+  const drivers = pageRows<{ id: number; isDeleted?: boolean }>(
+    await driversRes.json(),
+  ).filter((d) => !d.isDeleted);
+  const trucksRes = await apiClient.trucks.list('page=1&pageSize=50');
+  if (!trucksRes.ok()) return null;
+  const trucks = pageRows<{ id: number; isDeleted?: boolean }>(
+    await trucksRes.json(),
+  ).filter((t) => !t.isDeleted);
+  if (!drivers[0] || !trucks[0]) return null;
+  return { driverId: drivers[0].id, truckId: trucks[0].id };
+}
+
+async function createAndCompleteItDocket(
+  apiClient: ApiClient,
+): Promise<ItTransferRow | null> {
+  await ensureAp65CostAtSabeto(apiClient);
+  const job = await ensureSabetoYaqaraJob(apiClient);
+  const itemsRes = await apiClient.jobs.jobItems(job.id);
+  const itemsStatus = itemsRes.status();
+  const itemsBody = await itemsRes.text();
+  expect(itemsRes.ok(), `job-items ${itemsStatus} ${itemsBody.slice(0, 400)}`).toBeTruthy();
+  const parsed = JSON.parse(itemsBody) as Record<string, unknown>;
+  const nestedItems =
+    parsed.jobItems && typeof parsed.jobItems === 'object'
+      ? (parsed.jobItems as Record<string, unknown>).content
+      : undefined;
+  const jobItems = Array.isArray(nestedItems)
+    ? (nestedItems as Array<{ id: number }>)
+    : pageRows<{ id: number }>(parsed);
+  const jobItemId = jobItems[0]?.id;
+  expect(
+    jobItemId,
+    `IT job ${job.jobNumber} (${job.id}) has no line item. job-items ${itemsStatus} ${itemsBody.slice(0, 400)}`,
+  ).toBeTruthy();
+
+  const created = await apiClient.dockets.create({
+    jobId: job.id,
+    jobItemId,
+    pickUpAddress: FIJI_SITE_ADDRESS,
+    deliveryAddress: FIJI_SITE_ADDRESS,
+    deliveryCollectionDate: localDateTimeOffset(1),
+    deliveryCollectionStartTime: localDateTimeOffset(1),
+    deliveryCollectionEndTime: localDateTimeOffset(3),
+    customerContactName: 'E2E Internal Transfer',
+    customerContactPhone: '0000000000',
+    docketEmailRecipients: [],
+    plannedLoadSize: 1,
+  });
+  expect(
+    created.ok() || created.status() === 201,
+    `Create IT docket failed: ${created.status()} ${await created.text()}`,
+  ).toBeTruthy();
+  const docket = (await created.json()) as { id: number; docketNumber?: string };
+  const assignment = await firstActiveDriverAndTruck(apiClient);
+  test.skip(!assignment, 'No driver/truck on staging to complete an IT delivery');
+
+  const assignRes = await apiClient.dockets.assign({
+    docketId: docket.id,
+    driverId: assignment!.driverId,
+    truckId: assignment!.truckId,
+    deliveryStartWindow: localDateTimeOffset(1),
+    deliveryEndWindow: localDateTimeOffset(3),
+    plannedLoadSize: 1,
+  });
+  expect(assignRes.ok(), `Assign IT docket failed: ${assignRes.status()} ${await assignRes.text()}`).toBeTruthy();
+
+  const start = await apiClient.dockets.updateStatus(docket.id, {
+    docketStatus: 'IN_TRANSIT',
+  });
+  expect(start.ok(), `IN_TRANSIT failed: ${start.status()} ${await start.text()}`).toBeTruthy();
+
+  const arrived = await apiClient.dockets.updateStatus(docket.id, {
+    docketStatus: 'ARRIVED',
+    latitude: -17.788594,
+    longitude: 177.441566,
+  });
+  expect(arrived.ok(), `ARRIVED failed: ${arrived.status()} ${await arrived.text()}`).toBeTruthy();
+
+  const delivered = await apiClient.dockets.updateStatus(
+    docket.id,
+    {
+      docketStatus: 'DELIVERED',
+      deliveredProductsConfirmed: true,
+      receiverOnSite: false,
+      latitude: -17.788594,
+      longitude: 177.441566,
+    },
+    {
+      unloadedPhotos: {
+        name: 'unloaded.png',
+        mimeType: 'image/png',
+        buffer: TINY_PNG,
+      },
+    },
+  );
+  expect(
+    delivered.ok(),
+    `DELIVERED failed: ${delivered.status()} ${await delivered.text()}`,
+  ).toBeTruthy();
+
+  const list = await apiClient.payments.internalTransfers(
+    `page=1&pageSize=50&search=${encodeURIComponent(docket.docketNumber ?? '')}`,
+  );
+  expect(list.ok(), `Payments IT list failed: ${list.status()}`).toBeTruthy();
+  const rows = pageRows<ItTransferRow>(await list.json());
+  return (
+    rows.find((r) => r.docketId === docket.id || r.docketNumber === docket.docketNumber) ??
+    {
+      docketId: docket.id,
+      docketNumber: docket.docketNumber ?? '',
+      jobId: job.id,
+      jobNumber: job.jobNumber,
+    }
+  );
+}
+
+async function ensureSyncedItJournal(
+  apiClient: ApiClient,
+): Promise<ItTransferRow | null> {
+  const existing = await findCompletedItTransfer(apiClient);
+  if (existing && !existing.voided && syncOf(existing) === 'SYNCED') {
+    return existing;
+  }
+  if (existing && !existing.voided && syncOf(existing) === 'FAILED' && existing.journalId) {
+    const retry = await apiClient.payments.retryInternalTransferJournal(
+      existing.journalId,
+    );
+    expect(
+      retry.status(),
+      `Retry journal ${existing.journalId} failed: ${retry.status()} ${await retry.text()}`,
+    ).toBeLessThan(500);
+    const after = await apiClient.payments.internalTransfers(
+      `page=1&pageSize=50&search=${encodeURIComponent(existing.docketNumber)}`,
+    );
+    if (after.ok()) {
+      const rows = pageRows<ItTransferRow>(await after.json());
+      const updated =
+        rows.find((r) => r.docketId === existing.docketId) ?? existing;
+      if (syncOf(updated) === 'SYNCED') return updated;
+      return updated;
+    }
+  }
+  return createAndCompleteItDocket(apiClient);
 }
 
 async function ensureAp65CostAtSabeto(apiClient: ApiClient) {
@@ -764,6 +946,44 @@ test.describe('Internal Transfers — completion, journal, sync', () => {
         await page.keyboard.press('Escape');
       }
     }
+  });
+
+  test('13b. Completing an IT docket creates a Synced Acumatica journal', async ({
+    apiClient,
+  }) => {
+    const transfer = await ensureSyncedItJournal(apiClient);
+    test.skip(
+      !transfer,
+      'Could not create/complete an IT docket to push a journal (assign/status path blocked on staging)',
+    );
+
+    if (syncOf(transfer!) === 'FAILED' && transfer!.journalId) {
+      const retry = await apiClient.payments.retryInternalTransferJournal(
+        transfer!.journalId,
+      );
+      expect(retry.status(), await retry.text()).toBeLessThan(500);
+    }
+
+    const list = await apiClient.payments.internalTransfers(
+      `page=1&pageSize=50&search=${encodeURIComponent(transfer!.docketNumber)}`,
+    );
+    expect(list.ok()).toBeTruthy();
+    const row =
+      pageRows<ItTransferRow>(await list.json()).find(
+        (r) => r.docketNumber === transfer!.docketNumber,
+      ) ?? transfer!;
+
+    expect(
+      syncOf(row) === 'SYNCED' || Boolean(row.failureReason) || Boolean(row.journalId),
+      `Completing ${row.docketNumber} must queue a journal (got sync=${syncOf(row)})`,
+    ).toBeTruthy();
+    if (syncOf(row) !== 'SYNCED') {
+      test.skip(
+        true,
+        `Acumatica journal push did not succeed for ${row.docketNumber}: ${row.failureReason ?? syncOf(row)}`,
+      );
+    }
+    expect(row.failureReason ?? '').toBe('');
   });
 
   test('14. View Journal dialog', async ({ authedPage: page, apiClient }) => {

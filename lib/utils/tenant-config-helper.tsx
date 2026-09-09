@@ -13,6 +13,20 @@ import { useTenantStore } from '@/app/stores/tenant-store';
 export const DEFAULT_CURRENCY_CODE = 'AUD';
 export const DEFAULT_TAX_LABEL = 'GST';
 export const DEFAULT_TAX_PERCENTAGE = 10;
+
+/** Acumatica tax zone id that charges 0% VAT for overseas customers. */
+export const OVERSEAS_TAX_ZONE = 'OVERSEAS';
+
+export function isOverseasTaxZone(taxZone?: string | null): boolean {
+  return (taxZone ?? '').trim().toUpperCase() === OVERSEAS_TAX_ZONE;
+}
+
+export function taxPercentageForCustomer(
+  taxZone: string | null | undefined,
+  tenantTaxPercentage: number = DEFAULT_TAX_PERCENTAGE,
+): number {
+  return isOverseasTaxZone(taxZone) ? 0 : tenantTaxPercentage;
+}
 export const DEFAULT_TIMEZONE = 'Australia/Sydney';
 export const DEFAULT_ACCOUNTING_SOFTWARE_LABEL = 'Xero';
 
