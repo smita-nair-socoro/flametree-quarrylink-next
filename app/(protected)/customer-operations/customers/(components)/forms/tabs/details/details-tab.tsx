@@ -542,6 +542,24 @@ export default function DetailsTab({
                   <Input
                     className="w-full"
                     value={selectedCustomer?.customerClassification ?? 'N/A'}
+                    readOnly
+                  />
+                </div>
+              )}
+
+              {readOnly && (
+                <div
+                  className={
+                    isEditing && isDesktop
+                      ? 'col-span-1 col-start-1 mb-5'
+                      : 'col-span-2 mb-5'
+                  }
+                >
+                  <Label className="mb-2">Tax Zone</Label>
+                  <Input
+                    className="w-full"
+                    value={selectedCustomer?.taxZone?.trim() || 'N/A'}
+                    readOnly
                   />
                 </div>
               )}
