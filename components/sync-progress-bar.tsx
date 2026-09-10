@@ -16,8 +16,17 @@ interface SyncProgressBarProps {
   wasInProgress?: boolean;
 }
 
-function inProgressLabel(entityType: SyncProgressBarProps['entityType']): string {
+function inProgressLabel(
+  entityType: SyncProgressBarProps['entityType'],
+  syncStatus?: SyncStatusResponse,
+): string {
   if (entityType === 'Invoice') {
+    const total = syncStatus?.totalAttempted ?? 0;
+    const done =
+      (syncStatus?.successCount ?? 0) + (syncStatus?.failureCount ?? 0);
+    if (total > 1) {
+      return `Retrying invoice sync... ${done} of ${total}`;
+    }
     return 'Retrying invoice sync...';
   }
   return `Syncing ${entityType.toLowerCase()}s from accounting software...`;
@@ -66,7 +75,7 @@ export function SyncProgressBar({ syncStatus, entityType, wasInProgress = true }
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-2">
             <span className="text-sm font-medium text-blue-700">
-              {inProgressLabel(entityType)}
+              {inProgressLabel(entityType, syncStatus)}
             </span>
           </div>
           <Progress value={undefined} className="mt-1.5 h-1.5 bg-blue-200 [&>[data-slot=progress-indicator]]:bg-blue-600 [&>[data-slot=progress-indicator]]:animate-pulse" />

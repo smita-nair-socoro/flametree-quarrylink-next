@@ -7,6 +7,10 @@ import {
 import { APIClient } from './APIClient';
 import { DocketKeys, InvoicesKeys, PaymentsKeys } from './keys';
 import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
+import {
+  resolveUnsyncedInvoiceIdsForJob,
+  watchInvoiceRetryBatch,
+} from '@/lib/api/invoice-retry-watch';
 import { toast } from 'sonner';
 
 export type PaymentsListParams = {
@@ -75,12 +79,60 @@ export const PaymentsFailedCountQueryOptions = () =>
 export const useRetryInvoice = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (invoiceId: number) => {
-      useInvoiceRetryProgressStore.getState().startRetry();
-      return APIClient.invoices.retryOne(invoiceId);
+    mutationFn: async (input: number | { invoiceId: number; jobId?: number }) => {
+      const invoiceId = typeof input === 'number' ? input : input.invoiceId;
+      const jobId = typeof input === 'number' ? undefined : input.jobId;
+      const progress = useInvoiceRetryProgressStore.getState();
+
+      const invoiceIds = jobId
+        ? await resolveUnsyncedInvoiceIdsForJob(jobId)
+        : [invoiceId];
+      const watchedIds =
+        invoiceIds.length > 0 ? invoiceIds : [invoiceId];
+      progress.startRetry(watchedIds);
+
+      let httpSettled = false;
+      const watchPromise = jobId
+        ? watchInvoiceRetryBatch({
+            jobId,
+            invoiceIds: watchedIds,
+            onProgress: (batch) =>
+              useInvoiceRetryProgressStore.getState().applyBatchProgress(batch),
+            isHttpSettled: () => httpSettled,
+          })
+        : null;
+
+      try {
+        const response = await APIClient.invoices.retryOne(invoiceId);
+        httpSettled = true;
+        if (!watchPromise) {
+          progress.completeRetry(response);
+          return response;
+        }
+      } catch (error) {
+        httpSettled = true;
+        if (!watchPromise) {
+          throw error;
+        }
+      }
+
+      if (!watchPromise) {
+        return {
+          totalAttempted: 1,
+          successCount: 0,
+          failureCount: 1,
+        };
+      }
+
+      const batch = await watchPromise;
+      useInvoiceRetryProgressStore.getState().completeFromBatch(batch);
+      return {
+        totalAttempted: batch.totalAttempted,
+        successCount: batch.successCount,
+        failureCount: batch.failureCount,
+      };
     },
-    onSuccess: (response) => {
-      useInvoiceRetryProgressStore.getState().completeRetry(response);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
       queryClient.invalidateQueries({ queryKey: PaymentsKeys.all });
     },

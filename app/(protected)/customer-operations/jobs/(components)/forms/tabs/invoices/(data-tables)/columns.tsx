@@ -24,6 +24,7 @@ import {
 export const getInvoicesColumns = (
   currencyCode: string = DEFAULT_CURRENCY_CODE,
   taxLabel: string = DEFAULT_TAX_LABEL,
+  jobId?: number,
 ): ColumnDef<Invoice>[] => [
   {
     id: 'invoice',
@@ -131,6 +132,7 @@ export const getInvoicesColumns = (
       return (
         <InvoiceTableActions
           invoiceId={invoice.id}
+          jobId={jobId}
           accountingSync={invoice.accountingSync ?? invoice.status}
         />
       );

@@ -192,7 +192,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
       <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
         <DataTableClient
           tableId={`job_invoices_${jobId}`}
-          columns={getInvoicesColumns(currencyCode, taxLabel)}
+          columns={getInvoicesColumns(currencyCode, taxLabel, jobId)}
           data={invoices}
           simpleTable={true}
           defaultSorting={[{ id: 'invoice', desc: false }]}

@@ -15,11 +15,13 @@ import { toAccountingSyncDisplay } from '@/lib/utils/accounting-sync';
 
 interface InvoiceTableActionsProps {
   invoiceId: number;
+  jobId?: number;
   accountingSync?: string | null;
 }
 
 export function InvoiceTableActions({
   invoiceId,
+  jobId,
   accountingSync,
 }: InvoiceTableActionsProps) {
   const [dropdownOpen, setDropdownOpen] = React.useState(false);
@@ -35,7 +37,7 @@ export function InvoiceTableActions({
 
   const handleRetry = () => {
     setDropdownOpen(false);
-    retryInvoice.mutate(invoiceId);
+    retryInvoice.mutate({ invoiceId, jobId });
   };
 
   return (

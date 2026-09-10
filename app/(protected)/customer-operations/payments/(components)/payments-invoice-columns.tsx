@@ -132,6 +132,7 @@ export const getPaymentsInvoiceColumns = (
     cell: ({ row }) => (
       <InvoiceTableActions
         invoiceId={row.original.id}
+        jobId={row.original.jobId}
         accountingSync={row.original.accountingSync}
       />
     ),
