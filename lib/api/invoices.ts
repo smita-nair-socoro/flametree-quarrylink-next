@@ -126,7 +126,7 @@ export const useRetrySync = (options?: {
     mutationFn: async (jobId: number) => {
       const invoiceIds = await resolveUnsyncedInvoiceIdsForJob(jobId);
       const progress = useInvoiceRetryProgressStore.getState();
-      progress.startRetry(invoiceIds);
+      progress.startRetry(invoiceIds, jobId);
 
       let httpSettled = false;
       const watchPromise =

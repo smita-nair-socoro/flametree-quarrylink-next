@@ -1,5 +1,9 @@
 import { describe, expect, test, beforeEach } from 'vitest';
-import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
+import {
+  INVOICE_RETRY_PROGRESS_STORAGE_KEY,
+  useInvoiceRetryProgressStore,
+} from '@/app/stores/invoice-retry-progress-store';
+import { getSessionStorage, setSessionStorage } from '@/lib/utils';
 import type { RetrySyncResponse } from '@/lib/types/job';
 
 describe('invoice retry progress store', () => {
@@ -16,12 +20,56 @@ describe('invoice retry progress store', () => {
   });
 
   test('startRetry records the watched batch size', () => {
-    useInvoiceRetryProgressStore.getState().startRetry([1, 2, 3, 4, 5]);
-    const { syncStatus, watchedInvoiceIds } =
+    useInvoiceRetryProgressStore.getState().startRetry([1, 2, 3, 4, 5], 88);
+    const { syncStatus, watchedInvoiceIds, jobId } =
       useInvoiceRetryProgressStore.getState();
     expect(watchedInvoiceIds).toHaveLength(5);
+    expect(jobId).toBe(88);
     expect(syncStatus?.totalAttempted).toBe(5);
     expect(syncStatus?.state).toBe('IN_PROGRESS');
+  });
+
+  test('startRetry persists the in-flight snapshot for the same tab', () => {
+    useInvoiceRetryProgressStore.getState().startRetry([1, 2, 3], 44);
+    expect(
+      getSessionStorage(INVOICE_RETRY_PROGRESS_STORAGE_KEY, null),
+    ).toMatchObject({
+      watchedInvoiceIds: [1, 2, 3],
+      jobId: 44,
+      wasInProgress: true,
+    });
+  });
+
+  test('hydrateFromSession restores the bar after a refresh', () => {
+    useInvoiceRetryProgressStore.getState().clearWasInProgress();
+    setSessionStorage(INVOICE_RETRY_PROGRESS_STORAGE_KEY, {
+      watchedInvoiceIds: [9, 8, 7],
+      jobId: 12,
+      wasInProgress: true,
+      syncStatus: {
+        state: 'IN_PROGRESS',
+        entityType: 'INVOICE',
+        totalAttempted: 3,
+        successCount: 1,
+        failureCount: 0,
+        errorMessage: null,
+      },
+    });
+    useInvoiceRetryProgressStore.getState().hydrateFromSession();
+    const { syncStatus, watchedInvoiceIds, jobId, wasInProgress } =
+      useInvoiceRetryProgressStore.getState();
+    expect(wasInProgress).toBe(true);
+    expect(watchedInvoiceIds).toEqual([9, 8, 7]);
+    expect(jobId).toBe(12);
+    expect(syncStatus?.state).toBe('IN_PROGRESS');
+    expect(syncStatus?.successCount).toBe(1);
+    expect(syncStatus?.totalAttempted).toBe(3);
+  });
+
+  test('clearWasInProgress drops the persisted snapshot', () => {
+    useInvoiceRetryProgressStore.getState().startRetry([1], 1);
+    useInvoiceRetryProgressStore.getState().clearWasInProgress();
+    expect(window.sessionStorage.getItem(INVOICE_RETRY_PROGRESS_STORAGE_KEY)).toBeNull();
   });
 
   test('completeRetry with mixed results shows COMPLETED counts', () => {
