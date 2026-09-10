@@ -10,6 +10,10 @@ import { useJobStore } from '@/app/stores/job-store';
 import { toast } from 'sonner';
 import { CreateInvoiceResponseDTO } from '@/lib/types/job';
 import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
+import {
+  resolveUnsyncedInvoiceIdsForJob,
+  watchInvoiceRetryBatch,
+} from '@/lib/api/invoice-retry-watch';
 
 export type InvoicesListParams = {
   /** 0-based page index from UI tables (converted to 1-based for the API). */
@@ -119,12 +123,46 @@ export const useRetrySync = (options?: {
 
   return useMutation({
     mutationKey: ['retrySync'],
-    mutationFn: (jobId: number) => {
-      useInvoiceRetryProgressStore.getState().startRetry();
-      return APIClient.invoices.retrySync(jobId);
+    mutationFn: async (jobId: number) => {
+      const invoiceIds = await resolveUnsyncedInvoiceIdsForJob(jobId);
+      const progress = useInvoiceRetryProgressStore.getState();
+      progress.startRetry(invoiceIds);
+
+      let httpSettled = false;
+      const watchPromise =
+        invoiceIds.length > 0
+          ? watchInvoiceRetryBatch({
+              jobId,
+              invoiceIds,
+              onProgress: (batch) =>
+                useInvoiceRetryProgressStore.getState().applyBatchProgress(batch),
+              isHttpSettled: () => httpSettled,
+            })
+          : null;
+
+      try {
+        const response = await APIClient.invoices.retrySync(jobId);
+        httpSettled = true;
+        if (!watchPromise) {
+          progress.completeRetry(response);
+          return response;
+        }
+      } catch (error) {
+        httpSettled = true;
+        if (!watchPromise) {
+          throw error;
+        }
+      }
+
+      const batch = await watchPromise;
+      useInvoiceRetryProgressStore.getState().completeFromBatch(batch);
+      return {
+        totalAttempted: batch.totalAttempted,
+        successCount: batch.successCount,
+        failureCount: batch.failureCount,
+      };
     },
-    onSuccess: (response) => {
-      useInvoiceRetryProgressStore.getState().completeRetry(response);
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
       options?.onSuccess?.();
     },

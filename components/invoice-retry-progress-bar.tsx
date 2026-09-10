@@ -8,8 +8,8 @@ const COMPLETION_DISMISS_MS = 10_000;
 
 /**
  * Top-of-page banner for invoice retry, matching Customer/Product SyncProgressBar.
- * Driven by client state because invoice retry is a synchronous aggregate API
- * (HTTP 200 + successCount/failureCount), not an async polled sync job.
+ * Client state starts the bar; a job-scoped poll keeps it open until every
+ * invoice in the retry batch has settled (not just the first HTTP response).
  */
 export function InvoiceRetryProgressBar() {
   const syncStatus = useInvoiceRetryProgressStore((s) => s.syncStatus);
