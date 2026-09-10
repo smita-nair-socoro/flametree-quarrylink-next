@@ -48,6 +48,8 @@ export const CustomerKeys = {
   all: ['customers'] as const,
   reporting: () => [...CustomerKeys.all, 'reporting'] as const,
   list: () => [...CustomerKeys.all, 'list'] as const,
+  filters: (search?: string) =>
+    [...CustomerKeys.all, 'filters', search] as const,
   detail: (id: number) => [...CustomerKeys.all, 'detail', id] as const,
   deliveryAddresses: (customerId: number, limit?: number) =>
     [...CustomerKeys.all, 'delivery-addresses', customerId, limit] as const,
@@ -75,6 +77,7 @@ export const CustomerKeys = {
 export const QuotationKeys = {
   all: ['quotations'] as const,
   list: () => [...QuotationKeys.all, 'list'] as const,
+  filters: () => [...QuotationKeys.all, 'filters'] as const,
   detail: (id: number) => [...QuotationKeys.all, 'detail', id] as const,
   reporting: () => [...QuotationKeys.all, 'reporting'] as const,
   quoteItem: (id: number) => [...QuotationKeys.all, 'quote-item', id] as const,
@@ -105,6 +108,7 @@ export const QuarrySupplierProductKeys = {
 export const JobKeys = {
   all: ['jobs'] as const,
   list: () => [...JobKeys.all, 'list'] as const,
+  filters: () => [...JobKeys.all, 'filters'] as const,
   internalTransfers: (params?: unknown) =>
     [...JobKeys.all, 'internal-transfers', params] as const,
   detail: (id: number) => [...JobKeys.all, 'detail', id] as const,
@@ -137,6 +141,12 @@ export const DriverKeys = {
 export const DocketKeys = {
   all: ['dockets'] as const,
   list: () => [...DocketKeys.all, 'list'] as const,
+  filters: (params?: {
+    search?: string;
+    jobId?: number;
+    driverId?: number;
+    truckId?: number;
+  }) => [...DocketKeys.all, 'filters', params] as const,
   unassigned: () => [...DocketKeys.all, 'unassigned'] as const,
   table: () => [...DocketKeys.all, 'table'] as const,
   detail: (id: number) => [...DocketKeys.all, 'detail', id] as const,

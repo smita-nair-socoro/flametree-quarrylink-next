@@ -272,6 +272,34 @@ export function buildDocketFacetOptions(response?: DocketFacetSource | null) {
   };
 }
 
+export const DocketsFilterQueryOptions = (params?: {
+  search?: string;
+  jobId?: number;
+  driverId?: number;
+  truckId?: number;
+}) =>
+  queryOptions({
+    queryKey: DocketKeys.filters(params),
+    queryFn: () => {
+      const search = params?.search?.trim() || undefined;
+      if (params?.jobId) {
+        return APIClient.dockets.getFiltersByJobId(params.jobId, { search });
+      }
+      if (params?.driverId) {
+        return APIClient.dockets.getFiltersByDriverId(params.driverId, {
+          search,
+        });
+      }
+      if (params?.truckId) {
+        return APIClient.dockets.getFiltersByTruckId(params.truckId, {
+          search,
+        });
+      }
+      return APIClient.dockets.getFilters({ search });
+    },
+    staleTime: 60_000,
+  });
+
 export const DocketsListQueryOptions = (params?: DocketsListParams) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],

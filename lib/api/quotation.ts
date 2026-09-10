@@ -12,6 +12,7 @@ import {
   QuotationDTO,
   QuotationLineItem,
   QuotesListResponse,
+  QuotesFilterOptions,
   QuotesPage,
 } from '../types/quotation';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
@@ -104,7 +105,9 @@ export function getQuoteItemsFromListResponse(
   return (data?.quotes?.content ?? []) as QuotationDTO[];
 }
 
-export function buildQuoteFacetOptions(response?: QuotesListResponse | null) {
+export function buildQuoteFacetOptions(
+  response?: QuotesListResponse | QuotesFilterOptions | null,
+) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
       value: status,
@@ -133,6 +136,13 @@ export const QuotationsListQueryOptions = (params?: QuotesListParams) =>
       ) as QuotesListResponse,
     placeholderData: keepPreviousData,
     staleTime: 5_000,
+  });
+
+export const QuotesFilterQueryOptions = () =>
+  queryOptions({
+    queryKey: QuotationKeys.filters(),
+    queryFn: () => APIClient.quotations.getFilters(),
+    staleTime: 60_000,
   });
 
 export const QuotationsInfiniteListQueryOptions = (

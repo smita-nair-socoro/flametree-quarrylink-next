@@ -12,6 +12,7 @@ import type {
   JobDetails,
   JobItem,
   JobsListResponse,
+  JobsFilterOptions,
   JobsPage,
   SettleJobResponse,
 } from '../types/job';
@@ -132,7 +133,9 @@ export function getJobItemsFromListResponse(
   return data?.jobs?.content ?? [];
 }
 
-export function buildJobFacetOptions(response?: JobsListResponse | null) {
+export function buildJobFacetOptions(
+  response?: JobsListResponse | JobsFilterOptions | null,
+) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
       value: status,
@@ -181,6 +184,13 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
+  });
+
+export const JobsFilterQueryOptions = () =>
+  queryOptions({
+    queryKey: JobKeys.filters(),
+    queryFn: () => APIClient.jobs.getFilters(),
+    staleTime: 60_000,
   });
 
 export const InternalTransferJobsListQueryOptions = (

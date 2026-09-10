@@ -17,7 +17,7 @@ import {
   CreateCustomerNoteRequest,
   UpdateCustomerNoteRequest,
 } from '../types/customer';
-import type { CustomersListResponse, CustomersPage } from '../types/customer';
+import type { CustomersListResponse, CustomersPage, CustomersFilterOptions } from '../types/customer';
 import { formatCustomerStatus } from '../utils/customer-helper';
 import {
   mapAdditionalContactFromApi,
@@ -176,7 +176,7 @@ export function isCustomersListResponse(
 }
 
 export function buildCustomerFacetOptions(
-  response?: CustomersListResponse | null,
+  response?: CustomersListResponse | CustomersFilterOptions | null,
 ) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
@@ -204,6 +204,16 @@ export const CustomersListQueryOptions = (params?: CustomersListParams) =>
       }),
     placeholderData: keepPreviousData,
     staleTime: 5_000,
+  });
+
+export const CustomersFilterQueryOptions = (search?: string) =>
+  queryOptions({
+    queryKey: CustomerKeys.filters(search?.trim() || undefined),
+    queryFn: () =>
+      APIClient.customers.getFilters({
+        search: search?.trim() || undefined,
+      }),
+    staleTime: 60_000,
   });
 
 export const CustomersInfiniteListQueryOptions = (

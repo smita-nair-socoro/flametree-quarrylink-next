@@ -13,6 +13,7 @@ import {
   CustomerDTO,
   CustomerReporting,
   CustomersListResponse,
+  CustomersFilterOptions,
   CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
@@ -38,6 +39,7 @@ import {
   QuotationLineItem,
   QuotationReporting,
   QuotesListResponse,
+  QuotesFilterOptions,
 } from '../types/quotation';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { toLocalDateTime } from '../utils/date';
@@ -81,6 +83,7 @@ import {
   DocketsListResponse,
   DocketsPage,
   DocketsTableResponse,
+  DocketsFilterOptions,
   UnassignedDocketsPage,
 } from '../types/docket';
 import {
@@ -96,6 +99,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
   JobsListResponse,
+  JobsFilterOptions,
   DeleteJobItemResponse,
   JobAttachmentDTO,
 } from '../types/job';
@@ -788,6 +792,15 @@ export const APIClient = {
       });
       return response;
     },
+    getFilters: (params?: { search?: string }) =>
+      appClient.Get<CustomersFilterOptions>(
+        `/socoro/quarrylink/api/customer/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`,
@@ -1012,6 +1025,10 @@ export const APIClient = {
       );
       return response;
     },
+    getFilters: () =>
+      appClient.Get<QuotesFilterOptions>(
+        `/socoro/quarrylink/api/quote/filters`,
+      ),
     getById: (quotationId: number) =>
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`,
@@ -1205,6 +1222,42 @@ export const APIClient = {
       );
       return response;
     },
+    getFilters: (params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByJobId: (jobId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/job/${jobId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByDriverId: (driverId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/driver/${driverId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByTruckId: (truckId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/truck/${truckId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
     /** Paginated unassigned dockets for dispatch all-dates queue. */
     getUnassignedAll: async (params?: {
       page?: number;
@@ -1532,6 +1585,8 @@ export const APIClient = {
       );
       return response;
     },
+    getFilters: () =>
+      appClient.Get<JobsFilterOptions>(`/socoro/quarrylink/api/job/filters`),
     searchPurchaseOrders: async (search?: string, limit = 50) => {
       const response = await appClient.Get<string[]>(
         `/socoro/quarrylink/api/job/purchase-orders`,

@@ -27,6 +27,7 @@ import {
   DocketsByTruckIdInfiniteQueryOptions,
   DocketStatisticsQueryOptions,
   DocketsTableInfiniteQueryOptions,
+  DocketsFilterQueryOptions,
   getDocketTableRowsFromInfinitePages,
   getDocketTableRowsFromTableResponse,
   getDocketTableRowsFromDtoPayload,
@@ -199,6 +200,15 @@ export default function DocketsPage() {
     [pageIndex, pageSize, search, idsFilter, apiSortParams, apiFilterParams],
   );
 
+  const { data: docketFilters } = useQuery(
+    DocketsFilterQueryOptions({
+      search: search.trim() || undefined,
+      jobId: linkedJobId ?? undefined,
+      driverId: driverId ?? undefined,
+      truckId: truckId ?? undefined,
+    }),
+  );
+
   const allDocketsQuery = useQuery({
     ...DocketsTableQueryOptions(listQueryParams),
     enabled: !linkedJobId && !driverId && !truckId,
@@ -248,20 +258,6 @@ export default function DocketsPage() {
     error,
   } = docketSourceQueries[activeDocketSource];
 
-  const docketsListResponse = React.useMemo(():
-    | DocketsListResponse
-    | DocketsTableResponse
-    | null => {
-    if (
-      docketsResponse &&
-      typeof docketsResponse === 'object' &&
-      'dockets' in docketsResponse
-    ) {
-      return docketsResponse as DocketsListResponse | DocketsTableResponse;
-    }
-    return null;
-  }, [docketsResponse]);
-
   const totalElements = React.useMemo(() => {
     if (!docketsResponse) return 0;
     if (activeDocketSource === 'default') {
@@ -291,8 +287,8 @@ export default function DocketsPage() {
   }, [docketsResponse, activeDocketSource, totalElements, pageSize]);
 
   const facetOptions = React.useMemo(
-    () => buildDocketFacetOptions(docketsListResponse),
-    [docketsListResponse],
+    () => buildDocketFacetOptions(docketFilters ?? null),
+    [docketFilters],
   );
 
   const isMobile = useIsMobile();

@@ -96,6 +96,8 @@ export interface QuotesListResponse {
   accountManagers?: QuotesFacetOption[];
 }
 
+export type QuotesFilterOptions = Omit<QuotesListResponse, 'quotes'>;
+
 export interface QuotationLineItem {
   id?: number;
   quoteId: number;

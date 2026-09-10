@@ -25,6 +25,7 @@ import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import {
   QuotationsListQueryOptions,
   QuotationsInfiniteListQueryOptions,
+  QuotesFilterQueryOptions,
   QuotationReportingQueryOptions,
   toQuoteApiSortParams,
   toQuoteApiFilterParams,
@@ -129,9 +130,10 @@ export default function QuotationsPage() {
   const totalPages =
     quotesPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
 
+  const { data: quoteFilters } = useQuery(QuotesFilterQueryOptions());
   const facetOptions = React.useMemo(
-    () => buildQuoteFacetOptions(quotationsList ?? null),
-    [quotationsList],
+    () => buildQuoteFacetOptions(quoteFilters ?? null),
+    [quoteFilters],
   );
 
   const { data: reportingData } = useQuery(QuotationReportingQueryOptions());

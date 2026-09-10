@@ -20,6 +20,7 @@ import {
   JobsListQueryOptions,
   JobStatisticsQueryOptions,
   JobsInfiniteListQueryOptions,
+  JobsFilterQueryOptions,
   getJobsFromInfinitePages,
   toJobApiSortParams,
   toJobApiFilterParams,
@@ -122,9 +123,11 @@ export default function CustomersPage() {
 
   const jobsPage = jobsList?.jobs;
 
+  const { data: jobFilters } = useQuery(JobsFilterQueryOptions());
+
   const facetOptions = React.useMemo(
-    () => buildJobFacetOptions(jobsList ?? null),
-    [jobsList],
+    () => buildJobFacetOptions(jobFilters ?? null),
+    [jobFilters],
   );
 
   const searchPurchaseOrders = React.useCallback(async (query: string) => {
