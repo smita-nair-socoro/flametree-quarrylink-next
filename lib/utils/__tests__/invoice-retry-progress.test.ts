@@ -1,7 +1,10 @@
 import { describe, expect, test } from 'vitest';
 import {
+  collectInFlightInvoiceIds,
   collectUnsyncedInvoiceIds,
+  inferSharedJobId,
   isInvoiceRetryPending,
+  resolveRestoredWatchIds,
   summarizeInvoiceRetryBatch,
 } from '@/lib/utils/invoice-retry-progress';
 
@@ -67,5 +70,52 @@ describe('invoice retry progress helpers', () => {
         { id: 3, status: 'SALES_ORDER_SYNCED', accountingSync: 'NOT_SYNCED' },
       ]),
     ).toEqual([2, 3]);
+  });
+
+  test('collectInFlightInvoiceIds keeps PENDING and SALES_ORDER_SYNCED only', () => {
+    expect(
+      collectInFlightInvoiceIds([
+        { id: 1, status: 'SYNCED', accountingSync: 'SYNCED' },
+        { id: 2, status: 'FAILED', accountingSync: 'FAILED' },
+        { id: 3, status: 'SALES_ORDER_SYNCED', accountingSync: 'NOT_SYNCED' },
+        { id: 4, status: 'PENDING', accountingSync: 'NOT_SYNCED' },
+      ]),
+    ).toEqual([3, 4]);
+  });
+
+  test('resolveRestoredWatchIds uses API in-flight when the snapshot is gone', () => {
+    expect(resolveRestoredWatchIds([3, 4], [])).toEqual([3, 4]);
+  });
+
+  test('resolveRestoredWatchIds keeps the original batch while any invoice is in flight', () => {
+    expect(resolveRestoredWatchIds([3, 4], [1, 2, 3, 4, 5])).toEqual([
+      1, 2, 3, 4, 5,
+    ]);
+  });
+
+  test('resolveRestoredWatchIds is empty when the backend has settled', () => {
+    expect(resolveRestoredWatchIds([], [1, 2, 3])).toEqual([]);
+  });
+
+  test('inferSharedJobId returns the job when every watched row shares it', () => {
+    expect(
+      inferSharedJobId(
+        [
+          { id: 1, jobId: 10 },
+          { id: 2, jobId: 10 },
+          { id: 3, jobId: 99 },
+        ],
+        [1, 2],
+      ),
+    ).toBe(10);
+    expect(
+      inferSharedJobId(
+        [
+          { id: 1, jobId: 10 },
+          { id: 2, jobId: 11 },
+        ],
+        [1, 2],
+      ),
+    ).toBeUndefined();
   });
 });

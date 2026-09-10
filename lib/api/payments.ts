@@ -89,7 +89,7 @@ export const useRetryInvoice = () => {
         : [invoiceId];
       const watchedIds =
         invoiceIds.length > 0 ? invoiceIds : [invoiceId];
-      progress.startRetry(watchedIds);
+      progress.startRetry(watchedIds, jobId);
 
       let httpSettled = false;
       const watchPromise = jobId
