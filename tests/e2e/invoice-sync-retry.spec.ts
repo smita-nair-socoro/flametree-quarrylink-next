@@ -191,7 +191,7 @@ test.describe('QLINK-3508 Accounting smoke (token refresh proxy)', () => {
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/payments?tab=invoices', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
     });
     await page.waitForTimeout(3000);
     test.skip(

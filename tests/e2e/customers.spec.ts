@@ -44,7 +44,7 @@ test.describe('Customers - API', () => {
 
 test.describe('Customers - UI', () => {
   test('customers page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/customers', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/customers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     // No client-side error
@@ -54,7 +54,7 @@ test.describe('Customers - UI', () => {
   });
 
   test('customers page shows data table or empty state', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/customers', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/customers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     // Should have either a table, a card, or an empty state message
@@ -65,7 +65,7 @@ test.describe('Customers - UI', () => {
   });
 
   test('customers page sync button is visible (if Acumatica connected)', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/customers', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/customers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     // The sync button may or may not be visible depending on the accounting provider.

@@ -78,7 +78,7 @@ async function findJobWithAttachmentRoom(
 
 async function openJobDetail(page: Page, jobId: number) {
   await page.goto(`/customer-operations/jobs?ids=${jobId}`, {
-    waitUntil: 'networkidle',
+    waitUntil: 'domcontentloaded',
   });
   const dialog = page.getByRole('dialog').first();
   await expect(dialog).toBeVisible({ timeout: 20000 });
@@ -160,7 +160,7 @@ test.describe('Jobs - Attachments section', () => {
   });
 
   test('jobs list does not show attachment UI', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('body')).not.toBeEmpty();
     await expect(
       page.getByRole('button', { name: /Add Attachment \(\d+ of 3\)/ }),
@@ -497,7 +497,7 @@ test.describe('Jobs - Attachment upload, cap, download, delete', () => {
       });
       expect(upload.ok(), 'seed upload for empty table should succeed').toBeTruthy();
       createdNames.push(seedName);
-      await page.reload({ waitUntil: 'networkidle' });
+      await page.reload({ waitUntil: 'domcontentloaded' });
       const refreshed = await openJobDetail(page, jobId!);
       row = refreshed
         .locator('table')
@@ -564,7 +564,7 @@ test.describe('Customers - Attachments regression', () => {
   }) => {
     test.setTimeout(90000);
     await page.goto('/customer-operations/customers', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
     });
     await expect(page.getByRole('heading', { name: 'Customers' })).toBeVisible({
       timeout: 20000,

@@ -62,7 +62,11 @@ import {
 } from '@/lib/utils/error-message-helper';
 import { TimeWindowPicker } from '@/components/ui/time-window-picker';
 import { AuditInformation } from '@/components/audit-information';
-import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import {
+  useTenantCurrencyTax,
+  taxPercentageForCustomer,
+  getTaxRateLabel,
+} from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -90,9 +94,8 @@ export default function QuotationForm({
     currencyCode,
     currencySymbol,
     taxLabel,
-    taxPercentage,
+    taxPercentage: tenantTaxPercentage,
     exTaxLabel,
-    taxRateLabel,
   } = useTenantCurrencyTax();
   const [isEditing] = React.useState(Boolean(id));
   const formId = isDuplicate ? 'duplicate-quote-form' : 'add-new-quote-form';
@@ -110,6 +113,40 @@ export default function QuotationForm({
   const createQuotation = useCreateQuotation();
   const updateQuotation = useUpdateQuotation();
   const duplicateQuotation = useDuplicateQuotation();
+  const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
+  const selectedCustomerId = quotationForm.watch('customerId');
+
+  const linkedCustomerFromQuotation = React.useMemo(
+    () =>
+      selectedQuotation ? customerDtoFromQuotation(selectedQuotation) : null,
+    [selectedQuotation],
+  );
+
+  const {
+    customers,
+    customerOptions,
+    hasMoreCustomerOptions,
+    isLoadingMoreCustomerOptions,
+    onCustomerOptionsScrollEnd,
+    customerSearch,
+    onCustomerSearchChange,
+    isSearchingCustomers,
+  } = useCustomersForForm({
+    isEditing,
+    isDuplicate,
+    customerId: selectedQuotation?.customerId,
+    allowCustomerChangeWhileEditing: isEditing && !isDuplicate,
+    linkedCustomer: linkedCustomerFromQuotation,
+    loadMoreEnabled: customerSelectOpen,
+    selectedCustomerId,
+  });
+
+  const taxPercentage = taxPercentageForCustomer(
+    customers.find((customer) => customer.id === selectedCustomerId)?.taxZone ??
+      (isEditing ? linkedCustomerFromQuotation?.taxZone : undefined),
+    tenantTaxPercentage,
+  );
+  const taxRateLabel = getTaxRateLabel(taxLabel, taxPercentage);
 
   // All form state management: data fetching, pricing, customer auto-fill,
   // and Quote content panel data (via GET /quote/{quoteId}/content)
@@ -143,36 +180,6 @@ export default function QuotationForm({
   React.useEffect(() => {
     onDirtyChange?.(quotationForm.formState.isDirty);
   }, [quotationForm.formState.isDirty, onDirtyChange]);
-
-  // Fetch customers from API
-  const [customerSelectOpen, setCustomerSelectOpen] = React.useState(false);
-
-  const linkedCustomerFromQuotation = React.useMemo(
-    () =>
-      currentQuotation ? customerDtoFromQuotation(currentQuotation) : null,
-    [currentQuotation],
-  );
-
-  const selectedCustomerId = quotationForm.watch('customerId');
-
-  const {
-    customers,
-    customerOptions,
-    hasMoreCustomerOptions,
-    isLoadingMoreCustomerOptions,
-    onCustomerOptionsScrollEnd,
-    customerSearch,
-    onCustomerSearchChange,
-    isSearchingCustomers,
-  } = useCustomersForForm({
-    isEditing,
-    isDuplicate,
-    customerId: currentQuotation?.customerId,
-    allowCustomerChangeWhileEditing: isEditing && !isDuplicate,
-    linkedCustomer: linkedCustomerFromQuotation,
-    loadMoreEnabled: customerSelectOpen,
-    selectedCustomerId,
-  });
 
   const getCustomerNameById = React.useCallback(
     (customerId: number) => {

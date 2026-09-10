@@ -72,6 +72,7 @@ export function customerDtoFromQuotation(
     customerStatus: nested.customerStatus,
     version: nested.version,
     billingAddress: nested.billingAddress,
+    taxZone: nested.taxZone,
   };
 }
 

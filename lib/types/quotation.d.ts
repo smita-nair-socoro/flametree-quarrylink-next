@@ -129,6 +129,7 @@ export interface QuotePreviewCustomerDTO {
   abn?: string;
   accSoftwareNotes?: string;
   accSoftwareContactId?: string;
+  taxZone?: string | null;
   lastAccSoftwareSyncDirection?: string;
   lastAccSoftwareSyncStatus?: string;
   lastSyncedAt?: string;

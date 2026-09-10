@@ -25,28 +25,28 @@ test.describe('Inventory - API', () => {
 
 test.describe('Inventory - UI', () => {
   test('quarries-suppliers page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/inventory/quarries-suppliers', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/quarries-suppliers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('stockpile page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/inventory/stockpile', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/stockpile', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('weigh-bridge page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/inventory/weigh-bridge', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/weigh-bridge', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('production page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/inventory/production', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/production', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();

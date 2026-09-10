@@ -7,7 +7,7 @@ import { test, expect, skipIfUnavailable } from './helpers/fixtures';
 
 test.describe('Dockets - API', () => {
   test('GET /docket returns list', async ({ apiClient }) => {
-    const res = await apiClient.dockets.list('page=0&perPage=10');
+    const res = await apiClient.dockets.table('page=1&pageSize=10');
     skipIfUnavailable(res, 'Dockets list');
     expect(res.ok()).toBeTruthy();
     const data = await res.json();
@@ -16,7 +16,7 @@ test.describe('Dockets - API', () => {
 
   test('GET /docket supports date filtering', async ({ apiClient }) => {
     const today = new Date().toISOString().split('T')[0];
-    const res = await apiClient.dockets.list(`page=0&perPage=10&date=${today}`);
+    const res = await apiClient.dockets.table(`page=1&pageSize=10&date=${today}`);
     skipIfUnavailable(res, 'Dockets list');
     expect(res.ok()).toBeTruthy();
   });
@@ -24,7 +24,7 @@ test.describe('Dockets - API', () => {
 
 test.describe('Dockets - UI', () => {
   test('dockets page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/dockets', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/dockets', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
@@ -32,7 +32,7 @@ test.describe('Dockets - UI', () => {
   });
 
   test('dockets page shows data table or empty state', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/dockets', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/dockets', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     const hasTable = await page.locator('table').count();

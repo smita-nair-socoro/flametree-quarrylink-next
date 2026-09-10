@@ -86,6 +86,8 @@ export interface CustomerWithAddressResponseDTO {
   accountManagerName?: string;
   accountManagerEmail?: string;
   remainingCredit?: number;
+  customerLocationId?: string;
+  taxZone?: string | null;
 
   // BUSINESS type specific fields
   businessName?: string;
