@@ -310,11 +310,11 @@ test.describe('Proof of Collection - UI', () => {
     ).toBeVisible();
     await expect(confirm.getByRole('button', { name: 'Continue', exact: true })).toBeVisible();
     await expect(
-      confirm.getByRole('button', { name: 'Continue Editing' }),
+      confirm.getByRole('button', { name: 'Cancel', exact: true }),
     ).toBeVisible();
     await expect(collectRequests).toHaveLength(0);
 
-    await confirm.getByRole('button', { name: 'Continue Editing' }).click();
+    await confirm.getByRole('button', { name: 'Cancel', exact: true }).click();
     await expect(confirm).toHaveCount(0);
     await expect(dialog.getByPlaceholder('Enter collector name')).toBeVisible();
 
