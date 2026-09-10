@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest';
 import {
   COLLECTOR_NAME_REQUIRED_MESSAGE,
+  EMPTY_COLLECTION_PROOF_CANCEL,
+  EMPTY_COLLECTION_PROOF_CONTINUE,
   collectionProofSchema,
   hasAnyCollectionProof,
 } from '../collection-proof';
@@ -47,6 +49,13 @@ describe('collectionProofSchema', () => {
       );
       expect(result.error.issues[0]?.path).toEqual(['collectorName']);
     }
+  });
+});
+
+describe('empty proof confirmation copy', () => {
+  test('offers Continue and Cancel on the confirmation modal', () => {
+    expect(EMPTY_COLLECTION_PROOF_CONTINUE).toBe('Continue');
+    expect(EMPTY_COLLECTION_PROOF_CANCEL).toBe('Cancel');
   });
 });
 

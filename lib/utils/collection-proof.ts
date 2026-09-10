@@ -4,7 +4,7 @@ export const COLLECTOR_NAME_REQUIRED_MESSAGE = "Enter the collector's name.";
 export const EMPTY_COLLECTION_PROOF_CONFIRMATION =
   'No proof of collection captured. Continue?';
 export const EMPTY_COLLECTION_PROOF_CONTINUE = 'Continue';
-export const EMPTY_COLLECTION_PROOF_CONTINUE_EDITING = 'Continue Editing';
+export const EMPTY_COLLECTION_PROOF_CANCEL = 'Cancel';
 
 export const collectionProofSchema = z
   .object({

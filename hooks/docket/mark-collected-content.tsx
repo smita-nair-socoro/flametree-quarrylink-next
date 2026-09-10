@@ -27,9 +27,9 @@ import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { acceptImageFile } from '@/lib/utils/image-file-size';
 import {
+  EMPTY_COLLECTION_PROOF_CANCEL,
   EMPTY_COLLECTION_PROOF_CONFIRMATION,
   EMPTY_COLLECTION_PROOF_CONTINUE,
-  EMPTY_COLLECTION_PROOF_CONTINUE_EDITING,
 } from '@/lib/utils/collection-proof';
 
 export function MarkCollectedDescription({
@@ -218,7 +218,10 @@ export function MarkCollectedContent({
           if (!open) onDismissEmptyProofConfirm?.();
         }}
       >
-        <AlertDialogContent className="z-[70] sm:max-w-md">
+        <AlertDialogContent
+          overlayClassName="z-[70]"
+          className="z-[80] sm:max-w-md"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>No proof of collection captured</AlertDialogTitle>
             <AlertDialogDescription>
@@ -227,7 +230,7 @@ export function MarkCollectedContent({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel type="button">
-              {EMPTY_COLLECTION_PROOF_CONTINUE_EDITING}
+              {EMPTY_COLLECTION_PROOF_CANCEL}
             </AlertDialogCancel>
             <AlertDialogAction
               type="button"
