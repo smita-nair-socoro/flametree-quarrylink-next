@@ -37,6 +37,7 @@ import {
   QuotationDTO,
   QuotationLineItem,
   QuotationReporting,
+  QuotesListResponse,
 } from '../types/quotation';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { toLocalDateTime } from '../utils/date';
@@ -981,32 +982,34 @@ export const APIClient = {
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
-      status?: string;
-      customerId?: number;
-      accountManagerId?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      statuses?: string[];
+      customerIds?: number[];
+      accountManagerSubs?: string[];
+      ids?: number[];
+      status?: string;
+      customerId?: number;
     }) => {
-      const response = await appClient.Get<
-        | QuotationDTO[]
-        | {
-            content: QuotationDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/quote`, {
-        queryString: {
-          page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000',
-          status: params?.status,
-          customerId: params?.customerId?.toString(),
-          accountManagerId: params?.accountManagerId?.toString(),
-          search: params?.search,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
+      const response = await appClient.Get<QuotesListResponse>(
+        `/socoro/quarrylink/api/quote`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            customerIds: params?.customerIds?.map(String),
+            accountManagerSubs: params?.accountManagerSubs,
+            ids: params?.ids?.map(String),
+            status: params?.status,
+            customerId: params?.customerId?.toString(),
+          },
         },
-      });
+      );
       return response;
     },
     getById: (quotationId: number) =>

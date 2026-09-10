@@ -1,4 +1,5 @@
 import {
+  infiniteQueryOptions,
   keepPreviousData,
   queryOptions,
   useMutation,
@@ -10,18 +11,171 @@ import {
   PublicQuoteLinkResponse,
   QuotationDTO,
   QuotationLineItem,
+  QuotesListResponse,
+  QuotesPage,
 } from '../types/quotation';
 import { convertKeysToCamelCase } from '../utils/case-conversion';
 import { JobDTO } from '../types/job';
 
-export const QuotationsListQueryOptions = () =>
+export type QuotesListParams = {
+  /** 0-based page index from UI tables (converted to 1-based for the API). */
+  page?: number;
+  pageSize?: number;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: string;
+  statuses?: string[];
+  customerIds?: number[];
+  accountManagerSubs?: string[];
+  ids?: number[];
+};
+
+const QUOTE_COLUMN_TO_API_SORT: Record<string, string> = {
+  quote_number: 'quoteNumber',
+  customer_name: 'customerName',
+  created_at: 'createdAt',
+  expiry_date: 'expiryDate',
+  total_sell_price: 'totalSellPrice',
+  account_manager: 'accountManager',
+  status: 'quoteStatus',
+};
+
+export function toQuoteApiSortParams(
+  sorting: { id: string; desc: boolean }[],
+): Pick<QuotesListParams, 'sortBy' | 'sortOrder'> {
+  const sort = sorting[0];
+  if (!sort) return { sortBy: 'createdAt', sortOrder: 'desc' };
+  return {
+    sortBy: QUOTE_COLUMN_TO_API_SORT[sort.id] ?? sort.id,
+    sortOrder: sort.desc ? 'desc' : 'asc',
+  };
+}
+
+function getFacetFilterValues(
+  filters: { id: string; value: unknown }[],
+  columnId: string,
+): string[] {
+  const filter = filters.find((f) => f.id === columnId);
+  if (!filter || !Array.isArray(filter.value)) return [];
+  return filter.value.map((v) => String(v));
+}
+
+export function toQuoteApiFilterParams(
+  filters: { id: string; value: unknown }[],
+): Pick<QuotesListParams, 'statuses' | 'customerIds' | 'accountManagerSubs'> {
+  const statusValues = getFacetFilterValues(filters, 'status');
+  const customerValues = getFacetFilterValues(filters, 'customer_name');
+  const accountManagerValues = getFacetFilterValues(filters, 'account_manager');
+
+  const customerIds = customerValues
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+
+  return {
+    statuses: statusValues.length ? statusValues : undefined,
+    customerIds: customerIds.length ? customerIds : undefined,
+    accountManagerSubs: accountManagerValues.length
+      ? accountManagerValues
+      : undefined,
+  };
+}
+
+/** Quotes API pagination is 1-based (page 1 = first page). */
+function toApiPage(page: number): number {
+  return page + 1;
+}
+
+function formatFacetEnumLabel(value: string): string {
+  return value
+    .split('_')
+    .map((part) => part.charAt(0) + part.slice(1).toLowerCase())
+    .join(' ');
+}
+
+export function getQuotesPageFromListResponse(
+  data: QuotesListResponse | null | undefined,
+): QuotesPage | null {
+  return data?.quotes ?? null;
+}
+
+export function getQuoteItemsFromListResponse(
+  data: QuotesListResponse | null | undefined,
+): QuotationDTO[] {
+  return (data?.quotes?.content ?? []) as QuotationDTO[];
+}
+
+export function buildQuoteFacetOptions(response?: QuotesListResponse | null) {
+  return {
+    statuses: (response?.statuses ?? []).map((status) => ({
+      value: status,
+      label: formatFacetEnumLabel(status),
+    })),
+    customers: (response?.customers ?? []).map((customer) => ({
+      value: customer.id,
+      label: customer.name,
+    })),
+    accountManagers: (response?.accountManagers ?? []).map((manager) => ({
+      value: manager.id,
+      label: manager.name,
+    })),
+  };
+}
+
+export const QuotationsListQueryOptions = (params?: QuotesListParams) =>
   queryOptions({
-    queryKey: QuotationKeys.list(),
+    queryKey: [...QuotationKeys.list(), params],
     queryFn: async () =>
-      convertKeysToCamelCase(await APIClient.quotations.getAll()),
+      convertKeysToCamelCase(
+        await APIClient.quotations.getAll({
+          ...params,
+          page: params?.page !== undefined ? toApiPage(params.page) : undefined,
+        }),
+      ) as QuotesListResponse,
     placeholderData: keepPreviousData,
     staleTime: 5_000,
   });
+
+export const QuotationsInfiniteListQueryOptions = (
+  params: Omit<QuotesListParams, 'page'> = {},
+) =>
+  infiniteQueryOptions({
+    queryKey: [...QuotationKeys.list(), 'infinite', params],
+    queryFn: async ({ pageParam }) =>
+      convertKeysToCamelCase(
+        await APIClient.quotations.getAll({
+          ...params,
+          page: pageParam as number,
+          pageSize: params.pageSize ?? 25,
+        }),
+      ) as QuotesListResponse,
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      const page = getQuotesPageFromListResponse(lastPage);
+      if (!page) return undefined;
+      if ((page.content ?? []).length === 0) return undefined;
+      const nextPage = (lastPageParam as number) + 1;
+      if (nextPage > page.totalPages) return undefined;
+      return nextPage;
+    },
+    staleTime: 5_000,
+  });
+
+export function getQuotesFromInfinitePages(
+  pages: (QuotesListResponse | null | undefined)[] | undefined,
+): QuotationDTO[] {
+  const seenIds = new Set<number>();
+  const result: QuotationDTO[] = [];
+
+  for (const page of pages ?? []) {
+    for (const quote of page?.quotes?.content ?? []) {
+      if (quote.id == null || seenIds.has(quote.id)) continue;
+      seenIds.add(quote.id);
+      result.push(quote as QuotationDTO);
+    }
+  }
+
+  return result;
+}
 
 export const QuotationDetailQueryOptions = (quotationId: number) =>
   queryOptions({
