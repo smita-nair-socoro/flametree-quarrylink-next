@@ -191,36 +191,14 @@ async function findSameJobCollectedPair(
     return [...byJob.values()].find((rowsInJob) => rowsInJob.length >= 2) ?? null;
   };
 
-  for (let attempt = 0; attempt < 3; attempt++) {
-    await ensureCollectedDockets(apiClient, 2);
-    let collected = await enrich(
-      await findDockets(apiClient, 'COLLECTION', 'COLLECTED'),
-    );
-    let pair = group(collected);
-    if (pair) return pair.slice(0, 2);
+  const collected = await findDockets(apiClient, 'COLLECTION', 'COLLECTED');
+  let pair = group(collected);
+  if (pair) return pair.slice(0, 2);
 
-    // Promote PREPARING siblings that share a job with an existing Collected.
-    const preparing = await enrich(
-      await findDockets(apiClient, 'COLLECTION', 'PREPARING'),
-    );
-    const collectedKeys = new Set(
-      collected.map(jobGroupKey).filter((k): k is string => !!k),
-    );
-    const sameJobPreparing = preparing.filter((row) => {
-      const key = jobGroupKey(row);
-      return !!key && collectedKeys.has(key);
-    });
-    const anyPreparing = sameJobPreparing.length ? sameJobPreparing : preparing;
-    for (const row of anyPreparing.slice(0, 4)) {
-      await markCollectionCollected(apiClient, row.id);
-    }
-    collected = await enrich(
-      await findDockets(apiClient, 'COLLECTION', 'COLLECTED'),
-    );
-    pair = group(collected);
-    if (pair) return pair.slice(0, 2);
-  }
-  return null;
+  const missingJob = collected.filter((row) => !jobGroupKey(row)).slice(0, 5);
+  await enrich(missingJob);
+  pair = group(collected);
+  return pair ? pair.slice(0, 2) : null;
 }
 
 /** Spec: cash sale eligible = COLLECTED collection only. */
@@ -251,7 +229,7 @@ async function openJobCashSalesTab(
   page: Page,
   jobHint?: string,
 ): Promise<{ dialog: ReturnType<Page['getByRole']>; skipped: string | null }> {
-  await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+  await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
   await dismissOpenDialogs(page);
 
   if (jobHint) {
@@ -399,7 +377,7 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
       let dialog: ReturnType<Page['getByRole']>;
       if (receipt.jobId != null) {
         await page.goto(`/customer-operations/jobs?ids=${receipt.jobId}`, {
-          waitUntil: 'networkidle',
+          waitUntil: 'domcontentloaded',
         });
         // Do not dismiss — ?ids= opens the job dialog we need.
         dialog = page.getByRole('dialog');
@@ -459,7 +437,7 @@ test.describe('Cash sales - QLINK-3509 slices 1–4', () => {
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/payments?tab=cash-payments', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
     });
     await page.waitForTimeout(3000);
     test.skip(
@@ -799,28 +777,21 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
       }
     }
 
-    // Table rows may lack jobReference; resolve via by-job scan of known customer jobs.
-    if (!jobHint || jobId == null) {
-      const jobsRes = await apiClient.jobs.list('page=1&pageSize=30');
-      if (jobsRes.ok()) {
-        const jobs = rowsFromPayload(await jobsRes.json());
-        for (const job of jobs) {
-          if (!job.id) continue;
-          const byJob = await apiClient.dockets.byJob(job.id);
-          if (!byJob.ok()) continue;
-          const dockets = rowsFromPayload(await byJob.json());
-          const hit = dockets.find(
-            (d) =>
-              !`${d.docketNumber ?? ''}`.startsWith('IT-') &&
-              matchesType(d, 'DELIVERY') &&
-              statusOf(d).includes('DELIVERED'),
-          );
-          if (hit) {
-            jobId = job.id;
-            jobHint = job.jobNumber ?? String(job.id);
-            break;
-          }
-        }
+    // Table rows may lack jobReference; one detail fetch is enough.
+    if ((!jobHint || jobId == null) && seedDocket) {
+      const detailRes = await apiClient.dockets.get(seedDocket.id);
+      if (detailRes.ok()) {
+        const detail = (await detailRes.json()) as {
+          job?: { id?: number; jobNumber?: string };
+          jobId?: number;
+          jobNumber?: string;
+        };
+        jobId = detail.job?.id ?? detail.jobId ?? jobId;
+        jobHint =
+          detail.job?.jobNumber ??
+          detail.jobNumber ??
+          jobHint ??
+          (jobId != null ? String(jobId) : null);
       }
     }
 
@@ -838,7 +809,7 @@ test.describe('Cash sale eligibility & hard rules (spec)', () => {
     let jobDialog: ReturnType<Page['getByRole']>;
     if (jobId != null) {
       await page.goto(`/customer-operations/jobs?ids=${jobId}`, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
       });
       // Do not dismiss — ?ids= opens the job dialog we need.
       jobDialog = page.getByRole('dialog');

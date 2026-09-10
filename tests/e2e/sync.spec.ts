@@ -51,7 +51,7 @@ test.describe('Sync Status - API', () => {
 test.describe('Sync Status - UI Persistence', () => {
   test('product sync status is checked on page load', async ({ authedPage: page }) => {
     // Navigate to products page — this should trigger a sync status check
-    await page.goto('/inventory/products', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/products', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     // Verify the sync-status API was called on page load
@@ -60,7 +60,7 @@ test.describe('Sync Status - UI Persistence', () => {
   });
 
   test('customer sync status is checked on page load', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/customers', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/customers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
@@ -68,7 +68,7 @@ test.describe('Sync Status - UI Persistence', () => {
 
   test('sync progress bar does not show when sync is IDLE/COMPLETED', async ({ authedPage: page }) => {
     // If sync is IDLE or COMPLETED (and wasInProgress=false), the bar should not appear
-    await page.goto('/inventory/products', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/products', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     // The "Syncing" text should not be visible unless a sync is actively in progress
@@ -81,9 +81,9 @@ test.describe('Sync Status - UI Persistence', () => {
 
   test('page refresh does not cause sync status errors', async ({ authedPage: page }) => {
     // Load the page, then refresh, and verify no errors
-    await page.goto('/inventory/products', { waitUntil: 'networkidle' });
+    await page.goto('/inventory/products', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);

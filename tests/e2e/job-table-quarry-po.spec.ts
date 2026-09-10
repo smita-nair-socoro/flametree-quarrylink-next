@@ -1,4 +1,4 @@
-﻿import { test, expect, type Page } from './helpers/fixtures';
+import { test, expect, type Page } from './helpers/fixtures';
 
 type JobRow = {
   id: number;
@@ -33,7 +33,7 @@ async function dismissOpenDialogs(page: Page) {
 
 /** Open jobs list filtered to one job without auto-opening the detail dialog. */
 async function gotoJobRow(page: Page, jobNumber: string) {
-  await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+  await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
   await dismissOpenDialogs(page);
   await page.getByPlaceholder('Search jobs...').fill(jobNumber);
   await expect(
@@ -46,7 +46,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   test('1 columns visible in correct positions on Jobs tab', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
 
@@ -171,10 +171,10 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     await gotoJobRow(page, empty!.jobNumber);
     const row = page.locator('table tbody tr').filter({ hasText: empty!.jobNumber });
     if ((empty!.quarrySupplierNames?.length ?? 0) === 0) {
-      await expect(row.getByTestId('job-quarry-cell')).toHaveText('—');
+      await expect(row.getByTestId('job-quarry-cell')).toHaveText('\u2014');
     }
     if ((empty!.poNumbers?.length ?? 0) === 0) {
-      await expect(row.getByTestId('job-po-cell')).toHaveText('—');
+      await expect(row.getByTestId('job-po-cell')).toHaveText('\u2014');
     }
   });
 
@@ -192,7 +192,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   test('8 long value truncates and badge stays visible', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     const badge = page.getByTestId('multi-value-badge').first();
     test.skip((await badge.count()) === 0, 'No +N badge available');
@@ -319,7 +319,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     const po = withPo!.poNumbers![0];
     const partial = po.slice(0, Math.max(3, Math.min(po.length, 6)));
 
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     await page.getByPlaceholder('Search jobs...').fill(partial);
     await expect(
@@ -339,12 +339,31 @@ test.describe('Jobs table - Quarry and PO columns', () => {
     test.skip(!withQuarry, 'No job with quarry');
     const quarry = withQuarry!.quarrySupplierNames![0];
 
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    const searched = await listJobs(
+      apiClient,
+      `page=1&pageSize=25&search=${encodeURIComponent(quarry)}`,
+    );
+    const matched: JobRow[] = searched.jobs?.content ?? [];
+    expect(
+      matched.some((job) => job.id === withQuarry!.id),
+      `Search for quarry "${quarry}" must return job ${withQuarry!.jobNumber}`,
+    ).toBeTruthy();
+
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
-    await page.getByPlaceholder('Search jobs...').fill(quarry);
-    await expect(
-      page.locator('table tbody tr').filter({ hasText: withQuarry!.jobNumber }),
-    ).toBeVisible({ timeout: 15000 });
+    const search = page.getByPlaceholder('Search jobs...');
+    await expect(search).toBeVisible({ timeout: 15000 });
+    await search.fill(quarry);
+    await expect
+      .poll(
+        async () =>
+          page
+            .locator('table tbody tr')
+            .filter({ hasText: withQuarry!.jobNumber })
+            .count(),
+        { timeout: 20000 },
+      )
+      .toBeGreaterThan(0);
   });
 
   test('15 filter secondary PO still returns job with leading cell value', async ({
@@ -438,7 +457,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   test('18 Show/Hide Columns toggles Quarry and PO', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     const showHide = page.getByRole('button', { name: 'Show/Hide Columns' });
     test.skip((await showHide.count()) === 0, 'Show/Hide Columns missing');
@@ -461,7 +480,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
   test('19 column preference persists across reload', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     const showHide = page.getByRole('button', { name: 'Show/Hide Columns' });
     test.skip((await showHide.count()) === 0, 'Show/Hide Columns missing');
@@ -478,7 +497,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
       )
       .toBeTruthy();
 
-    await page.reload({ waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     await expect(
       page.locator('table').getByRole('columnheader', { name: 'PO' }),
@@ -526,7 +545,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
         poListUrls.push(request.url());
       }
     });
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     await page.waitForTimeout(1200);
     expect(poListUrls).toEqual([]);
@@ -561,7 +580,7 @@ test.describe('Jobs table - Quarry and PO columns', () => {
       ),
     ).toBeTruthy();
 
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await dismissOpenDialogs(page);
     const itTab = page.getByRole('tab', { name: /Internal Transfers/i });
     test.skip((await itTab.count()) === 0, 'IT tab missing');

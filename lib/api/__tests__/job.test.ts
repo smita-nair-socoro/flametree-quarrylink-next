@@ -28,4 +28,15 @@ describe('job API helpers', () => {
       sortOrder: 'desc',
     });
   });
+
+  it('maps the Customer column to the backend sortBy customer', () => {
+    expect(toJobApiSortParams([{ id: 'customerName', desc: false }])).toEqual({
+      sortBy: 'customer',
+      sortOrder: 'asc',
+    });
+    expect(toJobApiSortParams([{ id: 'customerName', desc: true }])).toEqual({
+      sortBy: 'customer',
+      sortOrder: 'desc',
+    });
+  });
 });

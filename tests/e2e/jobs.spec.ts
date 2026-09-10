@@ -26,7 +26,7 @@ test.describe('Jobs - API', () => {
 
 test.describe('Jobs - UI', () => {
   test('jobs page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
@@ -34,7 +34,7 @@ test.describe('Jobs - UI', () => {
   });
 
   test('jobs page shows data table or empty state', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     const hasTable = await page.locator('table').count();
@@ -43,7 +43,7 @@ test.describe('Jobs - UI', () => {
   });
 
   test('jobs page has create button or add option', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     // Look for any "Add" or "Create" or "New" button/link
@@ -78,7 +78,7 @@ test.describe('Jobs - Attachments', () => {
   test('job detail shows Attachments section with 3-file cap count', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     const row = page.locator('table tbody tr').first();
@@ -99,7 +99,7 @@ test.describe('Jobs - Attachments', () => {
   test('Add Attachment modal lists job categories and accepted types', async ({
     authedPage: page,
   }) => {
-    await page.goto('/customer-operations/jobs', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/jobs', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     const row = page.locator('table tbody tr').first();

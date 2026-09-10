@@ -92,8 +92,14 @@ export async function loginViaAPI(
 // ---------------------------------------------------------------------------
 // UI-level login helper
 // ---------------------------------------------------------------------------
+/** Render keeps long-lived requests open; `networkidle` hangs for minutes. */
+export async function gotoApp(page: Page, path: string): Promise<void> {
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
+  await page.locator('body').waitFor({ state: 'visible' });
+}
+
 export async function loginAsAdmin(page: Page): Promise<void> {
-  await page.goto('/login', { waitUntil: 'networkidle' });
+  await gotoApp(page, '/login');
   await page.fill('input[type="email"]', ADMIN_EMAIL);
   await page.fill('input[type="password"]', ADMIN_PASSWORD);
   await page.click('button[type="submit"]');
@@ -170,6 +176,7 @@ export class ApiClient {
   // -- Customers --
   customers = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/customer${params ? `?${params}` : ''}`),
+    get: (id: number) => this.get(`/socoro/quarrylink/api/customer/${id}`),
     syncStatus: () => this.get('/socoro/quarrylink/api/customer/sync-status'),
     syncAll: () => this.put('/socoro/quarrylink/api/customer/sync-all-from-acc-software'),
     reporting: () => this.get('/socoro/quarrylink/api/customer/reporting'),
@@ -279,6 +286,9 @@ export class ApiClient {
   // -- Quotations --
   quotations = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/quote${params ? `?${params}` : ''}`),
+    get: (id: number) => this.get(`/socoro/quarrylink/api/quote/${id}`),
+    withItems: (id: number) =>
+      this.get(`/socoro/quarrylink/api/quote/${id}/quoteItem`),
     contentLibrary: () => this.get('/socoro/quarrylink/api/quote-content-library'),
     policyDocuments: () => this.get('/socoro/quarrylink/api/quote-content-library/policy-document'),
   };

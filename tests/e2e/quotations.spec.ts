@@ -34,7 +34,7 @@ test.describe('Quotations - API', () => {
 
 test.describe('Quotations - UI', () => {
   test('quotation page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/quotation', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/quotation', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
@@ -42,7 +42,7 @@ test.describe('Quotations - UI', () => {
   });
 
   test('quotation page shows data table or empty state', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/quotation', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/quotation', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
 
     const hasTable = await page.locator('table').count();

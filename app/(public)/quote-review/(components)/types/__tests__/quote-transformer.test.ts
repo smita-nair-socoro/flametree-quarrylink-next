@@ -294,6 +294,24 @@ describe('buildQuoteCurrencyTax', () => {
     expect(result.taxPercentage).toBe(0);
     expect(result.taxRateLabel).toBe('GST (0%)');
   });
+
+  test('charges 0% VAT for an Overseas customer tax zone', () => {
+    const result = buildQuoteCurrencyTax(
+      { currency: 'AUD', taxType: 'VAT', taxAmount: '10' },
+      'OVERSEAS',
+    );
+    expect(result.taxPercentage).toBe(0);
+    expect(result.taxRateLabel).toBe('VAT (0%)');
+  });
+
+  test('keeps the tenant rate for a non-Overseas tax zone', () => {
+    const result = buildQuoteCurrencyTax(
+      { currency: 'AUD', taxType: 'VAT', taxAmount: '10' },
+      'DOMESTIC',
+    );
+    expect(result.taxPercentage).toBe(10);
+    expect(result.taxRateLabel).toBe('VAT (10%)');
+  });
 });
 
 function makeAddress(overrides: Partial<Address> = {}): Address {
@@ -562,6 +580,22 @@ describe('transformQuoteData', () => {
     // 999 * 0.15 = 149.85 -> rounds to 150
     expect(result.summary.gst).toBe(150);
     expect(result.summary.total).toBe(1149);
+  });
+
+  test('charges 0% tax on the public quote review for an Overseas customer', () => {
+    const result = transformQuoteData(
+      makeApiResponse({
+        quoteDto: makeQuoteDto({
+          totalSellPrice: 15000,
+          customerWithAddressResponseDto: makeCustomer({ taxZone: 'OVERSEAS' }),
+        }),
+        tenantProfile: { currency: 'AUD', taxType: 'VAT', taxAmount: '10' },
+      }),
+    );
+    expect(result.currencyTax.taxPercentage).toBe(0);
+    expect(result.currencyTax.taxRateLabel).toBe('VAT (0%)');
+    expect(result.summary.gst).toBe(0);
+    expect(result.summary.total).toBe(15000);
   });
 
   test('applies default fallbacks when optional quote fields are missing', () => {

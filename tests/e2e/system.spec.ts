@@ -40,28 +40,28 @@ test.describe('System - Departments API', () => {
 
 test.describe('System - UI', () => {
   test('user management page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/system/user-management', { waitUntil: 'networkidle' });
+    await page.goto('/system/user-management', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('accounting page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/system/accounting', { waitUntil: 'networkidle' });
+    await page.goto('/system/accounting', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('tenant management page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/system/tenant-management', { waitUntil: 'networkidle' });
+    await page.goto('/system/tenant-management', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('camera page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/system/camera', { waitUntil: 'networkidle' });
+    await page.goto('/system/camera', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();

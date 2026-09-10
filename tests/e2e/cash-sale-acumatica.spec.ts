@@ -293,7 +293,7 @@ test.describe('Cash sale × Acumatica (§9 / §12 / §15.2)', () => {
   }) => {
     await page.goto(
       '/customer-operations/payments?tab=cash-payments&failedOnly=true',
-      { waitUntil: 'networkidle' },
+      { waitUntil: 'domcontentloaded' },
     );
     await page.waitForTimeout(3000);
     test.skip(

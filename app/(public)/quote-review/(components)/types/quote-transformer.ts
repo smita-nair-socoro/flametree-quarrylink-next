@@ -26,6 +26,7 @@ import {
   getCurrencySymbol,
   getExTaxLabel,
   getTaxRateLabel,
+  taxPercentageForCustomer,
 } from '@/lib/utils/tenant-config-helper';
 
 /**
@@ -36,15 +37,17 @@ import {
  */
 export function buildQuoteCurrencyTax(
   tenantProfile?: TenantProfileSnapshot,
+  taxZone?: string | null,
 ): QuoteCurrencyTax {
   const currencyCode = (
     tenantProfile?.currency || DEFAULT_CURRENCY_CODE
   ).toUpperCase();
   const taxLabel = tenantProfile?.taxType || DEFAULT_TAX_LABEL;
   const parsedPercentage = Number.parseFloat(tenantProfile?.taxAmount ?? '');
-  const taxPercentage = Number.isNaN(parsedPercentage)
+  const tenantTaxPercentage = Number.isNaN(parsedPercentage)
     ? DEFAULT_TAX_PERCENTAGE
     : parsedPercentage;
+  const taxPercentage = taxPercentageForCustomer(taxZone, tenantTaxPercentage);
 
   return {
     currencySymbol: getCurrencySymbol(currencyCode),
@@ -131,7 +134,10 @@ export function transformQuoteData(
     content,
     feeRecoveryPreview,
   } = apiResponse;
-  const currencyTax = buildQuoteCurrencyTax(tenantProfile);
+  const currencyTax = buildQuoteCurrencyTax(
+    tenantProfile,
+    quoteDto.customerWithAddressResponseDto?.taxZone,
+  );
   const { notes, terms, documents } = mapQuoteContent(content);
 
   // TEMP FIX: Flametree Quarry and MYOB Acumatica tenants store a dedicated
@@ -204,7 +210,7 @@ export function transformQuoteData(
 
   // Subtotal is the total sell price (ex-tax) - should be product + delivery
   const subtotal = totalSellPrice || 0;
-  // Tax is the tenant's tax percentage of the subtotal (defaults to 10%)
+  // Tax follows the tenant rate, or 0% for Overseas customers.
   const gst = Math.round(subtotal * (currencyTax.taxPercentage / 100));
   // Total is subtotal + tax
   const total = subtotal + gst;

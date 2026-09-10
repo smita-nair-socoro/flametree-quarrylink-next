@@ -35,7 +35,7 @@ export type JobsListParams = {
 
 const JOB_COLUMN_TO_API_SORT: Record<string, string> = {
   jobNumber: 'jobNumber',
-  customerName: 'customerName',
+  customerName: 'customer',
   projectName: 'projectName',
   uninvoicedDockets: 'uninvoicedDocketsAmount',
   status: 'jobStatus',

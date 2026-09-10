@@ -38,7 +38,13 @@ import { formatLocalDateShort } from '@/lib/utils/date';
 import { QUOTE_ITEM_TYPE } from '@/lib/types/quotation-enums';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatDollars } from '@/lib/utils/currency';
-import { useAccountingSoftwareProvider, useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
+import { useSelectedQuotation } from '@/app/stores/quotation-store';
+import {
+  useAccountingSoftwareProvider,
+  useTenantCurrencyTax,
+  taxPercentageForCustomer,
+  getTaxRateLabel,
+} from '@/lib/utils/tenant-config-helper';
 
 interface FormProps {
   id?: number;
@@ -64,12 +70,18 @@ export default function QuoteLineItemForm({
   const [productSelectOpen, setProductSelectOpen] = React.useState(false);
   const {
     currencySymbol,
-    taxPercentage,
+    taxPercentage: tenantTaxPercentage,
+    taxLabel,
     exTaxLabel,
-    taxRateLabel,
     formatCurrency,
     unitPriceDecimalPlaces,
   } = useTenantCurrencyTax();
+  const selectedQuotationForTax = useSelectedQuotation();
+  const taxPercentage = taxPercentageForCustomer(
+    selectedQuotationForTax?.customerWithAddressResponseDto?.taxZone,
+    tenantTaxPercentage,
+  );
+  const taxRateLabel = getTaxRateLabel(taxLabel, taxPercentage);
   const {
     isEditing,
     isReadOnly,

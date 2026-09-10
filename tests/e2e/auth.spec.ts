@@ -7,7 +7,7 @@ import { test, expect, BASE_URL } from './helpers/fixtures';
 
 test.describe('Authentication', () => {
   test('login page loads correctly', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
 
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
@@ -15,7 +15,7 @@ test.describe('Authentication', () => {
   });
 
   test('login with valid credentials succeeds', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.fill('input[type="email"]', 'admin@flametree.com.au');
     await page.fill('input[type="password"]', 'FlameTree2026!');
     await page.click('button[type="submit"]');
@@ -27,7 +27,7 @@ test.describe('Authentication', () => {
   });
 
   test('login with invalid credentials shows error', async ({ page }) => {
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.fill('input[type="email"]', 'wrong@example.com');
     await page.fill('input[type="password"]', 'wrongpassword123');
     await page.click('button[type="submit"]');
@@ -67,7 +67,7 @@ test.describe('Authentication', () => {
 
   test('logout clears session and redirects to login', async ({ page }) => {
     // Login first
-    await page.goto('/login', { waitUntil: 'networkidle' });
+    await page.goto('/login', { waitUntil: 'domcontentloaded' });
     await page.fill('input[type="email"]', 'admin@flametree.com.au');
     await page.fill('input[type="password"]', 'FlameTree2026!');
     await page.click('button[type="submit"]');

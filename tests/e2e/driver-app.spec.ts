@@ -7,7 +7,7 @@ import { test, expect } from './helpers/fixtures';
 
 test.describe('Driver App - UI', () => {
   test('driver app page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/drivers-app', { waitUntil: 'networkidle' });
+    await page.goto('/drivers-app', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
@@ -15,7 +15,7 @@ test.describe('Driver App - UI', () => {
   });
 
   test('driver app page renders content', async ({ authedPage: page }) => {
-    await page.goto('/drivers-app', { waitUntil: 'networkidle' });
+    await page.goto('/drivers-app', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
 
     const bodyText = await page.locator('body').textContent();

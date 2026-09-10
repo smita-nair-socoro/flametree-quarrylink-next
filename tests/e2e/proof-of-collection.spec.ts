@@ -97,7 +97,7 @@ async function findReadyCollectionDockets(
 
 async function openDocketDetail(page: Page, docket: DocketRow) {
   await page.goto(`/customer-operations/dockets?ids=${docket.id}`, {
-    waitUntil: 'networkidle',
+    waitUntil: 'domcontentloaded',
   });
   const dialog = page.getByRole('dialog').first();
   await expect(dialog).toBeVisible({ timeout: 20000 });
@@ -308,7 +308,7 @@ test.describe('Proof of Collection - UI', () => {
     await expect(
       confirm.getByText('No proof of collection captured. Continue?'),
     ).toBeVisible();
-    await expect(confirm.getByRole('button', { name: 'Continue' })).toBeVisible();
+    await expect(confirm.getByRole('button', { name: 'Continue', exact: true })).toBeVisible();
     await expect(
       confirm.getByRole('button', { name: 'Continue Editing' }),
     ).toBeVisible();
@@ -324,7 +324,7 @@ test.describe('Proof of Collection - UI', () => {
         'No proof of collection captured. Continue?',
       ),
     ).toBeVisible();
-    await page.getByRole('alertdialog').getByRole('button', { name: 'Continue' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Continue', exact: true }).click();
     await expect.poll(() => collectRequests.length).toBe(1);
     expect(collectRequests[0].url()).toMatch(/\/dockets\/\d+\/status/);
     expect(requestedStatusFromPut(collectRequests[0])).toBe('COLLECTED');
@@ -450,7 +450,7 @@ test.describe('Proof of Collection - Sign Off labels', () => {
     await expect(dialog.getByText('Receiver On Site')).toHaveCount(0);
     await expect(dialog.getByText('Unloaded Photo')).toHaveCount(0);
     await expect(dialog.getByRole('button', { name: 'Replace' })).toHaveCount(0);
-    await expect(dialog.getByRole('button', { name: 'Remove' })).toHaveCount(0);
+    await expect(dialog.getByRole('button', { name: 'Remove', exact: true })).toHaveCount(0);
     await expect(dialog.getByText('Tap to upload photo')).toHaveCount(0);
     await expect(
       dialog.getByRole('button', { name: 'Mark Collected', exact: true }),
@@ -501,7 +501,7 @@ test.describe('Proof of Collection - delivery and driver app unchanged', () => {
   test('driver app does not offer Proof of Collection', async ({
     authedPage: page,
   }) => {
-    await page.goto('/drivers-app', { waitUntil: 'networkidle' });
+    await page.goto('/drivers-app', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.getByText('Proof of Collection')).toHaveCount(0);

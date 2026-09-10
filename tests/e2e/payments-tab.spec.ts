@@ -54,7 +54,7 @@ async function gotoPayments(
   const path = query
     ? `/customer-operations/payments?${query}`
     : '/customer-operations/payments';
-  await page.goto(path, { waitUntil: 'networkidle' });
+  await page.goto(path, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(2000);
   if ((await page.getByText('Page not found').count()) > 0) return 'missing';
   if ((await page.getByRole('heading', { name: 'Payments' }).count()) === 0) {
@@ -150,7 +150,7 @@ test.describe('Payments tab — navigation', () => {
   test('1. Payments replaces Invoices in nav and lands on Invoices', async ({
     authedPage: page,
   }) => {
-    await page.goto('/dashboard', { waitUntil: 'networkidle' });
+    await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(1500);
 
     const paymentsNav = await openCustomerOpsNav(page);
@@ -184,7 +184,7 @@ test.describe('Payments tab — navigation', () => {
     authedPage: page,
   }) => {
     await page.goto('/customer-operations/invoices', {
-      waitUntil: 'networkidle',
+      waitUntil: 'domcontentloaded',
     });
     await page.waitForURL(/\/customer-operations\/payments/, { timeout: 20000 });
     expect(page.url()).toMatch(/tab=invoices|\/payments(?:\?|$)/);
@@ -348,14 +348,20 @@ test.describe('Payments tab — Invoices table', () => {
 
     const readTotalInvoicesValue = async () => {
       const card = page
-        .locator('div')
-        .filter({ has: page.getByText('Total Invoices', { exact: true }) })
+        .locator('[data-slot="card"]')
+        .filter({ hasText: 'All customer invoices' })
         .first();
       const text = await card.innerText();
       const nums = text.match(/\d+/g);
       return nums?.[0] ?? text;
     };
 
+    await expect(page.getByText('All customer invoices')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect
+      .poll(readTotalInvoicesValue, { timeout: 15000 })
+      .not.toBe('0');
     const beforeKpi = await readTotalInvoicesValue();
     await page.getByRole('button', { name: 'Today' }).click();
     await page.waitForTimeout(2000);
@@ -764,7 +770,7 @@ test.describe('Payments tab — job parity, combine, permissions', () => {
 
     try {
       await page.goto(`/customer-operations/jobs?ids=${receipt!.jobId}`, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
       });
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible({ timeout: 15000 });
@@ -821,7 +827,7 @@ test.describe('Payments tab — job parity, combine, permissions', () => {
       const paymentsText = await paymentsRow.innerText();
 
       await page.goto(`/customer-operations/jobs?ids=${receipt!.jobId}`, {
-        waitUntil: 'networkidle',
+        waitUntil: 'domcontentloaded',
       });
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible({ timeout: 15000 });

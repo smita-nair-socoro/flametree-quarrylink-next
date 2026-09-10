@@ -1,72 +1,61 @@
 import { test, expect } from './helpers/fixtures';
 
-// ============================================================================
-// TEST SUITE: Dashboard & Navigation
-// Verifies the main dashboard, sidebar navigation, and page routing
-// ============================================================================
+async function expandSidebarGroup(page: import('@playwright/test').Page, title: string) {
+  const trigger = page.getByRole('button', { name: title }).first();
+  if ((await trigger.count()) === 0) return;
+  const expanded = await trigger.getAttribute('aria-expanded');
+  if (expanded !== 'true') {
+    await trigger.click();
+  }
+}
+
+async function openSidebarLink(page: import('@playwright/test').Page, group: string, name: string, urlPart: string) {
+  await expandSidebarGroup(page, group);
+  const link = page.getByRole('link', { name, exact: true }).first();
+  await expect(link).toBeVisible({ timeout: 15000 });
+  await link.click();
+  await expect(page).toHaveURL(new RegExp(urlPart), { timeout: 20000 });
+}
 
 test.describe('Dashboard', () => {
   test('dashboard page loads after login', async ({ authedPage: page }) => {
-    await page.waitForLoadState('networkidle');
-
-    const sidebar = page.locator('[data-sidebar="sidebar"], [class*="sidebar"]').first();
-    const mainContent = page.locator('main').first();
-    await expect(sidebar.or(mainContent)).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('[data-slot="sidebar-inset"]').first()).toBeVisible({
+      timeout: 20000,
+    });
   });
 
   test('sidebar displays user info', async ({ authedPage: page }) => {
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(3000);
-
-    const pageText = await page.locator('body').textContent();
-    expect(pageText!.length).toBeGreaterThan(100);
-
+    await expect(page.locator('[data-sidebar="sidebar"]').first()).toBeVisible({
+      timeout: 20000,
+    });
+    const pageText = (await page.locator('body').textContent()) ?? '';
+    expect(pageText.length).toBeGreaterThan(100);
     const hasUserInfo =
-      pageText!.includes('flametree') ||
-      pageText!.includes('FlameTree') ||
-      pageText!.includes('admin@');
+      /flametree|Flame Tree|admin@|Welcome back/i.test(pageText);
     expect(hasUserInfo, 'Page should contain user info').toBeTruthy();
   });
 });
 
 test.describe('Navigation', () => {
   test('can navigate to customers from sidebar', async ({ authedPage: page }) => {
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    // Try clicking a customers link in the sidebar
-    const customersLink = page.locator('a[href*="customers"]').first();
-    if (await customersLink.count()) {
-      await customersLink.click();
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      expect(page.url()).toContain('customers');
-    }
+    await openSidebarLink(
+      page,
+      'Customer Operations',
+      'Customers',
+      'customers',
+    );
   });
 
   test('can navigate to products from sidebar', async ({ authedPage: page }) => {
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    const productsLink = page.locator('a[href*="products"]').first();
-    if (await productsLink.count()) {
-      await productsLink.click();
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      expect(page.url()).toContain('products');
-    }
+    await openSidebarLink(
+      page,
+      'Inventory & Production',
+      'Products',
+      'products',
+    );
   });
 
   test('can navigate to jobs from sidebar', async ({ authedPage: page }) => {
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
-
-    const jobsLink = page.locator('a[href*="jobs"]').first();
-    if (await jobsLink.count()) {
-      await jobsLink.click();
-      await page.waitForLoadState('networkidle');
-      await page.waitForTimeout(2000);
-      expect(page.url()).toContain('jobs');
-    }
+    await openSidebarLink(page, 'Customer Operations', 'Jobs', 'jobs');
   });
 });

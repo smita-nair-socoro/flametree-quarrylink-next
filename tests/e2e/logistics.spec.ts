@@ -45,35 +45,35 @@ test.describe('Logistics - Scheduler API', () => {
 
 test.describe('Logistics - UI', () => {
   test('drivers page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/logistics/drivers', { waitUntil: 'networkidle' });
+    await page.goto('/logistics/drivers', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('trucks page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/logistics/trucks', { waitUntil: 'networkidle' });
+    await page.goto('/logistics/trucks', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('haulier page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/logistics/haulier', { waitUntil: 'networkidle' });
+    await page.goto('/logistics/haulier', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('dispatch page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/logistics/dispatch', { waitUntil: 'networkidle' });
+    await page.goto('/logistics/dispatch', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
   });
 
   test('schedule page loads without error', async ({ authedPage: page }) => {
-    await page.goto('/customer-operations/schedule', { waitUntil: 'networkidle' });
+    await page.goto('/customer-operations/schedule', { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(3000);
     await expect(page.locator('text=client-side exception')).toHaveCount(0);
     await expect(page.locator('body')).not.toBeEmpty();
