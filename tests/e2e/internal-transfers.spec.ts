@@ -517,6 +517,24 @@ async function openAddItDocket(page: Page, job: { id: number; jobNumber?: string
   return { jobDialog: dialog, modal };
 }
 
+async function fillItDocketTimes(
+  page: Page,
+  modal: ReturnType<Page['getByRole']>,
+) {
+  const pickPmHour = async (hour: string) => {
+    await page.getByRole('button', { name: 'PM', exact: true }).click();
+    await page.getByRole('button', { name: hour, exact: true }).first().click();
+    await page.getByRole('button', { name: '00', exact: true }).first().click();
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+  };
+
+  await modal.getByRole('button', { name: 'Select time' }).first().click();
+  await pickPmHour('10');
+  await modal.getByRole('button', { name: 'Select time' }).click();
+  await pickPmHour('11');
+}
+
 // ---------------------------------------------------------------------------
 // Scenarios
 // ---------------------------------------------------------------------------
@@ -551,8 +569,19 @@ test.describe('Internal Transfers — job create & tabs', () => {
     });
     await expect(jobDialog).toBeVisible({ timeout: 30000 });
     await expect(jobDialog.getByRole('tab', { name: 'Dockets' })).toBeVisible();
-    await expect(jobDialog.getByText(from.name).first()).toBeVisible();
-    await expect(jobDialog.getByText(to.name).first()).toBeVisible();
+    const fromSelect = jobDialog.locator('select').nth(0);
+    const toSelect = jobDialog.locator('select').nth(1);
+    if ((await fromSelect.count()) > 0) {
+      await expect(fromSelect).toHaveValue(String(from.id));
+      await expect(toSelect).toHaveValue(String(to.id));
+    } else {
+      await expect(
+        jobDialog.getByRole('textbox', { name: /From Site/i }),
+      ).toHaveValue(from.name);
+      await expect(
+        jobDialog.getByRole('textbox', { name: /To Site/i }),
+      ).toHaveValue(to.name);
+    }
   });
 
   test('2. Same-site / required sites blocked', async ({ authedPage: page, apiClient }) => {
@@ -779,14 +808,14 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     await selectProductInItModal(page, modal, AP65);
 
     const loadDetails = modal.locator('div').filter({ hasText: 'Load Details' }).first();
-    const loadText = await modal.innerText();
-    const fromIdx = loadText.indexOf('From');
-    const productIdx = loadText.indexOf('Product*');
-    const densityIdx = loadText.indexOf('Product Density');
-    const uomIdx = loadText.indexOf('Product UoM');
-    const qtyIdx = loadText.indexOf('Planned Load Size');
-    const truckIdx = loadText.indexOf('Suggested Truck Type');
-    const availIdx = loadText.indexOf('Availability');
+    const loadText = (await modal.innerText()).toUpperCase();
+    const fromIdx = loadText.indexOf('FROM');
+    const productIdx = loadText.indexOf('PRODUCT*');
+    const densityIdx = loadText.indexOf('PRODUCT DENSITY');
+    const uomIdx = loadText.indexOf('PRODUCT UOM');
+    const qtyIdx = loadText.indexOf('PLANNED LOAD SIZE');
+    const truckIdx = loadText.indexOf('SUGGESTED TRUCK TYPE');
+    const availIdx = loadText.indexOf('AVAILABILITY');
     expect(fromIdx).toBeGreaterThanOrEqual(0);
     expect(productIdx).toBeGreaterThan(fromIdx);
     expect(densityIdx).toBeGreaterThan(productIdx);
@@ -850,7 +879,7 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     await expect(modal.getByText('Transfer Summary')).toBeVisible({
       timeout: 15000,
     });
-    await expect(modal.getByText(/Cost price/i)).toBeVisible();
+    await expect(modal.getByText(/Cost price/i).first()).toBeVisible();
     await expect(modal.getByText('$0.00 / TN').or(modal.getByText('$0.00 / M3'))).toBeVisible();
     await expect(modal.getByText(/Cost price is missing/i).first()).toBeVisible({
       timeout: 15000,
