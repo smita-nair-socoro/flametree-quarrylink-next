@@ -24,6 +24,16 @@ export interface PaymentsInvoiceStatistics {
   duePayment: number;
 }
 
+export interface PaymentsInvoiceFilterOption {
+  id: string;
+  name: string;
+}
+
+export interface PaymentsInvoiceFilterOptions {
+  customers: PaymentsInvoiceFilterOption[];
+  jobs: PaymentsInvoiceFilterOption[];
+}
+
 export interface PaymentsPage<T> {
   content: T[];
   totalElements: number;

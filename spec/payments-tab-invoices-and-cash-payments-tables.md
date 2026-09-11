@@ -82,7 +82,7 @@ A due date range control above the table, matching the existing pattern:
 
 - The active range displayed as a label — e.g. *04 Jun 2026 – 01 Sep 2026*
 - Presets: **Today**, **Last 7 days**, **This month**, **Last 90 days**, **Clear dates**
-- Two date pickers for a custom from/to range
+- **Custom** opens a single date-range calendar (two months). Click the start day, then the end day. The picker will not keep an end date before the start date.
 - The selected preset is visibly active
 
 **The range filters the table only. It does not drive the KPI cards** — the cards always reflect the full data set (§4.2). A count of overdue invoices that changes when someone picks a date preset is a worse number than one that doesn't, because it stops answering the question the card is there to answer.
@@ -90,6 +90,10 @@ A due date range control above the table, matching the existing pattern:
 ### 4.4 Search
 
 A keyword search field, matching partially against invoice number, job and customer.
+
+### 4.4.1 Customer and Job filters
+
+Facet filters on **Customer** and **Job**, matching the Jobs table chip pattern. Options come from invoices that already exist. They filter the table only and do not change the KPI cards.
 
 ### 4.5 Failed-only toggle
 
@@ -105,7 +109,7 @@ The alert badge and notification banner (§7.3) link straight to the table with 
 
 The equivalent page in the blueprint product carries more than the above. **These parts are not in scope:**
 
-- ❌ Source / Status / Type / Customer filter chips *(the `Failed only` toggle at §4.5 is not one of these)*
+- ❌ Source / Status / Type filter chips *(Customer and Job filters are in scope — §4.4.1. The `Failed only` toggle at §4.5 is not one of these)*
 - ❌ Show voided toggle
 - ❌ Show/Hide Columns
 - ❌ Prepaid invoice actions
@@ -143,7 +147,7 @@ The `⋯` menu carries the same actions and the same permission gates as the job
 
 ### 5.3 Date range
 
-The same due date range control as §4.3, applied to Recorded Date — same presets, same custom pickers.
+The same due date range control as §4.3, applied to Recorded Date — same presets, same custom date-range calendar.
 
 ### 5.4 Search
 
@@ -246,17 +250,18 @@ The sync status column and Retry action should appear in both places, driven by 
 - [ ] Columns are sortable
 - [ ] `⋯` menu offers View Invoice
 - [ ] Keyword search matches invoice number, job and customer, partially
+- [ ] Customer and Job facet filters narrow the table
 - [ ] Four KPI cards show Total Invoices, Overdue Invoices, Value of Uninvoiced Dockets (split Delivery / Collection) and Due Payment
 - [ ] KPI cards reflect the full data set, not the current page
 - [ ] A due date range control offers Today, Last 7 days, This month, Last 90 days and Clear dates
-- [ ] Custom from/to date pickers work alongside the presets
+- [ ] Custom from/to uses a date-range calendar
 - [ ] The active preset is visibly indicated and the range is labelled
 - [ ] The date range filters the table
 - [ ] A `Failed only` toggle sits above the table, off by default
 - [ ] Turning it on shows only rows whose Accounting Sync is `Failed`
 - [ ] The alert badge and notification banner link to the table with the toggle already on
 - [ ] The date range filters the table but does not change the KPI cards
-- [ ] No filter chips, voided toggle or column chooser are present
+- [ ] No Source/Status/Type chips, voided toggle or column chooser are present
 
 **Cash Payments table**
 
@@ -294,7 +299,7 @@ The sync status column and Retry action should appear in both places, driven by 
 | # | Question | Decision |
 |---|---|---|
 | 1 | Job-level tables | Both stay — job view and cross-job view coexist |
-| 2 | Feature scope | What Flame Tree have today, plus sync status and Retry, KPI cards, due date range and search. No filter chips, voided toggle or column chooser |
+| 2 | Feature scope | What Flame Tree have today, plus sync status and Retry, KPI cards, due date range, search, and Customer/Job filters. No Source/Status/Type chips, voided toggle or column chooser |
 | 3 | Sync wording | `Synced` / `Failed` / `Not synced` — the only sync states in the product |
 | 4 | Navigation | Payments replaces the Invoices nav item |
 | 5 | Invoice sync mechanics | Untouched — Flame Tree's sales-order-driven process retained as is |
@@ -311,7 +316,7 @@ The sync status column and Retry action should appear in both places, driven by 
 
 - Any change to how invoices or cash sales sync to Acumatica
 - Any change to Flame Tree's sales-order-driven invoice process
-- Filter chips, voided toggle, column chooser
+- Filter chips other than Customer and Job, voided toggle, column chooser
 - KPI cards on the Cash Payments sub-tab
 - Prepaid invoice creation or handling
 - Bulk actions on either table

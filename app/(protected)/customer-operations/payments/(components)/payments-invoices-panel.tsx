@@ -2,17 +2,23 @@
 
 import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { SortingState } from '@tanstack/react-table';
+import type { ColumnFiltersState, SortingState } from '@tanstack/react-table';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { DataTableClient } from '@/components/ui/data-table-client';
+import {
+  DataTableClient,
+  FacetDefinition,
+} from '@/components/ui/data-table-client';
 import { PaymentsListToolbar } from '@/components/payments-list-toolbar';
 import {
   DateRangeValue,
   toIsoDate,
 } from '@/components/date-range-presets';
 import {
+  PaymentsInvoiceFiltersQueryOptions,
   PaymentsInvoicesQueryOptions,
   PaymentsInvoiceStatisticsQueryOptions,
+  buildPaymentsInvoiceFacetOptions,
+  toPaymentsInvoiceFilterParams,
 } from '@/lib/api/payments';
 import { getPaymentsInvoiceColumns } from './payments-invoice-columns';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
@@ -35,6 +41,9 @@ export function PaymentsInvoicesPanel({
   const [search, setSearch] = React.useState(initialSearch);
   const [failedOnly, setFailedOnly] = React.useState(initialFailedOnly);
   const [dateRange, setDateRange] = React.useState<DateRangeValue>({});
+  const [facetFilters, setFacetFilters] = React.useState<ColumnFiltersState>(
+    [],
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: 'invoiceNumber', desc: true },
   ]);
@@ -62,6 +71,10 @@ export function PaymentsInvoicesPanel({
   );
 
   const sort = sorting[0];
+  const apiFilterParams = React.useMemo(
+    () => toPaymentsInvoiceFilterParams(facetFilters),
+    [facetFilters],
+  );
   const listParams = React.useMemo(
     () => ({
       page: pageIndex,
@@ -72,8 +85,9 @@ export function PaymentsInvoicesPanel({
       toDate: toIsoDate(dateRange.to),
       sortBy: sort?.id,
       sortOrder: sort?.desc ? 'desc' : 'asc',
+      ...apiFilterParams,
     }),
-    [pageIndex, pageSize, search, failedOnly, dateRange, sort],
+    [pageIndex, pageSize, search, failedOnly, dateRange, sort, apiFilterParams],
   );
 
   const searchRef = React.useRef(search);
@@ -105,12 +119,42 @@ export function PaymentsInvoicesPanel({
     setPageIndex(0);
   }, []);
 
+  const handleFacetFiltersChange = React.useCallback(
+    (filters: ColumnFiltersState) => {
+      setFacetFilters(filters);
+      setPageIndex(0);
+    },
+    [],
+  );
+
   const { data, isFetching } = useQuery(PaymentsInvoicesQueryOptions(listParams));
   const { data: statistics } = useQuery(PaymentsInvoiceStatisticsQueryOptions());
+  const { data: invoiceFilters } = useQuery(PaymentsInvoiceFiltersQueryOptions());
 
   const columns = React.useMemo(
     () => getPaymentsInvoiceColumns(currencyCode, taxLabel),
     [currencyCode, taxLabel],
+  );
+
+  const facetOptions = React.useMemo(
+    () => buildPaymentsInvoiceFacetOptions(invoiceFilters ?? null),
+    [invoiceFilters],
+  );
+
+  const facetDefs: FacetDefinition[] = React.useMemo(
+    () => [
+      {
+        column: 'customerName',
+        title: 'Customer',
+        options: facetOptions.customers,
+      },
+      {
+        column: 'jobNumber',
+        title: 'Job',
+        options: facetOptions.jobs,
+      },
+    ],
+    [facetOptions],
   );
 
   // KPI cards always use full-dataset statistics (no date-range params).
@@ -169,6 +213,7 @@ export function PaymentsInvoicesPanel({
         tableId="payments_invoices"
         data={data?.content ?? []}
         columns={columns}
+        facetDefinition={facetDefs}
         searchPlaceHolder="Search invoices..."
         isShowHideColumns={false}
         defaultSorting={[{ id: 'invoiceNumber', desc: true }]}
@@ -180,6 +225,7 @@ export function PaymentsInvoicesPanel({
         onPaginationChange={handlePaginationChange}
         onSearchChange={handleSearchChange}
         onSortingChange={handleSortingChange}
+        onFacetFiltersChange={handleFacetFiltersChange}
         isLoading={isFetching}
       />
     </div>

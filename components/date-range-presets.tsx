@@ -76,7 +76,9 @@ export function DateRangePresets({
   const rangeLabel =
     value.from && value.to
       ? `${formatCalendarDate(value.from)} – ${formatCalendarDate(value.to)}`
-      : 'All dates';
+      : value.from
+        ? `${formatCalendarDate(value.from)} – …`
+        : 'All dates';
 
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap">
@@ -116,20 +118,18 @@ export function DateRangePresets({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-3" align="start">
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Calendar
-                mode="single"
-                selected={value.from}
-                onSelect={(from: Date | undefined) =>
-                  onChange({ ...value, from, preset: 'custom' })
-                }
-              />
-              <Calendar
-                mode="single"
-                selected={value.to}
-                onSelect={(to: Date | undefined) => onChange({ ...value, to, preset: 'custom' })}
-              />
-            </div>
+            <Calendar
+              mode="range"
+              numberOfMonths={2}
+              selected={{ from: value.from, to: value.to }}
+              onSelect={(range) =>
+                onChange({
+                  from: range?.from,
+                  to: range?.to,
+                  preset: 'custom',
+                })
+              }
+            />
           </PopoverContent>
         </Popover>
       </div>

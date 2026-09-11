@@ -108,6 +108,7 @@ import type {
   PaymentsCashSale,
   PaymentsInternalTransfer,
   PaymentsInvoice,
+  PaymentsInvoiceFilterOptions,
   PaymentsInvoiceStatistics,
   PaymentsPage,
 } from '../types/payments';
@@ -2193,6 +2194,8 @@ export const APIClient = {
       fromDate?: string;
       toDate?: string;
       failedOnly?: boolean;
+      customerIds?: number[];
+      jobIds?: number[];
       sortBy?: string;
       sortOrder?: string;
       page?: number;
@@ -2206,12 +2209,18 @@ export const APIClient = {
             fromDate: params?.fromDate,
             toDate: params?.toDate,
             failedOnly: params?.failedOnly ? 'true' : undefined,
+            customerIds: params?.customerIds?.map(String),
+            jobIds: params?.jobIds?.map(String),
             sortBy: params?.sortBy,
             sortOrder: params?.sortOrder,
             page: params?.page?.toString(),
             pageSize: params?.pageSize?.toString(),
           },
         },
+      ),
+    getFilters: () =>
+      appClient.Get<PaymentsInvoiceFilterOptions>(
+        `/socoro/quarrylink/api/invoices/filters`,
       ),
     statistics: () =>
       appClient.Get<PaymentsInvoiceStatistics>(
