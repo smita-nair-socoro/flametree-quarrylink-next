@@ -905,8 +905,8 @@ export default function DocketForm({
           className="cursor-pointer"
           type="button"
           onClick={() =>
-            docketForm.handleSubmit(onSubmit, (errors) => {
-              scrollToFirstError(errors);
+            docketForm.handleSubmit(onSubmit, () => {
+              scrollToFirstError();
               if (!isInternalTransfer) return;
               notifyError(
                 'Please complete the required fields before creating the transfer.',
