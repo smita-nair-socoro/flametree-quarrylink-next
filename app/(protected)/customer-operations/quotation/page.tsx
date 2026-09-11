@@ -87,6 +87,7 @@ export default function QuotationsPage() {
     data: quotationsList,
     isLoading,
     isFetching,
+    isFetched: isQuotesListFetched,
     isError,
   } = useQuery(
     QuotationsListQueryOptions({
@@ -136,7 +137,10 @@ export default function QuotationsPage() {
     [quoteFilters],
   );
 
-  const { data: reportingData } = useQuery(QuotationReportingQueryOptions());
+  const { data: reportingData } = useQuery({
+    ...QuotationReportingQueryOptions(),
+    enabled: isQuotesListFetched,
+  });
 
   const setSelectedQuotation = useQuotationStore(
     (state) => state.setSelectedQuotation,

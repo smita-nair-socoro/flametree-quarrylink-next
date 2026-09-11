@@ -377,7 +377,7 @@ export const JobStatisticsQueryOptions = () =>
     queryKey: JobKeys.statistics(),
     queryFn: () => APIClient.jobs.statistics(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 
 export const useCancelJob = () => {

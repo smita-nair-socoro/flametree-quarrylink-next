@@ -36,7 +36,7 @@ export const DocketStatisticsQueryOptions = () => {
     queryKey: [...DocketKeys.statistics(), dateKey],
     queryFn: () => APIClient.dockets.statistics(dateKey),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 };
 

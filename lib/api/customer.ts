@@ -254,7 +254,7 @@ export const CustomerReportingQueryOptions = () =>
     queryKey: CustomerKeys.reporting(),
     queryFn: () => APIClient.customers.reporting(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 
 export const CustomerDeliveryAddressesQueryOptions = (

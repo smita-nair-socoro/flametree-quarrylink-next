@@ -47,8 +47,6 @@ export default function CustomersPage() {
     [currencyCode, taxLabel],
   );
 
-  const { data: statistics } = useQuery(JobStatisticsQueryOptions());
-
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
@@ -87,6 +85,7 @@ export default function CustomersPage() {
     data: jobsList,
     isLoading,
     isFetching,
+    isFetched: isJobsListFetched,
   } = useQuery(
     JobsListQueryOptions({
       page: pageIndex,
@@ -97,6 +96,11 @@ export default function CustomersPage() {
       ...apiFilterParams,
     }),
   );
+
+  const { data: statistics } = useQuery({
+    ...JobStatisticsQueryOptions(),
+    enabled: isJobsListFetched,
+  });
 
   const isMobile = useIsMobile();
 

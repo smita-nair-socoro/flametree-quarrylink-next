@@ -134,6 +134,7 @@ export default function CustomersPage() {
     data: customersData,
     isLoading,
     isFetching,
+    isFetched,
     error,
     isError,
   } = useQuery(
@@ -146,7 +147,10 @@ export default function CustomersPage() {
     }),
   );
 
-  const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
+  const { data: reportingData } = useQuery({
+    ...CustomerReportingQueryOptions(),
+    enabled: isFetched,
+  });
   const { data: customerFilters } = useQuery(
     CustomersFilterQueryOptions(search.trim() || undefined),
   );

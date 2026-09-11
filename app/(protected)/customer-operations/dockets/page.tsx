@@ -151,10 +151,6 @@ export default function DocketsPage() {
     return ids.length ? ids : undefined;
   }, [docketIdsParam]);
 
-  const { data: statistics, isLoading: isStatisticsLoading } = useQuery(
-    DocketStatisticsQueryOptions(),
-  );
-
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [search, setSearch] = React.useState('');
@@ -253,9 +249,15 @@ export default function DocketsPage() {
     data: docketsResponse,
     isLoading,
     isFetching,
+    isFetched,
     isError,
     error,
   } = docketSourceQueries[activeDocketSource];
+
+  const { data: statistics, isLoading: isStatisticsLoading } = useQuery({
+    ...DocketStatisticsQueryOptions(),
+    enabled: isFetched,
+  });
 
   const totalElements = React.useMemo(() => {
     if (!docketsResponse) return 0;

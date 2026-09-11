@@ -233,7 +233,7 @@ export const QuotationReportingQueryOptions = () =>
     queryKey: QuotationKeys.reporting(),
     queryFn: () => APIClient.quotations.reporting(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 
 export const useConvertToDraft = () => {
