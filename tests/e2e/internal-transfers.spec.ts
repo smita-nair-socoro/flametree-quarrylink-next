@@ -547,7 +547,7 @@ test.describe('Internal Transfers — job create & tabs', () => {
     ).toBeVisible({ timeout: 20000 });
 
     const jobDialog = page.getByRole('dialog').filter({
-      hasText: /View \/ Edit Job/i,
+      has: page.getByRole('tab', { name: 'Dockets' }),
     });
     await expect(jobDialog).toBeVisible({ timeout: 20000 });
     await expect(jobDialog.getByRole('tab', { name: 'Dockets' })).toBeVisible();

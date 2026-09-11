@@ -153,12 +153,13 @@ export function InternalTransferJobsTab() {
         >
           <InternalTransferJobForm
             onCreated={(job) => {
-              if (job?.id) {
+              if (!job?.id) return;
+              window.setTimeout(() => {
                 actions.view({
                   ...job,
                   jobType: 'INTERNAL_TRANSFER',
                 } as JobDTO);
-              }
+              }, 50);
             }}
           />
         </FormDialog>
