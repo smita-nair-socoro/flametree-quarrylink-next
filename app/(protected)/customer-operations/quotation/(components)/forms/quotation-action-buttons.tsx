@@ -30,6 +30,7 @@ import {
 } from '@/lib/utils/prepaid';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
+import { useQuotationStore } from '@/app/stores/quotation-store';
 import { Quotation } from '@/lib/types/quotation';
 import { notifyWarning } from '@/lib/toast';
 
@@ -48,9 +49,14 @@ export function QuotationActionButtons({
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
+  const selectedQuotation = useQuotationStore((state) => state.selectedQuotation);
+  const prepaidQuotation =
+    selectedQuotation?.id === quotation?.id
+      ? { ...quotation, ...selectedQuotation }
+      : quotation;
   const [cashSaleOpen, setCashSaleOpen] = React.useState(false);
-  const showRecordCashSale = canRecordPrepaidQuoteCashSale(quotation);
-  const approveBlocked = isPrepaidUnpaid(quotation);
+  const showRecordCashSale = canRecordPrepaidQuoteCashSale(prepaidQuotation);
+  const approveBlocked = isPrepaidUnpaid(prepaidQuotation);
 
   const runAction = (action?: () => void) => {
     if (hasUnsavedChanges) {
