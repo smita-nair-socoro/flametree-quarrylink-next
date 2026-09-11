@@ -4,7 +4,7 @@
 |---|---|
 | **Client** | Flame Tree |
 | **Prepared** | 1 September 2026 |
-| **Status** | Ready for build — no open items |
+| **Status** | Ready for build — spec feedback 11 Sep 2026 applied |
 | **Audience** | Developer (Cursor) |
 | **Related** | `spec-payments-tab.md` (adds an Internal Transfers sub-tab) · `spec-job-list-quarry-and-po-columns.md` (the Jobs tab, §3.4 below) · `spec-decimal-precision-acumatica-balancing.md` (journal amounts follow those rules) |
 
@@ -91,6 +91,8 @@ If material needs to move a different direction or between a different pair of s
 - No Customer, PO or Quarry / Supplier columns — none of them apply.
 - No KPI cards.
 
+**After the From Site / To Site create modal succeeds, open the new job** so the operator can continue (add dockets) without returning to the table and opening the row again.
+
 ---
 
 ## 4. The Internal Transfer docket
@@ -106,16 +108,27 @@ Reuse the existing docket modal, minus the site pickers.
 
 ### 4.2 Sections and fields
 
-**Product & Vehicle Details**
+**Load Details** — field order:
+
+1. **FROM → TO** site banner (read-only, inherited from the job)
+2. **Product*** | **Product Density**
+3. **Product UoM*** | **Planned Load Size*** (quantity)
+4. **Suggested Truck Type***
+5. **Availability** card
 
 | Field | Required | Notes |
 |---|---|---|
 | Product | Yes | |
-| Quantity | Yes | |
-| UOM | Yes | |
-| Product Density (TN/m³) | No | |
+| Planned Load Size (Quantity) | Yes | |
+| UOM | Yes | Locked to the product's Acumatica / site UOM |
+| Product Density (TN/m³) | No | **Locked.** Display the density coming from Acumatica for the product at the From Site. Do not let the operator edit it. Empty is allowed when Acumatica has no density |
+| Suggested Truck Type | Yes | Same control as the existing docket modal |
 
-**From Site and To Site do not appear here.** They come from the job and are displayed read-only, so the operator can see the movement without being able to change it.
+**Availability.** Internal transfer jobs are uncapped — there is no job quantity limit. Do **not** show remaining-quantity numbers (no `MAX_SAFE_INTEGER`, no leftover arithmetic). Show **No limit** and an **uncapped** badge for remaining availability after this docket.
+
+**From Site and To Site** come from the job. Display them read-only in the FROM → TO banner at the top of Load Details so the operator can see the movement without being able to change it.
+
+**Create Internal Transfer** must not sit disabled with no explanation. If cost price is missing, show a message naming the product and From Site. If another required field is invalid, surface the validation error. A job holds many dockets; creating a second transfer on the same job must remain possible.
 
 **Delivery Information**
 
@@ -291,11 +304,19 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 - [ ] The Internal Transfers tab shows Job Number, From Site, To Site, Dockets, Status, Account Manager and row actions
 - [ ] Its columns are sortable and keyword search covers job number, from site and to site
 - [ ] No Customer, PO or Quarry / Supplier columns appear on that tab
+- [ ] Submitting the From Site / To Site create modal opens the new job so the operator can continue without reopening it from the table
 
 **Docket**
 
 - [ ] The modal is titled Internal Transfer Docket with the ⇄ INTERNAL TRANSFER indicator
 - [ ] Product, Quantity and UOM are required; Product Density is optional
+- [ ] Product Density is locked to the Acumatica / From Site value and is not editable
+- [ ] Load Details field order is FROM → TO banner, Product \| Density, UOM \| Planned Load Size, Suggested Truck Type, then Availability
+- [ ] Remaining availability shows **No limit** / **uncapped**, not leftover quantity numbers
+- [ ] Create Internal Transfer explains why it cannot submit (missing cost or validation); it does not fail silently
+- [ ] A second internal transfer docket can be raised on the same job
+- [ ] Created dockets appear on the job's Dockets tab after create and after refresh
+- [ ] The main Dockets table still loads when internal transfer dockets exist (no customer on the job)
 - [ ] From Site and To Site display read-only from the job and cannot be changed
 - [ ] Pick Up and Delivery addresses derive from the job's sites
 - [ ] Transfer Date, Start Time and End Time are required
@@ -394,6 +415,10 @@ A **third sub-tab** in the Payments area, alongside Invoices and Cash Payments. 
 | 16 | What a void leaves behind | A terminal, immutable `VOID` docket. The redo is a **new docket with a new reference**, not the old one reopened |
 | 17 | Void / sync race | Void and cancel commit together; the worker re-checks at dispatch; an escaped push falls through to the `Synced` reversal path |
 | 18 | Where transfer jobs are listed | Their own **Internal Transfers** tab on the Jobs page, not mixed into the Jobs table |
+| 19 | Product density | Locked to the Acumatica / From Site density. Optional when Acumatica has none. Product, quantity and UOM remain required |
+| 20 | After creating the job | Land on the new job record so the operator can continue, not back on the Internal Transfers table |
+| 21 | Remaining availability | Uncapped. Show **No limit** / **uncapped**, not remaining-quantity numbers |
+| 22 | Load Details layout | FROM → TO banner at the top, then Product \| Density, UOM \| Planned Load Size, Suggested Truck Type, Availability |
 
 ---
 

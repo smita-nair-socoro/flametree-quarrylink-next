@@ -151,7 +151,16 @@ export function InternalTransferJobsTab() {
           dialogDescription="Choose From Site and To Site. Sites must differ."
           buttonTitle="Add Internal Transfer"
         >
-          <InternalTransferJobForm />
+          <InternalTransferJobForm
+            onCreated={(job) => {
+              if (job?.id) {
+                actions.view({
+                  ...job,
+                  jobType: 'INTERNAL_TRANSFER',
+                } as JobDTO);
+              }
+            }}
+          />
         </FormDialog>
       </div>
       <DataTableClient

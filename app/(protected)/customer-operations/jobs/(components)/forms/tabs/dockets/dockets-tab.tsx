@@ -45,7 +45,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
     [sorting],
   );
 
-  const { data: docketPage, isFetching } = useQuery({
+  const { data: docketPage, isFetching, isError } = useQuery({
     ...DocketsTableQueryOptions({
       jobId,
       page: pageIndex,
@@ -115,21 +115,27 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
         </div>
 
         <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>
-          <DataTableClient
-            tableId={`job_dockets_${jobId}`}
-            columns={docketsColumns}
-            data={items}
-            simpleTable={true}
-            defaultSorting={[{ id: 'deliveryDate', desc: true }]}
-            totalElements={totalElements}
-            totalPages={totalPages}
-            externalPageIndex={pageIndex}
-            externalPageSize={pageSize}
-            externalSorting={sorting}
-            onPaginationChange={handlePaginationChange}
-            onSortingChange={handleSortingChange}
-            isLoading={isFetching}
-          />
+          {isError ? (
+            <div className="flex items-center justify-center h-40 text-sm text-muted-foreground">
+              Error loading dockets
+            </div>
+          ) : (
+            <DataTableClient
+              tableId={`job_dockets_${jobId}`}
+              columns={docketsColumns}
+              data={items}
+              simpleTable={true}
+              defaultSorting={[{ id: 'deliveryDate', desc: true }]}
+              totalElements={totalElements}
+              totalPages={totalPages}
+              externalPageIndex={pageIndex}
+              externalPageSize={pageSize}
+              externalSorting={sorting}
+              onPaginationChange={handlePaginationChange}
+              onSortingChange={handleSortingChange}
+              isLoading={isFetching}
+            />
+          )}
         </div>
       </div>
     </DocketRowActionsProvider>

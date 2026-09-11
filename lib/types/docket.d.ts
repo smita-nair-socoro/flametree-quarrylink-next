@@ -575,8 +575,8 @@ export interface DocketTableItem {
   type: string;
   jobReference: string;
   status: string;
-  customerId: number;
-  customerName: string;
+  customerId?: number | null;
+  customerName?: string | null;
   productId: number;
   productName: string;
   deliveryDate: string;
