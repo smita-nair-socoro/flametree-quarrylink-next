@@ -48,4 +48,17 @@ describe('getDocketFormSchema docket email', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  test('allows internal transfer dockets without address ids', () => {
+    const result = getDocketFormSchema(true).safeParse({
+      ...baseCustomerDocketValues,
+      pickUpAddressId: '',
+      deliveryAddressId: '',
+      jobLineItemType: 'DELIVERY',
+      customerContactName: '',
+      customerContactPhone: '',
+      docketEmail: '',
+    });
+    expect(result.success).toBe(true);
+  });
 });
