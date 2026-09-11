@@ -53,6 +53,7 @@ A cross-job table of all invoices.
 |---|---|
 | Invoice Number | |
 | Job | Which job the invoice belongs to |
+| Customer | |
 | Dockets | Count of included dockets |
 | Amount | |
 | Due Date | |
@@ -241,7 +242,7 @@ The sync status column and Retry action should appear in both places, driven by 
 **Invoices table**
 
 - [ ] Lists all invoices across jobs
-- [ ] Columns: Invoice Number, Job, Dockets, Amount, Due Date, Status, Accounting Sync, actions
+- [ ] Columns: Invoice Number, Job, Customer, Dockets, Amount, Due Date, Status, Accounting Sync, actions
 - [ ] Columns are sortable
 - [ ] `⋯` menu offers View Invoice
 - [ ] Keyword search matches invoice number, job and customer, partially

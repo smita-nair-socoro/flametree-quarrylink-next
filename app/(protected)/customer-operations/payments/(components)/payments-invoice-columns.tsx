@@ -59,6 +59,16 @@ export const getPaymentsInvoiceColumns = (
     meta: 'Job',
   },
   {
+    id: 'customerName',
+    accessorFn: (row) => row.customerName,
+    enableSorting: false,
+    header: () => <div>Customer</div>,
+    cell: ({ row }) => (
+      <div className="py-2">{row.original.customerName || 'N/A'}</div>
+    ),
+    meta: 'Customer',
+  },
+  {
     id: 'docketCount',
     accessorFn: (row) => row.docketCount,
     enableSorting: false,
