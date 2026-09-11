@@ -856,6 +856,15 @@ const getDialogConfigs = (
   return {};
 };
 
+function quotationForActions(
+  listRow?: Quotation | null,
+  storeRow?: Quotation | null,
+): Quotation | null | undefined {
+  if (!listRow) return listRow;
+  if (!storeRow || storeRow.id !== listRow.id) return listRow;
+  return { ...listRow, ...storeRow };
+}
+
 export function useQuotationActions(quotationData?: Quotation | null) {
   const selectedQuotation = useQuotationStore(
     (state) => state.selectedQuotation,
@@ -959,11 +968,9 @@ export function useQuotationActions(quotationData?: Quotation | null) {
   React.useEffect(() => {
     if (viewOpen && quotationData) {
       const current = useQuotationStore.getState().selectedQuotation;
-      if (current?.id === quotationData.id) {
-        setSelectedQuotation({ ...quotationData, ...current });
-      } else {
-        setSelectedQuotation(quotationData);
-      }
+      setSelectedQuotation(
+        quotationForActions(quotationData, current) ?? quotationData,
+      );
     }
   }, [viewOpen, quotationData, setSelectedQuotation]);
 
@@ -1372,11 +1379,7 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       onUnsavedChangesChange={setIsFormDirty}
       headerButtons={
         <QuotationActionButtons
-          quotation={
-            selectedQuotation?.id === quotationData?.id
-              ? { ...quotationData, ...selectedQuotation }
-              : quotationData
-          }
+          quotation={quotationForActions(quotationData, selectedQuotation)}
           hasUnsavedChanges={isFormDirty}
         />
       }
