@@ -203,7 +203,7 @@ export const CustomersListQueryOptions = (params?: CustomersListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const CustomersFilterQueryOptions = (search?: string) =>
@@ -237,7 +237,7 @@ export const CustomersInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const CustomerDetailQueryOptions = (customerId: number) =>

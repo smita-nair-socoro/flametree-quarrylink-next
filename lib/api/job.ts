@@ -183,7 +183,7 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
         page: params?.page !== undefined ? toApiPage(params.page) : undefined,
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const JobsFilterQueryOptions = () =>
@@ -204,7 +204,7 @@ export const InternalTransferJobsListQueryOptions = (
         page: params?.page !== undefined ? toApiPage(params.page) : undefined,
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const useCreateInternalTransferJob = () => {
@@ -288,7 +288,7 @@ export const JobsInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export function getJobsFromInfinitePages(

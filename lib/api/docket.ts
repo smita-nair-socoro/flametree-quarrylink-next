@@ -311,7 +311,7 @@ export const DocketsListQueryOptions = (params?: DocketsListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 /** Default dockets page list — flat GET /dockets/table projection. */
@@ -324,7 +324,7 @@ export const DocketsTableQueryOptions = (params?: DocketsListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const DocketsInfiniteListQueryOptions = (
@@ -348,7 +348,7 @@ export const DocketsInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const UnassignedDocketsInfiniteQueryOptions = (
@@ -393,7 +393,7 @@ export const DocketsTableInfiniteQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const useCreateDocket = () => {

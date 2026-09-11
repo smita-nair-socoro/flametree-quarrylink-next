@@ -135,7 +135,7 @@ export const QuotationsListQueryOptions = (params?: QuotesListParams) =>
         }),
       ) as QuotesListResponse,
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const QuotesFilterQueryOptions = () =>
@@ -167,7 +167,7 @@ export const QuotationsInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export function getQuotesFromInfinitePages(
