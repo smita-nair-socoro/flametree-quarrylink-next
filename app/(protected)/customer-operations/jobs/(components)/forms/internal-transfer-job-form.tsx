@@ -70,10 +70,10 @@ export default function InternalTransferJobForm({
         toSiteId: values.toSiteId,
       });
       notifySuccess('Internal transfer job created');
+      onSuccess?.();
       if (created?.id) {
         onCreated?.(created);
-      }
-      onSuccess?.();
+      }}
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
