@@ -203,6 +203,7 @@ test.describe('Payments tab — Invoices table', () => {
     for (const header of [
       'Invoice Number',
       'Job',
+      'Customer',
       'Dockets',
       'Amount',
       'Due Date',
