@@ -121,6 +121,8 @@ export default function JobLineItemForm({
   });
 
   const jobStatus = React.useMemo(() => selectedJob?.jobStatus, [selectedJob]);
+  const isPrepay = Boolean(selectedJob?.prepay);
+  const isPricingLocked = Boolean(selectedJob?.pricingLocked);
 
   // Report dirty-state to parent dialog
   React.useEffect(() => {
@@ -315,7 +317,10 @@ export default function JobLineItemForm({
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
-                          <RadioGroupItem value="DELIVERY" />
+                          <RadioGroupItem
+                            value="DELIVERY"
+                            disabled={isPrepay}
+                          />
                         </FormControl>
                         <FormLabel className="font-normal">Delivery</FormLabel>
                       </FormItem>
@@ -329,6 +334,11 @@ export default function JobLineItemForm({
                         </FormLabel>
                       </FormItem>
                     </RadioGroup>
+                    {isPrepay ? (
+                      <p className="text-sm text-muted-foreground">
+                        Prepaid jobs are collection only.
+                      </p>
+                    ) : null}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -490,7 +500,7 @@ export default function JobLineItemForm({
                         className="w-full"
                         {...field}
                         value={field.value ?? ''}
-                        disabled={isReadOnly}
+                        disabled={isReadOnly || isPricingLocked}
                         placeholder="Optional purchase order"
                       />
                     </FormControl>
@@ -550,7 +560,7 @@ export default function JobLineItemForm({
                     showSearch={false}
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isPricingLocked}
                     autoSelectForOnlyOneOption={!isEditing}
                   />
 
@@ -566,7 +576,8 @@ export default function JobLineItemForm({
                             {...field}
                             disabled={
                               jobStatus === JOB_STATUS.CANCELLED ||
-                              isProductDeletedOnCompletedJob
+                              isProductDeletedOnCompletedJob ||
+                              isPricingLocked
                             }
                             isNumber
                             allowDecimal
@@ -605,7 +616,7 @@ export default function JobLineItemForm({
                             }
                             decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
-                            disabled={isReadOnly}
+                            disabled={isReadOnly || isPricingLocked}
                             unit={
                               jobLineItemForm.watch('productSellUom') === 'TN'
                                 ? 'TN'
@@ -666,7 +677,7 @@ export default function JobLineItemForm({
                     showSearch={false}
                     options={productUnitOptions}
                     placeholder="Select Unit of Measure"
-                    disabled={isReadOnly}
+                    disabled={isReadOnly || isPricingLocked}
                     autoSelectForOnlyOneOption={!isEditing}
                   />
 
@@ -718,7 +729,7 @@ export default function JobLineItemForm({
                             }
                             decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
-                            disabled={isReadOnly}
+                            disabled={isReadOnly || isPricingLocked}
                             unit={
                               jobLineItemForm.watch('productCostUom') === 'TN'
                                 ? 'TN'
@@ -777,7 +788,7 @@ export default function JobLineItemForm({
                   searchLabel="Truck Type"
                   options={truckTypeOptions}
                   placeholder="Select Truck Type"
-                  disabled={isReadOnly}
+                  disabled={isReadOnly || isPricingLocked}
                 />
 
                 <div className="space-y-2">
@@ -861,7 +872,7 @@ export default function JobLineItemForm({
                               }
                               decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly || isPricingLocked}
                               unit={
                                 jobLineItemForm.watch('truckSellUom') === 'TN'
                                   ? 'TN'
@@ -977,7 +988,7 @@ export default function JobLineItemForm({
                               }
                               decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
-                              disabled={isReadOnly}
+                              disabled={isReadOnly || isPricingLocked}
                               unit={
                                 jobLineItemForm.watch('truckCostUom') === 'TN'
                                   ? 'TN'

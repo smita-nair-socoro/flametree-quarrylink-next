@@ -16,12 +16,15 @@ import {
   CircleX,
   Package,
   FileCheck2,
+  Banknote,
 } from 'lucide-react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useJobActions } from '@/hooks/use-job-actions';
 import { JobDTO } from '@/lib/types/job';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { notifyWarning } from '@/lib/toast';
+import { PrepaidCashSaleDialog } from '@/components/prepaid-cash-sale-dialog';
+import { canRecordPrepaidJobCashSale } from '@/lib/utils/prepaid';
 
 interface JobActionButtonsProps {
   job: JobDTO | null | undefined;
@@ -38,6 +41,8 @@ export function JobActionButtons({
 
   const { actions, confirmDialogs, viewDialog, addDocketDialog, addInvoiceDialog } =
     useJobActions(job);
+  const [cashSaleOpen, setCashSaleOpen] = React.useState(false);
+  const showRecordCashSale = canRecordPrepaidJobCashSale(job);
 
   const runAction = (action?: () => void) => {
     if (hasUnsavedChanges) {
@@ -64,6 +69,11 @@ export function JobActionButtons({
         {viewDialog}
         {addDocketDialog}
         {addInvoiceDialog}
+        <PrepaidCashSaleDialog
+          open={cashSaleOpen}
+          onOpenChange={setCashSaleOpen}
+          jobId={job.id}
+        />
 
         {job.jobStatus !== JOB_STATUS.CANCELLED && job.jobStatus !== JOB_STATUS.SETTLED && (
           <DropdownMenu>
@@ -75,6 +85,14 @@ export function JobActionButtons({
             <DropdownMenuContent align="end" className="w-48">
               {job.jobStatus === JOB_STATUS.PAUSED && (
                 <>
+                  {showRecordCashSale && (
+                    <DropdownMenuItem
+                      onClick={() => runAction(() => setCashSaleOpen(true))}
+                    >
+                      <Banknote className="h-4 w-4 mr-2" />
+                      Record Cash Sale
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => runAction(actions.resume)}>
                     <CirclePlay className="h-4 w-4 mr-2" />
                     Resume
@@ -94,6 +112,14 @@ export function JobActionButtons({
 
               {job.jobStatus === JOB_STATUS.ACTIVE && (
                 <>
+                  {showRecordCashSale && (
+                    <DropdownMenuItem
+                      onClick={() => runAction(() => setCashSaleOpen(true))}
+                    >
+                      <Banknote className="h-4 w-4 mr-2" />
+                      Record Cash Sale
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => runAction(actions.addDocket)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Docket
@@ -113,6 +139,14 @@ export function JobActionButtons({
 
               {job.jobStatus === JOB_STATUS.IN_PROGRESS && (
                 <>
+                  {showRecordCashSale && (
+                    <DropdownMenuItem
+                      onClick={() => runAction(() => setCashSaleOpen(true))}
+                    >
+                      <Banknote className="h-4 w-4 mr-2" />
+                      Record Cash Sale
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem onClick={() => runAction(actions.addDocket)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Docket
@@ -161,10 +195,26 @@ export function JobActionButtons({
       {viewDialog}
       {addDocketDialog}
       {addInvoiceDialog}
+      <PrepaidCashSaleDialog
+        open={cashSaleOpen}
+        onOpenChange={setCashSaleOpen}
+        jobId={job.id}
+      />
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {job.jobStatus === JOB_STATUS.PAUSED && (
           <>
+            {showRecordCashSale && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => runAction(() => setCashSaleOpen(true))}
+                className="rounded-none border-r border-gray-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 hover:text-emerald-800"
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                Record Cash Sale
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -196,6 +246,17 @@ export function JobActionButtons({
 
         {job.jobStatus === JOB_STATUS.ACTIVE && (
           <>
+            {showRecordCashSale && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => runAction(() => setCashSaleOpen(true))}
+                className="rounded-none border-r border-gray-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 hover:text-emerald-800"
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                Record Cash Sale
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
@@ -236,6 +297,17 @@ export function JobActionButtons({
 
         {job.jobStatus === JOB_STATUS.IN_PROGRESS && (
           <>
+            {showRecordCashSale && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => runAction(() => setCashSaleOpen(true))}
+                className="rounded-none border-r border-gray-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 hover:text-emerald-800"
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                Record Cash Sale
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"

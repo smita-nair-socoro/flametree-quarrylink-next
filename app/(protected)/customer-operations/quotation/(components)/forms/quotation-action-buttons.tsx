@@ -12,7 +12,6 @@ import {
   Copy,
   Send,
   MoreHorizontal,
-  // Printer,
   Briefcase,
   Calendar,
   ThumbsDown,
@@ -22,7 +21,13 @@ import {
   Pencil,
   FileSearch,
   Eye,
+  Banknote,
 } from 'lucide-react';
+import { PrepaidCashSaleDialog } from '@/components/prepaid-cash-sale-dialog';
+import {
+  canRecordPrepaidQuoteCashSale,
+  isPrepaidUnpaid,
+} from '@/lib/utils/prepaid';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useQuotationActions } from '@/hooks/use-quotations-actions';
 import { Quotation } from '@/lib/types/quotation';
@@ -43,6 +48,9 @@ export function QuotationActionButtons({
 
   const { actions, confirmDialogs, viewDialog, duplicateDialog } =
     useQuotationActions(quotation);
+  const [cashSaleOpen, setCashSaleOpen] = React.useState(false);
+  const showRecordCashSale = canRecordPrepaidQuoteCashSale(quotation);
+  const approveBlocked = isPrepaidUnpaid(quotation);
 
   const runAction = (action?: () => void) => {
     if (hasUnsavedChanges) {
@@ -69,6 +77,11 @@ export function QuotationActionButtons({
         {confirmDialogs}
         {viewDialog}
         {duplicateDialog}
+        <PrepaidCashSaleDialog
+          open={cashSaleOpen}
+          onOpenChange={setCashSaleOpen}
+          quoteId={quotation.id}
+        />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -94,13 +107,33 @@ export function QuotationActionButtons({
               </>
             )}
 
+            {showRecordCashSale && (
+              <DropdownMenuItem
+                onSelect={() => runAction(() => setCashSaleOpen(true))}
+              >
+                <Banknote className="h-4 w-4 mr-2" />
+                Record Cash Sale
+              </DropdownMenuItem>
+            )}
+
             {quotation.quoteStatus === 'PENDING' && (
               <>
                 <DropdownMenuItem onSelect={() => runAction(actions.sendToCustomer)}>
                   <Send className="h-4 w-4 mr-2" />
                   Re-Send To Customer
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => runAction(actions.approve)}>
+                <DropdownMenuItem
+                  disabled={approveBlocked}
+                  onSelect={() => {
+                    if (approveBlocked) {
+                      notifyWarning(
+                        'Record a cash sale before approving this prepaid quote',
+                      );
+                      return;
+                    }
+                    runAction(actions.approve);
+                  }}
+                >
                   <BadgeCheck className="h-4 w-4 mr-2" />
                   Approve Quote
                 </DropdownMenuItem>
@@ -171,6 +204,11 @@ export function QuotationActionButtons({
       {confirmDialogs}
       {viewDialog}
       {duplicateDialog}
+      <PrepaidCashSaleDialog
+        open={cashSaleOpen}
+        onOpenChange={setCashSaleOpen}
+        quoteId={quotation.id}
+      />
 
       <div className="inline-flex items-center border border-gray-200 rounded-md overflow-hidden">
         {/* Preview Quote - available for all statuses */}
@@ -194,6 +232,18 @@ export function QuotationActionButtons({
           <Copy className="h-4 w-4 mr-2" />
           Duplicate Quote
         </Button>
+
+        {showRecordCashSale && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => runAction(() => setCashSaleOpen(true))}
+            className="rounded-none border-r border-gray-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 hover:text-emerald-800"
+          >
+            <Banknote className="h-4 w-4 mr-2" />
+            Record Cash Sale
+          </Button>
+        )}
 
         {/* Status-specific primary actions */}
         {quotation.quoteStatus === 'DRAFT' && (
@@ -231,7 +281,21 @@ export function QuotationActionButtons({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => runAction(actions.approve)}
+              disabled={approveBlocked}
+              title={
+                approveBlocked
+                  ? 'Record a cash sale before approving this prepaid quote'
+                  : undefined
+              }
+              onClick={() => {
+                if (approveBlocked) {
+                  notifyWarning(
+                    'Record a cash sale before approving this prepaid quote',
+                  );
+                  return;
+                }
+                runAction(actions.approve);
+              }}
               className="rounded-none border-r border-gray-200 bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-800"
             >
               <BadgeCheck className="h-4 w-4 mr-2" />

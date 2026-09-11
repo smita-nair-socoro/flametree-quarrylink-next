@@ -23,6 +23,9 @@ function CashSaleReceiptPdfDocument({
   const recordedLabel = receipt.recordedAt
     ? formatLocalDate(receipt.recordedAt)
     : '—';
+  const paidLines = receipt.paidLineItems ?? [];
+  const showPaidLines = paidLines.length > 0;
+  const showSurcharge = (receipt.surchargeAmount ?? 0) > 0;
 
   return (
     <Document>
@@ -83,8 +86,59 @@ function CashSaleReceiptPdfDocument({
 
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>
-            Included dockets ({receipt.dockets?.length ?? 0})
+            {(receipt.paidLineItems?.length ?? 0) > 0
+              ? `Paid line items (${receipt.paidLineItems?.length ?? 0})`
+              : `Included dockets (${receipt.dockets?.length ?? 0})`}
           </Text>
+          {showPaidLines ? (
+            <>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  borderBottomWidth: 1,
+                  borderBottomColor: colors.gray300,
+                  paddingBottom: 6,
+                  marginBottom: 6,
+                }}
+              >
+                <Text style={{ flex: 2, fontWeight: 'bold' }}>Product</Text>
+                <Text style={{ flex: 0.7, fontWeight: 'bold' }}>Qty</Text>
+                <Text style={{ flex: 0.8, fontWeight: 'bold' }}>Rate</Text>
+                <Text
+                  style={{ flex: 0.9, fontWeight: 'bold', textAlign: 'right' }}
+                >
+                  Amount
+                </Text>
+              </View>
+              {paidLines.map((line, index) => (
+                <View
+                  key={`${line.sourceLineItemId ?? index}-${line.productName}`}
+                  style={{
+                    flexDirection: 'row',
+                    paddingVertical: 4,
+                    borderBottomWidth: 1,
+                    borderBottomColor: colors.gray200,
+                  }}
+                >
+                  <Text style={{ flex: 2 }}>{line.productName}</Text>
+                  <Text style={{ flex: 0.7 }}>
+                    {line.quantity != null
+                      ? `${line.quantity}${line.uom ? ` ${line.uom}` : ''}`
+                      : '—'}
+                  </Text>
+                  <Text style={{ flex: 0.8 }}>
+                    {currencySymbol}
+                    {centsToDollars(line.unitPrice ?? 0)}
+                  </Text>
+                  <Text style={{ flex: 0.9, textAlign: 'right' }}>
+                    {currencySymbol}
+                    {centsToDollars(line.lineTotal ?? 0)}
+                  </Text>
+                </View>
+              ))}
+            </>
+          ) : (
+            <>
           <View
             style={{
               flexDirection: 'row',
@@ -132,10 +186,42 @@ function CashSaleReceiptPdfDocument({
               </Text>
             </View>
           ))}
+            </>
+          )}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionHeading}>Financial summary</Text>
+          {showSurcharge ? (
+            <>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingBottom: 6,
+                }}
+              >
+                <Text>Material total</Text>
+                <Text>
+                  {currencySymbol}
+                  {centsToDollars(receipt.materialAmount ?? 0)}
+                </Text>
+              </View>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  paddingBottom: 6,
+                }}
+              >
+                <Text>Credit Card surcharge (3.75%)</Text>
+                <Text>
+                  {currencySymbol}
+                  {centsToDollars(receipt.surchargeAmount ?? 0)}
+                </Text>
+              </View>
+            </>
+          ) : null}
           <View
             style={{
               flexDirection: 'row',

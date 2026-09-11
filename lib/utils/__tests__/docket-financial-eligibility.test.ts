@@ -37,6 +37,18 @@ describe('isCashSaleEligible', () => {
     ).toBe(true);
   });
 
+  it('blocks dockets on a prepaid job', () => {
+    expect(
+      isCashSaleEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.COLLECTED,
+          jobItemType: 'COLLECTION',
+          job: { prepay: true },
+        }),
+      ),
+    ).toBe(false);
+  });
+
   it('never allows delivery dockets, including Delivered', () => {
     expect(
       isCashSaleEligible(
@@ -128,6 +140,18 @@ describe('isInvoiceEligible', () => {
     });
     expect(isInvoiceEligible(delivered)).toBe(true);
     expect(isCashSaleEligible(delivered)).toBe(false);
+  });
+
+  it('blocks invoicing dockets on a prepaid job', () => {
+    expect(
+      isInvoiceEligible(
+        docket({
+          docketStatus: DOCKET_STATUS.COLLECTED,
+          jobItemType: 'COLLECTION',
+          job: { prepay: true },
+        }),
+      ),
+    ).toBe(false);
   });
 
   it('blocks internal transfers', () => {

@@ -296,6 +296,12 @@ export function DocketActionButtons({
     }
   }
 
+  if (docket.job?.prepay) {
+    currentActions = currentActions.filter(
+      (item) => item.action !== 'invoice' && item.action !== 'cashSale',
+    );
+  }
+
   if (
     docket.docketStatus === DOCKET_STATUS.INVOICED &&
     docket.invoiceStatus === 'FAILED'

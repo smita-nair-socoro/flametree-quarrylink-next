@@ -41,6 +41,7 @@ export function quotationToFormValues(
       customerNotes: '',
       attachedItemIds: [],
       poNumber: '',
+      prepay: false,
     };
   }
 
@@ -70,6 +71,7 @@ export function quotationToFormValues(
     // Populated separately once GET /quote/{quoteId}/content resolves.
     customerNotes: '',
     attachedItemIds: [],
+    prepay: Boolean(quotation?.prepay),
   };
 }
 

@@ -32,6 +32,7 @@ import { useTenantCurrencyTax } from '@/lib/utils/tenant-config-helper';
 import { StatsCards, StatsCardData } from '@/components/stats-cards';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
+import { prepaidBadgeNames } from '@/lib/utils/prepaid';
 import { Tab } from '@/components/ui/tabs';
 import { InternalTransferJobsTab } from './(components)/internal-transfer-jobs-tab';
 import { FailedSyncBanner } from '@/components/failed-sync-banner';
@@ -293,7 +294,12 @@ export default function CustomersPage() {
       return (
         <MobileCard
           title={job.jobNumber || 'N/A'}
-          badges={<TableBadges names={[job.jobStatus]} visibleCount={1} />}
+          badges={
+            <TableBadges
+              names={prepaidBadgeNames(job.jobStatus, job.prepay)}
+              visibleCount={2}
+            />
+          }
           actions={<JobTableActions job={job} />}
           fields={[
             {

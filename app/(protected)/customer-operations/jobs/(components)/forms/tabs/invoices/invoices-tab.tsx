@@ -178,7 +178,7 @@ export default function InvoicesTab({ jobId }: { jobId: number }) {
               </div>
             </Button>
           )}
-          {jobStatus !== JOB_STATUS.CANCELLED && (
+          {jobStatus !== JOB_STATUS.CANCELLED && !selectedJob?.prepay && (
             <FormDialog
               dialogTitle="Create Invoice"
               buttonTitle="Create Invoice"

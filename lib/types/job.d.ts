@@ -40,6 +40,9 @@ export interface JobDTO {
   createdAt?: string;
   updatedAt?: string;
   version?: number;
+  prepay?: boolean;
+  pricingLocked?: boolean;
+  cashSaleReceiptId?: number | null;
 }
 
 export interface Job {

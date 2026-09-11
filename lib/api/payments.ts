@@ -5,7 +5,7 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import { APIClient } from './APIClient';
-import { DocketKeys, InvoicesKeys, PaymentsKeys } from './keys';
+import { DocketKeys, InvoicesKeys, JobKeys, PaymentsKeys, QuotationKeys } from './keys';
 import { useInvoiceRetryProgressStore } from '@/app/stores/invoice-retry-progress-store';
 import {
   resolveUnsyncedInvoiceIdsForJob,
@@ -230,7 +230,51 @@ function invalidateCashSales(queryClient: ReturnType<typeof useQueryClient>) {
   queryClient.invalidateQueries({ queryKey: PaymentsKeys.all });
   queryClient.invalidateQueries({ queryKey: InvoicesKeys.all });
   queryClient.invalidateQueries({ queryKey: DocketKeys.all });
+  queryClient.invalidateQueries({ queryKey: QuotationKeys.all });
+  queryClient.invalidateQueries({ queryKey: JobKeys.all });
 }
+
+export const useCreatePrepaidQuoteCashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      quoteId,
+      paymentType,
+    }: {
+      quoteId: number;
+      paymentType: string;
+    }) => APIClient.payments.createPrepaidQuoteCashSale(quoteId, paymentType),
+    onSuccess: () => {
+      toast.success('Cash sale recorded');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to record cash sale');
+      console.error(error);
+    },
+  });
+};
+
+export const useCreatePrepaidJobCashSale = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      jobId,
+      paymentType,
+    }: {
+      jobId: number;
+      paymentType: string;
+    }) => APIClient.payments.createPrepaidJobCashSale(jobId, paymentType),
+    onSuccess: () => {
+      toast.success('Cash sale recorded');
+      invalidateCashSales(queryClient);
+    },
+    onError: (error) => {
+      toast.error('Failed to record cash sale');
+      console.error(error);
+    },
+  });
+};
 
 export const useCreateCashSale = () => {
   const queryClient = useQueryClient();

@@ -29,6 +29,10 @@ describe('quotationToFormValues', () => {
       expiryDate: undefined,
       phone: '',
       receiptEmail: '',
+      customerNotes: '',
+      attachedItemIds: [],
+      poNumber: '',
+      prepay: false,
     });
   });
 

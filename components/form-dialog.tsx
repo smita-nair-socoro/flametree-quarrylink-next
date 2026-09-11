@@ -304,6 +304,9 @@ export function FormDialog({
   if (headerInfo?.useSelectedQuotation && selectedQuotation) {
     finalCustomId = selectedQuotation.quoteNumber;
     finalPrimaryBadges = [selectedQuotation.quoteStatus];
+    if (selectedQuotation.prepay) {
+      finalPrimaryBadges = [...finalPrimaryBadges, 'PREPAID'];
+    }
   }
 
   if (headerInfo?.useSelectedCustomer && selectedCustomer) {
@@ -348,6 +351,9 @@ export function FormDialog({
   if (headerInfo?.useSelectedJob && selectedJob) {
     finalCustomId = selectedJob.jobNumber;
     finalPrimaryBadges = [selectedJob.jobStatus];
+    if (selectedJob.prepay) {
+      finalPrimaryBadges = [...finalPrimaryBadges, 'PREPAID'];
+    }
   }
 
   if (headerInfo?.useSelectedJobLineItem && selectedJobLineItem) {

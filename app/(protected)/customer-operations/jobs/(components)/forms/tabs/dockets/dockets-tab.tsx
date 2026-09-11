@@ -1,6 +1,12 @@
 'use client';
 
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 
@@ -22,6 +28,7 @@ import {
 } from '@/lib/api/docket';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import type { SortingState } from '@tanstack/react-table';
+import { isPrepaidUnpaid } from '@/lib/utils/prepaid';
 
 interface DocketsTabProps {
   selectedJob: JobDetails | null;
@@ -91,7 +98,21 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
           )}
         >
           <span className="text-lg font-semibold">Dockets</span>
-          {jobStatus !== JOB_STATUS.CANCELLED && (
+          {jobStatus !== JOB_STATUS.CANCELLED &&
+            (isPrepaidUnpaid(selectedJob) ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button type="button" disabled>
+                      Add New Docket
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Record a cash sale before raising dockets on a prepaid job
+                </TooltipContent>
+              </Tooltip>
+            ) : (
             <FormDialog
               dialogTitle={
                 selectedJob?.jobType === 'INTERNAL_TRANSFER'
@@ -111,7 +132,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
             >
               <DocketForm isQuickDocket={false} jobId={jobId} />
             </FormDialog>
-          )}
+            ))}
         </div>
 
         <div className={isDesktop ? 'col-span-2' : 'col-span-1'}>

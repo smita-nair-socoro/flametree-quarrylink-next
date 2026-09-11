@@ -56,6 +56,7 @@ import {
 } from '@/hooks/customer/use-customers-for-form';
 import { normalizePhoneNumber } from '@/lib/utils/phone-helper';
 import { MultipleInput } from '@/components/ui/multiple-input';
+import { Switch } from '@/components/ui/switch';
 import {
   extractErrorMessage,
   extractErrorResponse,
@@ -689,6 +690,33 @@ export default function QuotationForm({
               )}
             />
 
+            <FormField
+              control={quotationForm.control}
+              name="prepay"
+              render={({ field }) => {
+                const paid = Boolean(selectedQuotation?.cashSaleReceiptId);
+                return (
+                  <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-3">
+                    <div className="space-y-0.5">
+                      <FormLabel>Prepay</FormLabel>
+                      <p className="text-sm text-muted-foreground">
+                        {paid
+                          ? 'Payment recorded — Prepay cannot be changed.'
+                          : 'Collection only. Approve is blocked until a cash sale is recorded.'}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={Boolean(field.value)}
+                        onCheckedChange={field.onChange}
+                        disabled={(isEditing && !canEdit) || paid}
+                      />
+                    </FormControl>
+                  </FormItem>
+                );
+              }}
+            />
+
             {isEditing && (
               <FormField
                 control={quotationForm.control}
@@ -894,7 +922,7 @@ export default function QuotationForm({
                     Line Items
                   </span>
                 </div>
-                {canEdit && !isDuplicate && (
+                {canEdit && !isDuplicate && !selectedQuotation?.pricingLocked && (
                   <div
                     className={cn(
                       'flex items-center gap-2',

@@ -7,6 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Quotation } from '@/lib/types/quotation';
 import { QuotationTableActions } from './quotation-table-actions';
 import { centsToDollars } from '@/lib/utils/currency';
+import { prepaidBadgeNames } from '@/lib/utils/prepaid';
 import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_LABEL,
@@ -130,7 +131,10 @@ export const getQuotationColumns = (
       if (!status) return <span className="text-muted-foreground">-</span>;
       return (
         <div className="py-2">
-          <TableBadges names={[status]} visibleCount={1} />
+          <TableBadges
+            names={prepaidBadgeNames(status, row.original.prepay)}
+            visibleCount={2}
+          />
         </div>
       );
     },

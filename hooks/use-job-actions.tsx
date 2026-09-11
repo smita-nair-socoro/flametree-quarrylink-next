@@ -16,7 +16,7 @@ import { DOCKET_STATUS } from '@/lib/types/docket-enums';
 import { JOB_LINE_ITEM_TYPE } from '@/lib/types/job-enums';
 import { JOB_STATUS } from '@/lib/types/job-enums';
 import { DocketDTO } from '@/lib/types/docket';
-import { notifyError, notifySuccess } from '@/lib/toast';
+import { notifyError, notifySuccess, notifyWarning } from '@/lib/toast';
 import {
   ResumeJobDescription,
   ResumeJobContent,
@@ -42,6 +42,7 @@ import {
   extractErrorData,
   extractErrorMessage,
 } from '@/lib/utils/error-message-helper';
+import { isPrepaidUnpaid } from '@/lib/utils/prepaid';
 
 interface DialogConfig {
   title?: string;
@@ -376,6 +377,12 @@ export function useJobActions(jobData?: JobDetails | null) {
 
     addDocket: () => {
       if (!jobId) return;
+      if (isPrepaidUnpaid(jobData ?? selectedJob)) {
+        notifyWarning(
+          'Record a cash sale before raising dockets on a prepaid job',
+        );
+        return;
+      }
       setAddDocketOpen(true);
     },
 

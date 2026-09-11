@@ -40,6 +40,7 @@ import { Button } from '@/components/ui/button';
 import { QuotationBulkActions } from './(components)/(data-tables)/quotation/quotation-bulk-actions';
 import { MobileCard } from '@/components/mobile/mobile-card';
 import { TableBadges } from '@/components/table-badges';
+import { prepaidBadgeNames } from '@/lib/utils/prepaid';
 import { QuotationTableActions } from './(components)/(data-tables)/quotation/quotation-table-actions';
 import { formatLocalDate } from '@/lib/utils/date';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -290,7 +291,13 @@ export default function QuotationsPage() {
           badges={
             <>
               {quotation.quoteStatus && (
-                <TableBadges names={[quotation.quoteStatus]} visibleCount={1} />
+                <TableBadges
+                  names={prepaidBadgeNames(
+                    quotation.quoteStatus,
+                    quotation.prepay,
+                  )}
+                  visibleCount={2}
+                />
               )}
             </>
           }

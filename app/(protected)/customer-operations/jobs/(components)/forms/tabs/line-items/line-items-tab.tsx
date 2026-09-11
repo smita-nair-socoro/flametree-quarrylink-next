@@ -131,7 +131,7 @@ export default function LineItemsTab({
         )}
       >
         <span className="text-lg font-semibold">Line Items</span>
-        {jobStatus !== JOB_STATUS.CANCELLED && (
+        {jobStatus !== JOB_STATUS.CANCELLED && !selectedJob?.pricingLocked && (
           <FormDialog
             dialogTitle="Add Product"
             buttonTitle="Add New Product"

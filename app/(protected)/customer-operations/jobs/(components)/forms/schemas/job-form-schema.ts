@@ -53,6 +53,7 @@ export const JobFormSchema = z.object({
   ),
   phone: z.string().optional(),
   contactPersonName: z.string().optional(),
+  prepay: z.boolean().optional(),
 });
 
 export type JobFormValues = z.infer<typeof JobFormSchema>;

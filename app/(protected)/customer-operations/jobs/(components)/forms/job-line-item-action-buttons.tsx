@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { JobItem } from '@/lib/types/job';
 import { useJobLineItemActions } from '@/hooks/use-jobs-line-item-actions';
-import { Delete } from 'lucide-react';
+import { Delete, MoreHorizontal } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -13,7 +13,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
-import { MoreHorizontal } from 'lucide-react';
+import { useSelectedJob } from '@/app/stores/job-store';
 
 interface JobLineItemActionButtonsProps {
 	jobLineItem: JobItem | null | undefined;
@@ -24,6 +24,7 @@ export function JobLineItemActionButtons({
 	layout = 'expanded',
 }: JobLineItemActionButtonsProps) {
 	const isDesktop = useMediaQuery('(min-width: 768px)');
+	const pricingLocked = Boolean(useSelectedJob()?.pricingLocked);
 
 	const { actions, confirmDialogs, viewDialog } = useJobLineItemActions(
 		jobLineItem as JobItem | null | undefined
@@ -37,6 +38,15 @@ export function JobLineItemActionButtons({
 	// Don't render anything if jobId is invalid
 	if (!jobLineItem.id || jobLineItem.id === 0) {
 		return null;
+	}
+
+	if (pricingLocked) {
+		return (
+			<div>
+				{confirmDialogs}
+				{viewDialog}
+			</div>
+		);
 	}
 
 	// Mobile or compact version - everything in dropdown

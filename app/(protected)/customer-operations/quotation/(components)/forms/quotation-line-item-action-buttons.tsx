@@ -31,7 +31,8 @@ export function QuotationLineItemActionButtons({
   const quoteStatus = useQuotationStore((state) => state.selectedQuotation?.quoteStatus);
 
   const NON_REMOVABLE_STATUSES = new Set([QUOTE_STATUS.PENDING, QUOTE_STATUS.DECLINED, QUOTE_STATUS.ARCHIVED, QUOTE_STATUS.CONVERTED_TO_JOB]);
-  const canRemove = !isDuplicate && !NON_REMOVABLE_STATUSES.has(quoteStatus as QUOTE_STATUS);
+  const pricingLocked = Boolean(useQuotationStore((state) => state.selectedQuotation?.pricingLocked));
+  const canRemove = !isDuplicate && !NON_REMOVABLE_STATUSES.has(quoteStatus as QUOTE_STATUS) && !pricingLocked;
   const { actions, confirmDialogs, viewDialog } =
     useQuotationLineItemActions(quotationLineItem);
 
