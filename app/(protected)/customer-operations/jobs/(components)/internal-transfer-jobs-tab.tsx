@@ -17,7 +17,7 @@ import { TableBadges } from '@/components/table-badges';
 import { TableClientSortableHeader } from '@/components/table-client-sortable-header';
 import { JobTableActions } from './(data-tables)/job/job-table-actions';
 import { useJobActions } from '@/hooks/use-job-actions';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { JobItemsQueryOptions } from '@/lib/api/job';
 
 const columns: ColumnDef<JobDTO>[] = [
@@ -92,6 +92,7 @@ const columns: ColumnDef<JobDTO>[] = [
 ];
 
 export function InternalTransferJobsTab() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -154,12 +155,12 @@ export function InternalTransferJobsTab() {
           <InternalTransferJobForm
             onCreated={(job) => {
               if (!job?.id) return;
-              window.setTimeout(() => {
-                actions.view({
-                  ...job,
-                  jobType: 'INTERNAL_TRANSFER',
-                } as JobDTO);
-              }, 50);
+              const params = new URLSearchParams(searchParams.toString());
+              params.set('tab', 'internal-transfers');
+              params.set('ids', String(job.id));
+              router.replace(
+                `/customer-operations/jobs?${params.toString()}`,
+              );
             }}
           />
         </FormDialog>
