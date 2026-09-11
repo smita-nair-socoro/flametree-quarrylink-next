@@ -73,7 +73,7 @@ export default function InternalTransferJobForm({
       onSuccess?.();
       if (created?.id) {
         onCreated?.(created);
-      }}
+      }
     } catch (error) {
       notifyError(
         extractErrorMessage(error) ||
