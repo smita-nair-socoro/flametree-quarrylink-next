@@ -1195,6 +1195,7 @@ export const APIClient = {
       customerIds?: number[];
       productIds?: number[];
       ids?: number[];
+      jobId?: number;
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -1217,6 +1218,7 @@ export const APIClient = {
             customerIds: params?.customerIds?.map(String),
             productIds: params?.productIds?.map(String),
             ids: params?.ids?.map(String),
+            jobId: params?.jobId?.toString(),
           },
         },
       );

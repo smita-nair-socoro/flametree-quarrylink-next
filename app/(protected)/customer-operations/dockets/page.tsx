@@ -19,8 +19,6 @@ import DocketForm from './(components)/forms/docket-form';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   DocketsTableQueryOptions,
-  DocketsByJobIdQueryOptions,
-  DocketsByJobIdInfiniteQueryOptions,
   DocketsByDriverIdQueryOptions,
   DocketsByDriverIdInfiniteQueryOptions,
   DocketsByTruckIdQueryOptions,
@@ -170,7 +168,7 @@ export default function DocketsPage() {
   const apiSortParams = React.useMemo(() => {
     const params = toDocketApiSortParams(sorting);
     // Job/driver/truck list endpoints still use the nested DocketDTO field names.
-    if (linkedJobId || driverId || truckId) {
+    if (driverId || truckId) {
       const nestedSortBy: Record<string, string> = {
         deliveryDate: 'deliveryCollectionDate',
         type: 'jobItemType',
@@ -181,7 +179,7 @@ export default function DocketsPage() {
       };
     }
     return params;
-  }, [sorting, linkedJobId, driverId, truckId]);
+  }, [sorting, driverId, truckId]);
 
   const apiFilterParams = React.useMemo(
     () => toDocketApiFilterParams(facetFilters),
@@ -194,10 +192,19 @@ export default function DocketsPage() {
       pageSize,
       search: search.trim() || undefined,
       ids: idsFilter,
+      jobId: linkedJobId ?? undefined,
       ...apiSortParams,
       ...apiFilterParams,
     }),
-    [pageIndex, pageSize, search, idsFilter, apiSortParams, apiFilterParams],
+    [
+      pageIndex,
+      pageSize,
+      search,
+      idsFilter,
+      linkedJobId,
+      apiSortParams,
+      apiFilterParams,
+    ],
   );
 
   const { data: docketFilters } = useQuery(
@@ -211,7 +218,7 @@ export default function DocketsPage() {
 
   const allDocketsQuery = useQuery({
     ...DocketsTableQueryOptions(listQueryParams),
-    enabled: !linkedJobId && !driverId && !truckId,
+    enabled: !driverId && !truckId,
   });
 
   const driverDocketsQuery = useQuery({
@@ -224,14 +231,6 @@ export default function DocketsPage() {
     enabled: !!truckId,
   });
 
-  const jobDocketsQuery = useQuery({
-    ...DocketsByJobIdQueryOptions(linkedJobId ?? 0, listQueryParams),
-    enabled: !!linkedJobId,
-  });
-
-  /** Which docket source is currently driving the table. Every other 4-way
-   * selection below (loading state, table id, filter banner, infinite-scroll
-   * props) is keyed off this one discriminant instead of repeating the branch. */
   let activeDocketSource: 'job' | 'driver' | 'truck' | 'default';
   if (linkedJobId) {
     activeDocketSource = 'job';
@@ -244,7 +243,7 @@ export default function DocketsPage() {
   }
 
   const docketSourceQueries = {
-    job: jobDocketsQuery,
+    job: allDocketsQuery,
     driver: driverDocketsQuery,
     truck: truckDocketsQuery,
     default: allDocketsQuery,
@@ -260,7 +259,7 @@ export default function DocketsPage() {
 
   const totalElements = React.useMemo(() => {
     if (!docketsResponse) return 0;
-    if (activeDocketSource === 'default') {
+    if (activeDocketSource === 'default' || activeDocketSource === 'job') {
       return (
         getDocketsTablePage(docketsResponse as DocketsTableResponse)
           ?.totalElements ?? 0
@@ -274,7 +273,7 @@ export default function DocketsPage() {
 
   const totalPages = React.useMemo(() => {
     if (!docketsResponse) return 1;
-    if (activeDocketSource === 'default') {
+    if (activeDocketSource === 'default' || activeDocketSource === 'job') {
       return (
         getDocketsTablePage(docketsResponse as DocketsTableResponse)
           ?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize))
@@ -306,8 +305,11 @@ export default function DocketsPage() {
     isFetchingNextPage,
     isFetching: infiniteIsFetching,
   } = useInfiniteQuery({
-    ...DocketsTableInfiniteQueryOptions(infiniteBaseParams),
-    enabled: isMobile && !linkedJobId && !driverId && !truckId && !idsFilter,
+    ...DocketsTableInfiniteQueryOptions({
+      ...infiniteBaseParams,
+      jobId: linkedJobId ?? undefined,
+    }),
+    enabled: isMobile && !driverId && !truckId && !idsFilter,
   });
 
   const {
@@ -332,22 +334,6 @@ export default function DocketsPage() {
     enabled: isMobile && !!truckId && !idsFilter,
   });
 
-  const {
-    data: jobInfiniteData,
-    fetchNextPage: jobFetchNextPage,
-    hasNextPage: jobHasNextPage,
-    isFetchingNextPage: jobIsFetchingNextPage,
-    isFetching: jobInfiniteIsFetching,
-  } = useInfiniteQuery({
-    ...DocketsByJobIdInfiniteQueryOptions(linkedJobId ?? 0, {
-      pageSize: 25,
-      search: search.trim() || undefined,
-      ...apiSortParams,
-      ...apiFilterParams,
-    }),
-    enabled: isMobile && !!linkedJobId && !idsFilter,
-  });
-
   const mobileItems = React.useMemo(
     () => getDocketTableRowsFromInfinitePages(infiniteData?.pages, 'table'),
     [infiniteData?.pages],
@@ -360,14 +346,10 @@ export default function DocketsPage() {
     () => getDocketTableRowsFromInfinitePages(truckInfiniteData?.pages, 'dto'),
     [truckInfiniteData?.pages],
   );
-  const jobMobileItems = React.useMemo(
-    () => getDocketTableRowsFromInfinitePages(jobInfiniteData?.pages, 'dto'),
-    [jobInfiniteData?.pages],
-  );
 
   const items: DocketTableRow[] = React.useMemo(() => {
     if (!docketsResponse) return [];
-    if (activeDocketSource === 'default') {
+    if (activeDocketSource === 'default' || activeDocketSource === 'job') {
       return getDocketTableRowsFromTableResponse(
         docketsResponse as DocketsTableResponse,
       );
@@ -629,11 +611,11 @@ export default function DocketsPage() {
 
   const mobileInfinitePropsBySource = {
     job: {
-      items: jobMobileItems,
-      hasNextPage: jobHasNextPage,
-      isFetchingNextPage: jobIsFetchingNextPage,
-      isLoading: jobInfiniteIsFetching,
-      fetchNextPage: jobFetchNextPage,
+      items: mobileItems,
+      hasNextPage,
+      isFetchingNextPage,
+      isLoading: infiniteIsFetching,
+      fetchNextPage,
     },
     driver: {
       items: driverMobileItems,

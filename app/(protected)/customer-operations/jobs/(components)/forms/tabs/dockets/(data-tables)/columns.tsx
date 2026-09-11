@@ -1,8 +1,7 @@
 'use client';
 
 import { ColumnDef } from '@tanstack/react-table';
-import { DocketDTO } from '@/lib/types/docket';
-// import { JobLineItemTableActions } from './job-line-items-table-actions';
+import { DocketTableRow } from '@/lib/types/docket';
 import {
   Tooltip,
   TooltipContent,
@@ -16,7 +15,7 @@ import { formatNumberThousandSeparator } from '@/lib/utils/number';
 import { formatUomLabel } from '@/lib/utils/docket-helper';
 import { TriangleAlert } from 'lucide-react';
 
-export const docketsColumns: ColumnDef<DocketDTO>[] = [
+export const docketsColumns: ColumnDef<DocketTableRow>[] = [
   {
     id: 'docketNumber',
     accessorFn: (row) => row.docketNumber,
@@ -37,30 +36,28 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'deliveryDate',
-    accessorFn: (row) => row.deliveryCollectionDate,
+    accessorFn: (row) => row.deliveryDate,
     header: ({ column }) => {
       return (
         <TableClientSortableHeader column={column} title="Delivery Date" />
       );
     },
     cell: ({ row }) => {
-      const deliveryDate =
-        row.original.deliveredAt ?? row.original.deliveryCollectionDate;
-      return <DateCell dateString={deliveryDate} side="top" />;
+      return <DateCell dateString={row.original.deliveryDate} side="top" />;
     },
     meta: 'Delivery Date',
   },
   {
     id: 'status',
-    accessorFn: (row) => row.docketStatus,
+    accessorFn: (row) => row.status,
     header: () => {
       return <div>Status</div>;
     },
     cell: ({ row }) => {
       const docketStatus =
-        row.original.docketStatus === 'READY_FOR_COLLECTION'
+        row.original.status === 'READY_FOR_COLLECTION'
           ? 'READY'
-          : row.original.docketStatus;
+          : row.original.status;
       if (docketStatus === 'INVOICED') {
         if (!row.original.invoiceStatus) {
           return <TableBadges names={[docketStatus]} visibleCount={1} />;
@@ -81,26 +78,25 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
   },
   {
     id: 'product',
-    accessorFn: (row) => row.jobItem.product.productName,
+    accessorFn: (row) => row.productName,
     header: ({ column }) => {
       return <TableClientSortableHeader column={column} title="Product" />;
     },
     cell: ({ row }) => {
-      const productName = row.original.jobItem.product.productName || 'N/A';
+      const productName = row.original.productName || 'N/A';
       return <div className="py-2">{productName}</div>;
     },
     meta: 'Product',
   },
   {
     id: 'loadSize',
-    accessorFn: (row) => row.actualLoadSize ?? row.plannedLoadSize,
+    accessorFn: (row) => row.actualLoadSize ?? row.quantity,
     header: () => {
       return <div>QTY</div>;
     },
     cell: ({ row }) => {
-      const loadSize =
-        row.original.actualLoadSize ?? row.original.plannedLoadSize ?? 0;
-      const productSellUom = row.original.jobItem.productSellUom;
+      const loadSize = row.original.actualLoadSize ?? row.original.quantity ?? 0;
+      const productSellUom = row.original.quantityUom;
       const formattedQty = formatNumberThousandSeparator(loadSize);
       const formattedLoadSize = productSellUom
         ? `${formattedQty} ${formatUomLabel(productSellUom)}`
@@ -131,7 +127,7 @@ export const docketsColumns: ColumnDef<DocketDTO>[] = [
       return (
         <DocketTableActions
           docketId={docket.id}
-          status={docket.docketStatus}
+          status={docket.status}
           invoiceStatus={docket.invoiceStatus}
         />
       );

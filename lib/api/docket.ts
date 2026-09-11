@@ -54,6 +54,8 @@ export type DocketsListParams = {
   productIds?: number[];
   /** Restrict results to specific docket ids (e.g. linking from a job/customer dialog). */
   ids?: number[];
+  /** Restrict results to dockets on one job (job dockets tab / linked job view). */
+  jobId?: number;
 };
 
 export type UnassignedDocketsListParams = {
