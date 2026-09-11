@@ -59,6 +59,7 @@ tests/e2e/
 ├── dockets.spec.ts          # Docket list, date filtering, UI
 ├── proof-of-collection.spec.ts  # Mark as Collected modal, proof capture, Sign Off labels
 ├── quotations.spec.ts       # Quote list, content library, policy docs (max 2)
+├── prepaid-quote-to-job.spec.ts  # Prepay toggle, cash sale, unpaid gates, convert inherit
 ├── logistics.spec.ts        # Drivers, trucks, hauliers, scheduler, dispatch
 ├── inventory.spec.ts        # Quarries, materials, stockpile, weigh-bridge, production
 ├── system.spec.ts           # Users, accounting, MYOB Acumatica, tenant management
@@ -76,6 +77,7 @@ Tests across 13 feature files, covering:
 - Dockets (list, date filtering, UI)
 - Proof of Collection (Mark as Collected modal, validation, photos, Sign Off labels)
 - Quotations (list, content library, policy documents max 2)
+- Prepaid quote to job (Prepay toggle, collection-only, Record Cash Sale, unpaid Approve/docket gates, convert inherit, Cash Sales tab)
 - Logistics (drivers, trucks, hauliers, scheduler, dispatch, schedule)
 - Inventory (quarries, materials, stockpile, weigh-bridge, production)
 - System (user management, accounting, MYOB Acumatica, tenant management)

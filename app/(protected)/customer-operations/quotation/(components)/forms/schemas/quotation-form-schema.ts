@@ -73,6 +73,7 @@ export const QuotationFormSchema = z.object({
     .string()
     .max(20, { message: 'Maximum 20 characters' })
     .optional(),
+  prepay: z.boolean().optional(),
 });
 
 export type QuotationFormValues = z.infer<typeof QuotationFormSchema>;

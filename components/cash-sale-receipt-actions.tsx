@@ -73,6 +73,16 @@ export function CashSaleReceiptActions({
     ),
   );
 
+  const isPrepaidReceipt =
+    Boolean(detail?.quoteId) || (detail?.paidLineItems?.length ?? 0) > 0;
+  const amendPaymentTypes = isPrepaidReceipt
+    ? CASH_SALE_PAYMENT_TYPES.filter((type) =>
+        receipt.paymentType === 'Credit Card'
+          ? type === 'Credit Card'
+          : type !== 'Credit Card',
+      )
+    : CASH_SALE_PAYMENT_TYPES;
+
   React.useEffect(() => {
     setPaymentType(receipt.paymentType);
   }, [receipt.paymentType]);
@@ -164,6 +174,18 @@ export function CashSaleReceiptActions({
               Total Amount: {currencySymbol}
               {centsToDollars(receipt.amount)}
             </div>
+            {(detail?.surchargeAmount ?? 0) > 0 ? (
+              <>
+                <div>
+                  Material Total: {currencySymbol}
+                  {centsToDollars(detail?.materialAmount ?? 0)}
+                </div>
+                <div>
+                  Credit Card Surcharge: {currencySymbol}
+                  {centsToDollars(detail?.surchargeAmount ?? 0)}
+                </div>
+              </>
+            ) : null}
             <div>Recorded Date: {formatLocalDate(receipt.recordedAt)}</div>
             <div className="flex items-center gap-2">
               Payment Type:{' '}
@@ -187,8 +209,18 @@ export function CashSaleReceiptActions({
               retrying={retry.isPending}
             />
             <div className="pt-2 font-medium">
-              Included Dockets ({detail?.dockets?.length ?? receipt.docketCount})
+              {(detail?.paidLineItems?.length ?? 0) > 0 ||
+              (detail?.quoteId != null && (detail?.dockets?.length ?? 0) === 0)
+                ? `Settled Dockets (${detail?.dockets?.length ?? receipt.docketCount})`
+                : `Included Dockets (${detail?.dockets?.length ?? receipt.docketCount})`}
             </div>
+            {(detail?.dockets ?? []).length === 0 &&
+            (detail?.paidLineItems?.length ?? 0) > 0 ? (
+              <p className="text-muted-foreground">
+                No dockets settled yet. Collection dockets will appear here as
+                they are completed.
+              </p>
+            ) : null}
             {(detail?.dockets ?? []).map((line) => (
               <div key={line.docketId} className="flex flex-col gap-0.5">
                 <span>
@@ -231,7 +263,7 @@ export function CashSaleReceiptActions({
           </DialogHeader>
           <SelectOptions
             searchLabel="payment type"
-            options={CASH_SALE_PAYMENT_TYPES.map((type) => ({
+            options={amendPaymentTypes.map((type) => ({
               value: type,
               label: type,
             }))}

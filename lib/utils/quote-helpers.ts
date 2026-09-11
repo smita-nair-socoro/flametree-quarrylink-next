@@ -82,6 +82,7 @@ export const transformFormDataToQuoteDto = (
     accountManagerName: additionalData.accountManagerName,
     version: 1,
     lineItemsCount: additionalData.lineItemsCount ?? 0,
+    prepay: Boolean(formData.prepay),
   };
 
   if (formData.poNumber) {

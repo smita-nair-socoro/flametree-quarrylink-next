@@ -120,7 +120,10 @@ export function useLineItemFormState({
   const getFormValuesFromLineItem = React.useCallback((): FormValues => {
     return {
       quoteItemType:
-        selectedLineItem?.quoteItemType ?? QUOTE_ITEM_TYPE.DELIVERY,
+        selectedLineItem?.quoteItemType ??
+        (selectedQuotationFromStore?.prepay
+          ? QUOTE_ITEM_TYPE.COLLECTION
+          : QUOTE_ITEM_TYPE.DELIVERY),
       address: isEditing
         ? (selectedLineItem?.customerDeliveryAddress?.address
             ?.formattedAddress ?? '')
@@ -170,7 +173,7 @@ export function useLineItemFormState({
         : 0,
       grossProfit: isEditing ? (selectedLineItem?.grossProfit ?? 0) : 0,
     };
-  }, [isEditing, selectedLineItem, selectedQuotation?.quoteItems, unitPriceDecimalPlaces]);
+  }, [isEditing, selectedLineItem, selectedQuotationFromStore?.prepay, selectedQuotation?.quoteItems, unitPriceDecimalPlaces]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(NewQuotationLineItemFormSchema),

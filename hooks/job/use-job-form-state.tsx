@@ -47,6 +47,7 @@ export const EMPTY_JOB_FORM_VALUES = {
   email: '',
   accountManagerSub: '',
   deliveryStartDate: undefined,
+  prepay: false,
 };
 
 export const formatJobTimeString = (timeStr?: string | null) =>
@@ -198,6 +199,7 @@ export function useJobFormState({
       phone: normalizePhoneNumber(jobDetails.contactPersonPhone || '') || '',
       receiptEmail: (jobDetails.emailRecipients || []).join(','),
       accountManagerSub: currentValues.accountManagerSub || '',
+      prepay: Boolean(jobDetails.prepay),
     });
 
     hasHydratedJobRef.current = true;
@@ -328,6 +330,7 @@ export function useJobFormState({
           contactPersonName: newContactPersonName,
           contactPersonPhone: values.phone,
           emailRecipients,
+          prepay: Boolean(values.prepay),
           jobStatus:
             isEditing && jobDetails ? jobDetails.jobStatus : JOB_STATUS.ACTIVE,
           ...(dateStr ? { estimatedStartDate: `${dateStr}T00:00:00` } : {}),

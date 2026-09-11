@@ -77,7 +77,7 @@ export default function CashSalesTab({ jobId }: { jobId: number }) {
             <TableBadges names={[`${failedCount} Failed`]} visibleCount={1} />
           ) : null}
         </div>
-        {jobStatus !== JOB_STATUS.CANCELLED && (
+        {jobStatus !== JOB_STATUS.CANCELLED && !selectedJob?.prepay && (
           <FormDialog
             dialogTitle="Create Cash Sale"
             buttonTitle="Create Cash Sale"

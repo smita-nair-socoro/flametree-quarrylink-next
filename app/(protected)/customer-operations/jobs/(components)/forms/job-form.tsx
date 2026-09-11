@@ -38,6 +38,7 @@ import { QuarryType } from '@/lib/types/quarry-enums';
 import { notifyError, notifySuccess } from '@/lib/toast';
 import { extractErrorMessage } from '@/lib/utils/error-message-helper';
 import { useJobStore } from '@/app/stores/job-store';
+import { Switch } from '@/components/ui/switch';
 
 interface FormProps {
   id?: number;
@@ -431,6 +432,35 @@ export default function JobForm({
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+            )}
+
+            {!isInternalTransfer && (
+              <FormField
+                control={jobForm.control}
+                name="prepay"
+                render={({ field }) => {
+                  const paid = Boolean(jobDetails?.cashSaleReceiptId);
+                  return (
+                    <FormItem className="col-span-2 flex flex-row items-center justify-between rounded-lg border p-3">
+                      <div className="space-y-0.5">
+                        <FormLabel>Prepay</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          {paid
+                            ? 'Payment recorded — Prepay cannot be changed.'
+                            : 'Collection only. Dockets are blocked until a cash sale is recorded.'}
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={Boolean(field.value)}
+                          onCheckedChange={field.onChange}
+                          disabled={(isEditing && !canEdit) || paid}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  );
+                }}
               />
             )}
 

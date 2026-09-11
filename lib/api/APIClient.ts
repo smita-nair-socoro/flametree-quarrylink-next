@@ -2128,6 +2128,16 @@ export const APIClient = {
         `/socoro/quarrylink/api/payments/cash-sales`,
         { body: data },
       ),
+    createPrepaidQuoteCashSale: (quoteId: number, paymentType: string) =>
+      appClient.Post<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/quotes/${quoteId}/cash-sales`,
+        { body: { paymentType } },
+      ),
+    createPrepaidJobCashSale: (jobId: number, paymentType: string) =>
+      appClient.Post<CashSaleDetail>(
+        `/socoro/quarrylink/api/payments/jobs/${jobId}/prepaid-cash-sales`,
+        { body: { paymentType } },
+      ),
     amendCashSalePaymentType: (id: number, paymentType: string) =>
       appClient.Put<CashSaleDetail>(
         `/socoro/quarrylink/api/payments/cash-sales/${id}/payment-type`,

@@ -132,7 +132,11 @@ export function useJobLineItemFormState({
 
   const getFormValuesFromLineItem = React.useCallback((): FormValues => {
     return {
-      type: jobLineItemData?.jobItemType ?? JOB_LINE_ITEM_TYPE.DELIVERY,
+      type:
+        jobLineItemData?.jobItemType ??
+        (selectedJob?.prepay
+          ? JOB_LINE_ITEM_TYPE.COLLECTION
+          : JOB_LINE_ITEM_TYPE.DELIVERY),
       address: isEditing
         ? (jobLineItemData?.customerDeliveryAddress?.address
             ?.formattedAddress ?? '')
@@ -181,7 +185,7 @@ export function useJobLineItemFormState({
         : 0,
       grossProfit: 0, // Not present in jobItems, calculated in form
     };
-  }, [isEditing, jobLineItemData, unitPriceDecimalPlaces]);
+  }, [isEditing, jobLineItemData, selectedJob?.prepay, unitPriceDecimalPlaces]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(NewJobLineItemFormSchema),

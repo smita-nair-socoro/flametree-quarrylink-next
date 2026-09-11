@@ -96,6 +96,15 @@ export interface CashSaleAmendment {
   amendedAt: string;
 }
 
+export interface CashSalePaidLine {
+  sourceLineItemId?: number;
+  productName: string;
+  quantity: number;
+  uom?: string;
+  unitPrice: number;
+  lineTotal: number;
+}
+
 export interface CashSaleDetail extends PaymentsCashSale {
   voidReason?: string;
   voidReasonDetail?: string;
@@ -103,6 +112,10 @@ export interface CashSaleDetail extends PaymentsCashSale {
   voidedAt?: string;
   dockets: CashSaleDocketLine[];
   amendments: CashSaleAmendment[];
+  quoteId?: number;
+  materialAmount?: number;
+  surchargeAmount?: number;
+  paidLineItems?: CashSalePaidLine[];
 }
 
 export const CASH_SALE_PAYMENT_TYPES = [

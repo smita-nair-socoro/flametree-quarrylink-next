@@ -160,6 +160,9 @@ export default function QuoteLineItemForm({
   }, [addressToDeleteId, handleDeleteDeliveryAddress]);
 
   const isCollection = quoteItemType === QUOTE_ITEM_TYPE.COLLECTION;
+  const isPrepay = Boolean(selectedQuotation?.prepay);
+  const isPricingLocked = Boolean(selectedQuotation?.pricingLocked);
+  const qtyPriceDisabled = isReadOnly || isPricingLocked;
 
   // Clear qty when truck UoM changes to a manual-input type (no conversion available)
   const MANUAL_TRUCK_UOMS = ['HOURLY', 'LOAD', 'KM'];
@@ -281,11 +284,14 @@ export default function QuoteLineItemForm({
                       value={field.value}
                       onValueChange={field.onChange}
                       className="grid grid-flow-col auto-cols-max gap-6"
-                      disabled={isReadOnly}
+                      disabled={isReadOnly || isPricingLocked}
                     >
                       <FormItem className="flex items-center gap-3">
                         <FormControl>
-                          <RadioGroupItem value={QUOTE_ITEM_TYPE.DELIVERY} />
+                          <RadioGroupItem
+                            value={QUOTE_ITEM_TYPE.DELIVERY}
+                            disabled={isPrepay}
+                          />
                         </FormControl>
                         <FormLabel className="font-normal">Delivery</FormLabel>
                       </FormItem>
@@ -298,6 +304,11 @@ export default function QuoteLineItemForm({
                         </FormLabel>
                       </FormItem>
                     </RadioGroup>
+                    {isPrepay ? (
+                      <p className="text-sm text-muted-foreground">
+                        Prepaid quotes are collection only.
+                      </p>
+                    ) : null}
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -501,7 +512,7 @@ export default function QuoteLineItemForm({
                           <Input
                             className="w-full"
                             {...field}
-                            disabled={isReadOnly}
+                            disabled={qtyPriceDisabled}
                             isNumber
                             allowDecimal
                             maxDecimals={2}
@@ -539,7 +550,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
-                            disabled={isReadOnly}
+                            disabled={qtyPriceDisabled}
                             unit={
                               quotationLineItemForm.watch('productSellUom') ===
                                 'TN'
@@ -650,7 +661,7 @@ export default function QuoteLineItemForm({
                             }
                             decimalPlaces={unitPriceDecimalPlaces}
                             allowNegative={false}
-                            disabled={isReadOnly}
+                            disabled={qtyPriceDisabled}
                             unit={
                               quotationLineItemForm.watch('productCostUom') ===
                                 'TN'
@@ -802,7 +813,7 @@ export default function QuoteLineItemForm({
                               }
                               decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
-                              disabled={isReadOnly}
+                              disabled={qtyPriceDisabled}
                               unit={
                                 quotationLineItemForm.watch('truckSellUom') ===
                                   'TN'
@@ -921,7 +932,7 @@ export default function QuoteLineItemForm({
                               }
                               decimalPlaces={unitPriceDecimalPlaces}
                               allowNegative={false}
-                              disabled={isReadOnly}
+                              disabled={qtyPriceDisabled}
                               unit={
                                 quotationLineItemForm.watch('truckCostUom') ===
                                   'TN'

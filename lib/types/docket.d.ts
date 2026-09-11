@@ -188,6 +188,8 @@ export interface DocketDTO {
     projectName: string;
     jobStatus: JOB_STATUS;
     jobType?: 'CUSTOMER' | 'INTERNAL_TRANSFER';
+    prepay?: boolean;
+    pricingLocked?: boolean;
     fromSiteName?: string;
     toSiteName?: string;
     poNumber: string;

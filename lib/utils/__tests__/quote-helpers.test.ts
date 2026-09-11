@@ -71,6 +71,7 @@ describe('transformFormDataToQuoteDto', () => {
     expect(result.accountManagerName).toBe('Sam Manager');
     expect(result.version).toBe(1);
     expect(result.lineItemsCount).toBe(3);
+    expect(result.prepay).toBe(false);
   });
 
   test('omits optional fields when not provided', () => {

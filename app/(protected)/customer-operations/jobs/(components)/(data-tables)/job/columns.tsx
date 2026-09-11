@@ -5,7 +5,6 @@ import { JobMultiValueCell } from '@/components/job-multi-value-cell';
 import { jobTablePoNumbers } from '@/lib/utils/job-table-values';
 import { ColumnDef } from '@tanstack/react-table';
 import { JobDTO } from '@/lib/types/job';
-import { JOB_STATUS } from '@/lib/types/job-enums';
 import {
   Tooltip,
   TooltipTrigger,
@@ -15,6 +14,7 @@ import { JobTableActions } from './job-table-actions';
 // import { DateCell } from '@/components/date-cell';
 import { HelpCircle } from 'lucide-react';
 import { centsToDollars } from '@/lib/utils/currency';
+import { prepaidBadgeNames } from '@/lib/utils/prepaid';
 import {
   DEFAULT_CURRENCY_CODE,
   DEFAULT_TAX_LABEL,
@@ -121,11 +121,14 @@ export const getJobColumns = (
       header: () => {
         return <div>Status</div>;
       },
-      cell: ({ getValue }) => {
-        const names = getValue<string>() as JOB_STATUS;
+      cell: ({ row }) => {
+        const names = row.original.jobStatus;
         return (
           <div className="py-2">
-            <TableBadges names={names} visibleCount={1} />
+            <TableBadges
+              names={prepaidBadgeNames(names, row.original.prepay)}
+              visibleCount={2}
+            />
           </div>
         );
       },

@@ -42,6 +42,9 @@ export interface QuotationDTO {
   grossProfitPercentage: number;
   lineItemsCount: number;
   inclDeliveryCost: boolean;
+  prepay?: boolean;
+  pricingLocked?: boolean;
+  cashSaleReceiptId?: number | null;
   convertedAt?: string;
   version: number;
   isDeleted: boolean;
@@ -66,6 +69,7 @@ export interface QuoteListItem {
   jobId?: number | null;
   expiryDate: string | null;
   totalSellPrice: number;
+  prepay?: boolean;
   createdAt: string | null;
   version: number;
   accountManagerSub?: string;

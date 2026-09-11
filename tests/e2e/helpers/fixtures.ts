@@ -186,6 +186,10 @@ export class ApiClient {
   jobs = {
     list: (params?: string) => this.get(`/socoro/quarrylink/api/job${params ? `?${params}` : ''}`),
     get: (id: number) => this.get(`/socoro/quarrylink/api/job/${id}`),
+    create: (body: Record<string, unknown>) =>
+      this.post('/socoro/quarrylink/api/job', body),
+    update: (id: number, body: Record<string, unknown>) =>
+      this.put(`/socoro/quarrylink/api/job/${id}`, body),
     jobItems: (jobId: number) =>
       this.get(`/socoro/quarrylink/api/job/${jobId}/job-items`),
     internalTransfers: (params?: string) =>
@@ -289,6 +293,27 @@ export class ApiClient {
     get: (id: number) => this.get(`/socoro/quarrylink/api/quote/${id}`),
     withItems: (id: number) =>
       this.get(`/socoro/quarrylink/api/quote/${id}/quoteItem`),
+    create: (body: Record<string, unknown>) =>
+      this.post('/socoro/quarrylink/api/quote', body),
+    update: (id: number, body: Record<string, unknown>) =>
+      this.put(`/socoro/quarrylink/api/quote/${id}`, body),
+    createItem: (body: Record<string, unknown>) =>
+      this.post('/socoro/quarrylink/api/quoteItem', body),
+    sendToCustomer: (
+      id: number,
+      body: { inclDeliveryCost: boolean; emailRecipients: string[] },
+    ) => this.post(`/socoro/quarrylink/api/quote/${id}/send-to-customer`, body),
+    decision: (
+      id: number,
+      body: {
+        status: string;
+        decisionMakerName: string;
+        poNumber?: string;
+        declineReason?: string;
+      },
+    ) => this.put(`/socoro/quarrylink/api/quote/${id}/decision`, body),
+    convertToJob: (id: number) =>
+      this.post(`/socoro/quarrylink/api/quote/${id}/convert-to-job`),
     contentLibrary: () => this.get('/socoro/quarrylink/api/quote-content-library'),
     policyDocuments: () => this.get('/socoro/quarrylink/api/quote-content-library/policy-document'),
   };
@@ -380,6 +405,14 @@ export class ApiClient {
       this.get(`/socoro/quarrylink/api/payments/cash-sales/${id}`),
     createCashSale: (body: { docketIds: number[]; paymentType: string }) =>
       this.post('/socoro/quarrylink/api/payments/cash-sales', body),
+    createPrepaidQuoteCashSale: (quoteId: number, paymentType: string) =>
+      this.post(`/socoro/quarrylink/api/payments/quotes/${quoteId}/cash-sales`, {
+        paymentType,
+      }),
+    createPrepaidJobCashSale: (jobId: number, paymentType: string) =>
+      this.post(`/socoro/quarrylink/api/payments/jobs/${jobId}/prepaid-cash-sales`, {
+        paymentType,
+      }),
     amendCashSalePaymentType: (id: number, paymentType: string) =>
       this.put(`/socoro/quarrylink/api/payments/cash-sales/${id}/payment-type`, {
         paymentType,
