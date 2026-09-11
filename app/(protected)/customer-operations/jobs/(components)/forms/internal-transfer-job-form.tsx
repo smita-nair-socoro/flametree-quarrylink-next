@@ -33,9 +33,11 @@ type FormValues = z.infer<typeof schema>;
 export default function InternalTransferJobForm({
   onSuccess,
   onCancel,
+  onCreated,
 }: {
   onSuccess?: () => void;
   onCancel?: () => void;
+  onCreated?: (job: { id: number }) => void;
 }) {
   const isDesktop = useMediaQuery('(min-width: 768px)');
   const { data: sites = [] } = useQuery(QuarryListQueryOptions());
@@ -63,11 +65,14 @@ export default function InternalTransferJobForm({
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await createJob.mutateAsync({
+      const created = await createJob.mutateAsync({
         fromSiteId: values.fromSiteId,
         toSiteId: values.toSiteId,
       });
       notifySuccess('Internal transfer job created');
+      if (created?.id) {
+        onCreated?.(created);
+      }
       onSuccess?.();
     } catch (error) {
       notifyError(

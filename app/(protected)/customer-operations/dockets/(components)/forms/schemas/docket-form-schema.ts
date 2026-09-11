@@ -50,6 +50,8 @@ const requiredDocketEmailSchema = z.string().refine(
 export const getDocketFormSchema = (isInternalTransfer = false) => {
   const schema = isInternalTransfer
     ? baseDocketFormSchema.extend({
+        pickUpAddressId: z.string().optional(),
+        deliveryAddressId: z.string().optional(),
         customerContactName: z.string().optional(),
         customerContactPhone: z
           .string()
@@ -70,6 +72,7 @@ export const getDocketFormSchema = (isInternalTransfer = false) => {
       });
 
   return schema.superRefine((data, ctx) => {
+    if (isInternalTransfer) return;
     if (data.jobLineItemType === 'DELIVERY' && !data.deliveryAddressId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,

@@ -16,8 +16,8 @@ export function mapDocketTableItemToRow(item: DocketTableItem): DocketTableRow {
     type: item.type,
     jobReference: item.jobReference,
     status: item.status,
-    customerId: item.customerId,
-    customerName: item.customerName,
+    customerId: item.customerId ?? 0,
+    customerName: item.customerName || (item.customerId ? 'N/A' : 'Internal Transfer'),
     productId: item.productId,
     productName: item.productName,
     deliveryDate: item.deliveryDate,
@@ -32,8 +32,10 @@ export function mapDocketTableItemToRow(item: DocketTableItem): DocketTableRow {
 /** Maps a nested DocketDTO (job/driver/truck lists) into the shared table row. */
 export function mapDocketDtoToTableRow(docket: DocketDTO): DocketTableRow {
   const customer = docket.job?.customerDto;
-  const customerName =
-    customer?.customerType === CUSTOMER_TYPE.BUSINESS
+  const isInternalTransfer = docket.job?.jobType === 'INTERNAL_TRANSFER';
+  const customerName = isInternalTransfer
+    ? 'Internal Transfer'
+    : customer?.customerType === CUSTOMER_TYPE.BUSINESS
       ? customer.businessName || 'N/A'
       : customer?.individualContactName || 'N/A';
 

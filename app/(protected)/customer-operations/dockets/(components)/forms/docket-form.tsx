@@ -39,6 +39,7 @@ import {
   User,
   UserPlus,
   Infinity,
+  ArrowRight,
 } from 'lucide-react';
 import { DatePicker } from '@/components/date-picker';
 import { toLocalDateTime, formatLocalDateTime } from '@/lib/utils/date';
@@ -904,17 +905,20 @@ export default function DocketForm({
           className="cursor-pointer"
           type="button"
           onClick={() =>
-            docketForm.handleSubmit(onSubmit, scrollToFirstError)()
+            docketForm.handleSubmit(onSubmit, (errors) => {
+              scrollToFirstError(errors);
+              if (!isInternalTransfer) return;
+              notifyError(
+                'Please complete the required fields before creating the transfer.',
+              );
+            })()
           }
           disabled={
             (isReadOnly &&
               !canActualLoadSize &&
               !canEditDocketEmail &&
               !canEditCollectionDate) ||
-            isSubmitting ||
-            (isInternalTransfer &&
-              !isEditing &&
-              pricingBreakdown.missingCostPrice)
+            isSubmitting
           }
         >
           {isEditing
@@ -1121,15 +1125,45 @@ export default function DocketForm({
                   <div className="items-center flex gap-2">
                     <Package className="w-5 h-5" />
                     <span className="text-[17px] font-medium">
-                      Product & Vehicle Details
+                      {isInternalTransfer
+                        ? 'Load Details'
+                        : 'Product & Vehicle Details'}
                     </span>
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    Product selection and vehicle configuration
+                    {isInternalTransfer
+                      ? "Where it's going, what's being carried, and how much per load"
+                      : 'Product selection and vehicle configuration'}
                   </span>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-3 gap-4">
+                  {isInternalTransfer ? (
+                    <div className="flex items-center gap-4 rounded-md border bg-slate-50 px-4 py-3">
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          From
+                        </div>
+                        <div className="font-semibold">
+                          {selectedJobDetails?.fromSiteName || '—'}
+                        </div>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 text-amber-700" />
+                      <div>
+                        <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                          To
+                        </div>
+                        <div className="font-semibold">
+                          {selectedJobDetails?.toSiteName || '—'}
+                        </div>
+                      </div>
+                    </div>
+                  ) : null}
+                  <div
+                    className={cn(
+                      'grid gap-4',
+                      isInternalTransfer ? 'grid-cols-2' : 'grid-cols-3',
+                    )}
+                  >
                     <FormSelect
                       control={docketForm.control}
                       name="jobLineItemId"
@@ -1191,22 +1225,6 @@ export default function DocketForm({
                       </FormControl>
                     </FormItem>
                   </div>
-                  {isInternalTransfer ? (
-                    <div className="grid grid-cols-2 gap-4 rounded-md border bg-slate-50 p-3 text-sm">
-                      <div>
-                        <div className="text-muted-foreground">From Site</div>
-                        <div className="font-medium">
-                          {selectedJobDetails?.fromSiteName || '—'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className="text-muted-foreground">To Site</div>
-                        <div className="font-medium">
-                          {selectedJobDetails?.toSiteName || '—'}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
                   {(() => {
                     const jobLineItemId = docketForm.watch('jobLineItemId');
                     const details = selectedJobLineItemDetails();
@@ -1283,6 +1301,96 @@ export default function DocketForm({
                         )}
                       />
                     ) : null;
+
+                    if (isInternalTransfer) {
+                      return (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <FormField
+                              name="productUoM"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Product UoM*</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="w-full"
+                                      disabled
+                                      value={
+                                        field.value ??
+                                        details.productUomLabel ??
+                                        ''
+                                      }
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <FormField
+                              name="plannedLoadSize"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Planned Load Size*</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="w-full"
+                                      {...field}
+                                      value={field.value ?? ''}
+                                      isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
+                                      disabled={
+                                        isReadOnly ||
+                                        !jobLineItemId ||
+                                        !canEditPlannedLoadSize
+                                      }
+                                      suffix={details.productUomLabel}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                          {isDelivery && (
+                            <FormSelect
+                              control={docketForm.control}
+                              name="truckType"
+                              label="Suggested Truck Type*"
+                              searchLabel="Truck Type"
+                              options={truckTypeOptions}
+                              placeholder="Select Truck Type"
+                              disabled={isReadOnly || !canEditTruckType}
+                            />
+                          )}
+                          {showActualLoadSize && (
+                            <FormField
+                              name="actualLoadSize"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Actual Load Size*</FormLabel>
+                                  <FormControl>
+                                    <Input
+                                      className="w-full"
+                                      {...field}
+                                      value={field.value ?? ''}
+                                      isNumber
+                                      allowDecimal
+                                      maxDecimals={2}
+                                      minDecimals={1}
+                                      disabled={!canActualLoadSize}
+                                      suffix={details.productUomLabel}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </>
+                      );
+                    }
 
                     return (
                       <>
@@ -1496,6 +1604,7 @@ export default function DocketForm({
                   })()}
 
                   {!isEditing &&
+                    !isInternalTransfer &&
                     !!docketForm.watch('jobLineItemId') &&
                     selectedJobLineItemDetails().remainingQty <= 0 && (
                       <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
@@ -1550,6 +1659,65 @@ export default function DocketForm({
                     </div>
                   )}
 
+                  {isInternalTransfer &&
+                    !isEditing &&
+                    pricingBreakdown.missingCostPrice && (
+                      <div className="border border-[#FCA5A5] bg-[#FEF2F2] p-3 rounded-md flex flex-col gap-1">
+                        <div className="flex items-center gap-2 font-medium text-sm text-[#991B1B]">
+                          <Info className="h-4 w-4 text-[#DC2626]" />
+                          <span>Cost price is missing</span>
+                        </div>
+                        <div className="text-sm text-[#991B1B] pl-6">
+                          Cost price is missing for{' '}
+                          {selectedJobLineItemDetails().productName ||
+                            'this product'}{' '}
+                          at{' '}
+                          {selectedJobDetails?.fromSiteName ||
+                            'the source site'}
+                          . Set a cost price before creating the transfer.
+                        </div>
+                      </div>
+                    )}
+
+                  {isInternalTransfer ? (
+                    <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
+                      <div className="flex justify-between">
+                        <span className="text-md font-medium">Availability</span>
+                        <Truck className="w-5 h-5" />
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between">
+                          <span className="text-sm text-muted-foreground">
+                            This docket
+                          </span>
+                          <span className="text-sm font-medium">
+                            {formatNumberThousandSeparator(
+                              isEditing &&
+                                currentStatus !== DOCKET_STATUS.UNASSIGNED &&
+                                currentStatus !== DOCKET_STATUS.ASSIGNED &&
+                                currentStatus !== DOCKET_STATUS.PENDING
+                                ? docketForm.watch('actualLoadSize') || 0
+                                : docketForm.watch('plannedLoadSize') || 0,
+                            )}{' '}
+                            {selectedJobLineItemDetails().productUomLabel}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-sm text-muted-foreground">
+                            Remaining on job after this docket
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <span className="text-sm font-semibold">
+                              No limit
+                            </span>
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                              uncapped
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
                   <div className="border rounded-md bg-[#F9FAFB] p-4 flex flex-col gap-4">
                     <div className="flex justify-between">
                       <span className="text-md font-medium">
@@ -1643,6 +1811,7 @@ export default function DocketForm({
                       })()}
                     </div>
                   </div>
+                  )}
                 </div>
               </div>
 

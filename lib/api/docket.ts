@@ -408,7 +408,8 @@ export const useCreateDocket = () => {
           const updatedJob = await APIClient.jobs.getJobItems(data.jobId);
           useJobStore.getState().setSelectedJob(updatedJob);
         } catch {
-          useJobStore.getState().setSelectedJob(null);
+          // Keep the job that is already open. Clearing it drops IT mode
+          // (From Site, linked products, uncapped remaining) for the next docket.
         }
       }
     },

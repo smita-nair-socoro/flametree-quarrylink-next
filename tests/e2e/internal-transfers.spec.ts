@@ -545,16 +545,14 @@ test.describe('Internal Transfers — job create & tabs', () => {
     await expect(
       page.getByText(/Internal transfer job created|created/i).first(),
     ).toBeVisible({ timeout: 20000 });
-    await dismissOpenDialogs(page);
 
-    const search = page.getByPlaceholder('Search internal transfer jobs...');
-    await search.fill(from.name);
-    await page.waitForTimeout(2000);
-    await expect(page.locator('table tbody tr').first()).toBeVisible({
-      timeout: 15000,
+    const jobDialog = page.getByRole('dialog').filter({
+      hasText: /View \/ Edit Job/i,
     });
-    await expect(page.getByText(from.name).first()).toBeVisible();
-    await expect(page.getByText(to.name).first()).toBeVisible();
+    await expect(jobDialog).toBeVisible({ timeout: 20000 });
+    await expect(jobDialog.getByRole('tab', { name: 'Dockets' })).toBeVisible();
+    await expect(jobDialog.getByText(from.name).first()).toBeVisible();
+    await expect(jobDialog.getByText(to.name).first()).toBeVisible();
   });
 
   test('2. Same-site / required sites blocked', async ({ authedPage: page, apiClient }) => {
@@ -761,11 +759,50 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
       ),
     ).toBeVisible();
     await expect(modal.getByText(/⇄ INTERNAL TRANSFER/i)).toBeVisible();
+    await expect(modal.getByText('Load Details')).toBeVisible();
+    await expect(modal.getByText(/^From$/i).first()).toBeVisible();
+    await expect(modal.getByText(/^To$/i).first()).toBeVisible();
     await expect(modal.getByText(SABETO).first()).toBeVisible();
     await expect(modal.getByText(YAQAARA).first()).toBeVisible();
     await expect(
       modal.getByRole('button', { name: 'Create Internal Transfer' }),
     ).toBeVisible();
+  });
+
+  test('7b. Load Details order, density locked, remaining uncapped', async ({
+    authedPage: page,
+    apiClient,
+  }) => {
+    await ensureAp65CostAtSabeto(apiClient);
+    const job = await ensureSabetoYaqaraJob(apiClient);
+    const { modal } = await openAddItDocket(page, job);
+    await selectProductInItModal(page, modal, AP65);
+
+    const loadDetails = modal.locator('div').filter({ hasText: 'Load Details' }).first();
+    const loadText = await modal.innerText();
+    const fromIdx = loadText.indexOf('From');
+    const productIdx = loadText.indexOf('Product*');
+    const densityIdx = loadText.indexOf('Product Density');
+    const uomIdx = loadText.indexOf('Product UoM');
+    const qtyIdx = loadText.indexOf('Planned Load Size');
+    const truckIdx = loadText.indexOf('Suggested Truck Type');
+    const availIdx = loadText.indexOf('Availability');
+    expect(fromIdx).toBeGreaterThanOrEqual(0);
+    expect(productIdx).toBeGreaterThan(fromIdx);
+    expect(densityIdx).toBeGreaterThan(productIdx);
+    expect(uomIdx).toBeGreaterThan(densityIdx);
+    expect(qtyIdx).toBeGreaterThan(uomIdx);
+    expect(truckIdx).toBeGreaterThan(qtyIdx);
+    expect(availIdx).toBeGreaterThan(truckIdx);
+
+    const density = modal.getByRole('textbox', { name: /Product Density/i });
+    await expect(density).toBeDisabled();
+    await expect(modal.getByText('No limit').first()).toBeVisible();
+    await expect(modal.getByText('uncapped').first()).toBeVisible();
+    await expect(
+      modal.getByText(/Total Remaining Product Availability in Job/i),
+    ).toHaveCount(0);
+    void loadDetails;
   });
 
   test('8. Transfer Summary — cost, no tax', async ({
@@ -815,10 +852,10 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     });
     await expect(modal.getByText(/Cost price/i)).toBeVisible();
     await expect(modal.getByText('$0.00 / TN').or(modal.getByText('$0.00 / M3'))).toBeVisible();
-    // Create is disabled when cost is missing (toast path only fires on click).
-    await expect(
-      modal.getByRole('button', { name: 'Create Internal Transfer' }),
-    ).toBeDisabled();
+    await expect(modal.getByText(/Cost price is missing/i).first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(modal.getByText(/Set a cost price before creating the transfer/i)).toBeVisible();
   });
 
   test('10. Multiple dockets on one job (existing + modal)', async ({
@@ -846,6 +883,110 @@ test.describe('Internal Transfers — docket modal & valuation', () => {
     // Opening add modal again proves multi-docket path remains available
     const addBtn = dialog.getByRole('button', { name: /Add Internal Transfer/i });
     await expect(addBtn).toBeVisible();
+  });
+
+  test('8b. Create IT docket via UI — shows on job and dockets page still loads', async ({
+    authedPage: page,
+    apiClient,
+  }) => {
+    test.setTimeout(180000);
+    await ensureAp65CostAtSabeto(apiClient);
+    const job = await ensureSabetoYaqaraJob(apiClient);
+
+    const { modal, jobDialog } = await openAddItDocket(page, job);
+    await selectProductInItModal(page, modal, AP65);
+
+    const loadSize = modal.getByRole('textbox', { name: /Planned Load Size/i });
+    await expect(loadSize).toBeVisible({ timeout: 15000 });
+    if (await loadSize.isEnabled()) {
+      await loadSize.fill('1');
+    }
+
+    const truckType = modal.getByRole('combobox', {
+      name: /Suggested Truck Type/i,
+    });
+    if ((await truckType.count()) > 0 && (await truckType.isEnabled())) {
+      await truckType.click();
+      const opt = page.getByRole('option').first();
+      await expect(opt).toBeVisible({ timeout: 10000 });
+      await opt.click();
+    }
+
+    await fillItDocketTimes(page, modal);
+
+    await expect(modal.getByText('Transfer Summary')).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(modal.getByText(/\$0\.00 \//)).toHaveCount(0);
+
+    const createBtn = modal.getByRole('button', {
+      name: 'Create Internal Transfer',
+    });
+    await expect(createBtn).toBeEnabled({ timeout: 15000 });
+
+    const createResp = page.waitForResponse(
+      (res) =>
+        res.request().method() === 'POST' &&
+        /\/socoro\/quarrylink\/api\/dockets\/?$/.test(
+          new URL(res.url()).pathname,
+        ),
+      { timeout: 60000 },
+    );
+    await createBtn.click();
+    const created = await createResp;
+    const createdBody = await created.text();
+    expect(
+      created.ok(),
+      `UI create IT docket failed: ${created.status()} ${createdBody.slice(0, 600)}`,
+    ).toBeTruthy();
+
+    await expect(
+      page.getByText(/Docket created successfully/i).first(),
+    ).toBeVisible({ timeout: 20000 });
+
+    const createdJson = JSON.parse(createdBody) as {
+      id?: number;
+      docketNumber?: string;
+    };
+    expect(createdJson.docketNumber, 'Created IT docket must return a number').toBeTruthy();
+
+    await expect(jobDialog.getByRole('tab', { name: 'Dockets' })).toBeVisible();
+    if ((await jobDialog.getByRole('tab', { name: 'Dockets' }).count()) > 0) {
+      await jobDialog.getByRole('tab', { name: 'Dockets' }).click();
+    }
+    await expect(
+      jobDialog.getByText(createdJson.docketNumber!).first(),
+    ).toBeVisible({ timeout: 20000 });
+    await expect(jobDialog.getByText('Error loading dockets')).toHaveCount(0);
+
+    await dismissOpenDialogs(page);
+    await page.goto('/customer-operations/dockets', {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.waitForTimeout(2500);
+    await expect(page.getByText('Error loading dockets')).toHaveCount(0);
+    await expect(page.locator('text=client-side exception')).toHaveCount(0);
+  });
+
+  test('8c. Second IT docket on the same job remains creatable', async ({
+    authedPage: page,
+    apiClient,
+  }) => {
+    await ensureAp65CostAtSabeto(apiClient);
+    const job = await ensureSabetoYaqaraJob(apiClient);
+    const { modal } = await openAddItDocket(page, job);
+    await selectProductInItModal(page, modal, AP65);
+    const loadSize = modal.getByRole('textbox', { name: /Planned Load Size/i });
+    if ((await loadSize.count()) > 0 && (await loadSize.isEnabled())) {
+      await loadSize.fill('1');
+    }
+    await expect(modal.getByText('No limit').first()).toBeVisible({
+      timeout: 15000,
+    });
+    await expect(
+      modal.getByRole('button', { name: 'Create Internal Transfer' }),
+    ).toBeEnabled();
+    await expect(modal.getByText(/Cost price is missing/i)).toHaveCount(0);
   });
 });
 
