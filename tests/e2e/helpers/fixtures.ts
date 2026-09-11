@@ -314,6 +314,8 @@ export class ApiClient {
     ) => this.put(`/socoro/quarrylink/api/quote/${id}/decision`, body),
     convertToJob: (id: number) =>
       this.post(`/socoro/quarrylink/api/quote/${id}/convert-to-job`),
+    duplicate: (id: number, body: Record<string, unknown>) =>
+      this.post(`/socoro/quarrylink/api/quote/${id}/duplicate`, body),
     contentLibrary: () => this.get('/socoro/quarrylink/api/quote-content-library'),
     policyDocuments: () => this.get('/socoro/quarrylink/api/quote-content-library/policy-document'),
   };
