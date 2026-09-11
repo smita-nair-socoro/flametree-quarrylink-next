@@ -609,6 +609,11 @@ export interface DocketsTableResponse {
   dockets: DocketsTablePage;
 }
 
+export type DocketsFilterOptions = Pick<
+  DocketsListResponse,
+  'customers' | 'products' | 'statuses' | 'types'
+>;
+
 /**
  * Normalized row used by the dockets DataTable columns (both /table flat
  * rows and nested DocketDTO sources map into this shape).

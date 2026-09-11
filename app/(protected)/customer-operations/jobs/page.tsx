@@ -20,6 +20,7 @@ import {
   JobsListQueryOptions,
   JobStatisticsQueryOptions,
   JobsInfiniteListQueryOptions,
+  JobsFilterQueryOptions,
   getJobsFromInfinitePages,
   toJobApiSortParams,
   toJobApiFilterParams,
@@ -45,8 +46,6 @@ export default function CustomersPage() {
     () => getJobColumns(currencyCode, taxLabel),
     [currencyCode, taxLabel],
   );
-
-  const { data: statistics } = useQuery(JobStatisticsQueryOptions());
 
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
@@ -86,6 +85,7 @@ export default function CustomersPage() {
     data: jobsList,
     isLoading,
     isFetching,
+    isFetched: isJobsListFetched,
   } = useQuery(
     JobsListQueryOptions({
       page: pageIndex,
@@ -96,6 +96,11 @@ export default function CustomersPage() {
       ...apiFilterParams,
     }),
   );
+
+  const { data: statistics } = useQuery({
+    ...JobStatisticsQueryOptions(),
+    enabled: isJobsListFetched,
+  });
 
   const isMobile = useIsMobile();
 
@@ -122,9 +127,11 @@ export default function CustomersPage() {
 
   const jobsPage = jobsList?.jobs;
 
+  const { data: jobFilters } = useQuery(JobsFilterQueryOptions());
+
   const facetOptions = React.useMemo(
-    () => buildJobFacetOptions(jobsList ?? null),
-    [jobsList],
+    () => buildJobFacetOptions(jobFilters ?? null),
+    [jobFilters],
   );
 
   const searchPurchaseOrders = React.useCallback(async (query: string) => {

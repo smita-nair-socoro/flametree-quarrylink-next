@@ -15,9 +15,9 @@ import {
 import { JobDetails } from '@/lib/types/job';
 import { useQuery } from '@tanstack/react-query';
 import {
-  DocketsByJobIdQueryOptions,
-  getDocketItemsFromListResponse,
-  getDocketsPageFromListResponse,
+  DocketsTableQueryOptions,
+  getDocketTableRowsFromTableResponse,
+  getDocketsTablePage,
   toDocketApiSortParams,
 } from '@/lib/api/docket';
 import { JOB_STATUS } from '@/lib/types/job-enums';
@@ -37,7 +37,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   const [pageIndex, setPageIndex] = React.useState(0);
   const [pageSize, setPageSize] = React.useState(10);
   const [sorting, setSorting] = React.useState<SortingState>([
-    { id: 'deliveryCollectionDate', desc: true },
+    { id: 'deliveryDate', desc: true },
   ]);
 
   const apiSortParams = React.useMemo(
@@ -46,7 +46,8 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
   );
 
   const { data: docketPage, isFetching } = useQuery({
-    ...DocketsByJobIdQueryOptions(jobId, {
+    ...DocketsTableQueryOptions({
+      jobId,
       page: pageIndex,
       pageSize,
       ...apiSortParams,
@@ -54,8 +55,8 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
     enabled: !!jobId,
   });
 
-  const items = getDocketItemsFromListResponse(docketPage);
-  const docketsPage = getDocketsPageFromListResponse(docketPage);
+  const items = getDocketTableRowsFromTableResponse(docketPage);
+  const docketsPage = getDocketsTablePage(docketPage);
   const totalElements = docketsPage?.totalElements ?? 0;
   const totalPages =
     docketsPage?.totalPages ?? Math.max(1, Math.ceil(totalElements / pageSize));
@@ -64,7 +65,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
     setSorting(
       newSorting.length > 0
         ? newSorting
-        : [{ id: 'deliveryCollectionDate', desc: true }],
+        : [{ id: 'deliveryDate', desc: true }],
     );
     setPageIndex(0);
   }, []);
@@ -119,7 +120,7 @@ export default function DocketsTab({ selectedJob }: DocketsTabProps) {
             columns={docketsColumns}
             data={items}
             simpleTable={true}
-            defaultSorting={[{ id: 'deliveryCollectionDate', desc: true }]}
+            defaultSorting={[{ id: 'deliveryDate', desc: true }]}
             totalElements={totalElements}
             totalPages={totalPages}
             externalPageIndex={pageIndex}

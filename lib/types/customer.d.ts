@@ -145,6 +145,8 @@ export interface CustomersListResponse {
   types?: string[];
 }
 
+export type CustomersFilterOptions = Omit<CustomersListResponse, 'customers'>;
+
 export interface ArchiveCustomerBlockingQuote {
   id: number;
   quoteNumber: string;

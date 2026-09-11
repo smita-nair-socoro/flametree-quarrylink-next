@@ -19,7 +19,7 @@ export const UsersListQueryOptions = () =>
     queryKey: UserKeys.list(),
     queryFn: () => APIClient.users.getAll(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 5 * 60_000,
   });
 
 export const AccountManagersListQueryOptions = () =>
@@ -27,7 +27,7 @@ export const AccountManagersListQueryOptions = () =>
     queryKey: UserKeys.accountManagers(),
     queryFn: () => APIClient.users.getAccountManagers(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 5 * 60_000,
   });
 
 export const OperationsListQueryOptions = () =>
@@ -35,7 +35,7 @@ export const OperationsListQueryOptions = () =>
     queryKey: UserKeys.operations(),
     queryFn: () => APIClient.users.getOperations(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 5 * 60_000,
   });
 
 /**

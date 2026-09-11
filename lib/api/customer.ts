@@ -17,7 +17,7 @@ import {
   CreateCustomerNoteRequest,
   UpdateCustomerNoteRequest,
 } from '../types/customer';
-import type { CustomersListResponse, CustomersPage } from '../types/customer';
+import type { CustomersListResponse, CustomersPage, CustomersFilterOptions } from '../types/customer';
 import { formatCustomerStatus } from '../utils/customer-helper';
 import {
   mapAdditionalContactFromApi,
@@ -176,7 +176,7 @@ export function isCustomersListResponse(
 }
 
 export function buildCustomerFacetOptions(
-  response?: CustomersListResponse | null,
+  response?: CustomersListResponse | CustomersFilterOptions | null,
 ) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
@@ -203,7 +203,17 @@ export const CustomersListQueryOptions = (params?: CustomersListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
+  });
+
+export const CustomersFilterQueryOptions = (search?: string) =>
+  queryOptions({
+    queryKey: CustomerKeys.filters(search?.trim() || undefined),
+    queryFn: () =>
+      APIClient.customers.getFilters({
+        search: search?.trim() || undefined,
+      }),
+    staleTime: 60_000,
   });
 
 export const CustomersInfiniteListQueryOptions = (
@@ -227,7 +237,7 @@ export const CustomersInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const CustomerDetailQueryOptions = (customerId: number) =>
@@ -244,7 +254,7 @@ export const CustomerReportingQueryOptions = () =>
     queryKey: CustomerKeys.reporting(),
     queryFn: () => APIClient.customers.reporting(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 
 export const CustomerDeliveryAddressesQueryOptions = (

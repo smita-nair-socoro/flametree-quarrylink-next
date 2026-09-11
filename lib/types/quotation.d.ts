@@ -55,6 +55,49 @@ export interface QuotationDTO {
 
 export type Quotation = QuotationDTO;
 
+/** Slim row returned by GET /quote list (paginated). */
+export interface QuoteListItem {
+  id: number;
+  quoteNumber: string;
+  customerId: number;
+  customerName: string;
+  projectName?: string;
+  quoteStatus: QuoteStatus;
+  jobId?: number | null;
+  expiryDate: string | null;
+  totalSellPrice: number;
+  createdAt: string | null;
+  version: number;
+  accountManagerSub?: string;
+  accountManagerName?: string;
+}
+
+export interface QuotesPage {
+  content: QuoteListItem[];
+  totalElements: number;
+  totalPages: number;
+  empty?: boolean;
+  first?: boolean;
+  last?: boolean;
+  number?: number;
+  numberOfElements?: number;
+  size?: number;
+}
+
+export interface QuotesFacetOption {
+  id: string;
+  name: string;
+}
+
+export interface QuotesListResponse {
+  quotes: QuotesPage;
+  statuses?: string[];
+  customers?: QuotesFacetOption[];
+  accountManagers?: QuotesFacetOption[];
+}
+
+export type QuotesFilterOptions = Omit<QuotesListResponse, 'quotes'>;
+
 export interface QuotationLineItem {
   id?: number;
   quoteId: number;

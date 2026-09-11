@@ -12,7 +12,7 @@ export const TenantsGetDetailQueryOptions = () =>
     queryKey: TenantKeys.list(),
     queryFn: () => APIClient.tenants.getTenantDetails(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 5 * 60_000,
   });
 
 export const TenantSubscriptionsAndInvoicesQueryOptions = () =>
@@ -28,7 +28,7 @@ export const TenantCompleteDetailsQueryOptions = () =>
     queryKey: [...TenantKeys.all, 'complete-details'],
     queryFn: () => APIClient.tenants.getTenantCompleteDetails(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 5 * 60_000,
   });
 
 export const TenantInternalDetailsQueryOptions = () =>

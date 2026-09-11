@@ -36,7 +36,7 @@ export const DocketStatisticsQueryOptions = () => {
     queryKey: [...DocketKeys.statistics(), dateKey],
     queryFn: () => APIClient.dockets.statistics(dateKey),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 };
 
@@ -54,6 +54,8 @@ export type DocketsListParams = {
   productIds?: number[];
   /** Restrict results to specific docket ids (e.g. linking from a job/customer dialog). */
   ids?: number[];
+  /** Restrict results to dockets on one job (job dockets tab / linked job view). */
+  jobId?: number;
 };
 
 export type UnassignedDocketsListParams = {
@@ -272,6 +274,34 @@ export function buildDocketFacetOptions(response?: DocketFacetSource | null) {
   };
 }
 
+export const DocketsFilterQueryOptions = (params?: {
+  search?: string;
+  jobId?: number;
+  driverId?: number;
+  truckId?: number;
+}) =>
+  queryOptions({
+    queryKey: DocketKeys.filters(params),
+    queryFn: () => {
+      const search = params?.search?.trim() || undefined;
+      if (params?.jobId) {
+        return APIClient.dockets.getFiltersByJobId(params.jobId, { search });
+      }
+      if (params?.driverId) {
+        return APIClient.dockets.getFiltersByDriverId(params.driverId, {
+          search,
+        });
+      }
+      if (params?.truckId) {
+        return APIClient.dockets.getFiltersByTruckId(params.truckId, {
+          search,
+        });
+      }
+      return APIClient.dockets.getFilters({ search });
+    },
+    staleTime: 60_000,
+  });
+
 export const DocketsListQueryOptions = (params?: DocketsListParams) =>
   queryOptions({
     queryKey: [...DocketKeys.list(), params],
@@ -281,7 +311,7 @@ export const DocketsListQueryOptions = (params?: DocketsListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 /** Default dockets page list — flat GET /dockets/table projection. */
@@ -294,7 +324,7 @@ export const DocketsTableQueryOptions = (params?: DocketsListParams) =>
         page: params?.page === undefined ? undefined : toApiPage(params.page),
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const DocketsInfiniteListQueryOptions = (
@@ -318,7 +348,7 @@ export const DocketsInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const UnassignedDocketsInfiniteQueryOptions = (
@@ -363,7 +393,7 @@ export const DocketsTableInfiniteQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const useCreateDocket = () => {

@@ -12,6 +12,7 @@ import type {
   JobDetails,
   JobItem,
   JobsListResponse,
+  JobsFilterOptions,
   JobsPage,
   SettleJobResponse,
 } from '../types/job';
@@ -132,7 +133,9 @@ export function getJobItemsFromListResponse(
   return data?.jobs?.content ?? [];
 }
 
-export function buildJobFacetOptions(response?: JobsListResponse | null) {
+export function buildJobFacetOptions(
+  response?: JobsListResponse | JobsFilterOptions | null,
+) {
   return {
     statuses: (response?.statuses ?? []).map((status) => ({
       value: status,
@@ -180,7 +183,14 @@ export const JobsListQueryOptions = (params?: JobsListParams) =>
         page: params?.page !== undefined ? toApiPage(params.page) : undefined,
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
+  });
+
+export const JobsFilterQueryOptions = () =>
+  queryOptions({
+    queryKey: JobKeys.filters(),
+    queryFn: () => APIClient.jobs.getFilters(),
+    staleTime: 60_000,
   });
 
 export const InternalTransferJobsListQueryOptions = (
@@ -194,7 +204,7 @@ export const InternalTransferJobsListQueryOptions = (
         page: params?.page !== undefined ? toApiPage(params.page) : undefined,
       }),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export const useCreateInternalTransferJob = () => {
@@ -278,7 +288,7 @@ export const JobsInfiniteListQueryOptions = (
       if (nextPage > page.totalPages) return undefined;
       return nextPage;
     },
-    staleTime: 5_000,
+    staleTime: 30_000,
   });
 
 export function getJobsFromInfinitePages(
@@ -367,7 +377,7 @@ export const JobStatisticsQueryOptions = () =>
     queryKey: JobKeys.statistics(),
     queryFn: () => APIClient.jobs.statistics(),
     placeholderData: keepPreviousData,
-    staleTime: 5_000,
+    staleTime: 60_000,
   });
 
 export const useCancelJob = () => {

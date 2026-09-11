@@ -20,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 import {
   CustomersListQueryOptions,
+  CustomersFilterQueryOptions,
   CustomerReportingQueryOptions,
   CustomersInfiniteListQueryOptions,
   getCustomerItemsFromInfinitePages,
@@ -27,7 +28,6 @@ import {
   toCustomerApiSortParams,
   getCustomersPageFromListResponse,
   buildCustomerFacetOptions,
-  isCustomersListResponse,
   usePullFromAccSoftware,
 } from '@/lib/api/customer';
 import { CustomerKeys } from '@/lib/api/keys';
@@ -134,6 +134,7 @@ export default function CustomersPage() {
     data: customersData,
     isLoading,
     isFetching,
+    isFetched,
     error,
     isError,
   } = useQuery(
@@ -146,7 +147,13 @@ export default function CustomersPage() {
     }),
   );
 
-  const { data: reportingData } = useQuery(CustomerReportingQueryOptions());
+  const { data: reportingData } = useQuery({
+    ...CustomerReportingQueryOptions(),
+    enabled: isFetched,
+  });
+  const { data: customerFilters } = useQuery(
+    CustomersFilterQueryOptions(search.trim() || undefined),
+  );
 
   const isMobile = useIsMobile();
 
@@ -176,11 +183,8 @@ export default function CustomersPage() {
   );
 
   const facetOptions = React.useMemo(
-    () =>
-      buildCustomerFacetOptions(
-        isCustomersListResponse(customersData) ? customersData : null,
-      ),
-    [customersData],
+    () => buildCustomerFacetOptions(customerFilters ?? null),
+    [customerFilters],
   );
 
   const items: CustomerDTO[] = React.useMemo(() => {

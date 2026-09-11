@@ -13,6 +13,7 @@ import {
   CustomerDTO,
   CustomerReporting,
   CustomersListResponse,
+  CustomersFilterOptions,
   CustomersPage,
   ArchiveCustomerResponseDTO,
   UnarchiveCustomerResponseDTO,
@@ -37,6 +38,8 @@ import {
   QuotationDTO,
   QuotationLineItem,
   QuotationReporting,
+  QuotesListResponse,
+  QuotesFilterOptions,
 } from '../types/quotation';
 import { PostEligibilityCheckResponse } from '../types/eligibility-check';
 import { toLocalDateTime } from '../utils/date';
@@ -80,6 +83,7 @@ import {
   DocketsListResponse,
   DocketsPage,
   DocketsTableResponse,
+  DocketsFilterOptions,
   UnassignedDocketsPage,
 } from '../types/docket';
 import {
@@ -95,6 +99,7 @@ import {
   JobStatistics,
   CreateInvoiceResponseDTO,
   JobsListResponse,
+  JobsFilterOptions,
   DeleteJobItemResponse,
   JobAttachmentDTO,
 } from '../types/job';
@@ -787,6 +792,15 @@ export const APIClient = {
       });
       return response;
     },
+    getFilters: (params?: { search?: string }) =>
+      appClient.Get<CustomersFilterOptions>(
+        `/socoro/quarrylink/api/customer/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
     getById: (customerId: number) =>
       appClient.Get<CustomerDTO>(
         `/socoro/quarrylink/api/customer/${customerId}`,
@@ -981,34 +995,40 @@ export const APIClient = {
     getAll: async (params?: {
       page?: number;
       pageSize?: number;
-      status?: string;
-      customerId?: number;
-      accountManagerId?: number;
       search?: string;
       sortBy?: string;
       sortOrder?: string;
+      statuses?: string[];
+      customerIds?: number[];
+      accountManagerSubs?: string[];
+      ids?: number[];
+      status?: string;
+      customerId?: number;
     }) => {
-      const response = await appClient.Get<
-        | QuotationDTO[]
-        | {
-            content: QuotationDTO[];
-            totalElements: number;
-            totalPages: number;
-          }
-      >(`/socoro/quarrylink/api/quote`, {
-        queryString: {
-          page: params?.page?.toString(),
-          pageSize: params?.pageSize?.toString() || '1000',
-          status: params?.status,
-          customerId: params?.customerId?.toString(),
-          accountManagerId: params?.accountManagerId?.toString(),
-          search: params?.search,
-          sortBy: params?.sortBy,
-          sortOrder: params?.sortOrder,
+      const response = await appClient.Get<QuotesListResponse>(
+        `/socoro/quarrylink/api/quote`,
+        {
+          queryString: {
+            page: params?.page?.toString(),
+            pageSize: params?.pageSize?.toString(),
+            search: params?.search?.trim() || undefined,
+            sortBy: params?.sortBy,
+            sortOrder: params?.sortOrder,
+            statuses: params?.statuses,
+            customerIds: params?.customerIds?.map(String),
+            accountManagerSubs: params?.accountManagerSubs,
+            ids: params?.ids?.map(String),
+            status: params?.status,
+            customerId: params?.customerId?.toString(),
+          },
         },
-      });
+      );
       return response;
     },
+    getFilters: () =>
+      appClient.Get<QuotesFilterOptions>(
+        `/socoro/quarrylink/api/quote/filters`,
+      ),
     getById: (quotationId: number) =>
       appClient.Get<QuotationDTO>(
         `/socoro/quarrylink/api/quote/${quotationId}`,
@@ -1175,6 +1195,7 @@ export const APIClient = {
       customerIds?: number[];
       productIds?: number[];
       ids?: number[];
+      jobId?: number;
     }) => {
       const isPaginated =
         params?.page !== undefined || params?.pageSize !== undefined;
@@ -1197,11 +1218,48 @@ export const APIClient = {
             customerIds: params?.customerIds?.map(String),
             productIds: params?.productIds?.map(String),
             ids: params?.ids?.map(String),
+            jobId: params?.jobId?.toString(),
           },
         },
       );
       return response;
     },
+    getFilters: (params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByJobId: (jobId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/job/${jobId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByDriverId: (driverId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/driver/${driverId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
+    getFiltersByTruckId: (truckId: number, params?: { search?: string }) =>
+      appClient.Get<DocketsFilterOptions>(
+        `/socoro/quarrylink/api/dockets/truck/${truckId}/filters`,
+        {
+          queryString: {
+            search: params?.search?.trim() || undefined,
+          },
+        },
+      ),
     /** Paginated unassigned dockets for dispatch all-dates queue. */
     getUnassignedAll: async (params?: {
       page?: number;
@@ -1529,6 +1587,8 @@ export const APIClient = {
       );
       return response;
     },
+    getFilters: () =>
+      appClient.Get<JobsFilterOptions>(`/socoro/quarrylink/api/job/filters`),
     searchPurchaseOrders: async (search?: string, limit = 50) => {
       const response = await appClient.Get<string[]>(
         `/socoro/quarrylink/api/job/purchase-orders`,

@@ -349,6 +349,8 @@ export interface JobsListResponse {
   quarrySuppliers?: JobsFacetOption[];
 }
 
+export type JobsFilterOptions = Omit<JobsListResponse, 'jobs'>;
+
 export interface PullFromAccSoftwareResponse {
   pendingCount: number;
   accountingInvoiceCount: number;
