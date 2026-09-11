@@ -954,10 +954,16 @@ export function useQuotationActions(quotationData?: Quotation | null) {
     }
   }, [quotationData?.inclDeliveryCost]);
 
-  // Sync quotationData to store when view is open, to ensure FormDialog (which reads from store) has fresh data
+  // Sync quotationData to store when view is open, to ensure FormDialog (which reads from store) has fresh data.
+  // Keep with-items fields such as prepay when the list row is missing them.
   React.useEffect(() => {
     if (viewOpen && quotationData) {
-      setSelectedQuotation(quotationData);
+      const current = useQuotationStore.getState().selectedQuotation;
+      if (current?.id === quotationData.id) {
+        setSelectedQuotation({ ...quotationData, ...current });
+      } else {
+        setSelectedQuotation(quotationData);
+      }
     }
   }, [viewOpen, quotationData, setSelectedQuotation]);
 
@@ -1366,7 +1372,11 @@ export function useQuotationActions(quotationData?: Quotation | null) {
       onUnsavedChangesChange={setIsFormDirty}
       headerButtons={
         <QuotationActionButtons
-          quotation={quotationData}
+          quotation={
+            selectedQuotation?.id === quotationData?.id
+              ? { ...quotationData, ...selectedQuotation }
+              : quotationData
+          }
           hasUnsavedChanges={isFormDirty}
         />
       }

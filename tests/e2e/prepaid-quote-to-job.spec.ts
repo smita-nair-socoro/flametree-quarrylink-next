@@ -75,6 +75,9 @@ interface JobItemRow {
   jobItemType?: string;
   type?: string;
   remainingQuantity?: number;
+  totalQuantityRequired?: number;
+  allocatedQuantity?: number;
+  productSellQty?: number;
 }
 
 interface ReceiptDetail {
@@ -120,13 +123,23 @@ function futureExpiry(): string {
 }
 
 function localDateTimePlusHours(hours: number): string {
-  const d = new Date(Date.now() + hours * 3600 * 1000);
+  // Staging tenant clock is Fiji (UTC+12). Naive LocalDateTime is interpreted there.
+  const d = new Date(Date.now() + (hours + 12) * 60 * 60 * 1000);
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
 function itemType(item: { quoteItemType?: string; jobItemType?: string; type?: string }): string {
   return `${item.quoteItemType ?? item.jobItemType ?? item.type ?? ''}`.toUpperCase();
+}
+
+function remainingQty(item: JobItemRow): number {
+  const remaining = Number(item.remainingQuantity);
+  if (Number.isFinite(remaining) && remaining > 0) return remaining;
+  const total = Number(item.totalQuantityRequired ?? item.productSellQty ?? 0);
+  const allocated = Number(item.allocatedQuantity ?? 0);
+  const computed = total - allocated;
+  return Number.isFinite(computed) && computed > 0 ? computed : 0;
 }
 
 function quoteWriteBody(
@@ -283,11 +296,11 @@ async function duplicateQuote(
     `Duplicate quote ${source.id} failed (${res.status()}): ${await responseText(res)}`,
   ).toBeTruthy();
   const created = (await res.json()) as QuoteRow;
-  if (prepay && !created.prepay) {
-    const toggled = await putQuote(apiClient, created, { prepay: true });
+  if (Boolean(created.prepay) !== prepay) {
+    const toggled = await putQuote(apiClient, created, { prepay });
     expect(
       toggled.ok(),
-      `Turning prepay on duplicated quote ${created.id} failed (${toggled.status()}): ${await responseText(toggled)}`,
+      `Setting prepay=${prepay} on duplicated quote ${created.id} failed (${toggled.status()}): ${await responseText(toggled)}`,
     ).toBeTruthy();
     return getQuote(apiClient, created.id);
   }
@@ -330,7 +343,10 @@ async function ensureCollectionLine(
 }
 
 /** Duplicate a collection-only quote (preferred) or create + clone a collection line. */
-async function seedPrepaidCollectionQuote(apiClient: ApiClient): Promise<QuoteRow> {
+async function seedCollectionOnlyQuote(
+  apiClient: ApiClient,
+  prepay: boolean,
+): Promise<QuoteRow> {
   const quotes = await listQuotes(apiClient);
   expect(quotes.length, 'Staging has no quotes to seed from').toBeGreaterThan(0);
 
@@ -344,19 +360,107 @@ async function seedPrepaidCollectionQuote(apiClient: ApiClient): Promise<QuoteRo
     );
     if (sell) collectionTemplate = sell;
     if (classified.hasCollection && !classified.hasDelivery) {
-      const duplicated = await duplicateQuote(apiClient, quote, true);
-      expect(duplicated.prepay).toBe(true);
+      const duplicated = await duplicateQuote(apiClient, quote, prepay);
+      expect(Boolean(duplicated.prepay)).toBe(prepay);
       return duplicated;
     }
   }
 
-  const created = await createPrepaidQuoteFromTemplate(apiClient, quotes[0]);
+  const created = prepay
+    ? await createPrepaidQuoteFromTemplate(apiClient, quotes[0])
+    : await duplicateQuote(apiClient, quotes[0], false);
   expect(
     collectionTemplate,
     'Staging has no Collection quote line to clone onto a prepaid quote',
   ).toBeTruthy();
   await ensureCollectionLine(apiClient, created, collectionTemplate!);
-  return getQuote(apiClient, created.id);
+  const seeded = await getQuote(apiClient, created.id);
+  if (prepay && !seeded.prepay) {
+    const toggled = await putQuote(apiClient, seeded, { prepay: true });
+    expect(
+      toggled.ok(),
+      `Turning prepay on quote ${seeded.id} failed (${toggled.status()}): ${await responseText(toggled)}`,
+    ).toBeTruthy();
+    return getQuote(apiClient, seeded.id);
+  }
+  return seeded;
+}
+
+async function seedPrepaidCollectionQuote(apiClient: ApiClient): Promise<QuoteRow> {
+  return seedCollectionOnlyQuote(apiClient, true);
+}
+
+async function approveAndConvertQuote(
+  apiClient: ApiClient,
+  quote: QuoteRow,
+): Promise<JobRow> {
+  const pending = await putQuote(apiClient, quote, {
+    quoteStatus: 'PENDING',
+    prepay: quote.prepay,
+  });
+  expect(
+    pending.ok(),
+    `Could not move quote ${quote.id} to PENDING (${pending.status()}): ${await responseText(pending)}`,
+  ).toBeTruthy();
+  const pendingQuote = (await pending.json()) as QuoteRow;
+  const approve = await apiClient.quotations.decision(pendingQuote.id, {
+    status: 'APPROVED',
+    decisionMakerName: 'E2E Prepaid',
+    poNumber: 'E2E-PREPAID',
+  });
+  expect(
+    approve.ok(),
+    `Could not approve quote ${pendingQuote.id} (${approve.status()}): ${await responseText(approve)}`,
+  ).toBeTruthy();
+  const convert = await apiClient.quotations.convertToJob(pendingQuote.id);
+  expect(
+    convert.ok(),
+    `Could not convert quote ${pendingQuote.id} to job (${convert.status()}): ${await responseText(convert)}`,
+  ).toBeTruthy();
+  return (await convert.json()) as JobRow;
+}
+
+async function collectionItemOnJob(
+  apiClient: ApiClient,
+  jobId: number,
+): Promise<JobItemRow | null> {
+  const itemsRes = await apiClient.jobs.jobItems(jobId);
+  if (!itemsRes.ok()) return null;
+  const items = rowsFrom(await itemsRes.json()) as JobItemRow[];
+  if (items.some((item) => itemType(item).includes('DELIVERY'))) return null;
+  return (
+    items.find(
+      (item) => itemType(item).includes('COLLECTION') && remainingQty(item) > 0,
+    ) ?? null
+  );
+}
+
+async function seedUnpaidPrepaidCollectionJob(
+  apiClient: ApiClient,
+): Promise<{ job: JobRow; item: JobItemRow }> {
+  const quote = await seedCollectionOnlyQuote(apiClient, false);
+  const converted = await approveAndConvertQuote(apiClient, quote);
+  const detailRes = await apiClient.jobs.get(converted.id);
+  expect(
+    detailRes.ok(),
+    `Could not reload converted job ${converted.id} (${detailRes.status()}): ${await responseText(detailRes)}`,
+  ).toBeTruthy();
+  const detail = (await detailRes.json()) as JobRow;
+  const turnedOn = await apiClient.jobs.update(
+    detail.id,
+    jobUpdateBody(detail, true),
+  );
+  expect(
+    turnedOn.ok(),
+    `Could not turn prepay on converted job ${detail.id} (${turnedOn.status()}): ${await responseText(turnedOn)}`,
+  ).toBeTruthy();
+  const job = (await turnedOn.json()) as JobRow;
+  const item = await collectionItemOnJob(apiClient, job.id);
+  expect(
+    item,
+    `Converted job ${job.id} has no collection remaining quantity`,
+  ).toBeTruthy();
+  return { job, item: item! };
 }
 
 async function seedDraftQuoteWithDelivery(apiClient: ApiClient): Promise<QuoteRow> {
@@ -385,8 +489,8 @@ function jobUpdateBody(job: JobRow, prepay: boolean): Record<string, unknown> {
     projectName: job.projectName,
     jobStatus: job.jobStatus,
     poNumber: job.poNumber,
-    contactPersonName: job.contactPersonName,
-    contactPersonPhone: job.contactPersonPhone,
+    contactPersonName: job.contactPersonName || 'E2E Prepaid',
+    contactPersonPhone: job.contactPersonPhone || '6790000000',
     emailRecipients: job.emailRecipients ?? [],
     estimatedStartDate: job.estimatedStartDate,
     startTimeWindow: job.startTimeWindow,
@@ -475,9 +579,13 @@ async function findPickupAddress(
 ): Promise<Record<string, unknown>> {
   const fallback = {
     locationType: 'ADDRESS',
-    formattedAddress: 'E2E prepaid pickup',
-    city: 'Suva',
-    country: 'Fiji',
+    formattedAddress: 'Nadi Back Rd, Fiji',
+    streetDetailsPrimary: 'Nadi Back Road',
+    suburb: 'Ba',
+    state: 'Western Division',
+    country: 'Fiji Islands',
+    latitude: -17.788594,
+    longitude: 177.441566,
   };
   const tableRes = await apiClient.dockets.table('page=1&pageSize=20');
   if (!tableRes.ok()) return fallback;
@@ -660,32 +768,22 @@ test.describe('Prepaid quote to job - API', () => {
   });
 
   test('unpaid prepaid jobs cannot raise dockets', async ({ apiClient }) => {
-    const found = await findCollectionOnlyJob(apiClient);
-    expect(found, 'No collection-only job to toggle Prepay on').toBeTruthy();
     const pickup = await findPickupAddress(apiClient);
-    const turnedOn = await apiClient.jobs.update(
-      found!.job.id,
-      jobUpdateBody(found!.job, true),
-    );
-    expect(
-      turnedOn.ok(),
-      `Could not turn prepay on for job ${found!.job.id} (${turnedOn.status()}): ${await responseText(turnedOn)}`,
-    ).toBeTruthy();
-
+    const seeded = await seedUnpaidPrepaidCollectionJob(apiClient);
     try {
+      const remaining = remainingQty(seeded.item);
       const start = localDateTimePlusHours(2);
       const end = localDateTimePlusHours(4);
-      const remaining = Number(found!.item.remainingQuantity ?? 1);
       const docketRes = await apiClient.dockets.create({
-        jobId: found!.job.id,
-        jobItemId: found!.item.id,
+        jobId: seeded.job.id,
+        jobItemId: seeded.item.id,
         pickUpAddress: pickup,
         deliveryCollectionDate: start,
         deliveryCollectionStartTime: start,
         deliveryCollectionEndTime: end,
-        customerContactName: found!.job.contactPersonName || 'E2E Prepaid',
-        customerContactPhone: found!.job.contactPersonPhone || '6790000000',
-        docketEmailRecipients: ['admin@flametree.com.au'],
+        customerContactName: seeded.job.contactPersonName || 'E2E Prepaid',
+        customerContactPhone: seeded.job.contactPersonPhone || '6790000000',
+        docketEmailRecipients: ['smita.nair@socoro.com.au'],
         plannedLoadSize: Math.min(1, remaining),
       });
       expect(
@@ -694,11 +792,11 @@ test.describe('Prepaid quote to job - API', () => {
       ).toBe(409);
       expect(await responseText(docketRes)).toContain(PAYMENT_REQUIRED_TO_RAISE_DOCKET);
     } finally {
-      const latestRes = await apiClient.jobs.get(found!.job.id);
+      const latestRes = await apiClient.jobs.get(seeded.job.id);
       const latest = latestRes.ok()
         ? ((await latestRes.json()) as JobRow)
-        : found!.job;
-      await apiClient.jobs.update(found!.job.id, jobUpdateBody(latest, false));
+        : seeded.job;
+      await apiClient.jobs.update(latest.id, jobUpdateBody(latest, false));
     }
   });
 
@@ -772,10 +870,19 @@ test.describe('Prepaid quote to job - UI', () => {
     await expect(page.getByText('Prepay', { exact: true }).first()).toBeVisible({
       timeout: 20000,
     });
-    await expect(
-      page.getByRole('button', { name: 'Record Cash Sale' }).first(),
-    ).toBeVisible({ timeout: 15000 });
     await expect(page.getByText('PREPAID').first()).toBeVisible();
+    const recordCashSale = page.getByRole('button', { name: 'Record Cash Sale' });
+    if ((await recordCashSale.count()) === 0) {
+      const actions = page.getByRole('button', { name: 'Actions' });
+      if (await actions.count()) {
+        await actions.first().click();
+      }
+    }
+    await expect(
+      page.getByRole('button', { name: 'Record Cash Sale' }).or(
+        page.getByRole('menuitem', { name: 'Record Cash Sale' }),
+      ),
+    ).toBeVisible({ timeout: 15000 });
   });
 
   test('prepaid job Cash Sales tab hides Create Cash Sale', async ({
