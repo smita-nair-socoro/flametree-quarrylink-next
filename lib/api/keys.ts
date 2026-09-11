@@ -179,6 +179,7 @@ export const InvoicesKeys = {
   payments: (params?: unknown) =>
     [...InvoicesKeys.all, 'payments', params] as const,
   statistics: () => [...InvoicesKeys.all, 'statistics'] as const,
+  filters: () => [...InvoicesKeys.all, 'filters'] as const,
   detail: (id: number) => [...InvoicesKeys.all, 'detail', id] as const,
   url: (id: number) => [...InvoicesKeys.all, 'url', id] as const,
   pdf: (id: number) => [...InvoicesKeys.all, 'pdf', id] as const,

@@ -399,6 +399,7 @@ test.describe('Payments tab — Invoices table', () => {
     ).toBeVisible({
       timeout: 5000,
     });
+    await expect(page.locator('[data-slot="calendar"]').first()).toBeVisible();
     await page.keyboard.press('Escape');
 
     await page.getByRole('button', { name: 'Clear dates' }).click();
@@ -445,16 +446,18 @@ test.describe('Payments tab — Invoices table', () => {
     await expect(page.getByRole('tab', { name: 'Invoices' })).toBeVisible();
   });
 
-  test('13. No filter chips / voided toggle / column chooser on Invoices', async ({
+  test('13. Customer and Job filters; no voided toggle or column chooser', async ({
     authedPage: page,
   }) => {
     await ensurePaymentsPage(page, 'tab=invoices');
     await expect(page.getByText(/Show voided/i)).toHaveCount(0);
-    await expect(page.getByRole('button', { name: /^Filters$/i })).toHaveCount(
-      0,
-    );
-    // Spec forbids Show/Hide Columns on Payments Invoices table.
     await expect(page.getByRole('button', { name: /Show\/Hide Columns/i })).toHaveCount(0);
+    await expect(
+      page.locator('button.border-dashed:visible', { hasText: /^Customer$/ }),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      page.locator('button.border-dashed:visible', { hasText: /^Job$/ }),
+    ).toBeVisible();
   });
 
   test('14. Empty state when filtered to no results', async ({

@@ -12,17 +12,60 @@ import {
   watchInvoiceRetryBatch,
 } from '@/lib/api/invoice-retry-watch';
 import { toast } from 'sonner';
+import type { PaymentsInvoiceFilterOptions } from '@/lib/types/payments';
 
 export type PaymentsListParams = {
   search?: string;
   fromDate?: string;
   toDate?: string;
   failedOnly?: boolean;
+  customerIds?: number[];
+  jobIds?: number[];
   sortBy?: string;
   sortOrder?: string;
   page?: number;
   pageSize?: number;
 };
+
+function getFacetFilterValues(
+  filters: { id: string; value: unknown }[],
+  columnId: string,
+): string[] {
+  const filter = filters.find((f) => f.id === columnId);
+  if (!filter || !Array.isArray(filter.value)) return [];
+  return filter.value.map((v) => String(v));
+}
+
+export function toPaymentsInvoiceFilterParams(
+  filters: { id: string; value: unknown }[],
+): Pick<PaymentsListParams, 'customerIds' | 'jobIds'> {
+  const customerIds = getFacetFilterValues(filters, 'customerName')
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+  const jobIds = getFacetFilterValues(filters, 'jobNumber')
+    .map(Number)
+    .filter((n) => Number.isFinite(n));
+
+  return {
+    customerIds: customerIds.length ? customerIds : undefined,
+    jobIds: jobIds.length ? jobIds : undefined,
+  };
+}
+
+export function buildPaymentsInvoiceFacetOptions(
+  response?: PaymentsInvoiceFilterOptions | null,
+) {
+  return {
+    customers: (response?.customers ?? []).map((customer) => ({
+      value: customer.id,
+      label: customer.name,
+    })),
+    jobs: (response?.jobs ?? []).map((job) => ({
+      value: job.id,
+      label: job.name,
+    })),
+  };
+}
 
 export function toApiPage(page: number): number {
   return page + 1;
@@ -49,6 +92,13 @@ export const PaymentsInvoiceStatisticsQueryOptions = () =>
     queryKey: InvoicesKeys.statistics(),
     queryFn: () => APIClient.invoices.statistics(),
     staleTime: 5_000,
+  });
+
+export const PaymentsInvoiceFiltersQueryOptions = () =>
+  queryOptions({
+    queryKey: InvoicesKeys.filters(),
+    queryFn: () => APIClient.invoices.getFilters(),
+    staleTime: 60_000,
   });
 
 export const PaymentsCashSalesQueryOptions = (params?: PaymentsListParams) =>
